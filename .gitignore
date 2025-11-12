@@ -5,3 +5,25 @@ npm-debug.log
 .cache/
 .local/
 *.log
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.pythonlibs/
+venv/
+env/
+ENV/
+
+# M3U Matrix Pro
+logs/*.log
+exports/*.m3u
+exports/*.csv
+backups/*.m3u
+temp/*
+thumbnails/*
+epg_data/*
+m3u_matrix_settings.json
+tv_guide.json
