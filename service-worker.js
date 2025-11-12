@@ -1,13 +1,9 @@
-const CACHE_NAME = 'webiptv-cache-v1';
+const CACHE_NAME = 'nexus-tv-cache-v1';
 const urlsToCache = [
     '/',
     '/index.html',
-    '/styles.css',
-    '/script.js',
-    'https://vjs.zencdn.net/8.5.2/video-js.css',
-    'https://vjs.zencdn.net/8.5.2/video.min.js',
-    'https://cdn.jsdelivr.net/npm/hls.js@latest',
-    'https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js'
+    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
+    'https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&display=swap'
 ];
 
 self.addEventListener('install', event => {
