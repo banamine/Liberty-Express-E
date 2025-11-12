@@ -2,12 +2,12 @@ const CACHE_NAME = 'webiptv-cache-v1';
 const urlsToCache = [
     '/',
     '/index.html',
-    './css/styles.css',
-    './js/app.js',
-    '/https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js',
-    '/https://cdn.jsdelivr.net/npm/dashjs@4.7.2/dist/dash.all.min.js',
-    '/https://cdn.jsdelivr.net/npm/feather-icons@4.29.2/dist/feather.min.js',
-    './img/logo.png'
+    '/styles.css',
+    '/script.js',
+    'https://vjs.zencdn.net/8.5.2/video-js.css',
+    'https://vjs.zencdn.net/8.5.2/video.min.js',
+    'https://cdn.jsdelivr.net/npm/hls.js@latest',
+    'https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js'
 ];
 
 self.addEventListener('install', event => {
