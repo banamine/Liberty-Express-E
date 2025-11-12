@@ -1,11 +1,11 @@
 {
-    "name": "Web IPTV",
-    "short_name": "WebIPTV",
-    "description": "Stream your favorite channels with Bugsfree Web IPTV",
-    "start_url": "index.html",
+    "name": "NEXUS TV - Classic Movies Channel",
+    "short_name": "NEXUS TV",
+    "description": "24-hour streaming classic movies channel with futuristic neon interface",
+    "start_url": "/",
     "display": "standalone",
-    "background_color": "#f5f6f5",
-    "theme_color": "#1e90ff",
+    "background_color": "#050510",
+    "theme_color": "#00f3ff",
     "icons": [
         {
             "src": "logo.ico",
