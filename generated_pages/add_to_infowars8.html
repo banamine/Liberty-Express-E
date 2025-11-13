@@ -189,6 +189,44 @@
             margin-bottom: 8px;
         }
         
+        /* Progress Bar and Time Display */
+        #progress-time-container {
+            width: 100%;
+            margin: 8px 0;
+        }
+        
+        #video-time-display {
+            font-size: 0.85rem;
+            color: var(--neon-blue);
+            text-align: center;
+            margin-bottom: 5px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 600;
+        }
+        
+        #video-progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(0, 243, 255, 0.2);
+            border-radius: 3px;
+            overflow: hidden;
+            box-shadow: inset 0 0 8px rgba(0, 243, 255, 0.3);
+            cursor: pointer;
+        }
+        
+        #video-progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+            border-radius: 3px;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px var(--neon-blue);
+        }
+        
+        #video-progress-bar:hover #video-progress-fill {
+            box-shadow: 0 0 15px var(--neon-blue), 0 0 20px var(--neon-purple);
+        }
+        
         /* Audio Controls */
         #audio-controls {
             display: flex;
@@ -941,6 +979,29 @@
                 width: 80px;
             }
         }
+        
+        /* Bumper indicator animations */
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -989,6 +1050,15 @@
         <div id="center-section">
             <div id="current-time">00:00:00</div>
             <div id="channel-name">CLASSIC MOVIES</div>
+            <div id="progress-time-container">
+                <div id="video-time-display">
+                    <span id="time-elapsed">00:00</span> / <span id="time-total">00:00</span>
+                    <span id="time-remaining" style="margin-left: 10px; opacity: 0.7;">(-00:00)</span>
+                </div>
+                <div id="video-progress-bar">
+                    <div id="video-progress-fill"></div>
+                </div>
+            </div>
             <div id="audio-controls">
                 <button class="audio-btn" id="mute-btn" title="Mute/Unmute">
                     <i class="fas fa-volume-up"></i>
@@ -2007,6 +2077,46 @@
             videoPlayer.style.opacity = '1';
         }
         
+        // Update video progress bar and time display
+        function updateVideoProgress() {
+            const currentTime = videoPlayer.currentTime;
+            const duration = videoPlayer.duration;
+            
+            if (isNaN(duration) || duration === 0) return;
+            
+            // Update progress bar
+            const percentage = (currentTime / duration) * 100;
+            document.getElementById('video-progress-fill').style.width = percentage + '%';
+            
+            // Update time displays
+            document.getElementById('time-elapsed').textContent = formatTime(currentTime);
+            document.getElementById('time-total').textContent = formatTime(duration);
+            
+            const timeRemaining = duration - currentTime;
+            document.getElementById('time-remaining').textContent = '(-' + formatTime(timeRemaining) + ')';
+        }
+        
+        // Format seconds to MM:SS
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return '00:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+        
+        // Seek video when clicking progress bar
+        function seekVideo(event) {
+            const progressBar = document.getElementById('video-progress-bar');
+            const clickX = event.clientX - progressBar.getBoundingClientRect().left;
+            const barWidth = progressBar.offsetWidth;
+            const percentage = clickX / barWidth;
+            const newTime = percentage * videoPlayer.duration;
+            
+            if (!isNaN(newTime)) {
+                videoPlayer.currentTime = newTime;
+            }
+        }
+        
         // Show bumper indicator
         function showBumperIndicator(title) {
             const indicator = document.createElement('div');
@@ -2090,6 +2200,10 @@
             
             // Video events
             videoPlayer.addEventListener('ended', handleVideoEnd);
+            videoPlayer.addEventListener('timeupdate', updateVideoProgress);
+            
+            // Progress bar click to seek
+            document.getElementById('video-progress-bar').addEventListener('click', seekVideo);
             
             // Control panel hover events
             controlPanel.addEventListener('mouseenter', () => {
