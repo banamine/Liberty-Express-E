@@ -1,10 +1,7 @@
+# Node.js
 node_modules/
 npm-debug.log
-.DS_Store
-.env
-.cache/
-.local/
-*.log
+package-lock.json
 
 # Python
 __pycache__/
@@ -16,14 +13,55 @@ __pycache__/
 venv/
 env/
 ENV/
+*.egg-info/
+dist/
+build/
 
-# M3U Matrix Pro
-logs/*.log
-exports/*.m3u
-exports/*.csv
-backups/*.m3u
+# M3U Matrix Pro - Working Files
+src/logs/
+src/exports/
+src/backups/
+src/temp/
+src/thumbnails/
+src/epg_data/
+src/m3u_matrix_settings.json
+src/tv_guide.json
+
+# System Files
+.DS_Store
+.env
+.cache/
+.local/
+*.log
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Keep structure but ignore content
+logs/*
+!logs/.gitkeep
+exports/*
+!exports/.gitkeep
+backups/*
+!backups/.gitkeep
 temp/*
+!temp/.gitkeep
 thumbnails/*
+!thumbnails/.gitkeep
 epg_data/*
-m3u_matrix_settings.json
-tv_guide.json
+!epg_data/.gitkeep
+
+# Replit specific
+.replit
+.upm/
+.config/
+.cache/
+.pythonlibs/
+replit.nix
+.replit.json
+
+# Generated pages (keep structure, ignore if too many)
+# generated_pages/*.html
+# !generated_pages/index.html
