@@ -1,0 +1,2037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS TV - Add To Infowars8</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Orbitron', 'Segoe UI', sans-serif;
+        }
+        
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&display=swap');
+        
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-purple: #bc13fe;
+            --neon-green: #39ff14;
+            --neon-pink: #ff00ff;
+            --neon-yellow: #ffff00;
+            --dark-bg: #0a0a16;
+            --darker-bg: #050510;
+            --card-bg: rgba(20, 20, 40, 0.8);
+            --text-light: #ffffff;
+            --glow: 0 0 10px, 0 0 20px, 0 0 30px;
+        }
+        
+        body {
+            background: var(--darker-bg);
+            color: var(--text-light);
+            overflow: hidden;
+            height: 100vh;
+            position: relative;
+        }
+        
+        /* Animated background */
+        #bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(37, 99, 235, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(245, 158, 11, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(188, 19, 254, 0.05) 0%, transparent 50%);
+            animation: pulse 15s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+        
+        /* Top Bar - Redesigned to use full width */
+        #top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 140px;
+            padding: 10px 20px;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(5, 5, 16, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 243, 255, 0.3);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease;
+        }
+        
+        /* Left Section - Thumbnail Carousel - Expanded */
+        #left-section {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            flex: 1;
+            min-width: 45%;
+            max-width: 45%;
+        }
+        
+        /* Thumbnail Carousel in Top Bar - Full width utilization */
+        #thumbnail-carousel-top {
+            display: flex;
+            gap: 30px;
+            justify-content: flex-start;
+            align-items: center;
+            width: 100%;
+            overflow: visible;
+        }
+        
+        .thumbnail-item-top {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.3s ease;
+            min-width: 140px;
+            flex-shrink: 0;
+        }
+        
+        .thumbnail-item-top.active {
+            transform: scale(1.08);
+        }
+        
+        .thumbnail-img-top {
+            width: 120px;
+            height: 75px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 2px solid var(--neon-blue);
+            box-shadow: 0 0 12px var(--neon-blue);
+            transition: all 0.3s ease;
+        }
+        
+        .thumbnail-item-top.active .thumbnail-img-top {
+            border-color: var(--neon-yellow);
+            box-shadow: 0 0 18px var(--neon-yellow);
+        }
+        
+        .thumbnail-info-top {
+            text-align: center;
+            margin-top: 4px;
+            max-width: 120px;
+            width: 100%;
+        }
+        
+        .thumbnail-title-top {
+            font-size: 0.75rem;
+            color: var(--text-light);
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.2;
+            margin-bottom: 2px;
+        }
+        
+        .thumbnail-time-top {
+            font-size: 0.65rem;
+            color: var(--neon-green);
+            text-shadow: 0 0 4px var(--neon-green);
+            font-weight: 700;
+            line-height: 1;
+        }
+        
+        .thumbnail-label-top {
+            margin-top: 3px;
+            font-size: 0.65rem;
+            color: var(--neon-green);
+            text-shadow: 0 0 4px var(--neon-green);
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Center Section - Time, Channel and Audio Controls - Expanded */
+        #center-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            min-width: 30%;
+            max-width: 30%;
+            padding: 0 15px;
+        }
+        
+        #current-time {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--neon-blue);
+            text-shadow: var(--glow) var(--neon-blue);
+            letter-spacing: 1.5px;
+            margin-bottom: 3px;
+        }
+        
+        #channel-name {
+            font-size: 1rem;
+            font-weight: 800;
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 12px rgba(188, 19, 254, 0.6);
+            margin-bottom: 8px;
+        }
+        
+        /* Audio Controls */
+        #audio-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 5px;
+        }
+        
+        .audio-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 28px;
+        }
+        
+        .audio-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 10px var(--neon-blue);
+        }
+        
+        .audio-btn i {
+            font-size: 0.9rem;
+        }
+        
+        /* Volume Slider */
+        #volume-slider-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        #volume-slider {
+            width: 100px;
+            height: 5px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            outline: none;
+        }
+        
+        #volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--neon-blue);
+            cursor: pointer;
+            box-shadow: 0 0 8px var(--neon-blue);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        
+        #volume-slider::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--neon-blue);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 8px var(--neon-blue);
+        }
+        
+        /* Right Section - Upcoming - Expanded */
+        #right-section {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            flex: 1;
+            min-width: 25%;
+            max-width: 25%;
+        }
+        
+        #upcoming-compact {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            min-width: 220px;
+            padding-left: 10px;
+        }
+        
+        .upcoming-label {
+            font-size: 0.75rem;
+            color: var(--neon-green);
+            text-shadow: 0 0 6px var(--neon-green);
+            margin-bottom: 3px;
+            font-weight: 700;
+        }
+        
+        #next-program {
+            font-size: 0.9rem;
+            color: var(--neon-yellow);
+            text-align: right;
+            line-height: 1.3;
+            text-shadow: 0 0 6px var(--neon-yellow);
+            font-weight: 700;
+        }
+        
+        /* Video Container */
+        #video-container {
+            position: fixed;
+            top: 140px;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 140px);
+            z-index: 1;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: height 0.3s ease, top 0.3s ease;
+        }
+        
+        #main-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        /* Control Panel - Hidden by default, shows on hover */
+        #control-panel {
+            position: fixed;
+            bottom: -70px;
+            left: 0;
+            width: 100%;
+            padding: 10px 20px;
+            background: rgba(5, 5, 16, 0.9);
+            backdrop-filter: blur(10px);
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid rgba(255, 0, 255, 0.3);
+            box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.5);
+            transition: bottom 0.3s ease;
+        }
+        
+        body:hover #control-panel {
+            bottom: 0;
+        }
+        
+        .control-group {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .control-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 500;
+            font-size: 0.8rem;
+        }
+        
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 8px var(--neon-blue);
+        }
+        
+        .control-btn i {
+            font-size: 0.9rem;
+        }
+        
+        /* Menu Button in Control Panel */
+        #menu-button {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 6px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 500;
+            font-size: 0.8rem;
+        }
+        
+        #menu-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 8px var(--neon-blue);
+        }
+        
+        /* Dropdown Menu */
+        #dropdown-menu {
+            position: absolute;
+            bottom: 100%;
+            left: 15px;
+            background: rgba(5, 5, 16, 0.95);
+            backdrop-filter: blur(15px);
+            border-radius: 8px;
+            padding: 10px;
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 100;
+            min-width: 200px;
+            margin-bottom: 5px;
+        }
+        
+        .menu-control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .menu-control-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            font-size: 0.8rem;
+            text-align: left;
+            width: 100%;
+        }
+        
+        .menu-control-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 8px var(--neon-blue);
+        }
+        
+        .menu-control-btn i {
+            font-size: 0.9rem;
+            width: 16px;
+        }
+        
+        /* Title Bubble */
+        #title-bubble {
+            position: fixed;
+            top: 50%;
+            left: 30px;
+            transform: translateY(-50%);
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid var(--neon-blue);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            z-index: 5;
+            max-width: 300px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        #title-bubble.show {
+            opacity: 1;
+        }
+        
+        .bubble-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: var(--text-light);
+        }
+        
+        .bubble-time {
+            font-size: 1rem;
+            color: var(--neon-green);
+        }
+        
+        /* Timezone Clocks Section */
+        #timezone-clocks {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 20;
+            background: rgba(5, 5, 16, 0.95);
+            backdrop-filter: blur(15px);
+            border-radius: 15px;
+            padding: 20px;
+            width: 85%;
+            max-width: 700px;
+            border: 2px solid var(--neon-purple);
+            box-shadow: 0 0 30px rgba(188, 19, 254, 0.5);
+            display: none;
+        }
+        
+        .clocks-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(188, 19, 254, 0.3);
+        }
+        
+        .clocks-title {
+            font-size: 1.5rem;
+            color: var(--neon-purple);
+            text-shadow: 0 0 10px var(--neon-purple);
+        }
+        
+        .clocks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+        }
+        
+        .timezone-clock {
+            background: rgba(20, 20, 40, 0.6);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            border: 1px solid rgba(0, 243, 255, 0.2);
+        }
+        
+        .timezone-name {
+            font-size: 0.9rem;
+            color: var(--neon-green);
+            margin-bottom: 8px;
+        }
+        
+        .timezone-time {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px var(--neon-blue);
+        }
+        
+        /* Playlist Management Section */
+        #playlist-management {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 20;
+            background: rgba(5, 5, 16, 0.95);
+            backdrop-filter: blur(15px);
+            border-radius: 15px;
+            padding: 20px;
+            width: 85%;
+            max-width: 700px;
+            border: 2px solid var(--neon-blue);
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.5);
+            display: none;
+        }
+        
+        .playlist-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 243, 255, 0.3);
+        }
+        
+        .playlist-title {
+            font-size: 1.5rem;
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px var(--neon-blue);
+        }
+        
+        .playlist-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .playlist-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .playlist-option input[type="radio"] {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--neon-green);
+            border-radius: 50%;
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .playlist-option input[type="radio"]:checked::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 8px;
+            height: 8px;
+            background: var(--neon-green);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--neon-green);
+        }
+        
+        .playlist-option label {
+            color: var(--text-light);
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .playlist-input {
+            width: 100%;
+            padding: 10px 12px;
+            background: rgba(20, 20, 40, 0.6);
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            border-radius: 6px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .playlist-input:focus {
+            outline: none;
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 8px var(--neon-blue);
+        }
+        
+        .playlist-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+        
+        /* Splash Screen */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 5, 16, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 1s ease;
+        }
+        
+        #splash-content {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--neon-blue);
+        }
+        
+        .splash-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .splash-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px var(--neon-blue);
+        }
+        
+        .splash-date {
+            font-size: 1.2rem;
+            color: var(--neon-green);
+        }
+        
+        .schedule-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .schedule-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            border-radius: 8px;
+            border-left: 3px solid var(--neon-blue);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .schedule-thumb {
+            width: 60px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid var(--neon-blue);
+        }
+        
+        .schedule-time {
+            font-weight: 600;
+            color: var(--neon-green);
+            margin-bottom: 5px;
+        }
+        
+        .schedule-title {
+            font-size: 0.9rem;
+        }
+        
+        .loading-bar-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+        
+        .loading-bar {
+            height: 100%;
+            background: var(--neon-blue);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        /* Auto-refresh notification */
+        #refresh-notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(5, 5, 16, 0.95);
+            backdrop-filter: blur(15px);
+            padding: 30px;
+            border-radius: 15px;
+            z-index: 100;
+            text-align: center;
+            border: 2px solid var(--neon-blue);
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.5);
+            display: none;
+        }
+        
+        #refresh-notification h2 {
+            color: var(--neon-yellow);
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+            text-shadow: 0 0 10px var(--neon-yellow);
+        }
+        
+        #refresh-countdown {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--neon-blue);
+            margin: 15px 0;
+            text-shadow: var(--glow) var(--neon-blue);
+        }
+        
+        /* Fullscreen adjustments */
+        body:fullscreen #top-bar,
+        body:-webkit-full-screen #top-bar,
+        body:-moz-full-screen #top-bar {
+            transform: translateY(-100%);
+        }
+        
+        body:fullscreen #control-panel,
+        body:-webkit-full-screen #control-panel,
+        body:-moz-full-screen #control-panel {
+            bottom: -70px;
+        }
+        
+        body:fullscreen #video-container,
+        body:-webkit-full-screen #video-container,
+        body:-moz-full-screen #video-container {
+            top: 0;
+            height: 100%;
+        }
+        
+        /* Show top bar on hover in fullscreen */
+        body:fullscreen #top-bar:hover,
+        body:-webkit-full-screen #top-bar:hover,
+        body:-moz-full-screen #top-bar:hover {
+            transform: translateY(0);
+        }
+        
+        /* Auto-hide for bottom bar */
+        #control-panel.auto-hide {
+            bottom: -70px;
+        }
+        
+        body:hover #control-panel.auto-hide {
+            bottom: 0;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 1200px) {
+            #left-section {
+                min-width: 45%;
+                max-width: 45%;
+            }
+            
+            #right-section {
+                min-width: 25%;
+                max-width: 25%;
+            }
+            
+            #current-time {
+                font-size: 1.4rem;
+            }
+            
+            #thumbnail-carousel-top {
+                gap: 25px;
+            }
+            
+            .thumbnail-item-top {
+                min-width: 120px;
+            }
+            
+            .thumbnail-img-top {
+                width: 100px;
+                height: 65px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            #top-bar {
+                height: 160px;
+                flex-wrap: wrap;
+                padding: 5px 15px;
+            }
+            
+            #video-container {
+                top: 160px;
+                height: calc(100% - 160px);
+            }
+            
+            #left-section {
+                min-width: 100%;
+                max-width: 100%;
+                order: 1;
+                margin-bottom: 5px;
+            }
+            
+            #center-section {
+                min-width: 50%;
+                max-width: 50%;
+                order: 2;
+                flex: 1;
+            }
+            
+            #right-section {
+                min-width: 50%;
+                max-width: 50%;
+                order: 3;
+                flex: 1;
+                justify-content: flex-end;
+            }
+            
+            #current-time {
+                font-size: 1.2rem;
+            }
+            
+            #next-program {
+                font-size: 0.8rem;
+            }
+            
+            .control-group {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .control-btn {
+                padding: 5px 10px;
+                font-size: 0.7rem;
+            }
+            
+            #timezone-clocks, #playlist-management {
+                width: 95%;
+                padding: 15px;
+            }
+            
+            .clocks-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            #title-bubble {
+                left: 15px;
+                max-width: 250px;
+            }
+            
+            /* Adjust thumbnails for mobile */
+            #thumbnail-carousel-top {
+                gap: 20px;
+            }
+            
+            .thumbnail-item-top {
+                min-width: 100px;
+            }
+            
+            .thumbnail-img-top {
+                width: 80px;
+                height: 55px;
+            }
+            
+            .thumbnail-title-top {
+                font-size: 0.65rem;
+            }
+            
+            .thumbnail-time-top {
+                font-size: 0.55rem;
+            }
+            
+            .thumbnail-info-top {
+                max-width: 80px;
+            }
+            
+            /* Audio controls for mobile */
+            #audio-controls {
+                gap: 8px;
+            }
+            
+            .audio-btn {
+                width: 32px;
+                height: 24px;
+            }
+            
+            .audio-btn i {
+                font-size: 0.8rem;
+            }
+            
+            #volume-slider {
+                width: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div id="bg-animation"></div>
+    
+    <!-- Video Player -->
+    <div id="video-container">
+        <video id="main-video" autoplay muted></video>
+    </div>
+    
+    <!-- Top Bar - Redesigned to use full width -->
+    <div id="top-bar">
+        <!-- Left Section - Thumbnail Carousel - Expanded -->
+        <div id="left-section">
+            <!-- Thumbnail Carousel in Top Bar - Full width utilization -->
+            <div id="thumbnail-carousel-top">
+                <div class="thumbnail-item-top active">
+                    <img class="thumbnail-img-top" id="current-thumb-top" src="https://archive.org/download/rocky-1976_202310/rocky-1976_202310.thumbs/Rocky%20(1976)_000174.jpg" alt="Current Show">
+                    <div class="thumbnail-info-top">
+                        <div class="thumbnail-title-top" id="current-thumb-title">Now Playing</div>
+                        <div class="thumbnail-time-top" id="current-thumb-time">00:00</div>
+                    </div>
+                    <div class="thumbnail-label-top">NOW</div>
+                </div>
+                <div class="thumbnail-item-top">
+                    <img class="thumbnail-img-top" id="next-thumb-top" src="https://archive.org/download/rocky-1976_202310/rocky-1976_202310.thumbs/Rocky%202%20(1979)_000174.jpg" alt="Next Show">
+                    <div class="thumbnail-info-top">
+                        <div class="thumbnail-title-top" id="next-thumb-title">Next Show</div>
+                        <div class="thumbnail-time-top" id="next-thumb-time">02:05</div>
+                    </div>
+                    <div class="thumbnail-label-top">NEXT</div>
+                </div>
+                <div class="thumbnail-item-top">
+                    <img class="thumbnail-img-top" id="later-thumb-top" src="https://archive.org/download/rocky-1976_202310/rocky-1976_202310.thumbs/American%20Graffiti%20(1973)_000001.jpg" alt="Later Show">
+                    <div class="thumbnail-info-top">
+                        <div class="thumbnail-title-top" id="later-thumb-title">Later Show</div>
+                        <div class="thumbnail-time-top" id="later-thumb-time">04:10</div>
+                    </div>
+                    <div class="thumbnail-label-top">LATER</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Center Section - Time, Channel and Audio Controls - Expanded -->
+        <div id="center-section">
+            <div id="current-time">00:00:00</div>
+            <div id="channel-name">CLASSIC MOVIES</div>
+            <div id="audio-controls">
+                <button class="audio-btn" id="mute-btn" title="Mute/Unmute">
+                    <i class="fas fa-volume-up"></i>
+                </button>
+                <div id="volume-slider-container">
+                    <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="1" title="Volume">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Section - Upcoming - Expanded -->
+        <div id="right-section">
+            <div id="upcoming-compact">
+                <div class="upcoming-label">UP NEXT</div>
+                <div id="next-program">Loading...</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Control Panel - Hidden by default, shows on hover -->
+    <div id="control-panel">
+        <!-- Left Control Group - Menu Button -->
+        <div class="control-group">
+            <button id="menu-button">
+                <i class="fas fa-bars"></i> MENU
+            </button>
+            
+            <!-- Dropdown Menu -->
+            <div id="dropdown-menu">
+                <div class="menu-control-group">
+                    <button class="menu-control-btn" id="menu-prev-btn">
+                        <i class="fas fa-step-backward"></i> PREVIOUS
+                    </button>
+                    <button class="menu-control-btn" id="menu-play-pause-btn">
+                        <i class="fas fa-pause"></i> PAUSE
+                    </button>
+                    <button class="menu-control-btn" id="menu-next-btn">
+                        <i class="fas fa-step-forward"></i> NEXT
+                    </button>
+                    <button class="menu-control-btn" id="menu-playlist-btn">
+                        <i class="fas fa-list-music"></i> PLAYLIST
+                    </button>
+                    <button class="menu-control-btn" id="menu-timezone-btn">
+                        <i class="fas fa-globe"></i> TIMEZONES
+                    </button>
+                    <button class="menu-control-btn" id="menu-fullscreen-btn">
+                        <i class="fas fa-expand"></i> FULLSCREEN
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Center Control Group - Player Controls -->
+        <div class="control-group">
+            <button class="control-btn" id="prev-btn">
+                <i class="fas fa-step-backward"></i> PREV
+            </button>
+            <button class="control-btn" id="play-pause-btn">
+                <i class="fas fa-pause"></i> PAUSE
+            </button>
+            <button class="control-btn" id="next-btn">
+                <i class="fas fa-step-forward"></i> NEXT
+            </button>
+        </div>
+        
+        <!-- Right Control Group - Additional Controls -->
+        <div class="control-group">
+            <button class="control-btn" id="playlist-btn">
+                <i class="fas fa-list-music"></i> PLAYLIST
+            </button>
+            <button class="control-btn" id="timezone-btn">
+                <i class="fas fa-globe"></i> TIMEZONES
+            </button>
+            <button class="control-btn" id="fullscreen-btn">
+                <i class="fas fa-expand"></i> FULLSCREEN
+            </button>
+        </div>
+    </div>
+    
+    <!-- Title Bubble -->
+    <div id="title-bubble">
+        <div class="bubble-title">Next Show Title</div>
+        <div class="bubble-time">Starts at --:--</div>
+    </div>
+    
+    <!-- Timezone Clocks Section -->
+    <div id="timezone-clocks">
+        <div class="clocks-header">
+            <div class="clocks-title">WORLD TIMEZONES</div>
+            <button class="control-btn" id="close-timezone-btn">
+                <i class="fas fa-times"></i> CLOSE
+            </button>
+        </div>
+        <div class="clocks-grid" id="clocks-container">
+            <!-- Timezone clocks will be populated by JavaScript -->
+        </div>
+    </div>
+    
+    <!-- Playlist Management Section -->
+    <div id="playlist-management">
+        <div class="playlist-header">
+            <div class="playlist-title">PLAYLIST MANAGEMENT</div>
+            <button class="control-btn" id="close-playlist-btn">
+                <i class="fas fa-times"></i> CLOSE
+            </button>
+        </div>
+        <div class="playlist-options">
+            <div class="playlist-option">
+                <input type="radio" id="replace-playlist" name="playlist-action" value="replace" checked>
+                <label for="replace-playlist">Replace current playlist</label>
+            </div>
+            <div class="playlist-option">
+                <input type="radio" id="append-playlist" name="playlist-action" value="append">
+                <label for="append-playlist">Add to current playlist</label>
+            </div>
+            <div class="playlist-option">
+                <input type="radio" id="random-playlist" name="playlist-action" value="random">
+                <label for="random-playlist">Select random playlist from collection</label>
+            </div>
+        </div>
+        <textarea class="playlist-input" id="m3u-playlist-input" placeholder="Paste M3U playlist content here..."></textarea>
+        <div class="playlist-buttons">
+            <button class="control-btn" id="load-playlist-btn">
+                <i class="fas fa-upload"></i> LOAD PLAYLIST
+            </button>
+            <button class="control-btn" id="save-playlist-btn">
+                <i class="fas fa-save"></i> SAVE PLAYLIST
+            </button>
+            <button class="control-btn" id="reset-playlist-btn">
+                <i class="fas fa-undo"></i> RESET
+            </button>
+        </div>
+    </div>
+    
+    <!-- Splash Screen -->
+    <div id="splash-screen">
+        <div id="splash-content">
+            <div class="splash-header">
+                <div class="splash-title">Today's Schedule</div>
+                <div class="splash-date" id="splash-date">Loading...</div>
+            </div>
+            <div class="schedule-list" id="schedule-list">
+                <!-- Schedule items will be populated by JavaScript -->
+            </div>
+            <div class="loading-bar-container">
+                <div class="loading-bar" id="loading-bar"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Auto-refresh Notification -->
+    <div id="refresh-notification">
+        <h2>DAILY SCHEDULE REFRESH</h2>
+        <p>Preparing new broadcast schedule for tomorrow</p>
+        <div id="refresh-countdown">5</div>
+        <p>System will refresh automatically</p>
+    </div>
+
+    <script>
+        // =====================================================================
+        // SCHEDULE DATA SECTION - CLASSIC MOVIES PLAYLIST
+        // =====================================================================
+        
+        let schedule_data = [
+            {
+                title: "Rocky (1976)",
+                logo: "https://archive.org/download/rocky-1976_202310/rocky-1976_202310.thumbs/Rocky%20(1976)_000174.jpg",
+                video: "https://archive.org/download/rocky-1976_202310/Rocky%20(1976).mp4",
+                start_time: "00:00",
+                end_time: "02:05"
+            },
+            {
+                title: "Rocky 2 (1979)",
+                logo: "https://archive.org/download/rocky-1976_202310/rocky-1976_202310.thumbs/Rocky%202%20(1979)_000174.jpg",
+                video: "https://archive.org/download/rocky-1976_202310/Rocky%202%20(1979).mp4",
+                start_time: "02:05",
+                end_time: "04:10"
+            },
+            {
+                title: "American Graffiti (1973)",
+                logo: "https://archive.org/download/rocky-1976_202310/rocky-1976_202310.thumbs/American%20Graffiti%20(1973)_000001.jpg",
+                video: "https://archive.org/download/rocky-1976_202310/American%20Graffiti%20(1973).mp4",
+                start_time: "04:10",
+                end_time: "06:15"
+            },
+            {
+                title: "The Goodbye Girl (1977)",
+                logo: "https://archive.org/download/rocky-1976_202310/rocky-1976_202310.thumbs/Goodbye%20Girl,%20The%20(1977)_000777.jpg",
+                video: "https://archive.org/download/rocky-1976_202310/Goodbye%20Girl,%20The%20(1977).mp4",
+                start_time: "06:15",
+                end_time: "08:20"
+            },
+            {
+                title: "Love Story (1970)",
+                logo: "https://archive.org/download/rocky-1976_202310/rocky-1976_202310.thumbs/Love%20Story%20(1970)_000783.jpg",
+                video: "https://archive.org/download/rocky-1976_202310/Love%20Story%20(1970).mp4",
+                start_time: "08:20",
+                end_time: "10:25"
+            },
+            {
+                title: "Airport (1970)",
+                logo: "https://archive.org/download/rocky-1976_202310/rocky-1976_202310.thumbs/Airport%20(1970)_001138.jpg",
+                video: "https://archive.org/download/rocky-1976_202310/Airport%20(1970).mp4",
+                start_time: "10:25",
+                end_time: "12:30"
+            },
+            {
+                title: "The Rose (1979)",
+                logo: "https://archive.org/download/rocky-1976_202310/rocky-1976_202310.thumbs/The%20Rose%20(1979)_000001.jpg",
+                video: "https://archive.org/download/rocky-1976_202310/The%20Rose%20(1979).mp4",
+                start_time: "12:30",
+                end_time: "14:35"
+            },
+            {
+                title: "Kramer vs. Kramer (1979)",
+                logo: "https://archive.org/download/rocky-1976_202310/rocky-1976_202310.thumbs/Kramer%20vs%20Kramer%20(1979)_000309.jpg",
+                video: "https://archive.org/download/rocky-1976_202310/Kramer%20vs%20Kramer%20(1979).mp4",
+                start_time: "14:35",
+                end_time: "16:40"
+            },
+            {
+                title: "Blazing Saddles (1974)",
+                logo: "https://archive.org/download/rocky-1976_202310/rocky-1976_202310.thumbs/Blazing%20Saddles%20(1974)_001833.jpg",
+                video: "https://archive.org/download/rocky-1976_202310/Blazing%20Saddles%20(1974).mp4",
+                start_time: "16:40",
+                end_time: "18:45"
+            },
+            {
+                title: "The Longest Yard (1974)",
+                logo: "https://archive.org/download/rocky-1976_202310/rocky-1976_202310.thumbs/The%20Longest%20Yard%20(1974)_000001.jpg",
+                video: "https://archive.org/download/rocky-1976_202310/The%20Longest%20Yard%20(1974).mp4",
+                start_time: "18:45",
+                end_time: "20:50"
+            },
+            {
+                title: "Grease (1978)",
+                logo: "https://archive.org/download/rocky-1976_202310/rocky-1976_202310.thumbs/Grease%20(1978)_002136.jpg",
+                video: "https://archive.org/download/rocky-1976_202310/Grease%20(1978).mp4",
+                start_time: "20:50",
+                end_time: "22:55"
+            },
+            {
+                title: "Superman (1978)",
+                logo: "https://archive.org/download/rocky-1976_202310/rocky-1976_202310.thumbs/Superman%20(1978%20Extended%20version)_001182.jpg",
+                video: "https://archive.org/download/rocky-1976_202310/Superman%20(1978%20Extended%20version).mp4",
+                start_time: "22:55",
+                end_time: "01:00"
+            }
+        ];
+
+        // =====================================================================
+        // TIMEZONE CONFIGURATION
+        // =====================================================================
+        
+        const timezones = [
+            { name: "LOCAL", zone: Intl.DateTimeFormat().resolvedOptions().timeZone },
+            { name: "NEW YORK", zone: "America/New_York" },
+            { name: "LONDON", zone: "Europe/London" },
+            { name: "TOKYO", zone: "Asia/Tokyo" },
+            { name: "SYDNEY", zone: "Australia/Sydney" },
+            { name: "DUBAI", zone: "Asia/Dubai" }
+        ];
+
+        // =====================================================================
+        // HELPER FUNCTIONS
+        // =====================================================================
+        
+        // Function to parse time string (HH:MM) into minutes since midnight
+        function timeToMinutes(timeStr) {
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            return hours * 60 + minutes;
+        }
+
+        // Function to get current time in minutes since midnight
+        function getCurrentTimeInMinutes() {
+            const now = new Date();
+            return now.getHours() * 60 + now.getMinutes();
+        }
+
+        // Function to find the current program based on current time
+        function getCurrentProgram() {
+            const currentTime = getCurrentTimeInMinutes();
+            for (let i = 0; i < schedule_data.length; i++) {
+                const start = timeToMinutes(schedule_data[i].start_time);
+                const end = timeToMinutes(schedule_data[i].end_time);
+                if (currentTime >= start && currentTime < end) {
+                    return { index: i, program: schedule_data[i] };
+                }
+            }
+            // If no program found, return the first program
+            return { index: 0, program: schedule_data[0] };
+        }
+
+        // Function to calculate elapsed time in current program
+        function getCurrentProgramElapsedTime() {
+            const currentTime = getCurrentTimeInMinutes();
+            const { program } = getCurrentProgram();
+            if (program) {
+                const start = timeToMinutes(program.start_time);
+                const elapsed = currentTime - start;
+                return Math.max(0, elapsed); // Ensure non-negative
+            }
+            return 0;
+        }
+
+        // =====================================================================
+        // M3U PLAYLIST PARSER
+        // =====================================================================
+        
+        function parseM3UPlaylist(m3uContent) {
+            const lines = m3uContent.split('\n');
+            const parsedPlaylist = [];
+            let currentItem = {};
+            
+            // Calculate start time for first item (current time or next hour)
+            const now = new Date();
+            let startHour = now.getHours();
+            let startMinute = now.getMinutes();
+            
+            // If we're past 50 minutes, start from next hour
+            if (startMinute > 50) {
+                startHour = (startHour + 1) % 24;
+                startMinute = 0;
+            }
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                
+                // Skip empty lines and M3U header
+                if (line === '' || line === '#EXTM3U') continue;
+                
+                // Check for EXTINF line (contains metadata)
+                if (line.startsWith('#EXTINF:')) {
+                    // Extract title (everything after the last comma)
+                    const title = line.split(',').pop();
+                    currentItem.title = title;
+                    
+                    // Try to extract logo from EXTINF if available
+                    const logoMatch = line.match(/tvg-logo="([^"]+)"/);
+                    if (logoMatch) {
+                        currentItem.logo = logoMatch[1];
+                    } else {
+                        // Use a placeholder if no logo available
+                        currentItem.logo = `https://placehold.co/140x80/1a1a2a/cccccc?text=${encodeURIComponent(title.substring(0, 10))}`;
+                    }
+                } 
+                // If it's a URL line and we have a title
+                else if (line.startsWith('http') && currentItem.title) {
+                    currentItem.video = line;
+                    
+                    // Calculate start and end times (assuming 30-minute duration)
+                    const startTime = `${startHour.toString().padStart(2, '0')}:${startMinute.toString().padStart(2, '0')}`;
+                    const endHour = (startHour + Math.floor((startMinute + 30) / 60)) % 24;
+                    const endMinute = (startMinute + 30) % 60;
+                    const endTime = `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`;
+                    
+                    currentItem.start_time = startTime;
+                    currentItem.end_time = endTime;
+                    
+                    // Add to playlist
+                    parsedPlaylist.push({...currentItem});
+                    
+                    // Reset for next item
+                    currentItem = {};
+                    
+                    // Update start time for next item
+                    startHour = endHour;
+                    startMinute = endMinute;
+                }
+            }
+            
+            return parsedPlaylist;
+        }
+
+        // =====================================================================
+        // PLAYLIST MANAGEMENT FUNCTIONS
+        // =====================================================================
+        
+        function loadM3UPlaylist() {
+            const m3uContent = document.getElementById('m3u-playlist-input').value.trim();
+            if (!m3uContent) {
+                alert('Please enter M3U playlist content');
+                return;
+            }
+            
+            const action = document.querySelector('input[name="playlist-action"]:checked').value;
+            const parsedPlaylist = parseM3UPlaylist(m3uContent);
+            
+            if (parsedPlaylist.length === 0) {
+                alert('No valid content found in M3U playlist. Please check the format.');
+                return;
+            }
+            
+            if (action === 'replace') {
+                schedule_data = parsedPlaylist;
+                alert(`Playlist replaced with ${parsedPlaylist.length} items`);
+            } else if (action === 'append') {
+                schedule_data = [...schedule_data, ...parsedPlaylist];
+                alert(`${parsedPlaylist.length} items added to playlist`);
+            } else if (action === 'random') {
+                // For random playlist selection, we would need multiple playlists
+                // For now, we'll just use the parsed playlist
+                schedule_data = parsedPlaylist;
+                alert(`Random playlist loaded with ${parsedPlaylist.length} items`);
+            }
+            
+            // Update UI with new playlist
+            updateUI();
+            
+            // Close playlist management panel
+            document.getElementById('playlist-management').style.display = 'none';
+        }
+        
+        function savePlaylist() {
+            // Convert current playlist to M3U format
+            let m3uContent = "#EXTM3U\n";
+            
+            schedule_data.forEach(item => {
+                m3uContent += `#EXTINF:-1 tvg-logo="${item.logo}",${item.title}\n`;
+                m3uContent += `${item.video}\n`;
+            });
+            
+            // Create a blob and download link
+            const blob = new Blob([m3uContent], { type: 'audio/x-mpegurl' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'nexus-tv-playlist.m3u';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            alert('Playlist saved as nexus-tv-playlist.m3u');
+        }
+        
+        function resetPlaylist() {
+            if (confirm('Are you sure you want to reset to the default playlist?')) {
+                // Reload the page to get the original schedule_data
+                location.reload();
+            }
+        }
+
+        // =====================================================================
+        // TIMEZONE CLOCKS FUNCTIONS
+        // =====================================================================
+        
+        function updateTimezoneClocks() {
+            const clocksContainer = document.getElementById('clocks-container');
+            clocksContainer.innerHTML = '';
+            
+            timezones.forEach(tz => {
+                const clockDiv = document.createElement('div');
+                clockDiv.className = 'timezone-clock';
+                
+                const timezoneName = document.createElement('div');
+                timezoneName.className = 'timezone-name';
+                timezoneName.textContent = tz.name;
+                
+                const timezoneTime = document.createElement('div');
+                timezoneTime.className = 'timezone-time';
+                timezoneTime.id = `time-${tz.name.replace(/\s+/g, '-').toLowerCase()}`;
+                
+                clockDiv.appendChild(timezoneName);
+                clockDiv.appendChild(timezoneTime);
+                clocksContainer.appendChild(clockDiv);
+            });
+            
+            updateAllClocks();
+        }
+        
+        function updateAllClocks() {
+            timezones.forEach(tz => {
+                const timeElement = document.getElementById(`time-${tz.name.replace(/\s+/g, '-').toLowerCase()}`);
+                if (timeElement) {
+                    const now = new Date();
+                    const timeString = now.toLocaleTimeString('en-US', { 
+                        timeZone: tz.zone,
+                        hour12: false,
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    });
+                    timeElement.textContent = timeString;
+                }
+            });
+        }
+
+        // =====================================================================
+        // AUDIO CONTROL FUNCTIONS
+        // =====================================================================
+        
+        // Audio state management
+        let isMuted = false;
+        let currentVolume = 1.0;
+        
+        // Function to toggle mute state
+        function toggleMute() {
+            isMuted = !isMuted;
+            updateMuteState();
+        }
+        
+        // Function to update mute state and UI
+        function updateMuteState() {
+            const muteBtn = document.getElementById('mute-btn');
+            const volumeSlider = document.getElementById('volume-slider');
+            
+            if (isMuted) {
+                videoPlayer.muted = true;
+                muteBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+                muteBtn.title = "Unmute";
+                // Store current volume before muting
+                if (currentVolume > 0) {
+                    localStorage.setItem('lastVolume', currentVolume.toString());
+                }
+            } else {
+                videoPlayer.muted = false;
+                muteBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+                muteBtn.title = "Mute";
+                // Restore previous volume if available
+                const lastVolume = localStorage.getItem('lastVolume');
+                if (lastVolume && parseFloat(lastVolume) > 0) {
+                    currentVolume = parseFloat(lastVolume);
+                    volumeSlider.value = currentVolume;
+                    videoPlayer.volume = currentVolume;
+                }
+            }
+            
+            // Save mute state to localStorage
+            localStorage.setItem('isMuted', isMuted.toString());
+        }
+        
+        // Function to handle volume change
+        function handleVolumeChange() {
+            const volumeSlider = document.getElementById('volume-slider');
+            currentVolume = parseFloat(volumeSlider.value);
+            videoPlayer.volume = currentVolume;
+            
+            // If volume is set to 0, automatically mute
+            if (currentVolume === 0) {
+                isMuted = true;
+                updateMuteState();
+            } else if (isMuted) {
+                // If volume is increased from 0, automatically unmute
+                isMuted = false;
+                updateMuteState();
+            }
+            
+            // Save volume to localStorage
+            localStorage.setItem('volume', currentVolume.toString());
+        }
+        
+        // Function to initialize audio state from localStorage
+        function initializeAudioState() {
+            const savedMuteState = localStorage.getItem('isMuted');
+            const savedVolume = localStorage.getItem('volume');
+            
+            if (savedMuteState !== null) {
+                isMuted = savedMuteState === 'true';
+            }
+            
+            if (savedVolume !== null) {
+                currentVolume = parseFloat(savedVolume);
+                document.getElementById('volume-slider').value = currentVolume;
+                videoPlayer.volume = currentVolume;
+            }
+            
+            updateMuteState();
+        }
+        
+        // Add audio control event listeners
+        function setupAudioControls() {
+            document.getElementById('mute-btn').addEventListener('click', toggleMute);
+            document.getElementById('volume-slider').addEventListener('input', handleVolumeChange);
+        }
+
+        // =====================================================================
+        // DOM ELEMENTS AND UI FUNCTIONS
+        // =====================================================================
+        
+        // DOM elements
+        const videoPlayer = document.getElementById('main-video');
+        const nextProgram = document.getElementById('next-program');
+        const currentThumbTop = document.getElementById('current-thumb-top');
+        const nextThumbTop = document.getElementById('next-thumb-top');
+        const laterThumbTop = document.getElementById('later-thumb-top');
+        const currentThumbTitle = document.getElementById('current-thumb-title');
+        const nextThumbTitle = document.getElementById('next-thumb-title');
+        const laterThumbTitle = document.getElementById('later-thumb-title');
+        const currentThumbTime = document.getElementById('current-thumb-time');
+        const nextThumbTime = document.getElementById('next-thumb-time');
+        const laterThumbTime = document.getElementById('later-thumb-time');
+        const currentTimeDisplay = document.getElementById('current-time');
+        const refreshNotification = document.getElementById('refresh-notification');
+        const refreshCountdown = document.getElementById('refresh-countdown');
+        const dropdownMenu = document.getElementById('dropdown-menu');
+        const menuButton = document.getElementById('menu-button');
+        const titleBubble = document.getElementById('title-bubble');
+        const bubbleTitle = document.querySelector('.bubble-title');
+        const bubbleTime = document.querySelector('.bubble-time');
+        const splashScreen = document.getElementById('splash-screen');
+        const splashDate = document.getElementById('splash-date');
+        const scheduleList = document.getElementById('schedule-list');
+        const loadingBar = document.getElementById('loading-bar');
+        const videoContainer = document.getElementById('video-container');
+        const controlPanel = document.getElementById('control-panel');
+
+        // Global variables
+        let titleBubbleTimeout;
+        let isInitialLoad = true;
+        let currentVideoIndex = 0;
+        let splashScreenTimer;
+        let controlPanelVisible = false;
+
+        // Update thumbnails with titles and times
+        function updateThumbnails(currentIndex) {
+            const currentProgram = schedule_data[currentIndex];
+            const nextIndex = (currentIndex + 1) % schedule_data.length;
+            const nextProgram = schedule_data[nextIndex];
+            const laterIndex = (currentIndex + 2) % schedule_data.length;
+            const laterProgram = schedule_data[laterIndex];
+            
+            // Update current thumbnail
+            document.getElementById('current-thumb-top').src = currentProgram.logo;
+            document.getElementById('current-thumb-title').textContent = currentProgram.title;
+            document.getElementById('current-thumb-time').textContent = currentProgram.start_time;
+            
+            // Update next thumbnail
+            document.getElementById('next-thumb-top').src = nextProgram.logo;
+            document.getElementById('next-thumb-title').textContent = nextProgram.title;
+            document.getElementById('next-thumb-time').textContent = nextProgram.start_time;
+            
+            // Update later thumbnail
+            document.getElementById('later-thumb-top').src = laterProgram.logo;
+            document.getElementById('later-thumb-title').textContent = laterProgram.title;
+            document.getElementById('later-thumb-time').textContent = laterProgram.start_time;
+        }
+
+        // Function to update the UI with the current program and time remaining
+        function updateUI() {
+            const { index, program } = getCurrentProgram();
+            if (program) {
+                // Update video source if not already playing the current program
+                if (videoPlayer.src !== program.video) {
+                    videoPlayer.src = program.video;
+                    videoPlayer.load();
+                    
+                    // Calculate elapsed time in current program and set video to that position
+                    const elapsedTime = getCurrentProgramElapsedTime();
+                    videoPlayer.currentTime = elapsedTime * 60; // Convert minutes to seconds
+                    
+                    videoPlayer.play();
+                }
+
+                // Update thumbnails with titles and times
+                updateThumbnails(index);
+
+                // Update upcoming section
+                updateUpcomingSection(index);
+
+                // Update title bubble
+                updateTitleBubble();
+            } else {
+                // If no program found, show first program
+                updateThumbnails(0);
+                
+                if (videoPlayer.src !== schedule_data[0].video) {
+                    videoPlayer.src = schedule_data[0].video;
+                    videoPlayer.load();
+                    
+                    // Calculate elapsed time in first program and set video to that position
+                    const elapsedTime = getCurrentProgramElapsedTime();
+                    videoPlayer.currentTime = elapsedTime * 60; // Convert minutes to seconds
+                    
+                    videoPlayer.play();
+                }
+            }
+        }
+
+        // Update upcoming section
+        function updateUpcomingSection(currentIndex) {
+            // Show next program
+            const nextIndex = (currentIndex + 1) % schedule_data.length;
+            const nextProgramData = schedule_data[nextIndex];
+            nextProgram.textContent = `${nextProgramData.title} at ${nextProgramData.start_time}`;
+        }
+
+        // Update title bubble with next show information
+        function updateTitleBubble() {
+            const nextIndex = (currentVideoIndex + 1) % schedule_data.length;
+            const nextVideo = schedule_data[nextIndex];
+            
+            bubbleTitle.textContent = nextVideo.title;
+            bubbleTime.textContent = `Starts at ${nextVideo.start_time}`;
+        }
+
+        // Show title bubble
+        function showTitleBubble() {
+            titleBubble.classList.add('show');
+            
+            // Hide after 10 seconds
+            clearTimeout(titleBubbleTimeout);
+            titleBubbleTimeout = setTimeout(() => {
+                titleBubble.classList.remove('show');
+            }, 10000);
+        }
+
+        // Reset title bubble timer
+        function resetTitleBubbleTimer() {
+            clearTimeout(titleBubbleTimeout);
+            titleBubble.classList.remove('show');
+        }
+
+        // Update the clock displays
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { 
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            
+            currentTimeDisplay.textContent = timeString;
+            
+            // Update all timezone clocks
+            updateAllClocks();
+            
+            // Check for auto-refresh at 23:59
+            if (now.getHours() === 23 && now.getMinutes() === 59 && now.getSeconds() >= 55) {
+                showRefreshNotification();
+            }
+            
+            // Show title bubble 60 seconds after video load and every 15 minutes
+            const currentTime = getCurrentTimeInMinutes();
+            const currentVideo = schedule_data[currentVideoIndex];
+            const videoStartTime = timeToMinutes(currentVideo.start_time);
+            const videoElapsedTime = currentTime - videoStartTime;
+            
+            if ((videoElapsedTime >= 1 && videoElapsedTime < 1.5) || 
+                (videoElapsedTime >= 15 && videoElapsedTime < 15.5) ||
+                (videoElapsedTime >= 30 && videoElapsedTime < 30.5) ||
+                (videoElapsedTime >= 45 && videoElapsedTime < 45.5)) {
+                showTitleBubble();
+            }
+        }
+
+        // Show auto-refresh notification
+        function showRefreshNotification() {
+            refreshNotification.style.display = 'block';
+            
+            let countdown = 5;
+            refreshCountdown.textContent = countdown;
+            
+            const countdownInterval = setInterval(() => {
+                countdown--;
+                refreshCountdown.textContent = countdown;
+                
+                if (countdown <= 0) {
+                    clearInterval(countdownInterval);
+                    window.location.reload();
+                }
+            }, 1000);
+        }
+
+        // Show splash screen on initial load
+        function showSplashScreen() {
+            // Populate schedule list with thumbnails
+            scheduleList.innerHTML = '';
+            schedule_data.forEach(video => {
+                const scheduleItem = document.createElement('div');
+                scheduleItem.className = 'schedule-item';
+                scheduleItem.innerHTML = `
+                    <img class="schedule-thumb" src="${video.logo}" alt="${video.title}">
+                    <div>
+                        <div class="schedule-time">${video.start_time}</div>
+                        <div class="schedule-title">${video.title}</div>
+                    </div>
+                `;
+                scheduleList.appendChild(scheduleItem);
+            });
+            
+            // Update splash date
+            const now = new Date();
+            const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            splashDate.textContent = now.toLocaleDateString('en-US', dateOptions);
+            
+            // Simulate loading progress over 30 seconds
+            let progress = 0;
+            const totalTime = 30000; // 30 seconds
+            const intervalTime = 100; // update every 100ms
+            const totalSteps = totalTime / intervalTime;
+            const step = 100 / totalSteps;
+            
+            const loadingInterval = setInterval(() => {
+                progress += step;
+                loadingBar.style.width = `${Math.min(progress, 100)}%`;
+                
+                if (progress >= 100) {
+                    clearInterval(loadingInterval);
+                    
+                    // Hide splash screen after a moment
+                    setTimeout(() => {
+                        splashScreen.style.opacity = '0';
+                        setTimeout(() => {
+                            splashScreen.style.display = 'none';
+                            isInitialLoad = false;
+                            videoPlayer.play();
+                        }, 1000);
+                    }, 500);
+                }
+            }, intervalTime);
+        }
+
+        // Toggle play/pause
+        function togglePlayPause() {
+            if (videoPlayer.paused) {
+                videoPlayer.play();
+                document.getElementById('play-pause-btn').innerHTML = '<i class="fas fa-pause"></i> PAUSE';
+                document.getElementById('menu-play-pause-btn').innerHTML = '<i class="fas fa-pause"></i> PAUSE';
+            } else {
+                videoPlayer.pause();
+                document.getElementById('play-pause-btn').innerHTML = '<i class="fas fa-play"></i> PLAY';
+                document.getElementById('menu-play-pause-btn').innerHTML = '<i class="fas fa-play"></i> PLAY';
+            }
+        }
+
+        // Toggle fullscreen
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`Fullscreen error: ${err.message}`);
+                });
+                document.getElementById('control-panel').classList.add('auto-hide');
+                controlPanel.style.bottom = '-70px';
+                controlPanelVisible = false;
+                adjustVideoSize();
+            } else {
+                document.exitFullscreen();
+                document.getElementById('control-panel').classList.remove('auto-hide');
+                controlPanel.style.bottom = '0';
+                controlPanelVisible = true;
+                adjustVideoSize();
+            }
+        }
+
+        // Adjust video size based on control panel visibility
+        function adjustVideoSize() {
+            if (controlPanelVisible) {
+                videoContainer.style.top = '140px';
+                videoContainer.style.height = 'calc(100% - 140px)';
+            } else {
+                videoContainer.style.top = '140px';
+                videoContainer.style.height = 'calc(100% - 70px)';
+            }
+        }
+
+        // Show/hide timezone clocks
+        function toggleTimezoneClocks() {
+            const timezoneSection = document.getElementById('timezone-clocks');
+            if (timezoneSection.style.display === 'block') {
+                timezoneSection.style.display = 'none';
+            } else {
+                timezoneSection.style.display = 'block';
+                updateTimezoneClocks();
+            }
+            dropdownMenu.style.display = 'none';
+        }
+
+        // Show/hide playlist management
+        function togglePlaylistManagement() {
+            const playlistSection = document.getElementById('playlist-management');
+            if (playlistSection.style.display === 'block') {
+                playlistSection.style.display = 'none';
+            } else {
+                playlistSection.style.display = 'block';
+            }
+            dropdownMenu.style.display = 'none';
+        }
+
+        // Toggle dropdown menu
+        function toggleDropdownMenu() {
+            if (dropdownMenu.style.display === 'block') {
+                dropdownMenu.style.display = 'none';
+            } else {
+                dropdownMenu.style.display = 'block';
+            }
+        }
+
+        // Play next video
+        function playNextVideo() {
+            currentVideoIndex = (currentVideoIndex + 1) % schedule_data.length;
+            loadCurrentVideo();
+            setupVideoSchedule();
+            
+            // Reset title bubble timer
+            resetTitleBubbleTimer();
+        }
+
+        // Load current video
+        function loadCurrentVideo() {
+            const currentVideo = schedule_data[currentVideoIndex];
+            videoPlayer.src = currentVideo.video;
+            videoPlayer.load();
+            
+            // Calculate how far into the video we should start based on actual schedule time
+            const currentTime = getCurrentTimeInMinutes();
+            const startTime = timeToMinutes(currentVideo.start_time);
+            const videoPosition = Math.max(0, currentTime - startTime);
+            
+            // Set video to start at correct position based on real schedule timing
+            videoPlayer.currentTime = videoPosition * 60; // Convert to seconds
+        }
+
+        // Handle video end and play next
+        function handleVideoEnd() {
+            playNextVideo();
+        }
+
+        // Set up video schedule and display upcoming shows
+        function setupVideoSchedule() {
+            // Find current video based on actual time
+            const currentTime = getCurrentTimeInMinutes();
+            let foundCurrent = false;
+            
+            for (let i = 0; i < schedule_data.length; i++) {
+                const video = schedule_data[i];
+                const start = timeToMinutes(video.start_time);
+                const end = timeToMinutes(video.end_time);
+                
+                if (currentTime >= start && currentTime < end) {
+                    currentVideoIndex = i;
+                    foundCurrent = true;
+                    break;
+                }
+            }
+            
+            // If no current video found, start from the beginning
+            if (!foundCurrent) {
+                currentVideoIndex = 0;
+            }
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Button events
+            document.getElementById('play-pause-btn').addEventListener('click', togglePlayPause);
+            document.getElementById('menu-play-pause-btn').addEventListener('click', togglePlayPause);
+            document.getElementById('fullscreen-btn').addEventListener('click', toggleFullscreen);
+            document.getElementById('menu-fullscreen-btn').addEventListener('click', toggleFullscreen);
+            document.getElementById('timezone-btn').addEventListener('click', toggleTimezoneClocks);
+            document.getElementById('menu-timezone-btn').addEventListener('click', toggleTimezoneClocks);
+            document.getElementById('playlist-btn').addEventListener('click', togglePlaylistManagement);
+            document.getElementById('menu-playlist-btn').addEventListener('click', togglePlaylistManagement);
+            document.getElementById('close-timezone-btn').addEventListener('click', toggleTimezoneClocks);
+            document.getElementById('close-playlist-btn').addEventListener('click', togglePlaylistManagement);
+            document.getElementById('load-playlist-btn').addEventListener('click', loadM3UPlaylist);
+            document.getElementById('save-playlist-btn').addEventListener('click', savePlaylist);
+            document.getElementById('reset-playlist-btn').addEventListener('click', resetPlaylist);
+            document.getElementById('next-btn').addEventListener('click', playNextVideo);
+            document.getElementById('menu-next-btn').addEventListener('click', playNextVideo);
+            menuButton.addEventListener('click', toggleDropdownMenu);
+            
+            // Video events
+            videoPlayer.addEventListener('ended', handleVideoEnd);
+            
+            // Control panel hover events
+            controlPanel.addEventListener('mouseenter', () => {
+                controlPanelVisible = true;
+                adjustVideoSize();
+            });
+            
+            controlPanel.addEventListener('mouseleave', () => {
+                controlPanelVisible = false;
+                adjustVideoSize();
+            });
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!menuButton.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                    dropdownMenu.style.display = 'none';
+                }
+            });
+            
+            // Keyboard controls
+            document.addEventListener('keydown', (e) => {
+                switch(e.code) {
+                    case 'Space':
+                        e.preventDefault();
+                        togglePlayPause();
+                        break;
+                    case 'KeyF':
+                        toggleFullscreen();
+                        break;
+                    case 'KeyT':
+                        toggleTimezoneClocks();
+                        break;
+                    case 'KeyP':
+                        togglePlaylistManagement();
+                        break;
+                    case 'Escape':
+                        if (document.fullscreenElement) {
+                            document.exitFullscreen();
+                        }
+                        document.getElementById('timezone-clocks').style.display = 'none';
+                        document.getElementById('playlist-management').style.display = 'none';
+                        dropdownMenu.style.display = 'none';
+                        break;
+                }
+            });
+        }
+
+        // Initialize when page loads
+        function init() {
+            updateDateTime();
+            setupVideoSchedule();
+            updateUI();
+            updateClock();
+            updateTimezoneClocks();
+            showSplashScreen();
+            
+            // Initialize audio state
+            initializeAudioState();
+            setupAudioControls();
+            
+            // Start intervals
+            setInterval(updateUI, 1000);
+            setInterval(updateClock, 1000);
+            
+            // Set up event listeners
+            setupEventListeners();
+        }
+
+        // Update date and time display
+        function updateDateTime() {
+            const now = new Date();
+            const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+            
+            currentTimeDisplay.textContent = now.toLocaleTimeString('en-US', timeOptions);
+        }
+
+        // Start when page loads
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
