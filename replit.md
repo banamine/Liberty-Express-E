@@ -93,6 +93,17 @@ M3U_MATRIX_ALL_IN_ONE/
 
 ## Typical Workflow
 
+### Complete Integrated Workflow (NEW!)
+1. **Launch M3U Matrix Pro:** `./run_m3u_matrix.sh`
+2. **Load playlists:** Click **LOAD** and select M3U files
+3. **Organize:** Click **ORGANIZE** to clean and sort channels
+4. **Validate:** Click **CHECK** to test channel URLs
+5. **Generate Pages:** Click **GENERATE PAGES** button
+   - Choose "Yes" to generate by group (creates separate channel for each category)
+   - Choose "No" to create one mega-channel with all programs
+6. **View Results:** Open browser to see channel selector
+7. **Browse Channels:** Click any channel card to watch
+
 ### Managing Playlists with M3U Matrix Pro
 1. Launch the Python app: `./run_m3u_matrix.sh`
 2. Click **LOAD** and select M3U files
@@ -105,18 +116,12 @@ M3U_MATRIX_ALL_IN_ONE/
 
 ### Playing Content with NEXUS TV
 1. Web server automatically runs on port 5000
-2. Access via Replit webview
-3. Splash screen shows daily schedule
-4. Videos play automatically based on schedule
-5. Use control panel (hover bottom) to manage playlists
-6. Upload/replace playlists via UI
-7. View timezone clocks and upcoming programs
-
-### Integration Pattern (Planned)
-1. Use M3U Matrix Pro to organize playlists
-2. Export clean M3U file
-3. Load into NEXUS TV for playback
-4. Generate dynamic channel pages (100+ if needed)
+2. Access via Replit webview to see channel selector
+3. Click any channel card to open that channel
+4. Splash screen shows daily schedule
+5. Videos play automatically based on schedule
+6. Fullscreen player with neon cyberpunk interface
+7. Automatic midnight refresh for new schedule
 
 ## Technical Stack
 
@@ -209,6 +214,38 @@ http://stream.url/video.m3u8
 - Custom tags (preserved by M3U Matrix Pro)
 
 ## Recent Changes
+
+### November 13, 2025 - Page Generator Integration
+**Major Milestone: Dynamic Page Generation System Complete! 🎉**
+
+**Page Generator (page_generator.py):**
+- Created NexusTVPageGenerator class with M3U playlist injection
+- Parses M3U playlists and extracts program metadata
+- Generates 24-hour auto-scheduled playback system
+- Creates professional NEXUS TV channel pages (74KB each)
+- Generates beautiful channel selector with cyberpunk aesthetic
+- Handles 100+ channels capability
+
+**M3U Matrix Pro Updates:**
+- Added "GENERATE PAGES" button to toolbar
+- Integrated page_generator module into main app
+- Added group-based or all-in-one page generation options
+- Threaded generation with progress updates
+- Auto-creates channel selector after generation
+- Moved app to src/ directory for better organization
+
+**Project Structure:**
+- Reorganized: src/ (Python apps), templates/ (NEXUS TV template), generated_pages/ (output)
+- Successfully generated 5 test channel pages from sample playlists
+- Created channel selector index page (7.6K) with grid layout
+- Each channel page includes full 24-hour schedule with auto-playback
+
+**Tested Channels:**
+- Aliein 3 (53 programs)
+- Ancient Aliens 1-18 (208 programs)
+- Ancient Aliens 20 21 (18 programs)
+- Flux8 (670 programs)
+- Add To Infowars8 (23 programs)
 
 ### November 12, 2025 - Complete Setup
 **Web Player (NEXUS TV):**
