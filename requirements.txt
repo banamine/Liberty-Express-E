@@ -1,0 +1,14 @@
+# M3U Matrix Pro - Python Dependencies
+
+# HTTP Requests & API
+requests>=2.31.0
+
+# Image Processing
+Pillow>=10.0.0
+
+# Drag & Drop Support
+tkinterdnd2>=0.4.3
+
+# Optional: Enhanced Features
+# beautifulsoup4>=4.12.0  # For HTML parsing
+# lxml>=4.9.0             # For XMLTV/EPG parsing
