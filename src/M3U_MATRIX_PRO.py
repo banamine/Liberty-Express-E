@@ -9,6 +9,7 @@ import requests
 import sys
 import logging
 from pathlib import Path
+from page_generator import NexusTVPageGenerator
 
 # Setup logging
 log_path = Path(__file__).parent / "logs" / "m3u_matrix.log"
@@ -125,7 +126,7 @@ class M3UMatrix:
             ("LOAD", "#2980b9", self.load), ("ORGANIZE", "#27ae60", self.organize_channels),
             ("CHECK", "#e67e22", self.start_check), ("SAVE", "#c0392b", self.save),
             ("EXPORT CSV", "#16a085", self.export_csv), ("IMPORT URL", "#8e44ad", self.import_url),
-            ("FETCH EPG", "#d35400", self.fetch_epg), ("GOLD", "#f1c40f", self.overlay),
+            ("FETCH EPG", "#d35400", self.fetch_epg), ("GENERATE PAGES", "#e91e63", self.generate_pages),
             ("TV GUIDE", "#9b59b6", self.open_guide), ("NEW", "#34495e", self.new_project)
         ]
        
@@ -1132,6 +1133,82 @@ Success Rate: {results['working']/results['total']*100:.1f}%
                 messagebox.showerror("Error", str(e))
 
         tk.Button(win, text="SAVE GUIDE", bg="#27ae60", fg="white", command=save).pack(pady=10)
+
+    def generate_pages(self):
+        """Generate NEXUS TV pages from current channels"""
+        if not self.channels:
+            messagebox.showwarning("No Channels", "Load channels first!")
+            return
+        
+        # Ask how to generate pages
+        choice = messagebox.askquestion(
+            "Generate Pages", 
+            "Generate pages BY GROUP (Yes) or ALL IN ONE (No)?",
+            icon='question'
+        )
+        
+        def generation_thread():
+            try:
+                self.root.after(0, lambda: self.stat.config(text="Generating NEXUS TV pages..."))
+                generator = NexusTVPageGenerator(template_path="../templates/nexus_tv_template.html")
+                generated = []
+                
+                if choice == 'yes':
+                    # Group by category
+                    groups = {}
+                    for ch in self.channels:
+                        group = ch.get('group', 'Other')
+                        if group not in groups:
+                            groups[group] = []
+                        groups[group].append(ch)
+                    
+                    # Generate page for each group
+                    for group_name, group_channels in groups.items():
+                        m3u_content = self.build_group_m3u(group_channels)
+                        output_path = generator.generate_page(m3u_content, group_name)
+                        generated.append({
+                            'name': group_name,
+                            'file': f'generated_pages/{output_path.name}',
+                            'programs': len(group_channels)
+                        })
+                        self.root.after(0, lambda g=group_name: self.stat.config(text=f"Generated: {g}"))
+                else:
+                    # All channels in one page
+                    m3u_content = self.m3u
+                    output_path = generator.generate_page(m3u_content, "All Channels")
+                    generated.append({
+                        'name': 'All Channels',
+                        'file': f'generated_pages/{output_path.name}',
+                        'programs': len(self.channels)
+                    })
+                
+                # Generate channel selector
+                selector_path = generator.generate_channel_selector(generated)
+                
+                # Show success message
+                self.root.after(0, lambda: messagebox.showinfo(
+                    "Success!", 
+                    f"Generated {len(generated)} channel pages!\n\n"
+                    f"Selector page: {selector_path}\n"
+                    f"Channel pages in: generated_pages/\n\n"
+                    f"Open {selector_path} in your browser to view."
+                ))
+                self.root.after(0, lambda: self.stat.config(text=f"GENERATED: {len(generated)} pages"))
+                
+            except Exception as e:
+                self.root.after(0, lambda: messagebox.showerror("Generation Error", str(e)))
+                self.root.after(0, lambda: self.stat.config(text="Generation failed"))
+        
+        threading.Thread(target=generation_thread, daemon=True).start()
+    
+    def build_group_m3u(self, channels):
+        """Build M3U content for a group of channels"""
+        m3u = "#EXTM3U\n"
+        for ch in channels:
+            extinf = f'#EXTINF:-1 tvg-id="{ch.get("tvg_id", "")}" tvg-name="{ch.get("name", "")}" '
+            extinf += f'tvg-logo="{ch.get("logo", "")}" group-title="{ch.get("group", "Other")}",{ch.get("name", "")}\n'
+            m3u += extinf + ch.get("url", "") + "\n"
+        return m3u
 
     def safe_exit(self):
         """Safe exit procedure"""
