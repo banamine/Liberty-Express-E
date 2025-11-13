@@ -1,6 +1,7 @@
 # M3U_MATRIX_PRO.py
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk, font, simpledialog
+from tkinterdnd2 import DND_FILES, TkinterDnD
 import re, os, threading, tempfile, webbrowser, urllib.request, socket, json, csv
 from datetime import datetime, timedelta
 from collections import defaultdict
@@ -27,8 +28,8 @@ socket.setdefaulttimeout(7)
 
 class M3UMatrix:
     def __init__(self):
-        self.root = tk.Tk()
-        self.root.title("M3U MATRIX • DRAG-DROP • TV GUIDE • LIVE EDIT • ADVANCED PARSING")
+        self.root = TkinterDnD.Tk()
+        self.root.title("M3U MATRIX PRO • DRAG & DROP M3U FILES • DOUBLE-CLICK TO OPEN")
         self.root.geometry("1600x950")
         self.root.minsize(1300, 800)
         self.root.configure(bg="#121212")
@@ -152,10 +153,15 @@ class M3UMatrix:
         left.pack(side=tk.LEFT, fill=tk.Y, padx=(0,10))
         left.pack_propagate(False)
 
-        tk.Label(left, text="Loaded Files", fg="gold", bg="#1e1e1e", font=("Arial", 12, "bold")).pack(pady=5)
+        tk.Label(left, text="Loaded Files (DRAG M3U HERE!)", fg="gold", bg="#1e1e1e", font=("Arial", 12, "bold")).pack(pady=5)
         self.file_list = tk.Listbox(left, bg="#333", fg="#fff", selectbackground="#8e44ad")
         self.file_list.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
         self.file_list.bind("<Button-3>", self.file_menu)
+        self.file_list.bind("<Double-1>", self.open_file_from_list)
+        
+        # Enable drag and drop on file list
+        self.file_list.drop_target_register(DND_FILES)
+        self.file_list.dnd_bind('<<Drop>>', self.drop_files)
 
         tk.Label(left, text="TV Guide Preview", fg="gold", bg="#1e1e1e", font=("Arial", 12, "bold")).pack(pady=(15,5))
         self.guide_prev = tk.Text(left, height=12, bg="#111", fg="#0f0", font=("Courier", 9), wrap=tk.WORD)
@@ -1062,10 +1068,105 @@ Success Rate: {results['working']/results['total']*100:.1f}%
             win.destroy()
         tk.Button(win, text="Schedule", command=ok).pack(pady=10)
 
+    def drop_files(self, event):
+        """Handle drag and drop of M3U files"""
+        files = self.root.tk.splitlist(event.data)
+        m3u_files = [f.strip('{}') for f in files if f.lower().endswith(('.m3u', '.m3u8'))]
+        
+        if not m3u_files:
+            messagebox.showwarning("Invalid Files", "Please drop M3U or M3U8 files only!")
+            return
+        
+        # Add to file list (avoid duplicates)
+        for file_path in m3u_files:
+            if file_path not in self.files:
+                self.files.append(file_path)
+        
+        # Refresh file list display
+        self.file_list.delete(0, tk.END)
+        for ff in self.files:
+            self.file_list.insert(tk.END, os.path.basename(ff))
+        
+        # Auto-load the dropped files in a thread
+        def load_dropped():
+            all_channels = []
+            for file_path in m3u_files:
+                channels = self.parse_m3u_file(file_path)
+                for ch in channels:
+                    ch.setdefault("num", 0)
+                    ch.setdefault("backups", [])
+                all_channels.extend(channels)
+            
+            self.channels.extend(all_channels)
+            self.auto_increment_channels()
+            self.root.after(0, self.fill)
+            self.root.after(0, self.build_m3u)
+            self.root.after(0, lambda: self.stat.config(text=f"Loaded {len(m3u_files)} file(s), {len(all_channels)} channels!"))
+        
+        threading.Thread(target=load_dropped, daemon=True).start()
+        self.stat.config(text=f"Loading {len(m3u_files)} M3U file(s)...")
+    
+    def open_file_from_list(self, event=None):
+        """Open selected file by double-clicking"""
+        selection = self.file_list.curselection()
+        if not selection:
+            return
+        
+        index = selection[0]
+        file_path = self.files[index]
+        
+        # Clear current channels and reload just this file
+        def load_single():
+            self.channels = []
+            channels = self.parse_m3u_file(file_path)
+            for ch in channels:
+                ch.setdefault("num", 0)
+                ch.setdefault("backups", [])
+            self.channels = channels
+            self.auto_increment_channels()
+            self.root.after(0, self.fill)
+            self.root.after(0, self.build_m3u)
+            self.root.after(0, lambda: self.stat.config(text=f"Opened: {os.path.basename(file_path)} - {len(channels)} channels"))
+        
+        threading.Thread(target=load_single, daemon=True).start()
+        self.stat.config(text=f"Opening {os.path.basename(file_path)}...")
+
     def file_menu(self, e):
+        selection = self.file_list.curselection()
         menu = tk.Menu(self.root, tearoff=0, bg="#333", fg="#fff")
-        menu.add_command(label="Remove File", command=self.remove_file)
+        menu.add_command(label="✅ Open File (Double-Click)", command=self.open_file_from_list)
+        menu.add_separator()
+        menu.add_command(label="📋 Copy File Path", command=self.copy_file_path)
+        menu.add_command(label="📁 Open in Explorer", command=self.open_file_location)
+        menu.add_separator()
+        menu.add_command(label="❌ Remove File", command=self.remove_file)
         menu.post(e.x_root, e.y_root)
+    
+    def copy_file_path(self):
+        """Copy selected file path to clipboard"""
+        selection = self.file_list.curselection()
+        if selection:
+            file_path = self.files[selection[0]]
+            self.root.clipboard_clear()
+            self.root.clipboard_append(file_path)
+            self.stat.config(text=f"Copied: {file_path}")
+    
+    def open_file_location(self):
+        """Open file location in file explorer"""
+        selection = self.file_list.curselection()
+        if selection:
+            file_path = self.files[selection[0]]
+            folder = os.path.dirname(os.path.abspath(file_path))
+            try:
+                if sys.platform == 'win32':
+                    os.startfile(folder)
+                elif sys.platform == 'darwin':
+                    os.system(f'open "{folder}"')
+                else:
+                    os.system(f'xdg-open "{folder}"')
+                self.stat.config(text=f"Opened folder: {folder}")
+            except Exception as e:
+                messagebox.showerror("Error", f"Could not open folder: {e}")
 
     def remove_file(self):
         selection = self.file_list.curselection()

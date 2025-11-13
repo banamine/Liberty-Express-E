@@ -215,10 +215,24 @@ http://stream.url/video.m3u8
 
 ## Recent Changes
 
-### November 13, 2025 - Page Generator Integration
-**Major Milestone: Dynamic Page Generation System Complete! 🎉**
+### November 13, 2025 - Enhanced File Management & GitHub Integration
+**Major Update: Drag-and-Drop + GitHub Ready! 🚀**
 
-**Page Generator (page_generator.py):**
+**File Management Enhancements:**
+- ✨ **Drag & Drop**: Drop M3U files directly into the app window
+- 🖱️ **Double-Click**: Open files from list instantly
+- 📋 **Copy/Paste**: Right-click menu with file operations
+- 📁 **Open Location**: Quick access to file folders
+- 🔄 **Auto-Load**: Dropped files load automatically
+
+**GitHub Integration:**
+- Created comprehensive README.md (400+ lines)
+- Created GITHUB_SETUP.md with step-by-step guides
+- Updated .gitignore for clean repository
+- Created requirements.txt for easy dependency install
+- Ready to push to GitHub and collaborate
+
+**Page Generator Integration:**
 - Created NexusTVPageGenerator class with M3U playlist injection
 - Parses M3U playlists and extracts program metadata
 - Generates 24-hour auto-scheduled playback system
@@ -228,10 +242,9 @@ http://stream.url/video.m3u8
 
 **M3U Matrix Pro Updates:**
 - Added "GENERATE PAGES" button to toolbar
-- Integrated page_generator module into main app
-- Added group-based or all-in-one page generation options
-- Threaded generation with progress updates
-- Auto-creates channel selector after generation
+- Integrated tkinterdnd2 for drag-and-drop support
+- Enhanced file list with interactive features
+- Improved threading for smooth UX
 - Moved app to src/ directory for better organization
 
 **Project Structure:**
@@ -240,12 +253,11 @@ http://stream.url/video.m3u8
 - Created channel selector index page (7.6K) with grid layout
 - Each channel page includes full 24-hour schedule with auto-playback
 
-**Tested Channels:**
-- Aliein 3 (53 programs)
-- Ancient Aliens 1-18 (208 programs)
-- Ancient Aliens 20 21 (18 programs)
-- Flux8 (670 programs)
-- Add To Infowars8 (23 programs)
+**Documentation:**
+- README.md: Complete project documentation
+- GITHUB_SETUP.md: GitHub sync instructions
+- requirements.txt: Python dependencies
+- .gitignore: Clean repository setup
 
 ### November 12, 2025 - Complete Setup
 **Web Player (NEXUS TV):**
