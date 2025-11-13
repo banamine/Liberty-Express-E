@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS TV - Channel Selector</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a0a2e 50%, #0a0a0f 100%);
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(0, 243, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 0, 255, 0.1) 0%, transparent 50%);
+            animation: bgPulse 10s ease-in-out infinite;
+            z-index: 0;
+        }
+        
+        @keyframes bgPulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+        
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+            padding: 30px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #00f3ff;
+            border-radius: 20px;
+            box-shadow: 0 0 40px rgba(0, 243, 255, 0.3);
+        }
+        
+        h1 {
+            font-size: 4em;
+            font-weight: 900;
+            background: linear-gradient(90deg, #00f3ff, #ff00ff, #00f3ff);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradient 3s linear infinite;
+            text-shadow: 0 0 30px rgba(0, 243, 255, 0.5);
+            margin-bottom: 10px;
+        }
+        
+        @keyframes gradient {
+            0% { background-position: 0% center; }
+            100% { background-position: 200% center; }
+        }
+        
+        .subtitle {
+            font-size: 1.2em;
+            color: #00f3ff;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+        
+        .channels-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+            padding: 20px;
+        }
+        
+        .channel-card {
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid #00f3ff;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .channel-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(0, 243, 255, 0.1), transparent);
+            transform: rotate(45deg);
+            transition: all 0.5s;
+        }
+        
+        .channel-card:hover {
+            transform: translateY(-10px);
+            border-color: #ff00ff;
+            box-shadow: 0 0 40px rgba(255, 0, 255, 0.5);
+        }
+        
+        .channel-card:hover::before {
+            left: 100%;
+        }
+        
+        .channel-icon {
+            font-size: 3em;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #00f3ff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .channel-name {
+            font-size: 1.5em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+        
+        .channel-info {
+            font-size: 0.9em;
+            color: #888;
+            margin-bottom: 15px;
+        }
+        
+        .watch-btn {
+            display: inline-block;
+            background: linear-gradient(90deg, #00f3ff, #ff00ff);
+            color: #fff;
+            padding: 12px 30px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .watch-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.8);
+        }
+        
+        .stats {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 15px;
+            border: 1px solid #00f3ff;
+        }
+        
+        .stats h3 {
+            color: #00f3ff;
+            font-size: 1.3em;
+            margin-bottom: 10px;
+        }
+        
+        .stats p {
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="animated-bg"></div>
+    
+    <div class="container">
+        <header>
+            <h1>📺 NEXUS TV</h1>
+            <p class="subtitle">Choose Your Channel</p>
+        </header>
+        
+        <div class="channels-grid" id="channelsGrid">
+            <!-- Channels will be inserted here -->
+        </div>
+        
+        <div class="stats">
+            <h3><i class="fas fa-broadcast-tower"></i> Network Status</h3>
+            <p><span id="channelCount">0</span> channels available • 24/7 streaming</p>
+        </div>
+    </div>
+    
+    <script>
+        const channels = [
+            {
+                        "name": "Aliein 3 ",
+                        "file": "generated_pages/aliein_3_.html",
+                        "programs": 53
+            },
+            {
+                        "name": "Ancient Aliens 1-18",
+                        "file": "generated_pages/ancient_aliens_1_18.html",
+                        "programs": 208
+            },
+            {
+                        "name": "Ancient Aliens 20 21",
+                        "file": "generated_pages/ancient_aliens_20_21.html",
+                        "programs": 18
+            },
+            {
+                        "name": "Flux8",
+                        "file": "generated_pages/flux8.html",
+                        "programs": 670
+            },
+            {
+                        "name": "Add To Infowars8",
+                        "file": "generated_pages/add_to_infowars8.html",
+                        "programs": 23
+            }
+];
+        
+        const grid = document.getElementById('channelsGrid');
+        const channelCount = document.getElementById('channelCount');
+        
+        channels.forEach((channel, index) => {
+            const card = document.createElement('div');
+            card.className = 'channel-card';
+            card.innerHTML = `
+                <div class="channel-icon"><i class="fas fa-tv"></i></div>
+                <div class="channel-name">${channel.name}</div>
+                <div class="channel-info">${channel.programs} programs available</div>
+                <a href="${channel.file}" class="watch-btn">
+                    <i class="fas fa-play"></i> Watch Now
+                </a>
+            `;
+            grid.appendChild(card);
+        });
+        
+        channelCount.textContent = channels.length;
+    </script>
+</body>
+</html>
