@@ -941,6 +941,29 @@
                 width: 80px;
             }
         }
+        
+        /* Bumper indicator animations */
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1891,21 +1914,157 @@
         // Load current video
         function loadCurrentVideo() {
             const currentVideo = schedule_data[currentVideoIndex];
-            videoPlayer.src = currentVideo.video;
-            videoPlayer.load();
             
-            // Calculate how far into the video we should start based on actual schedule time
-            const currentTime = getCurrentTimeInMinutes();
-            const startTime = timeToMinutes(currentVideo.start_time);
-            const videoPosition = Math.max(0, currentTime - startTime);
+            // Smooth fade transition
+            videoPlayer.style.transition = 'opacity 0.8s ease-in-out';
+            videoPlayer.style.opacity = '0';
             
-            // Set video to start at correct position based on real schedule timing
-            videoPlayer.currentTime = videoPosition * 60; // Convert to seconds
+            setTimeout(() => {
+                videoPlayer.src = currentVideo.video;
+                videoPlayer.load();
+                
+                // Calculate how far into the video we should start based on actual schedule time
+                const currentTime = getCurrentTimeInMinutes();
+                const startTime = timeToMinutes(currentVideo.start_time);
+                const videoPosition = Math.max(0, currentTime - startTime);
+                
+                // Set video to start at correct position based on real schedule timing
+                videoPlayer.currentTime = videoPosition * 60; // Convert to seconds
+                
+                // Fade in
+                videoPlayer.style.opacity = '1';
+            }, 800);
         }
 
         // Handle video end and play next
         function handleVideoEnd() {
-            playNextVideo();
+            const currentTime = getCurrentTimeInMinutes();
+            const nextVideo = schedule_data[(currentVideoIndex + 1) % schedule_data.length];
+            const nextStartTime = timeToMinutes(nextVideo.start_time);
+            
+            // Check if there's a gap before next show
+            const timeUntilNext = nextStartTime - currentTime;
+            
+            if (timeUntilNext > 1) {
+                // There's a gap - play bumper to fill the time
+                playBumper(timeUntilNext);
+            } else {
+                // No gap - proceed to next video
+                playNextVideo();
+            }
+        }
+        
+        // Play show bumper with smooth transitions
+        function playBumper(duration) {
+            // Create bumper from random clips of today's playlist
+            const bumperClips = [];
+            const clipCount = Math.min(5, schedule_data.length); // Use up to 5 random clips
+            const clipDuration = (duration * 60) / clipCount; // Duration in seconds per clip
+            
+            // Select random programs for bumper
+            const usedIndices = new Set();
+            while (bumperClips.length < clipCount) {
+                const randomIndex = Math.floor(Math.random() * schedule_data.length);
+                if (!usedIndices.has(randomIndex)) {
+                    usedIndices.add(randomIndex);
+                    bumperClips.push(schedule_data[randomIndex]);
+                }
+            }
+            
+            let currentClipIndex = 0;
+            
+            function playBumperClip() {
+                if (currentClipIndex >= bumperClips.length) {
+                    // Bumper finished - move to next show
+                    videoPlayer.style.opacity = '0';
+                    setTimeout(() => {
+                        playNextVideo();
+                        fadeInVideo();
+                    }, 500);
+                    return;
+                }
+                
+                const clip = bumperClips[currentClipIndex];
+                
+                // Fade out current
+                videoPlayer.style.transition = 'opacity 0.5s ease-in-out';
+                videoPlayer.style.opacity = '0';
+                
+                setTimeout(() => {
+                    // Load new clip
+                    videoPlayer.src = clip.video;
+                    videoPlayer.load();
+                    
+                    // Start at random position
+                    const randomStart = Math.random() * 30; // Random start within first 30 seconds
+                    videoPlayer.currentTime = randomStart;
+                    
+                    // Play clip for specified duration
+                    videoPlayer.play().then(() => {
+                        // Fade in
+                        videoPlayer.style.opacity = '1';
+                        
+                        // Show bumper indicator
+                        showBumperIndicator(clip.title);
+                        
+                        // Schedule next clip or end
+                        setTimeout(() => {
+                            currentClipIndex++;
+                            playBumperClip();
+                        }, clipDuration * 1000);
+                    }).catch(err => {
+                        console.log('Bumper clip playback issue:', err);
+                        // Skip to next clip on error
+                        currentClipIndex++;
+                        playBumperClip();
+                    });
+                }, 500);
+            }
+            
+            playBumperClip();
+        }
+        
+        // Fade in video smoothly
+        function fadeInVideo() {
+            videoPlayer.style.transition = 'opacity 0.8s ease-in-out';
+            videoPlayer.style.opacity = '1';
+        }
+        
+        // Show bumper indicator
+        function showBumperIndicator(title) {
+            const indicator = document.createElement('div');
+            indicator.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, rgba(0, 243, 255, 0.9), rgba(255, 0, 255, 0.9));
+                color: white;
+                padding: 15px 25px;
+                border-radius: 10px;
+                font-family: 'Orbitron', sans-serif;
+                font-size: 14px;
+                font-weight: bold;
+                z-index: 1000;
+                box-shadow: 0 0 20px rgba(0, 243, 255, 0.5);
+                animation: slideInRight 0.5s ease-out;
+            `;
+            indicator.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-film"></i>
+                    <div>
+                        <div style="font-size: 10px; opacity: 0.8;">COMING UP NEXT</div>
+                        <div>${title}</div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(indicator);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                indicator.style.animation = 'slideOutRight 0.5s ease-out';
+                setTimeout(() => indicator.remove(), 500);
+            }, 3000);
         }
 
         // Set up video schedule and display upcoming shows
