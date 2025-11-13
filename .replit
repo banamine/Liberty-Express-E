@@ -34,10 +34,9 @@ outputType = "webview"
 localPort = 5000
 externalPort = 80
 
-[[ports]]
-localPort = 43877
-externalPort = 3000
-
 [deployment]
 deploymentTarget = "autoscale"
 run = ["npx", "serve", "-l", "5000", "--no-clipboard"]
+
+[objectStorage]
+defaultBucketID = "replit-objstore-858159f4-0363-4b23-98ee-27b64b61d133"
