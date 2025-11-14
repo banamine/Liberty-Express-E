@@ -11,6 +11,8 @@ import sys
 import logging
 from pathlib import Path
 from page_generator import NexusTVPageGenerator
+from utils import (sanitize_filename, validate_url, validate_file_path, 
+                   sanitize_input, SimpleCache, is_valid_m3u)
 
 # Setup logging
 log_path = Path(__file__).parent / "logs" / "m3u_matrix.log"
@@ -47,6 +49,8 @@ class M3UMatrix:
         self.epg_data = {}
         self.settings = {}
         self.logger = logging.getLogger(__name__)
+        self.thumbnail_cache = SimpleCache(max_size=200)  # Cache for thumbnails
+        self.filter_cache = {}  # Cache for filter results
 
         self.setup_error_handling()
         self.load_settings()
@@ -708,10 +712,19 @@ Success Rate: {results['working']/results['total']*100:.1f}%
 
     # ========== IMPORT FROM REMOTE M3U URL ==========
     def import_url(self):
-        """Import M3U playlist from remote URL"""
+        """Import M3U playlist from remote URL with security validation"""
         url = simpledialog.askstring("Import M3U URL",
                                      "Enter M3U playlist URL:")
         if not url:
+            return
+        
+        # SECURITY: Sanitize and validate URL
+        url = sanitize_input(url).strip()
+        
+        if not validate_url(url):
+            messagebox.showerror("Invalid URL", 
+                               "The URL is invalid or not allowed.\n"
+                               "Only HTTP/HTTPS URLs are supported.")
             return
 
         def download_thread():
@@ -720,8 +733,17 @@ Success Rate: {results['working']/results['total']*100:.1f}%
                     0, lambda: self.stat.config(text=
                                                 "Downloading M3U from URL..."))
 
-                response = requests.get(url, timeout=10)
+                response = requests.get(url, timeout=15, 
+                                       headers={'User-Agent': 'M3UMatrix/2.0'})
                 response.raise_for_status()
+                
+                # SECURITY: Validate M3U format
+                if not is_valid_m3u(response.text):
+                    self.root.after(
+                        0, lambda: messagebox.showerror(
+                            "Invalid Format", 
+                            "The downloaded file doesn't appear to be a valid M3U playlist."))
+                    return
 
                 temp_file = tempfile.NamedTemporaryFile(mode='w',
                                                         suffix='.m3u',
@@ -937,25 +959,63 @@ Success Rate: {results['working']/results['total']*100:.1f}%
 
     # ========== ENHANCED UI FEATURES ==========
     def filter(self):
-        """Advanced filtering with regex support"""
+        """Advanced filtering with regex support and caching"""
         search_term = self.search.get().lower()
 
         if not search_term:
             self.fill()
+            self.filter_cache.clear()  # Clear cache when showing all
             return
+        
+        # PERFORMANCE: Check cache first
+        cache_key = search_term
+        if cache_key in self.filter_cache:
+            matching_channels = self.filter_cache[cache_key]
+        else:
+            # SECURITY: Sanitize search input
+            search_term = sanitize_input(search_term, max_length=200).lower()
 
-        use_regex = False
-        if search_term.startswith('/') and search_term.endswith('/'):
-            use_regex = True
-            pattern = search_term[1:-1]
-            try:
-                re.compile(pattern)
-            except re.error:
-                use_regex = False
+            use_regex = False
+            if search_term.startswith('/') and search_term.endswith('/'):
+                use_regex = True
+                pattern = search_term[1:-1]
+                try:
+                    re.compile(pattern)
+                except re.error:
+                    use_regex = False
+                    messagebox.showwarning("Invalid Regex", 
+                                         "Invalid regular expression. Using plain text search.")
 
+            # Filter channels
+            matching_channels = []
+            for ch in self.channels:
+                name = ch.get("name", "").lower()
+                group = ch.get("group", "").lower()
+                url = ch.get("url", "").lower()
+
+                match = False
+                if use_regex:
+                    try:
+                        match = (re.search(pattern, name, re.IGNORECASE)
+                                or re.search(pattern, group, re.IGNORECASE)
+                                or re.search(pattern, url, re.IGNORECASE))
+                    except re.error:
+                        match = False
+                else:
+                    match = (search_term in name or search_term in group
+                            or search_term in url)
+
+                if match:
+                    matching_channels.append(ch)
+            
+            # Cache results (limit cache size)
+            if len(self.filter_cache) < 50:
+                self.filter_cache[cache_key] = matching_channels
+
+        # Update UI only with matching channels
         self.tv.delete(*self.tv.get_children())
-
-        for ch in self.channels:
+        
+        for ch in matching_channels:
             name = ch.get("name", "").lower()
             group = ch.get("group", "").lower()
             url = ch.get("url", "").lower()
