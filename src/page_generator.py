@@ -81,9 +81,9 @@ class NexusTVPageGenerator:
         schedule_js = json.dumps(schedule, indent=12)
         
         # Inject schedule into template
-        # Find the schedule array in the template and replace it
-        pattern = r'const schedule = \[[\s\S]*?\];'
-        replacement = f'const schedule = {schedule_js};'
+        # Find the schedule_data array in the template and replace it
+        pattern = r'let schedule_data = \[[\s\S]*?\];'
+        replacement = f'let schedule_data = {schedule_js};'
         
         modified_html = re.sub(pattern, replacement, template, count=1)
         
