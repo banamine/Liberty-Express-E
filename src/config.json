@@ -1,0 +1,45 @@
+{
+  "app_settings": {
+    "version": "2.0.0",
+    "app_name": "M3U Matrix Pro",
+    "last_updated": "2025-11-14"
+  },
+  "folders": {
+    "exports": "exports/",
+    "json": "json/",
+    "tv_guide": "tv_guide/",
+    "videos": "videos/",
+    "thumbnails": "thumbnails/",
+    "buffer": "buffer/",
+    "cache": "cache/",
+    "logs": "logs/",
+    "backups": "backups/"
+  },
+  "tv_guide_defaults": {
+    "show_duration_minutes": 30,
+    "days_to_generate": 7,
+    "buffer_enabled": true,
+    "cache_enabled": true,
+    "cache_max_size_mb": 500,
+    "buffer_count": 10
+  },
+  "thumbnail_settings": {
+    "width": 480,
+    "height": 270,
+    "quality": 85,
+    "placeholder_color": "#1e1e1e",
+    "text_color": "#ffd700"
+  },
+  "video_player": {
+    "preload_next": true,
+    "buffer_seconds": 10,
+    "auto_advance": true,
+    "fullscreen_default": false
+  },
+  "performance": {
+    "max_channels_per_page": 100,
+    "thumbnail_generation_threads": 4,
+    "cache_cleanup_days": 30,
+    "auto_backup": true
+  }
+}
