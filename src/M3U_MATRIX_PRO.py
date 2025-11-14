@@ -1016,40 +1016,26 @@ Success Rate: {results['working']/results['total']*100:.1f}%
         self.tv.delete(*self.tv.get_children())
         
         for ch in matching_channels:
-            name = ch.get("name", "").lower()
-            group = ch.get("group", "").lower()
-            url = ch.get("url", "").lower()
+            now = "LIVE"
+            shows = sorted(self.schedule.get(str(ch["num"]), []),
+                           key=lambda x: x["time"],
+                           reverse=True)
+            for s in shows:
+                if s["time"] <= datetime.now().strftime("%H:%M"):
+                    now = s["show"]
+                    break
 
-            match = False
-            if use_regex:
-                match = (re.search(pattern, name, re.IGNORECASE)
-                         or re.search(pattern, group, re.IGNORECASE)
-                         or re.search(pattern, url, re.IGNORECASE))
-            else:
-                match = (search_term in name or search_term in group
-                         or search_term in url)
+            tags_count = len(ch.get('custom_tags', {}))
 
-            if match:
-                now = "LIVE"
-                shows = sorted(self.schedule.get(str(ch["num"]), []),
-                               key=lambda x: x["time"],
-                               reverse=True)
-                for s in shows:
-                    if s["time"] <= datetime.now().strftime("%H:%M"):
-                        now = s["show"]
-                        break
-
-                tags_count = len(ch.get('custom_tags', {}))
-
-                self.tv.insert(
-                    "",
-                    "end",
-                    values=(ch["num"], now, "—", ch.get("group", "Other"),
-                            ch.get("name",
-                                   ""), ch.get("url", "")[:80] + "..." if
-                            len(ch.get("url", "")) > 80 else ch.get("url", ""),
-                            len(ch.get("backups",
-                                       [])), f"{tags_count} tags", ""))
+            self.tv.insert(
+                "",
+                "end",
+                values=(ch["num"], now, "—", ch.get("group", "Other"),
+                        ch.get("name",
+                               ""), ch.get("url", "")[:80] + "..." if
+                        len(ch.get("url", "")) > 80 else ch.get("url", ""),
+                        len(ch.get("backups",
+                                   [])), f"{tags_count} tags", ""))
 
     def sort_by(self, col):
         """Enhanced multi-column sorting"""
