@@ -1575,8 +1575,25 @@ Success Rate: {results['working']/results['total']*100:.1f}%
                 self.root.after(
                     0, lambda: self.stat.config(
                         text="Generating NEXUS TV pages..."))
+                
+                # Check for template file
+                template_path = Path("../templates/nexus_tv_template.html")
+                if not template_path.exists():
+                    template_path = Path("templates/nexus_tv_template.html")
+                if not template_path.exists():
+                    self.root.after(0, lambda: messagebox.showerror(
+                        "Template Not Found",
+                        "Template file missing!\n\n"
+                        "Download the full project from GitHub:\n"
+                        "- templates/nexus_tv_template.html\n"
+                        "- src/page_generator.py\n"
+                        "- src/utils.py\n\n"
+                        "Or use the SAVE button to export M3U files."))
+                    self.root.after(0, lambda: self.stat.config(text="Template missing"))
+                    return
+                
                 generator = NexusTVPageGenerator(
-                    template_path="../templates/nexus_tv_template.html")
+                    template_path=str(template_path))
                 generated = []
 
                 if choice == 'yes':
