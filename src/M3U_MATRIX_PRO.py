@@ -1,4 +1,4 @@
-# M3U_MATRIX_PRO.py
+
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk, font, simpledialog
 from tkinterdnd2 import DND_FILES, TkinterDnD
