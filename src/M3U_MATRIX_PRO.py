@@ -139,26 +139,44 @@ class M3UMatrix:
             fg="#fff",
             bg="#8e44ad").pack(side=tk.RIGHT, padx=20)
 
-        # === TOOLBAR ===
-        tb = tk.Frame(self.root, bg="#1e1e1e")
-        tb.pack(fill=tk.X, pady=5)
-        buttons = [("LOAD", "#2980b9", self.load),
-                   ("ORGANIZE", "#27ae60", self.organize_channels),
-                   ("CHECK", "#e67e22", self.start_check),
-                   ("GENERATE PAGES", "#e91e63", self.generate_pages),
-                   ("GEN THUMBS", "#ff6b6b", self.generate_thumbnails),
-                   ("URL IMPORT", "#4ecdc4", self.url_import_workbench),
-                   ("JSON GUIDE", "#95e1d3", self.export_tv_guide_json),
-                   ("SUBTITLES", "#ffd93d", self.manage_subtitles),
-                   ("SAVE", "#c0392b", self.save),
-                   ("EXPORT CSV", "#16a085", self.export_csv),
-                   ("IMPORT URL", "#8e44ad", self.import_url),
-                   ("FETCH EPG", "#d35400", self.fetch_epg),
-                   ("TV GUIDE", "#9b59b6", self.open_guide),
-                   ("NEW", "#34495e", self.new_project)]
-
-        for txt, col, cmd in buttons:
-            tk.Button(tb, text=txt, bg=col, fg="white", width=12,
+        # === TOOLBAR (3 ROWS) ===
+        toolbar_container = tk.Frame(self.root, bg="#1e1e1e")
+        toolbar_container.pack(fill=tk.X, pady=5)
+        
+        # ROW 1: File Operations
+        tb1 = tk.Frame(toolbar_container, bg="#1e1e1e")
+        tb1.pack(fill=tk.X, pady=2)
+        row1 = [("LOAD", "#2980b9", self.load),
+                ("SAVE", "#c0392b", self.save),
+                ("M3U OUTPUT", "#16a085", self.export_m3u_output),
+                ("EXPORT CSV", "#16a085", self.export_csv),
+                ("NEW", "#34495e", self.new_project)]
+        for txt, col, cmd in row1:
+            tk.Button(tb1, text=txt, bg=col, fg="white", width=14,
+                      command=cmd).pack(side=tk.LEFT, padx=4)
+        
+        # ROW 2: Processing & Generation
+        tb2 = tk.Frame(toolbar_container, bg="#1e1e1e")
+        tb2.pack(fill=tk.X, pady=2)
+        row2 = [("ORGANIZE", "#27ae60", self.organize_channels),
+                ("CHECK", "#e67e22", self.start_check),
+                ("GENERATE PAGES", "#e91e63", self.generate_pages),
+                ("GEN THUMBS", "#ff6b6b", self.generate_thumbnails),
+                ("JSON GUIDE", "#95e1d3", self.export_tv_guide_json)]
+        for txt, col, cmd in row2:
+            tk.Button(tb2, text=txt, bg=col, fg="white", width=14,
+                      command=cmd).pack(side=tk.LEFT, padx=4)
+        
+        # ROW 3: Import & Advanced
+        tb3 = tk.Frame(toolbar_container, bg="#1e1e1e")
+        tb3.pack(fill=tk.X, pady=2)
+        row3 = [("URL IMPORT", "#4ecdc4", self.url_import_workbench),
+                ("IMPORT URL", "#8e44ad", self.import_url),
+                ("FETCH EPG", "#d35400", self.fetch_epg),
+                ("TV GUIDE", "#9b59b6", self.open_guide),
+                ("SUBTITLES", "#ffd93d", self.manage_subtitles)]
+        for txt, col, cmd in row3:
+            tk.Button(tb3, text=txt, bg=col, fg="white", width=14,
                       command=cmd).pack(side=tk.LEFT, padx=4)
 
         # === SEARCH + TOOLS ===
@@ -636,11 +654,16 @@ Success Rate: {results['working']/results['total']*100:.1f}%
             messagebox.showwarning("No Data", "No channels to export!")
             return
 
+        exports_dir = Path("exports")
+        exports_dir.mkdir(exist_ok=True)
+        
         filename = filedialog.asksaveasfilename(defaultextension=".csv",
                                                 filetypes=[
                                                     ("CSV files", "*.csv"),
                                                     ("All files", "*.*")
                                                 ],
+                                                initialdir=str(exports_dir),
+                                                initialfile=f"channels_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
                                                 title="Export channels to CSV")
 
         if not filename:
@@ -1434,12 +1457,16 @@ Success Rate: {results['working']/results['total']*100:.1f}%
 
         def save():
             try:
+                tv_guide_dir = Path("tv_guide")
+                tv_guide_dir.mkdir(exist_ok=True)
+                
                 self.schedule = json.loads(text.get(1.0, tk.END))
-                with open("tv_guide.json", "w") as f:
+                guide_file = tv_guide_dir / f"tv_guide_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+                with open(guide_file, "w") as f:
                     json.dump(self.schedule, f, indent=2)
                 self.update_guide_preview()
                 self.fill()
-                messagebox.showinfo("Saved", "TV Guide updated!")
+                messagebox.showinfo("Saved", f"TV Guide saved to:\n{guide_file}")
                 win.destroy()
             except Exception as e:
                 messagebox.showerror("Error", str(e))
@@ -1541,6 +1568,46 @@ Success Rate: {results['working']/results['total']*100:.1f}%
         """Safe exit procedure"""
         self.save_settings()
         self.root.quit()
+
+    def export_m3u_output(self):
+        """Export M3U playlist to organized exports folder"""
+        if not self.channels:
+            messagebox.showwarning("No Channels", "Load channels first!")
+            return
+        
+        exports_dir = Path("exports")
+        exports_dir.mkdir(exist_ok=True)
+        
+        filename = filedialog.asksaveasfilename(
+            defaultextension=".m3u",
+            filetypes=[("M3U files", "*.m3u"), ("M3U8 files", "*.m3u8"), ("All files", "*.*")],
+            initialdir=str(exports_dir),
+            initialfile=f"playlist_{datetime.now().strftime('%Y%m%d_%H%M%S')}.m3u"
+        )
+        
+        if filename:
+            try:
+                m3u_content = "#EXTM3U\n"
+                for ch in self.channels:
+                    extinf = f'#EXTINF:-1 tvg-id="{ch.get("tvg_id", "")}" tvg-name="{ch.get("name", "")}" '
+                    extinf += f'tvg-logo="{ch.get("logo", "")}" group-title="{ch.get("group", "Other")}",{ch.get("name", "")}\n'
+                    
+                    if ch.get('subtitle'):
+                        extinf = extinf.replace('\n', f' tvg-subtitle="{ch.get("subtitle")}"\n')
+                    
+                    m3u_content += extinf + ch.get("url", "") + "\n"
+                
+                with open(filename, 'w', encoding='utf-8') as f:
+                    f.write(m3u_content)
+                
+                messagebox.showinfo("Success", 
+                                  f"M3U playlist exported!\n"
+                                  f"Channels: {len(self.channels)}\n"
+                                  f"File: {filename}")
+                self.stat.config(text=f"✅ Exported M3U: {len(self.channels)} channels")
+                
+            except Exception as e:
+                self.show_error_dialog("Export Failed", "Could not export M3U", e)
 
     def generate_thumbnails(self):
         """FFmpeg automated thumbnail generation"""
@@ -1677,6 +1744,9 @@ Success Rate: {results['working']/results['total']*100:.1f}%
             return
         
         try:
+            json_dir = Path("json")
+            json_dir.mkdir(exist_ok=True)
+            
             tv_guide = {
                 "tv_guide": {
                     "channel": "M3U Matrix Channel",
@@ -1710,7 +1780,8 @@ Success Rate: {results['working']/results['total']*100:.1f}%
             filename = filedialog.asksaveasfilename(
                 defaultextension=".json",
                 filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
-                initialfile=f"tv_guide_{datetime.now().strftime('%Y%m%d')}.json"
+                initialdir=str(json_dir),
+                initialfile=f"tv_guide_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
             )
             
             if filename:
