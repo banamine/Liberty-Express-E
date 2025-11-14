@@ -10,9 +10,38 @@ import requests
 import sys
 import logging
 from pathlib import Path
-from page_generator import NexusTVPageGenerator
-from utils import (sanitize_filename, validate_url, validate_file_path, 
-                   sanitize_input, SimpleCache, is_valid_m3u)
+
+# Optional imports - only needed for advanced features
+try:
+    from page_generator import NexusTVPageGenerator
+    PAGE_GENERATOR_AVAILABLE = True
+except ImportError:
+    PAGE_GENERATOR_AVAILABLE = False
+
+try:
+    from utils import (sanitize_filename, validate_url, validate_file_path, 
+                       sanitize_input, SimpleCache, is_valid_m3u)
+    UTILS_AVAILABLE = True
+except ImportError:
+    UTILS_AVAILABLE = False
+    # Minimal fallback functions
+    def sanitize_filename(name):
+        return re.sub(r'[<>:"/\\|?*]', '_', name)
+    def validate_url(url):
+        return url.startswith(('http://', 'https://', 'rtmp://', 'rtsp://'))
+    def validate_file_path(path):
+        return True
+    def sanitize_input(text):
+        return text
+    def is_valid_m3u(content):
+        return '#EXTM3U' in content or '#EXTINF' in content
+    class SimpleCache:
+        def __init__(self, max_size=200):
+            self.cache = {}
+        def get(self, key):
+            return self.cache.get(key)
+        def set(self, key, value):
+            self.cache[key] = value
 
 # Setup logging
 log_path = Path(__file__).parent / "logs" / "m3u_matrix.log"
@@ -1525,6 +1554,12 @@ Success Rate: {results['working']/results['total']*100:.1f}%
 
     def generate_pages(self):
         """Generate NEXUS TV pages from current channels"""
+        if not PAGE_GENERATOR_AVAILABLE:
+            messagebox.showwarning("Feature Unavailable", 
+                "Page generator not available.\n\n"
+                "Download the full project from GitHub to use this feature.")
+            return
+            
         if not self.channels:
             messagebox.showwarning("No Channels", "Load channels first!")
             return
