@@ -18,25 +18,25 @@ log_path.parent.mkdir(exist_ok=True)
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(log_path),
-        logging.StreamHandler()
-    ]
-)
+    handlers=[logging.FileHandler(log_path),
+              logging.StreamHandler()])
 
 socket.setdefaulttimeout(7)
 
+
 class M3UMatrix:
+
     def __init__(self):
         self.root = TkinterDnD.Tk()
-        self.root.title("M3U MATRIX PRO • DRAG & DROP M3U FILES • DOUBLE-CLICK TO OPEN")
+        self.root.title(
+            "M3U MATRIX PRO • DRAG & DROP M3U FILES • DOUBLE-CLICK TO OPEN")
         self.root.geometry("1600x950")
         self.root.minsize(1300, 800)
         self.root.configure(bg="#121212")
-        
+
         # Set working directory to application folder
         os.chdir(Path(__file__).parent)
-        
+
         self.files = []
         self.channels = []
         self.m3u = ""
@@ -47,7 +47,7 @@ class M3UMatrix:
         self.epg_data = {}
         self.settings = {}
         self.logger = logging.getLogger(__name__)
-        
+
         self.setup_error_handling()
         self.load_settings()
         self.build_ui()
@@ -57,14 +57,17 @@ class M3UMatrix:
 
     def setup_error_handling(self):
         """Setup comprehensive error handling"""
+
         def handle_exception(exc_type, exc_value, exc_traceback):
             if issubclass(exc_type, KeyboardInterrupt):
                 sys.__excepthook__(exc_type, exc_value, exc_traceback)
                 return
-            self.logger.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
-            self.show_error_dialog("Unexpected Error", 
-                                 f"An unexpected error occurred: {exc_value}")
-        
+            self.logger.error("Uncaught exception",
+                              exc_info=(exc_type, exc_value, exc_traceback))
+            self.show_error_dialog(
+                "Unexpected Error",
+                f"An unexpected error occurred: {exc_value}")
+
         sys.excepthook = handle_exception
 
     def show_error_dialog(self, title, message, exception=None):
@@ -73,7 +76,7 @@ class M3UMatrix:
             detailed_msg = f"{message}\n\nTechnical Details:\n{str(exception)}"
         else:
             detailed_msg = message
-        
+
         self.logger.error(f"{title}: {message}")
         messagebox.showerror(title, detailed_msg)
 
@@ -87,7 +90,7 @@ class M3UMatrix:
             "default_epg_url": "",
             "recent_files": []
         }
-        
+
         try:
             if os.path.exists(settings_file):
                 with open(settings_file, 'r') as f:
@@ -110,39 +113,72 @@ class M3UMatrix:
         style = ttk.Style()
         style.theme_use('clam')
         style.configure("TButton", padding=8, font=("Arial", 10, "bold"))
-        style.configure("Treeview", background="#1e1e1e", foreground="#ffffff", fieldbackground="#1e1e1e", rowheight=28)
-        style.configure("Treeview.Heading", background="#333", foreground="gold", font=("Arial", 11, "bold"))
+        style.configure("Treeview",
+                        background="#1e1e1e",
+                        foreground="#ffffff",
+                        fieldbackground="#1e1e1e",
+                        rowheight=28)
+        style.configure("Treeview.Heading",
+                        background="#333",
+                        foreground="gold",
+                        font=("Arial", 11, "bold"))
 
         # === HEADER ===
         header = tk.Frame(self.root, bg="#8e44ad", height=60)
         header.pack(fill=tk.X)
         header.pack_propagate(False)
-        tk.Label(header, text="M3U MATRIX PRO", font=("Impact", 28), fg="gold", bg="#8e44ad").pack(side=tk.LEFT, padx=20)
-        tk.Label(header, text="DRAG to reorder • DOUBLE-CLICK to edit • RIGHT-CLICK for magic", fg="#fff", bg="#8e44ad").pack(side=tk.RIGHT, padx=20)
+        tk.Label(header,
+                 text="M3U MATRIX PRO",
+                 font=("Impact", 28),
+                 fg="gold",
+                 bg="#8e44ad").pack(side=tk.LEFT, padx=20)
+        tk.Label(
+            header,
+            text=
+            "DRAG to reorder • DOUBLE-CLICK to edit • RIGHT-CLICK for magic",
+            fg="#fff",
+            bg="#8e44ad").pack(side=tk.RIGHT, padx=20)
 
         # === TOOLBAR ===
         tb = tk.Frame(self.root, bg="#1e1e1e")
         tb.pack(fill=tk.X, pady=5)
-        buttons = [
-            ("LOAD", "#2980b9", self.load), ("ORGANIZE", "#27ae60", self.organize_channels),
-            ("CHECK", "#e67e22", self.start_check), ("SAVE", "#c0392b", self.save),
-            ("EXPORT CSV", "#16a085", self.export_csv), ("IMPORT URL", "#8e44ad", self.import_url),
-            ("FETCH EPG", "#d35400", self.fetch_epg), ("GENERATE PAGES", "#e91e63", self.generate_pages),
-            ("TV GUIDE", "#9b59b6", self.open_guide), ("NEW", "#34495e", self.new_project)
-        ]
-       
+        buttons = [("LOAD", "#2980b9", self.load),
+                   ("ORGANIZE", "#27ae60", self.organize_channels),
+                   ("CHECK", "#e67e22", self.start_check),
+                   ("SAVE", "#c0392b", self.save),
+                   ("EXPORT CSV", "#16a085", self.export_csv),
+                   ("IMPORT URL", "#8e44ad", self.import_url),
+                   ("FETCH EPG", "#d35400", self.fetch_epg),
+                   ("GENERATE PAGES", "#e91e63", self.generate_pages),
+                   ("TV GUIDE", "#9b59b6", self.open_guide),
+                   ("NEW", "#34495e", self.new_project)]
+
         for txt, col, cmd in buttons:
-            tk.Button(tb, text=txt, bg=col, fg="white", width=12, command=cmd).pack(side=tk.LEFT, padx=4)
+            tk.Button(tb, text=txt, bg=col, fg="white", width=12,
+                      command=cmd).pack(side=tk.LEFT, padx=4)
 
         # === SEARCH + TOOLS ===
         tools = tk.Frame(self.root, bg="#1e1e1e")
         tools.pack(fill=tk.X, pady=5, padx=10)
-        tk.Label(tools, text="Search:", fg="#fff", bg="#1e1e1e").pack(side=tk.LEFT)
+        tk.Label(tools, text="Search:", fg="#fff",
+                 bg="#1e1e1e").pack(side=tk.LEFT)
         self.search = tk.StringVar()
         self.search.trace("w", lambda *_: self.filter())
-        tk.Entry(tools, textvariable=self.search, width=30, bg="#333", fg="#fff", insertbackground="#fff").pack(side=tk.LEFT, padx=8)
-        for txt, col, cmd in [("CUT", "#e74c3c", self.cut), ("COPY", "#3498db", self.copy), ("PASTE", "#2ecc71", self.paste)]:
-            tk.Button(tools, text=txt, bg=col, fg="white", width=10, command=cmd).pack(side=tk.LEFT, padx=4)
+        tk.Entry(tools,
+                 textvariable=self.search,
+                 width=30,
+                 bg="#333",
+                 fg="#fff",
+                 insertbackground="#fff").pack(side=tk.LEFT, padx=8)
+        for txt, col, cmd in [("CUT", "#e74c3c", self.cut),
+                              ("COPY", "#3498db", self.copy),
+                              ("PASTE", "#2ecc71", self.paste)]:
+            tk.Button(tools,
+                      text=txt,
+                      bg=col,
+                      fg="white",
+                      width=10,
+                      command=cmd).pack(side=tk.LEFT, padx=4)
 
         # === MAIN PANEL ===
         main = tk.Frame(self.root)
@@ -150,36 +186,60 @@ class M3UMatrix:
 
         # LEFT: Files + Guide
         left = tk.Frame(main, bg="#1e1e1e", width=300)
-        left.pack(side=tk.LEFT, fill=tk.Y, padx=(0,10))
+        left.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 10))
         left.pack_propagate(False)
 
-        tk.Label(left, text="Loaded Files (DRAG M3U HERE!)", fg="gold", bg="#1e1e1e", font=("Arial", 12, "bold")).pack(pady=5)
-        self.file_list = tk.Listbox(left, bg="#333", fg="#fff", selectbackground="#8e44ad")
+        tk.Label(left,
+                 text="Loaded Files (DRAG M3U HERE!)",
+                 fg="gold",
+                 bg="#1e1e1e",
+                 font=("Arial", 12, "bold")).pack(pady=5)
+        self.file_list = tk.Listbox(left,
+                                    bg="#333",
+                                    fg="#fff",
+                                    selectbackground="#8e44ad")
         self.file_list.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
         self.file_list.bind("<Button-3>", self.file_menu)
         self.file_list.bind("<Double-1>", self.open_file_from_list)
-        
+
         # Enable drag and drop on file list
         self.file_list.drop_target_register(DND_FILES)
         self.file_list.dnd_bind('<<Drop>>', self.drop_files)
 
-        tk.Label(left, text="TV Guide Preview", fg="gold", bg="#1e1e1e", font=("Arial", 12, "bold")).pack(pady=(15,5))
-        self.guide_prev = tk.Text(left, height=12, bg="#111", fg="#0f0", font=("Courier", 9), wrap=tk.WORD)
+        tk.Label(left,
+                 text="TV Guide Preview",
+                 fg="gold",
+                 bg="#1e1e1e",
+                 font=("Arial", 12, "bold")).pack(pady=(15, 5))
+        self.guide_prev = tk.Text(left,
+                                  height=12,
+                                  bg="#111",
+                                  fg="#0f0",
+                                  font=("Courier", 9),
+                                  wrap=tk.WORD)
         self.guide_prev.pack(fill=tk.X, padx=5, pady=5)
 
         # RIGHT: Channel Matrix
         right = tk.Frame(main)
         right.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
-        tf = tk.LabelFrame(right, text="CHANNEL MATRIX – DRAG to sort • DOUBLE-CLICK to edit", fg="gold", bg="#1e1e1e")
+        tf = tk.LabelFrame(
+            right,
+            text="CHANNEL MATRIX – DRAG to sort • DOUBLE-CLICK to edit",
+            fg="gold",
+            bg="#1e1e1e")
         tf.pack(fill=tk.BOTH, expand=True)
 
-        cols = ("#", "Now Playing", "Next", "Group", "Name", "URL", "Backs", "Tags", "Del")
+        cols = ("#", "Now Playing", "Next", "Group", "Name", "URL", "Backs",
+                "Tags", "Del")
         self.tv = ttk.Treeview(tf, columns=cols, show="headings")
         widths = [50, 180, 180, 120, 200, 380, 70, 80, 50]
         for i, c in enumerate(cols):
             self.tv.heading(c, text=c, command=lambda col=c: self.sort_by(col))
-            self.tv.column(c, width=widths[i], anchor="center" if c in ("#","Backs","Tags","Del") else "w")
+            self.tv.column(c,
+                           width=widths[i],
+                           anchor="center" if c in ("#", "Backs", "Tags",
+                                                    "Del") else "w")
         self.tv.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
         vsb = ttk.Scrollbar(tf, command=self.tv.yview)
@@ -194,7 +254,12 @@ class M3UMatrix:
         self.tv.bind("<Button-3>", self.row_menu)
 
         # STATUS
-        self.stat = tk.Label(self.root, text="MATRIX ONLINE - Ready to work!", fg="#0f0", bg="#000", font=("Courier", 11), anchor="w")
+        self.stat = tk.Label(self.root,
+                             text="MATRIX ONLINE - Ready to work!",
+                             fg="#0f0",
+                             bg="#000",
+                             font=("Courier", 11),
+                             anchor="w")
         self.stat.pack(fill=tk.X, side=tk.BOTTOM, pady=5)
 
         self.editor = None
@@ -204,66 +269,74 @@ class M3UMatrix:
         """Cut selected channels to clipboard"""
         selection = self.tv.selection()
         if not selection:
-            messagebox.showwarning("No Selection", "Select channels to cut first!")
+            messagebox.showwarning("No Selection",
+                                   "Select channels to cut first!")
             return
-        
+
         self.clipboard = {
-            "operation": "cut", 
+            "operation": "cut",
             "channels": [],
             "indices": [self.tv.index(iid) for iid in selection]
         }
-        
+
         for iid in selection:
             num = int(self.tv.item(iid, "values")[0])
             channel = next(c for c in self.channels if c["num"] == num)
             self.clipboard["channels"].append(channel.copy())
-        
+
         self.stat.config(text=f"CUT: {len(selection)} channels to clipboard")
 
     def copy(self):
         """Copy selected channels to clipboard"""
         selection = self.tv.selection()
         if not selection:
-            messagebox.showwarning("No Selection", "Select channels to copy first!")
+            messagebox.showwarning("No Selection",
+                                   "Select channels to copy first!")
             return
-        
+
         self.clipboard = {
-            "operation": "copy", 
+            "operation": "copy",
             "channels": [],
             "indices": [self.tv.index(iid) for iid in selection]
         }
-        
+
         for iid in selection:
             num = int(self.tv.item(iid, "values")[0])
             channel = next(c for c in self.channels if c["num"] == num)
             self.clipboard["channels"].append(channel.copy())
-        
-        self.stat.config(text=f"COPIED: {len(selection)} channels to clipboard")
+
+        self.stat.config(
+            text=f"COPIED: {len(selection)} channels to clipboard")
 
     def paste(self):
         """Paste clipboard channels"""
         if not self.clipboard:
-            messagebox.showwarning("Empty Clipboard", "Cut or copy channels first!")
+            messagebox.showwarning("Empty Clipboard",
+                                   "Cut or copy channels first!")
             return
-        
+
         if self.clipboard["operation"] == "cut":
             # Remove original channels when pasting a cut
             for channel in self.clipboard["channels"]:
-                self.channels = [c for c in self.channels if c["num"] != channel["num"]]
-        
+                self.channels = [
+                    c for c in self.channels if c["num"] != channel["num"]
+                ]
+
         # Add clipboard channels to current list
         for channel in self.clipboard["channels"]:
             new_channel = channel.copy()
             if self.clipboard["operation"] == "copy":
-                new_channel["num"] = max([c["num"] for c in self.channels], default=0) + 1
+                new_channel["num"] = max([c["num"] for c in self.channels],
+                                         default=0) + 1
             self.channels.append(new_channel)
-        
+
         self.auto_increment_channels()
         self.fill()
         self.build_m3u()
-        
+
         action = "MOVED" if self.clipboard["operation"] == "cut" else "COPIED"
-        self.stat.config(text=f"{action}: {len(self.clipboard['channels'])} channels")
+        self.stat.config(
+            text=f"{action}: {len(self.clipboard['channels'])} channels")
         self.clipboard = None
 
     # ========== COMPLETE CHANNEL CHECKER ==========
@@ -272,40 +345,42 @@ class M3UMatrix:
         if not self.channels:
             messagebox.showwarning("No Channels", "Load channels first!")
             return
-        
+
         def check_thread():
-            self.root.after(0, lambda: self.stat.config(text="Starting channel audit..."))
-            
+            self.root.after(
+                0, lambda: self.stat.config(text="Starting channel audit..."))
+
             results = {
                 "working": 0,
                 "broken": 0,
                 "timeout": 0,
                 "total": len(self.channels)
             }
-            
+
             for i, channel in enumerate(self.channels):
                 status = self.validate_channel(channel)
                 results[status] += 1
-                
+
                 # Update progress in UI thread
-                self.root.after(0, lambda idx=i, stat=status: 
-                    self.update_channel_status(idx, stat, results))
-                
+                self.root.after(0,
+                                lambda idx=i, stat=status: self.
+                                update_channel_status(idx, stat, results))
+
                 # Small delay to avoid overwhelming servers
                 threading.Event().wait(0.1)
-            
+
             # Final summary
             self.root.after(0, lambda: self.show_audit_results(results))
-        
+
         threading.Thread(target=check_thread, daemon=True).start()
 
     def validate_channel(self, channel):
         """Validate a single channel's URL and metadata"""
         url = channel.get("url", "")
-        
+
         if not url or not url.startswith(('http', 'rtmp', 'rtsp')):
             return "broken"
-        
+
         try:
             if url.startswith('http'):
                 # HTTP-based streams
@@ -328,7 +403,7 @@ class M3UMatrix:
                     return "broken"
                 finally:
                     socket.setdefaulttimeout(socket_timeout)
-                    
+
         except requests.exceptions.Timeout:
             return "timeout"
         except Exception:
@@ -337,7 +412,7 @@ class M3UMatrix:
     def update_channel_status(self, index, status, results):
         """Update UI with channel validation status"""
         channel = self.channels[index]
-        
+
         # Update treeview with status
         for iid in self.tv.get_children():
             if int(self.tv.item(iid, "values")[0]) == channel["num"]:
@@ -347,9 +422,12 @@ class M3UMatrix:
                 values[1] = f"{status_icons.get(status, '?')} {values[1]}"
                 self.tv.item(iid, values=values)
                 break
-        
+
         # Update status bar
-        self.stat.config(text=f"AUDIT: {results['working']}✓ {results['broken']}✗ {results['timeout']}⌛")
+        self.stat.config(
+            text=
+            f"AUDIT: {results['working']}✓ {results['broken']}✗ {results['timeout']}⌛"
+        )
 
     def show_audit_results(self, results):
         """Show comprehensive audit results"""
@@ -363,7 +441,10 @@ Channel Audit Complete:
 Success Rate: {results['working']/results['total']*100:.1f}%
 """
         messagebox.showinfo("Audit Results", report)
-        self.stat.config(text=f"AUDIT COMPLETE: {results['working']}/{results['total']} channels working")
+        self.stat.config(
+            text=
+            f"AUDIT COMPLETE: {results['working']}/{results['total']} channels working"
+        )
 
     # ========== ENHANCED M3U PARSING ==========
     def parse_m3u_file(self, file_path):
@@ -371,64 +452,80 @@ Success Rate: {results['working']/results['total']*100:.1f}%
         channels = []
         current_channel = None
         custom_tags = {}
-        
+
         try:
             try:
-                with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                with open(file_path, 'r', encoding='utf-8',
+                          errors='ignore') as f:
                     lines = f.readlines()
             except Exception:
                 with open(file_path, 'r', encoding='latin-1') as f:
                     lines = f.readlines()
         except Exception as e:
-            self.root.after(0, lambda: messagebox.showerror("File Read Error", f"Cannot read file {os.path.basename(file_path)}: {e}"))
+            self.root.after(
+                0, lambda: messagebox.showerror(
+                    "File Read Error",
+                    f"Cannot read file {os.path.basename(file_path)}: {e}"))
             return []
-        
+
         i = 0
         while i < len(lines):
             line = lines[i].strip()
-            
+
             if not line or line == "#EXTM3U":
                 i += 1
                 continue
-          
+
             if line.startswith("#EXTINF"):
                 current_channel = self.parse_extinf_line(line)
                 if i + 1 < len(lines) and lines[i + 1].startswith("#EXTGRP"):
-                    current_channel["group"] = lines[i + 1].split(":")[1].strip()
+                    current_channel["group"] = lines[i +
+                                                     1].split(":")[1].strip()
                     i += 1
                 i += 1
                 continue
-               
-            if line.startswith("#") and ":" in line and not line.startswith("#EXTINF"):
+
+            if line.startswith(
+                    "#") and ":" in line and not line.startswith("#EXTINF"):
                 tag_parts = line[1:].split(":", 1)
                 if len(tag_parts) == 2:
                     tag_name, tag_value = tag_parts
                     custom_tags[tag_name.strip()] = tag_value.strip()
                 i += 1
                 continue
-                
-            if current_channel and (line.startswith("http") or line.startswith("rtmp") or line.startswith("rtsp")):
+
+            if current_channel and (line.startswith("http")
+                                    or line.startswith("rtmp")
+                                    or line.startswith("rtsp")):
                 current_channel["url"] = line.strip()
                 current_channel["custom_tags"] = custom_tags.copy()
                 channels.append(current_channel)
                 current_channel = None
                 custom_tags = {}
-         
+
             i += 1
-            
+
         return channels
 
     def parse_extinf_line(self, line):
         """Parse EXTINF line with support for various attributes"""
-        channel = {"name": "Unknown", "group": "Other", "logo": "", "tvg_id": "", "num": 0, "url": "", "backups": []}
-        
+        channel = {
+            "name": "Unknown",
+            "group": "Other",
+            "logo": "",
+            "tvg_id": "",
+            "num": 0,
+            "url": "",
+            "backups": []
+        }
+
         attr_pattern = r'([a-zA-Z-]+)="([^"]*)"'
         attributes = dict(re.findall(attr_pattern, line))
-        
+
         name_part = line.split(',')[-1].strip()
         if name_part:
             channel["name"] = name_part
-            
+
         if "tvg-name" in attributes:
             channel["name"] = attributes["tvg-name"]
         if "group-title" in attributes:
@@ -437,7 +534,7 @@ Success Rate: {results['working']/results['total']*100:.1f}%
             channel["logo"] = attributes["tvg-logo"]
         if "tvg-id" in attributes:
             channel["tvg_id"] = attributes["tvg-id"]
-            
+
         return channel
 
     # ========== ADVANCED ORGANIZE ROUTINE ==========
@@ -446,43 +543,48 @@ Success Rate: {results['working']/results['total']*100:.1f}%
         if not self.channels:
             messagebox.showwarning("No Channels", "Load M3U files first!")
             return
-            
+
         group_mapping = self.normalize_groups()
         self.remove_duplicates()
         self.auto_increment_channels()
-        self.channels.sort(key=lambda x: (x.get("group", "Other"), x.get("name", "")))
-        
+        self.channels.sort(
+            key=lambda x: (x.get("group", "Other"), x.get("name", "")))
+
         self.root.after(0, self.fill)
         self.root.after(0, self.build_m3u)
-        self.root.after(0, lambda: self.stat.config(text=f"ORGANIZED: {len(self.channels)} channels, {len(group_mapping)} groups"))
+        self.root.after(
+            0, lambda: self.stat.config(
+                text=
+                f"ORGANIZED: {len(self.channels)} channels, {len(group_mapping)} groups"
+            ))
 
     def normalize_groups(self):
         """Normalize group names and return mapping"""
         group_mapping = {}
         normalized_groups = set()
-        
+
         for channel in self.channels:
             original_group = channel.get("group", "Other")
             normalized = self.clean_group_name(original_group)
-            
+
             if original_group not in group_mapping:
                 group_mapping[original_group] = normalized
                 normalized_groups.add(normalized)
-                
+
             channel["group"] = normalized
-            
+
         return group_mapping
 
     def clean_group_name(self, group_name):
         """Clean and standardize group names"""
         if not group_name or group_name.strip() == "":
             return "Other"
-            
+
         cleaned = group_name.strip()
-        
+
         replacements = {
             "ENTERTAINMENT": "Entertainment",
-            "MOVIES": "Movies", 
+            "MOVIES": "Movies",
             "SPORTS": "Sports",
             "NEWS": "News",
             "KIDS": "Kids",
@@ -491,28 +593,30 @@ Success Rate: {results['working']/results['total']*100:.1f}%
             "REGIONAL": "Regional",
             "INTERNATIONAL": "International"
         }
-        
+
         for key, value in replacements.items():
             if key in cleaned.upper():
                 return value
-         
+
         return ' '.join(word.capitalize() for word in cleaned.split())
 
     def remove_duplicates(self):
         """Remove duplicate channels based on URL and name"""
         unique_channels = []
         seen = set()
-        
+
         for channel in self.channels:
-            identifier = (channel.get("url", "").lower(), channel.get("name", "").lower())
-            
+            identifier = (channel.get("url",
+                                      "").lower(), channel.get("name",
+                                                               "").lower())
+
             if identifier not in seen:
                 seen.add(identifier)
                 unique_channels.append(channel)
-              
+
         removed_count = len(self.channels) - len(unique_channels)
         self.channels = unique_channels
-        
+
         if removed_count > 0:
             self.stat.config(text=f"Removed {removed_count} duplicates")
 
@@ -527,63 +631,88 @@ Success Rate: {results['working']/results['total']*100:.1f}%
         if not self.channels:
             messagebox.showwarning("No Data", "No channels to export!")
             return
-            
-        filename = filedialog.asksaveasfilename(
-            defaultextension=".csv",
-            filetypes=[("CSV files", "*.csv"), ("All files", "*.*")],
-            title="Export channels to CSV"
-        )
-        
+
+        filename = filedialog.asksaveasfilename(defaultextension=".csv",
+                                                filetypes=[
+                                                    ("CSV files", "*.csv"),
+                                                    ("All files", "*.*")
+                                                ],
+                                                title="Export channels to CSV")
+
         if not filename:
             return
-            
+
         try:
             with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
-                fieldnames = ['Number', 'Name', 'Group', 'URL', 'Logo', 'TVG-ID', 'Backup_URLs']
+                fieldnames = [
+                    'Number', 'Name', 'Group', 'URL', 'Logo', 'TVG-ID',
+                    'Backup_URLs'
+                ]
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-                
+
                 writer.writeheader()
-               
+
                 for channel in self.channels:
                     writer.writerow({
-                        'Number': channel.get('num', ''),
-                        'Name': channel.get('name', ''),
-                        'Group': channel.get('group', ''),
-                        'URL': channel.get('url', ''),
-                        'Logo': channel.get('logo', ''),
-                        'TVG-ID': channel.get('tvg_id', ''),
-                        'Backup_URLs': '|'.join(channel.get('backups', []))
+                        'Number':
+                        channel.get('num', ''),
+                        'Name':
+                        channel.get('name', ''),
+                        'Group':
+                        channel.get('group', ''),
+                        'URL':
+                        channel.get('url', ''),
+                        'Logo':
+                        channel.get('logo', ''),
+                        'TVG-ID':
+                        channel.get('tvg_id', ''),
+                        'Backup_URLs':
+                        '|'.join(channel.get('backups', []))
                     })
-                    
-            messagebox.showinfo("Export Successful", f"Channels exported to {filename}")
-            self.stat.config(text=f"EXPORTED: {len(self.channels)} channels to CSV")
-            
+
+            messagebox.showinfo("Export Successful",
+                                f"Channels exported to {filename}")
+            self.stat.config(
+                text=f"EXPORTED: {len(self.channels)} channels to CSV")
+
         except Exception as e:
-            messagebox.showerror("Export Error", f"Failed to export CSV: {str(e)}")
+            messagebox.showerror("Export Error",
+                                 f"Failed to export CSV: {str(e)}")
 
     # ========== IMPORT FROM REMOTE M3U URL ==========
     def import_url(self):
         """Import M3U playlist from remote URL"""
-        url = simpledialog.askstring("Import M3U URL", "Enter M3U playlist URL:")
+        url = simpledialog.askstring("Import M3U URL",
+                                     "Enter M3U playlist URL:")
         if not url:
             return
-            
+
         def download_thread():
             try:
-                self.root.after(0, lambda: self.stat.config(text="Downloading M3U from URL..."))
-                
+                self.root.after(
+                    0, lambda: self.stat.config(text=
+                                                "Downloading M3U from URL..."))
+
                 response = requests.get(url, timeout=10)
                 response.raise_for_status()
-                
-                temp_file = tempfile.NamedTemporaryFile(mode='w', suffix='.m3u', delete=False, encoding='utf-8')
+
+                temp_file = tempfile.NamedTemporaryFile(mode='w',
+                                                        suffix='.m3u',
+                                                        delete=False,
+                                                        encoding='utf-8')
                 temp_file.write(response.text)
                 temp_file.close()
-                
-                self.root.after(0, lambda: self.process_downloaded_m3u(temp_file.name, url))
-                
+
+                self.root.after(
+                    0,
+                    lambda: self.process_downloaded_m3u(temp_file.name, url))
+
             except Exception as e:
-                self.root.after(0, lambda: messagebox.showerror("Download Error", f"Failed to download M3U: {str(e)}"))
-                self.root.after(0, lambda: self.stat.config(text="Download failed"))
+                self.root.after(
+                    0, lambda: messagebox.showerror(
+                        "Download Error", f"Failed to download M3U: {str(e)}"))
+                self.root.after(
+                    0, lambda: self.stat.config(text="Download failed"))
 
         threading.Thread(target=download_thread, daemon=True).start()
 
@@ -591,51 +720,63 @@ Success Rate: {results['working']/results['total']*100:.1f}%
         """Process the downloaded M3U file"""
         try:
             channels = self.parse_m3u_file(temp_path)
-            
+
             for channel in channels:
                 channel['source'] = f"URL: {url}"
                 channel.setdefault("num", 0)
                 channel.setdefault("backups", [])
-                
+
             self.channels.extend(channels)
             self.files.append(f"[URL] {url}")
             self.file_list.insert(tk.END, f"[URL] {os.path.basename(url)}")
-     
+
             self.fill()
             self.organize_channels()
             self.build_m3u()
-            self.stat.config(text=f"IMPORTED: {len(channels)} channels from URL")
-            
+            self.stat.config(
+                text=f"IMPORTED: {len(channels)} channels from URL")
+
             os.unlink(temp_path)
-            
+
         except Exception as e:
-            messagebox.showerror("Parse Error", f"Failed to parse downloaded M3U: {str(e)}")
+            messagebox.showerror("Parse Error",
+                                 f"Failed to parse downloaded M3U: {str(e)}")
 
     # ========== ENHANCED EPG FETCHER ==========
     def fetch_epg(self):
         """Fetch EPG data from online sources with XML parsing"""
-        epg_url = simpledialog.askstring("Fetch EPG", "Enter EPG XML URL (leave empty for default):")
-        
+        epg_url = simpledialog.askstring(
+            "Fetch EPG", "Enter EPG XML URL (leave empty for default):")
+
         if epg_url is None:
             return
-            
+
         if not epg_url:
             epg_url = "http://example.com/epg.xml"
-            messagebox.showinfo("EPG Source", f"Using placeholder EPG source. Replace with actual EPG URL.\n\n{epg_url}")
+            messagebox.showinfo(
+                "EPG Source",
+                f"Using placeholder EPG source. Replace with actual EPG URL.\n\n{epg_url}"
+            )
             return
-            
+
         def fetch_thread():
             try:
-                self.root.after(0, lambda: self.stat.config(text="Fetching EPG data..."))
-                
+                self.root.after(
+                    0, lambda: self.stat.config(text="Fetching EPG data..."))
+
                 response = requests.get(epg_url, timeout=15)
                 response.raise_for_status()
-                
-                self.root.after(0, lambda: self.process_epg_data_enhanced(response.text, epg_url))
-                
+
+                self.root.after(
+                    0, lambda: self.process_epg_data_enhanced(
+                        response.text, epg_url))
+
             except Exception as e:
-                self.root.after(0, lambda: messagebox.showerror("EPG Error", f"Failed to fetch EPG: {str(e)}"))
-                self.root.after(0, lambda: self.stat.config(text="EPG fetch failed"))
+                self.root.after(
+                    0, lambda: messagebox.showerror(
+                        "EPG Error", f"Failed to fetch EPG: {str(e)}"))
+                self.root.after(
+                    0, lambda: self.stat.config(text="EPG fetch failed"))
 
         threading.Thread(target=fetch_thread, daemon=True).start()
 
@@ -643,14 +784,14 @@ Success Rate: {results['working']/results['total']*100:.1f}%
         """Enhanced EPG parsing with proper XML handling"""
         try:
             import xml.etree.ElementTree as ET
-            
+
             # Clean XML
             epg_xml = self.clean_epg_xml(epg_xml)
             root = ET.fromstring(epg_xml)
-            
+
             shows = []
             channel_mapping = {}
-            
+
             # Map channel IDs to names
             for channel in root.findall('.//channel'):
                 channel_id = channel.get('id')
@@ -658,30 +799,36 @@ Success Rate: {results['working']/results['total']*100:.1f}%
                     display_name = channel.find('display-name')
                     if display_name is not None and display_name.text:
                         channel_mapping[channel_id] = display_name.text
-            
+
             # Parse programmes
             for programme in root.findall('.//programme'):
                 try:
                     channel_id = programme.get('channel')
                     start = programme.get('start')
                     title_elem = programme.find('title')
-                    
+
                     if channel_id and title_elem is not None and title_elem.text:
                         start_time = self.parse_epg_time(start)
-                        
+
                         stop = programme.get('stop')
                         end_time = self.parse_epg_time(stop) if stop else None
-                        
+
                         desc_elem = programme.find('desc')
                         description = desc_elem.text if desc_elem is not None else ""
-                        
+
                         shows.append({
-                            'channel_id': channel_id,
-                            'channel_name': channel_mapping.get(channel_id, channel_id),
-                            'title': title_elem.text,
-                            'description': description,
-                            'start': start_time,
-                            'end': end_time
+                            'channel_id':
+                            channel_id,
+                            'channel_name':
+                            channel_mapping.get(channel_id, channel_id),
+                            'title':
+                            title_elem.text,
+                            'description':
+                            description,
+                            'start':
+                            start_time,
+                            'end':
+                            end_time
                         })
                 except Exception:
                     continue
@@ -689,29 +836,31 @@ Success Rate: {results['working']/results['total']*100:.1f}%
             # Update schedule
             self.update_schedule_from_epg(shows)
             self.update_guide_preview()
-            
+
             self.epg_data = {
                 'source': source_url,
                 'fetch_time': datetime.now().isoformat(),
                 'shows': shows,
                 'total_programs': len(shows)
             }
-            
-            messagebox.showinfo("EPG Success", 
-                f"Loaded EPG data with:\n"
+
+            messagebox.showinfo(
+                "EPG Success", f"Loaded EPG data with:\n"
                 f"• {len(shows)} program entries\n"
                 f"• Source: {source_url}")
-            
+
             self.stat.config(text=f"EPG: {len(shows)} shows loaded")
-            
+
         except Exception as e:
-            messagebox.showerror("EPG Parse Error", 
-                f"Failed to parse EPG data:\n{str(e)}\n\n"
+            messagebox.showerror(
+                "EPG Parse Error", f"Failed to parse EPG data:\n{str(e)}\n\n"
                 f"Ensure the URL points to a valid XMLTV format file.")
 
     def clean_epg_xml(self, xml_content):
         """Clean common XML issues in EPG files"""
-        xml_content = re.sub(r'[^\x09\x0A\x0D\x20-\x7E\x85\xA0-\uD7FF\uE000-\uFFFD]', '', xml_content)
+        xml_content = re.sub(
+            r'[^\x09\x0A\x0D\x20-\x7E\x85\xA0-\uD7FF\uE000-\uFFFD]', '',
+            xml_content)
         xml_content = xml_content.replace('&', '&amp;')
         return xml_content
 
@@ -728,38 +877,46 @@ Success Rate: {results['working']/results['total']*100:.1f}%
     def update_schedule_from_epg(self, shows):
         """Update channel schedule from EPG data"""
         for channel_num in list(self.schedule.keys()):
-            self.schedule[channel_num] = [s for s in self.schedule[channel_num] 
-                                        if s.get('source') != 'EPG']
-        
+            self.schedule[channel_num] = [
+                s for s in self.schedule[channel_num]
+                if s.get('source') != 'EPG'
+            ]
+
         for show in shows:
             matching_channels = []
             for channel in self.channels:
-                if (show['channel_id'] == channel.get('tvg_id') or 
-                    show['channel_name'].lower() in channel.get('name', '').lower()):
+                if (show['channel_id'] == channel.get('tvg_id')
+                        or show['channel_name'].lower() in channel.get(
+                            'name', '').lower()):
                     matching_channels.append(channel)
-            
+
             for channel in matching_channels:
                 channel_num = str(channel['num'])
                 if channel_num not in self.schedule:
                     self.schedule[channel_num] = []
-                
+
                 self.schedule[channel_num].append({
-                    'time': show['start'].strftime('%H:%M'),
-                    'show': show['title'],
-                    'description': show['description'],
-                    'source': 'EPG',
-                    'end': show['end'].strftime('%H:%M') if show['end'] else None
+                    'time':
+                    show['start'].strftime('%H:%M'),
+                    'show':
+                    show['title'],
+                    'description':
+                    show['description'],
+                    'source':
+                    'EPG',
+                    'end':
+                    show['end'].strftime('%H:%M') if show['end'] else None
                 })
 
     # ========== ENHANCED UI FEATURES ==========
     def filter(self):
         """Advanced filtering with regex support"""
         search_term = self.search.get().lower()
-        
+
         if not search_term:
             self.fill()
             return
-        
+
         use_regex = False
         if search_term.startswith('/') and search_term.endswith('/'):
             use_regex = True
@@ -768,62 +925,65 @@ Success Rate: {results['working']/results['total']*100:.1f}%
                 re.compile(pattern)
             except re.error:
                 use_regex = False
-        
+
         self.tv.delete(*self.tv.get_children())
-        
+
         for ch in self.channels:
             name = ch.get("name", "").lower()
             group = ch.get("group", "").lower()
             url = ch.get("url", "").lower()
-            
+
             match = False
             if use_regex:
-                match = (re.search(pattern, name, re.IGNORECASE) or 
-                        re.search(pattern, group, re.IGNORECASE) or
-                        re.search(pattern, url, re.IGNORECASE))
+                match = (re.search(pattern, name, re.IGNORECASE)
+                         or re.search(pattern, group, re.IGNORECASE)
+                         or re.search(pattern, url, re.IGNORECASE))
             else:
-                match = (search_term in name or 
-                        search_term in group or
-                        search_term in url)
-            
+                match = (search_term in name or search_term in group
+                         or search_term in url)
+
             if match:
                 now = "LIVE"
-                shows = sorted(self.schedule.get(str(ch["num"]), []), 
-                              key=lambda x: x["time"], reverse=True)
+                shows = sorted(self.schedule.get(str(ch["num"]), []),
+                               key=lambda x: x["time"],
+                               reverse=True)
                 for s in shows:
                     if s["time"] <= datetime.now().strftime("%H:%M"):
                         now = s["show"]
                         break
-                
+
                 tags_count = len(ch.get('custom_tags', {}))
-                
-                self.tv.insert("", "end", values=(
-                    ch["num"], now, "—", ch.get("group", "Other"), 
-                    ch.get("name", ""), ch.get("url", "")[:80] + "..." 
-                    if len(ch.get("url", "")) > 80 else ch.get("url", ""),
-                    len(ch.get("backups", [])), f"{tags_count} tags", ""
-                ))
+
+                self.tv.insert(
+                    "",
+                    "end",
+                    values=(ch["num"], now, "—", ch.get("group", "Other"),
+                            ch.get("name",
+                                   ""), ch.get("url", "")[:80] + "..." if
+                            len(ch.get("url", "")) > 80 else ch.get("url", ""),
+                            len(ch.get("backups",
+                                       [])), f"{tags_count} tags", ""))
 
     def sort_by(self, col):
         """Enhanced multi-column sorting"""
         if not hasattr(self, '_sort_state'):
             self._sort_state = {}
-        
+
         reverse = self._sort_state.get(col, False)
         self._sort_state[col] = not reverse
-        
+
         sort_keys = {
             "#": lambda x: x["num"],
             "Group": lambda x: x.get("group", "").lower(),
-            "Name": lambda x: x.get("name", "").lower(), 
+            "Name": lambda x: x.get("name", "").lower(),
             "URL": lambda x: x.get("url", "").lower(),
             "Backs": lambda x: len(x.get("backups", [])),
             "Tags": lambda x: len(x.get("custom_tags", {}))
         }
-        
+
         if col in sort_keys:
             self.channels.sort(key=sort_keys[col], reverse=reverse)
-        
+
         self.fill()
         self.stat.config(text=f"Sorted by {col} {'↓' if reverse else '↑'}")
 
@@ -833,20 +993,25 @@ Success Rate: {results['working']/results['total']*100:.1f}%
         self.tv.delete(*self.tv.get_children())
         for ch in self.channels:
             now_playing = "LIVE"
-            shows = sorted(self.schedule.get(str(ch["num"]), []), key=lambda x: x["time"], reverse=True)
+            shows = sorted(self.schedule.get(str(ch["num"]), []),
+                           key=lambda x: x["time"],
+                           reverse=True)
             for s in shows:
                 if s["time"] <= datetime.now().strftime("%H:%M"):
                     now_playing = s["show"]
                     break
-            
+
             next_show = "—"
             tags_count = len(ch.get('custom_tags', {}))
-            
-            self.tv.insert("", "end", values=(
-                ch["num"], now_playing, next_show, ch.get("group", "Other"), 
-                ch.get("name", "Unknown"), ch.get("url", "")[:80] + "..." if len(ch.get("url", "")) > 80 else ch.get("url", ""),
-                len(ch.get("backups", [])), f"{tags_count} tags", ""
-            ))
+
+            self.tv.insert(
+                "",
+                "end",
+                values=(ch["num"], now_playing, next_show,
+                        ch.get("group", "Other"), ch.get("name", "Unknown"),
+                        ch.get("url", "")[:80] + "..." if len(ch.get(
+                            "url", "")) > 80 else ch.get("url", ""),
+                        len(ch.get("backups", [])), f"{tags_count} tags", ""))
 
     def build_m3u(self):
         """Build M3U content with enhanced tags"""
@@ -854,15 +1019,15 @@ Success Rate: {results['working']/results['total']*100:.1f}%
         for ch in self.channels:
             extinf = f'#EXTINF:-1 tvg-id="{ch.get("tvg_id", "")}" tvg-name="{ch.get("name", "")}" '
             extinf += f'tvg-logo="{ch.get("logo", "")}" group-title="{ch.get("group", "Other")}",{ch.get("name", "")}\n'
-            
+
             if ch.get("group"):
                 extinf += f'#EXTGRP:{ch.get("group", "Other")}\n'
-                
+
             for tag_name, tag_value in ch.get('custom_tags', {}).items():
                 extinf += f'#{tag_name}:{tag_value}\n'
-                
+
             self.m3u += extinf + ch.get("url", "") + "\n"
-            
+
             for backup in ch.get("backups", []):
                 self.m3u += backup + "\n"
 
@@ -903,7 +1068,7 @@ Success Rate: {results['working']/results['total']*100:.1f}%
             self.file_list.delete(0, tk.END)
             for ff in self.files:
                 self.file_list.insert(tk.END, os.path.basename(ff))
-            
+
             all_channels = []
             for file_path in f:
                 channels = self.parse_m3u_file(file_path)
@@ -911,21 +1076,27 @@ Success Rate: {results['working']/results['total']*100:.1f}%
                     ch.setdefault("num", 0)
                     ch.setdefault("backups", [])
                 all_channels.extend(channels)
-                
+
             self.channels = all_channels
             self.auto_increment_channels()
             self.fill()
             self.build_m3u()
-            self.stat.config(text=f"LOADED {len(self.channels)} channels from {len(f)} files")
+            self.stat.config(
+                text=f"LOADED {len(self.channels)} channels from {len(f)} files"
+            )
 
     def save(self):
         folder = filedialog.askdirectory()
-        
+
         if folder:
-            path = os.path.join(folder, f"MATRIX_{datetime.now().strftime('%Y%m%d')}_{len(self.channels)}.m3u")
+            path = os.path.join(
+                folder,
+                f"MATRIX_{datetime.now().strftime('%Y%m%d')}_{len(self.channels)}.m3u"
+            )
             with open(path, "w", encoding="utf-8") as f:
                 f.write(self.m3u)
-            messagebox.showinfo("Saved", f"Playlist saved with {len(self.channels)} channels")
+            messagebox.showinfo(
+                "Saved", f"Playlist saved with {len(self.channels)} channels")
             self.stat.config(text=f"SAVED: {path}")
 
     def overlay(self):
@@ -947,7 +1118,8 @@ Success Rate: {results['working']/results['total']*100:.1f}%
 </body>
 </html>
 """
-        temp_path = os.path.join(tempfile.gettempdir(), "M3U_MATRIX_PLAYER.html")
+        temp_path = os.path.join(tempfile.gettempdir(),
+                                 "M3U_MATRIX_PLAYER.html")
         try:
             with open(temp_path, "w", encoding="utf-8") as f:
                 f.write(html_content)
@@ -970,23 +1142,28 @@ Success Rate: {results['working']/results['total']*100:.1f}%
         col = self.tv.identify_column(e.x)
         iid = self.tv.identify_row(e.y)
         if not iid: return
-        
+
         if col == "#6":
             url = self.tv.item(iid, "values")[5]
             if url and not url.endswith("..."):
                 self.vlc(url)
-        elif col in ("#1","#2","#3","#4","#5"):
-            self.inline_edit(iid, int(col[1:])-1)
+        elif col in ("#1", "#2", "#3", "#4", "#5"):
+            self.inline_edit(iid, int(col[1:]) - 1)
 
     def inline_edit(self, iid, col_idx):
         if self.editor: self.editor.destroy()
         x, y, w, h = self.tv.bbox(iid, f"#{col_idx+1}")
-        self.editor = tk.Entry(self.tv, bg="#333", fg="#fff", font=("Arial", 10), relief=tk.FLAT, highlightthickness=2, 
-        highlightcolor="#8e44ad")
+        self.editor = tk.Entry(self.tv,
+                               bg="#333",
+                               fg="#fff",
+                               font=("Arial", 10),
+                               relief=tk.FLAT,
+                               highlightthickness=2,
+                               highlightcolor="#8e44ad")
         self.editor.insert(0, self.tv.item(iid, "values")[col_idx])
         self.editor.select_range(0, tk.END)
         self.editor.focus()
-        self.editor.place(x=x, y=y+2, width=w-4, height=h-4)
+        self.editor.place(x=x, y=y + 2, width=w - 4, height=h - 4)
         self.editor.bind("<Return>", lambda e: self.save_inline(iid, col_idx))
         self.editor.bind("<FocusOut>", lambda e: self.editor.destroy())
 
@@ -997,7 +1174,7 @@ Success Rate: {results['working']/results['total']*100:.1f}%
         self.tv.item(iid, values=values)
         num = int(values[0])
         ch = next(c for c in self.channels if c["num"] == num)
-        
+
         mapping = {1: "now", 2: "next", 3: "group", 4: "name"}
         if col_idx in mapping:
             key = mapping[col_idx]
@@ -1012,7 +1189,7 @@ Success Rate: {results['working']/results['total']*100:.1f}%
                 ch["group"] = val
             elif key == "name":
                 ch["name"] = val
-                
+
         self.editor.destroy()
         self.editor = None
         self.build_m3u()
@@ -1023,7 +1200,9 @@ Success Rate: {results['working']/results['total']*100:.1f}%
             try:
                 os.startfile(url)
             except Exception:
-                messagebox.showwarning("VLC Error", "Could not open stream. Ensure VLC is installed.")
+                messagebox.showwarning(
+                    "VLC Error",
+                    "Could not open stream. Ensure VLC is installed.")
         else:
             webbrowser.open(url)
 
@@ -1032,11 +1211,17 @@ Success Rate: {results['working']/results['total']*100:.1f}%
         if not iid: return
         self.tv.selection_set(iid)
         menu = tk.Menu(self.root, tearoff=0, bg="#333", fg="#fff")
-        menu.add_command(label="Play in VLC", command=lambda: self.vlc(self.tv.item(iid, "values")[5]))
-        menu.add_command(label="Copy URL", command=lambda: self.root.clipboard_append(self.tv.item(iid, "values")[5]))
-        menu.add_command(label="Schedule Show", command=lambda: self.schedule_show(iid))
+        menu.add_command(
+            label="Play in VLC",
+            command=lambda: self.vlc(self.tv.item(iid, "values")[5]))
+        menu.add_command(label="Copy URL",
+                         command=lambda: self.root.clipboard_append(
+                             self.tv.item(iid, "values")[5]))
+        menu.add_command(label="Schedule Show",
+                         command=lambda: self.schedule_show(iid))
         menu.add_separator()
-        menu.add_command(label="Delete", command=lambda: self.delete_channel(iid))
+        menu.add_command(label="Delete",
+                         command=lambda: self.delete_channel(iid))
         menu.post(e.x_root, e.y_root)
 
     def delete_channel(self, iid):
@@ -1059,6 +1244,7 @@ Success Rate: {results['working']/results['total']*100:.1f}%
         tk.Label(win, text="Show Name:").pack()
         s = tk.Entry(win)
         s.pack()
+
         def ok():
             num_str = str(num)
             if num_str not in self.schedule: self.schedule[num_str] = []
@@ -1066,27 +1252,32 @@ Success Rate: {results['working']/results['total']*100:.1f}%
             self.update_guide_preview()
             self.fill()
             win.destroy()
+
         tk.Button(win, text="Schedule", command=ok).pack(pady=10)
 
     def drop_files(self, event):
         """Handle drag and drop of M3U files"""
         files = self.root.tk.splitlist(event.data)
-        m3u_files = [f.strip('{}') for f in files if f.lower().endswith(('.m3u', '.m3u8'))]
-        
+        m3u_files = [
+            f.strip('{}') for f in files
+            if f.lower().endswith(('.m3u', '.m3u8'))
+        ]
+
         if not m3u_files:
-            messagebox.showwarning("Invalid Files", "Please drop M3U or M3U8 files only!")
+            messagebox.showwarning("Invalid Files",
+                                   "Please drop M3U or M3U8 files only!")
             return
-        
+
         # Add to file list (avoid duplicates)
         for file_path in m3u_files:
             if file_path not in self.files:
                 self.files.append(file_path)
-        
+
         # Refresh file list display
         self.file_list.delete(0, tk.END)
         for ff in self.files:
             self.file_list.insert(tk.END, os.path.basename(ff))
-        
+
         # Auto-load the dropped files in a thread
         def load_dropped():
             all_channels = []
@@ -1096,25 +1287,29 @@ Success Rate: {results['working']/results['total']*100:.1f}%
                     ch.setdefault("num", 0)
                     ch.setdefault("backups", [])
                 all_channels.extend(channels)
-            
+
             self.channels.extend(all_channels)
             self.auto_increment_channels()
             self.root.after(0, self.fill)
             self.root.after(0, self.build_m3u)
-            self.root.after(0, lambda: self.stat.config(text=f"Loaded {len(m3u_files)} file(s), {len(all_channels)} channels!"))
-        
+            self.root.after(
+                0, lambda: self.stat.config(
+                    text=
+                    f"Loaded {len(m3u_files)} file(s), {len(all_channels)} channels!"
+                ))
+
         threading.Thread(target=load_dropped, daemon=True).start()
         self.stat.config(text=f"Loading {len(m3u_files)} M3U file(s)...")
-    
+
     def open_file_from_list(self, event=None):
         """Open selected file by double-clicking"""
         selection = self.file_list.curselection()
         if not selection:
             return
-        
+
         index = selection[0]
         file_path = self.files[index]
-        
+
         # Clear current channels and reload just this file
         def load_single():
             self.channels = []
@@ -1126,22 +1321,28 @@ Success Rate: {results['working']/results['total']*100:.1f}%
             self.auto_increment_channels()
             self.root.after(0, self.fill)
             self.root.after(0, self.build_m3u)
-            self.root.after(0, lambda: self.stat.config(text=f"Opened: {os.path.basename(file_path)} - {len(channels)} channels"))
-        
+            self.root.after(
+                0, lambda: self.stat.config(
+                    text=
+                    f"Opened: {os.path.basename(file_path)} - {len(channels)} channels"
+                ))
+
         threading.Thread(target=load_single, daemon=True).start()
         self.stat.config(text=f"Opening {os.path.basename(file_path)}...")
 
     def file_menu(self, e):
         selection = self.file_list.curselection()
         menu = tk.Menu(self.root, tearoff=0, bg="#333", fg="#fff")
-        menu.add_command(label="✅ Open File (Double-Click)", command=self.open_file_from_list)
+        menu.add_command(label="✅ Open File (Double-Click)",
+                         command=self.open_file_from_list)
         menu.add_separator()
         menu.add_command(label="📋 Copy File Path", command=self.copy_file_path)
-        menu.add_command(label="📁 Open in Explorer", command=self.open_file_location)
+        menu.add_command(label="📁 Open in Explorer",
+                         command=self.open_file_location)
         menu.add_separator()
         menu.add_command(label="❌ Remove File", command=self.remove_file)
         menu.post(e.x_root, e.y_root)
-    
+
     def copy_file_path(self):
         """Copy selected file path to clipboard"""
         selection = self.file_list.curselection()
@@ -1150,7 +1351,7 @@ Success Rate: {results['working']/results['total']*100:.1f}%
             self.root.clipboard_clear()
             self.root.clipboard_append(file_path)
             self.stat.config(text=f"Copied: {file_path}")
-    
+
     def open_file_location(self):
         """Open file location in file explorer"""
         selection = self.file_list.curselection()
@@ -1184,7 +1385,9 @@ Success Rate: {results['working']/results['total']*100:.1f}%
         except FileNotFoundError:
             self.schedule = {}
         except json.JSONDecodeError:
-            messagebox.showwarning("File Error", "tv_guide.json is malformed. Resetting schedule.")
+            messagebox.showwarning(
+                "File Error",
+                "tv_guide.json is malformed. Resetting schedule.")
             self.schedule = {}
         except Exception as e:
             self.stat.config(text=f"Error loading schedule: {e}")
@@ -1197,14 +1400,14 @@ Success Rate: {results['working']/results['total']*100:.1f}%
             num = ch["num"]
             shows = self.schedule.get(str(num), [])
             shows.sort(key=lambda s: s["time"])
-            
+
             current = "No show"
             for s in shows:
                 if s["time"] <= now:
                     current = s["show"]
-                    
+
             preview += f"{num:3} │ {current[:25]:25} │ {ch.get('name', 'Unknown')[:20]}\n"
-        
+
         self.guide_prev.config(state=tk.NORMAL)
         self.guide_prev.delete(1.0, tk.END)
         self.guide_prev.insert(tk.END, preview or "No schedule loaded")
@@ -1216,7 +1419,11 @@ Success Rate: {results['working']/results['total']*100:.1f}%
         win.geometry("800x600")
         win.configure(bg="#1e1e1e")
 
-        tk.Label(win, text="Edit Schedule (JSON)", fg="gold", bg="#1e1e1e", font=("Arial", 14)).pack(pady=10)
+        tk.Label(win,
+                 text="Edit Schedule (JSON)",
+                 fg="gold",
+                 bg="#1e1e1e",
+                 font=("Arial", 14)).pack(pady=10)
         text = tk.Text(win, bg="#111", fg="#0f0", font=("Courier", 10))
         text.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
         text.insert(tk.END, json.dumps(self.schedule, indent=2))
@@ -1233,27 +1440,33 @@ Success Rate: {results['working']/results['total']*100:.1f}%
             except Exception as e:
                 messagebox.showerror("Error", str(e))
 
-        tk.Button(win, text="SAVE GUIDE", bg="#27ae60", fg="white", command=save).pack(pady=10)
+        tk.Button(win,
+                  text="SAVE GUIDE",
+                  bg="#27ae60",
+                  fg="white",
+                  command=save).pack(pady=10)
 
     def generate_pages(self):
         """Generate NEXUS TV pages from current channels"""
         if not self.channels:
             messagebox.showwarning("No Channels", "Load channels first!")
             return
-        
+
         # Ask how to generate pages
         choice = messagebox.askquestion(
-            "Generate Pages", 
+            "Generate Pages",
             "Generate pages BY GROUP (Yes) or ALL IN ONE (No)?",
-            icon='question'
-        )
-        
+            icon='question')
+
         def generation_thread():
             try:
-                self.root.after(0, lambda: self.stat.config(text="Generating NEXUS TV pages..."))
-                generator = NexusTVPageGenerator(template_path="../templates/nexus_tv_template.html")
+                self.root.after(
+                    0, lambda: self.stat.config(
+                        text="Generating NEXUS TV pages..."))
+                generator = NexusTVPageGenerator(
+                    template_path="../templates/nexus_tv_template.html")
                 generated = []
-                
+
                 if choice == 'yes':
                     # Group by category
                     groups = {}
@@ -1262,46 +1475,55 @@ Success Rate: {results['working']/results['total']*100:.1f}%
                         if group not in groups:
                             groups[group] = []
                         groups[group].append(ch)
-                    
+
                     # Generate page for each group
                     for group_name, group_channels in groups.items():
                         m3u_content = self.build_group_m3u(group_channels)
-                        output_path = generator.generate_page(m3u_content, group_name)
+                        output_path = generator.generate_page(
+                            m3u_content, group_name)
                         generated.append({
                             'name': group_name,
                             'file': f'generated_pages/{output_path.name}',
                             'programs': len(group_channels)
                         })
-                        self.root.after(0, lambda g=group_name: self.stat.config(text=f"Generated: {g}"))
+                        self.root.after(0,
+                                        lambda g=group_name: self.stat.config(
+                                            text=f"Generated: {g}"))
                 else:
                     # All channels in one page
                     m3u_content = self.m3u
-                    output_path = generator.generate_page(m3u_content, "All Channels")
+                    output_path = generator.generate_page(
+                        m3u_content, "All Channels")
                     generated.append({
                         'name': 'All Channels',
                         'file': f'generated_pages/{output_path.name}',
                         'programs': len(self.channels)
                     })
-                
+
                 # Generate channel selector
                 selector_path = generator.generate_channel_selector(generated)
-                
+
                 # Show success message
-                self.root.after(0, lambda: messagebox.showinfo(
-                    "Success!", 
-                    f"Generated {len(generated)} channel pages!\n\n"
-                    f"Selector page: {selector_path}\n"
-                    f"Channel pages in: generated_pages/\n\n"
-                    f"Open {selector_path} in your browser to view."
-                ))
-                self.root.after(0, lambda: self.stat.config(text=f"GENERATED: {len(generated)} pages"))
-                
+                self.root.after(
+                    0, lambda: messagebox.showinfo(
+                        "Success!",
+                        f"Generated {len(generated)} channel pages!\n\n"
+                        f"Selector page: {selector_path}\n"
+                        f"Channel pages in: generated_pages/\n\n"
+                        f"Open {selector_path} in your browser to view."))
+                self.root.after(
+                    0, lambda: self.stat.config(
+                        text=f"GENERATED: {len(generated)} pages"))
+
             except Exception as e:
-                self.root.after(0, lambda: messagebox.showerror("Generation Error", str(e)))
-                self.root.after(0, lambda: self.stat.config(text="Generation failed"))
-        
+                self.root.after(
+                    0,
+                    lambda: messagebox.showerror("Generation Error", str(e)))
+                self.root.after(
+                    0, lambda: self.stat.config(text="Generation failed"))
+
         threading.Thread(target=generation_thread, daemon=True).start()
-    
+
     def build_group_m3u(self, channels):
         """Build M3U content for a group of channels"""
         m3u = "#EXTM3U\n"
@@ -1316,10 +1538,12 @@ Success Rate: {results['working']/results['total']*100:.1f}%
         self.save_settings()
         self.root.quit()
 
+
 if __name__ == "__main__":
     try:
         app = M3UMatrix()
         app.root.protocol("WM_DELETE_WINDOW", app.safe_exit)
     except Exception as e:
         logging.error(f"Failed to start M3U Matrix: {e}")
-        messagebox.showerror("Startup Error", f"Failed to start application: {e}")
+        messagebox.showerror("Startup Error",
+                             f"Failed to start application: {e}")
