@@ -1610,59 +1610,105 @@ Success Rate: {results['working']/results['total']*100:.1f}%
                 self.show_error_dialog("Export Failed", "Could not export M3U", e)
 
     def generate_thumbnails(self):
-        """FFmpeg automated thumbnail generation"""
+        """Generate thumbnails (Pillow placeholders or FFmpeg from video files)"""
         if not self.channels:
             messagebox.showwarning("No Channels", "Load channels first!")
             return
         
-        interval = simpledialog.askinteger(
-            "Thumbnail Interval",
-            "Generate thumbnail every X seconds:",
-            initialvalue=10,
-            minvalue=1,
-            maxvalue=300
+        choice = messagebox.askquestion(
+            "Thumbnail Generation",
+            "Generate PLACEHOLDER thumbnails (Yes) or use FFmpeg on video files (No)?",
+            icon='question'
         )
         
-        if not interval:
-            return
-        
         try:
-            import subprocess
+            from PIL import Image, ImageDraw, ImageFont
             thumb_dir = Path("thumbnails")
             thumb_dir.mkdir(exist_ok=True)
             
-            generated = 0
-            for ch in self.channels:
-                url = ch.get('url', '')
-                if url.startswith('http'):
+            if choice == 'yes':
+                # Generate placeholder thumbnails with PIL
+                generated = 0
+                for ch in self.channels:
                     try:
-                        thumb_pattern = thumb_dir / f"{ch['name']}_thumb_%04d.jpg"
+                        # Create 480x270 thumbnail with channel name
+                        img = Image.new('RGB', (480, 270), color=(30, 30, 30))
+                        draw = ImageDraw.Draw(img)
                         
-                        self.stat.config(text=f"Generating thumbs for: {ch['name']}")
+                        # Draw channel name
+                        name = ch.get('name', 'Unknown')[:40]
+                        group = ch.get('group', 'Other')
+                        
+                        # Try to use a font, fallback to default
+                        try:
+                            font_title = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 24)
+                            font_sub = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 16)
+                        except:
+                            font_title = ImageFont.load_default()
+                            font_sub = ImageFont.load_default()
+                        
+                        # Draw text centered
+                        draw.text((240, 100), name, fill=(255, 215, 0), font=font_title, anchor="mm")
+                        draw.text((240, 150), f"Group: {group}", fill=(150, 150, 150), font=font_sub, anchor="mm")
+                        draw.text((240, 180), f"Channel #{ch.get('num', '?')}", fill=(100, 100, 100), font=font_sub, anchor="mm")
+                        
+                        # Save
+                        safe_name = "".join(c if c.isalnum() or c in (' ', '_') else '_' for c in name)
+                        thumb_file = thumb_dir / f"{safe_name}_thumb.jpg"
+                        img.save(thumb_file, 'JPEG', quality=85)
+                        
+                        generated += 1
+                        self.stat.config(text=f"Generated: {generated}/{len(self.channels)}")
                         self.root.update()
                         
+                    except Exception as e:
+                        self.logger.warning(f"Thumb gen failed for {ch.get('name')}: {e}")
+                        continue
+                
+                messagebox.showinfo("Success", 
+                                  f"Generated {generated} placeholder thumbnails!\n"
+                                  f"Location: {thumb_dir.absolute()}")
+                self.stat.config(text=f"✅ Generated {generated} thumbnails")
+            
+            else:
+                # FFmpeg mode - for actual video files
+                import subprocess
+                
+                video_dir = filedialog.askdirectory(title="Select folder with video files")
+                if not video_dir:
+                    return
+                
+                video_files = list(Path(video_dir).glob('*.mp4')) + list(Path(video_dir).glob('*.mkv'))
+                
+                if not video_files:
+                    messagebox.showwarning("No Videos", "No MP4 or MKV files found!")
+                    return
+                
+                generated = 0
+                for video_file in video_files[:20]:  # Limit to 20 files
+                    try:
+                        thumb_file = thumb_dir / f"{video_file.stem}_thumb.jpg"
+                        
                         cmd = [
-                            'ffmpeg', '-i', url, '-t', '60',
-                            '-vf', f'fps=1/{interval}',
-                            str(thumb_pattern), '-y'
+                            'ffmpeg', '-i', str(video_file), '-ss', '00:00:05',
+                            '-vframes', '1', '-vf', 'scale=480:270',
+                            str(thumb_file), '-y'
                         ]
                         
-                        subprocess.run(cmd, capture_output=True, timeout=120)
+                        subprocess.run(cmd, capture_output=True, timeout=30)
                         generated += 1
+                        self.stat.config(text=f"Generated: {generated}/{len(video_files)}")
+                        self.root.update()
                         
                     except Exception as e:
-                        self.logger.warning(f"Thumb gen failed for {ch['name']}: {e}")
+                        self.logger.warning(f"FFmpeg failed for {video_file.name}: {e}")
                         continue
-            
-            messagebox.showinfo("Success", 
-                              f"Generated thumbnails for {generated} channels!\n"
-                              f"Location: {thumb_dir.absolute()}")
-            self.stat.config(text=f"✅ Generated {generated} thumbnail sets")
-            
-        except ImportError:
-            messagebox.showerror("FFmpeg Not Found", 
-                               "FFmpeg must be installed!\n"
-                               "Download from: https://ffmpeg.org/download.html")
+                
+                messagebox.showinfo("Success", 
+                                  f"Generated {generated} FFmpeg thumbnails!\n"
+                                  f"Location: {thumb_dir.absolute()}")
+                self.stat.config(text=f"✅ Generated {generated} FFmpeg thumbs")
+                
         except Exception as e:
             self.show_error_dialog("Thumbnail Generation Failed", 
                                  "Could not generate thumbnails", e)
@@ -1738,61 +1784,132 @@ Success Rate: {results['working']/results['total']*100:.1f}%
                  fg="white", width=15, command=dialog.destroy).pack(side=tk.LEFT, padx=5)
     
     def export_tv_guide_json(self):
-        """Export TV Guide in JSON format with timestamps"""
+        """Export 7-day TV Guide in JSON format with timestamps"""
         if not self.channels:
             messagebox.showwarning("No Channels", "Load channels first!")
+            return
+        
+        # Ask for duration and days
+        duration = simpledialog.askinteger(
+            "Show Duration",
+            "Enter show duration in minutes:",
+            initialvalue=30,
+            minvalue=5,
+            maxvalue=180
+        )
+        
+        if not duration:
+            return
+        
+        days = simpledialog.askinteger(
+            "Number of Days",
+            "Generate TV guide for how many days?",
+            initialvalue=7,
+            minvalue=1,
+            maxvalue=30
+        )
+        
+        if not days:
             return
         
         try:
             json_dir = Path("json")
             json_dir.mkdir(exist_ok=True)
+            cache_dir = Path("cache")
+            cache_dir.mkdir(exist_ok=True)
             
+            # Generate 7-day schedule
             tv_guide = {
-                "tv_guide": {
-                    "channel": "M3U Matrix Channel",
-                    "date": datetime.now().strftime("%Y-%m-%d"),
-                    "schedule": []
-                }
+                "config": {
+                    "channel_name": "M3U Matrix Channel",
+                    "generated_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "total_days": days,
+                    "show_duration_minutes": duration,
+                    "total_shows": 0,
+                    "buffer_enabled": True,
+                    "cache_enabled": True
+                },
+                "days": []
             }
             
-            current_time = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-            default_duration = 30
+            start_date = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+            channel_index = 0
+            total_shows = 0
             
-            for ch in self.channels[:100]:
-                show_entry = {
-                    "show_title": ch.get('name', 'Unknown'),
-                    "start_time": current_time.strftime("%H:%M:%S"),
-                    "duration": f"00:{default_duration}:00",
-                    "url": ch.get('url', ''),
-                    "logo": ch.get('logo', ''),
-                    "group": ch.get('group', 'Unknown')
+            for day in range(days):
+                current_day = start_date + timedelta(days=day)
+                day_schedule = {
+                    "date": current_day.strftime("%Y-%m-%d"),
+                    "day_name": current_day.strftime("%A"),
+                    "shows": []
                 }
                 
-                end_time = current_time + timedelta(minutes=default_duration)
-                show_entry["end_time"] = end_time.strftime("%H:%M:%S")
+                current_time = current_day
                 
-                tv_guide["tv_guide"]["schedule"].append(show_entry)
-                current_time = end_time
+                # Fill 24 hours
+                while current_time.date() == current_day.date():
+                    # Rotate through channels
+                    if channel_index >= len(self.channels):
+                        channel_index = 0
+                    
+                    ch = self.channels[channel_index]
+                    
+                    show_entry = {
+                        "show_number": total_shows + 1,
+                        "show_title": ch.get('name', 'Unknown'),
+                        "start_time": current_time.strftime("%H:%M:%S"),
+                        "duration_minutes": duration,
+                        "url": ch.get('url', ''),
+                        "logo": ch.get('logo', ''),
+                        "group": ch.get('group', 'Unknown'),
+                        "channel_number": ch.get('num', 0),
+                        "cache_file": f"cache/show_{total_shows + 1}.dat",
+                        "buffer_file": f"buffer/buffer_{(total_shows + 1) % 10}.dat"
+                    }
+                    
+                    end_time = current_time + timedelta(minutes=duration)
+                    show_entry["end_time"] = end_time.strftime("%H:%M:%S")
+                    
+                    day_schedule["shows"].append(show_entry)
+                    current_time = end_time
+                    channel_index += 1
+                    total_shows += 1
                 
-                if current_time.day > datetime.now().day:
-                    break
+                tv_guide["days"].append(day_schedule)
             
+            tv_guide["config"]["total_shows"] = total_shows
+            
+            # Save main guide
             filename = filedialog.asksaveasfilename(
                 defaultextension=".json",
                 filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
                 initialdir=str(json_dir),
-                initialfile=f"tv_guide_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+                initialfile=f"tv_guide_{days}day_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
             )
             
             if filename:
                 with open(filename, 'w', encoding='utf-8') as f:
                     json.dump(tv_guide, f, indent=2, ensure_ascii=False)
                 
+                # Also save a quick-access cache index
+                cache_index = {
+                    "guide_file": filename,
+                    "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "total_shows": total_shows,
+                    "days": days
+                }
+                
+                with open(cache_dir / "guide_index.json", 'w') as f:
+                    json.dump(cache_index, f, indent=2)
+                
                 messagebox.showinfo("Success", 
-                                  f"TV Guide JSON exported!\n"
-                                  f"Shows: {len(tv_guide['tv_guide']['schedule'])}\n"
-                                  f"File: {filename}")
-                self.stat.config(text=f"✅ Exported JSON TV Guide")
+                                  f"📺 {days}-Day TV Guide Generated!\n\n"
+                                  f"Total Shows: {total_shows}\n"
+                                  f"Duration: {duration} min/show\n"
+                                  f"Days: {days}\n\n"
+                                  f"Main file: {Path(filename).name}\n"
+                                  f"Cache index: cache/guide_index.json")
+                self.stat.config(text=f"✅ Generated {days}-day guide ({total_shows} shows)")
                 
         except Exception as e:
             self.show_error_dialog("Export Failed", "Could not export TV Guide JSON", e)
