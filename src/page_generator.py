@@ -32,9 +32,17 @@ class NexusTVPageGenerator:
                 logo_match = re.search(r'tvg-logo="([^"]*)"', line)
                 name_match = re.search(r',(.+)$', line)
                 
+                title = name_match.group(1).strip() if name_match else 'Unknown'
+                if logo_match and logo_match.group(1):
+                    logo = logo_match.group(1)
+                else:
+                    # Generate placeholder logo
+                    short_title = title[:20].replace(' ', '+')
+                    logo = f"https://placehold.co/300x169/1a1a2a/00f3ff?text={short_title}"
+                
                 current_entry = {
-                    'title': name_match.group(1).strip() if name_match else 'Unknown',
-                    'logo': logo_match.group(1) if logo_match else '',
+                    'title': title,
+                    'logo': logo,
                     'video': '',
                     'start_time': current_time.strftime("%H:%M"),
                     'end_time': ''
