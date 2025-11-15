@@ -1,0 +1,74 @@
+╔═══════════════════════════════════════════════════════════════╗
+║                    NEXUS TV - QUICK START                     ║
+╚═══════════════════════════════════════════════════════════════╝
+
+🎯 HOW TO VIEW YOUR GENERATED PAGES
+═══════════════════════════════════════════════════════════════
+
+STEP 1: START THE WEB SERVER
+─────────────────────────────────────────────────────────────
+   Double-click:  START_WEB_SERVER.bat
+   
+   OR run in terminal:
+   python START_WEB_SERVER.py
+
+
+STEP 2: OPEN IN BROWSER
+─────────────────────────────────────────────────────────────
+   Main Page:      http://localhost:5000/
+   Channel List:   http://localhost:5000/generated_pages/
+
+
+STEP 3: WATCH TV!
+─────────────────────────────────────────────────────────────
+   • Click any channel from the selector
+   • Use Schedule Mode for 24-hour TV experience
+   • Use Live Mode to browse and play channels on demand
+   • Mark favorites with the star button
+   • Toggle between light/dark themes
+
+
+═══════════════════════════════════════════════════════════════
+
+⚠️  IMPORTANT NOTES:
+
+1. DO NOT open HTML files directly by double-clicking them
+   → This uses file:// protocol which blocks video playback
+   → Always use http://localhost:5000/ instead
+
+2. Keep the web server running while watching
+   → The black terminal window must stay open
+   → Press CTRL+C to stop the server when done
+
+3. If port 5000 is already in use:
+   → Edit START_WEB_SERVER.py and change PORT = 5000 to PORT = 8000
+   → Then use http://localhost:8000/ instead
+
+═══════════════════════════════════════════════════════════════
+
+📁 FOLDER STRUCTURE:
+   
+   M3U MATRIX ALL IN ONE/
+   ├── START_WEB_SERVER.bat     ← Double-click this!
+   ├── START_WEB_SERVER.py      
+   ├── src/
+   │   └── M3U_MATRIX_PRO.py    ← Desktop app for M3U editing
+   ├── generated_pages/
+   │   ├── index.html           ← Channel selector
+   │   ├── all_channels.html    ← Your generated channels
+   │   └── (more channels...)
+   └── templates/
+       └── nexus_tv_template.html
+
+═══════════════════════════════════════════════════════════════
+
+🎬 COMPLETE WORKFLOW:
+
+1. Open M3U_MATRIX_PRO.py (Python desktop app)
+2. Load or edit your M3U playlists
+3. Click "GENERATE PAGES" to create NEXUS TV pages
+4. Run START_WEB_SERVER.bat
+5. Open http://localhost:5000/generated_pages/
+6. Enjoy your personalized IPTV experience!
+
+═══════════════════════════════════════════════════════════════
