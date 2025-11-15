@@ -12,27 +12,20 @@ import logging
 from pathlib import Path
 import uuid
 
-# Add script directory to sys.path for local imports
-script_dir = str(Path(__file__).parent.resolve())
-if script_dir not in sys.path:
-    sys.path.insert(0, script_dir)
-
 # Optional imports - only needed for advanced features
 try:
     from page_generator import NexusTVPageGenerator
     PAGE_GENERATOR_AVAILABLE = True
-except ImportError as e:
+except ImportError:
     PAGE_GENERATOR_AVAILABLE = False
-    logging.warning(f"Page generator not available: {e}")
 
 try:
     from utils import (sanitize_filename, validate_url, validate_file_path, 
                        sanitize_input, SimpleCache, is_valid_m3u, 
                        download_and_cache_thumbnail, get_cached_thumbnail_stats)
     UTILS_AVAILABLE = True
-except ImportError as e:
+except ImportError:
     UTILS_AVAILABLE = False
-    logging.warning(f"Utils module not available: {e}")
     download_and_cache_thumbnail = None
     get_cached_thumbnail_stats = None
     # Minimal fallback functions
