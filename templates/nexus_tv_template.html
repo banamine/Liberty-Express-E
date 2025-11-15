@@ -3858,7 +3858,11 @@
             }
             
             // Reset compact mode when video changes (new program starts)
-            if (currentTime < 5) {
+            if (currentTime < 5 && compactModeActivated) {
+                const topBar = document.getElementById('top-bar');
+                if (topBar) {
+                    topBar.classList.remove('compact-mode');
+                }
                 compactModeActivated = false;
             }
         }
