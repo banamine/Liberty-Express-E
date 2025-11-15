@@ -21,10 +21,13 @@ except ImportError:
 
 try:
     from utils import (sanitize_filename, validate_url, validate_file_path, 
-                       sanitize_input, SimpleCache, is_valid_m3u)
+                       sanitize_input, SimpleCache, is_valid_m3u, 
+                       download_and_cache_thumbnail, get_cached_thumbnail_stats)
     UTILS_AVAILABLE = True
 except ImportError:
     UTILS_AVAILABLE = False
+    download_and_cache_thumbnail = None
+    get_cached_thumbnail_stats = None
     # Minimal fallback functions
     def sanitize_filename(filename, max_length=255):
         """Remove dangerous characters from filename"""
@@ -234,7 +237,9 @@ class M3UMatrix:
             "theme": "dark",
             "auto_check_channels": False,
             "default_epg_url": "",
-            "recent_files": []
+            "recent_files": [],
+            "cache_thumbnails": True,
+            "use_ffmpeg_extraction": False
         }
 
         try:
@@ -820,6 +825,19 @@ Success Rate: {results['working']/results['total']*100:.1f}%
                                     or line.startswith("rtsp")):
                 current_channel["url"] = line.strip()
                 current_channel["custom_tags"] = custom_tags.copy()
+                
+                # Download and cache thumbnail if enabled
+                if self.settings.get("cache_thumbnails", True) and current_channel.get("logo") and download_and_cache_thumbnail:
+                    cached_path, status = download_and_cache_thumbnail(
+                        current_channel["logo"],
+                        current_channel["name"],
+                        self.thumbnails_dir,
+                        timeout=5
+                    )
+                    if cached_path:
+                        current_channel["logo"] = cached_path
+                        current_channel["logo_cached"] = True
+                
                 channels.append(current_channel)
                 current_channel = None
                 custom_tags = {}
