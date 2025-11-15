@@ -1,0 +1,136 @@
+========================================
+M3U MATRIX ALL-IN-ONE - Quick Start
+========================================
+
+Welcome! This guide will help you choose the best installation method.
+
+📦 OPTION 1: USB STICK (PORTABLE)
+========================================
+Perfect for: Running from USB on multiple PCs
+
+Steps:
+1. Double-click: CREATE_PORTABLE_PACKAGE.bat
+2. Copy the generated folder to your USB stick
+3. On any PC: Run START_M3U_MATRIX.bat
+
+Advantages:
+✅ No installation needed
+✅ Run from anywhere
+✅ All data on USB stick
+
+Requirements:
+- Python 3.11+ on target PC
+- USB stick (8GB+ recommended)
+
+
+💻 OPTION 2: FULL INSTALLATION
+========================================
+Perfect for: Permanent setup on one PC
+
+Steps:
+1. Double-click: BUILD_INSTALLER.bat
+2. Run: dist\M3U_Matrix_Installer.exe
+3. Follow installation wizard
+
+Advantages:
+✅ Desktop shortcuts
+✅ Start menu entry
+✅ Fast performance
+
+Requirements:
+- Windows 7/8/10/11
+- 500MB disk space
+
+
+🌐 OPTION 3: NETWORK DEPLOYMENT
+========================================
+Perfect for: Sharing with other PCs on your network
+
+Steps:
+1. Double-click: NETWORK_DEPLOY.bat
+2. Enter your network share path
+3. On other PCs: Run INSTALL_FROM_NETWORK.bat
+
+Advantages:
+✅ Deploy to multiple PCs
+✅ Centralized updates
+✅ One-click for users
+
+Requirements:
+- Network share access
+- Python 3.11+ on each PC
+
+
+🔄 AUTO-UPDATE
+========================================
+Keep your installation up to date:
+
+1. Run: AUTO_UPDATER.py
+2. Click "Check for Updates"
+3. Install if available
+
+
+❓ WHICH OPTION SHOULD I CHOOSE?
+========================================
+
+Choose PORTABLE (USB) if:
+- You want to run from USB stick
+- You use multiple PCs
+- You don't want to install anything
+
+Choose FULL INSTALLATION if:
+- You have one main PC
+- You want best performance
+- You want shortcuts and integration
+
+Choose NETWORK DEPLOYMENT if:
+- You have multiple PCs on a network
+- You want to share with others
+- You want centralized management
+
+
+📋 PREREQUISITES
+========================================
+All options require:
+- Windows 7 or later
+- Python 3.11 or later
+- Internet (for downloading thumbnails)
+
+Install Python from: https://www.python.org/downloads/
+
+
+🚀 NEXT STEPS
+========================================
+After installation:
+1. Run M3U Matrix PRO
+2. Load your M3U playlists
+3. Generate NEXUS TV pages
+4. Access web player at http://localhost:5000
+
+For detailed instructions, see:
+- INSTALLER_GUIDE.md (complete guide)
+- M3U_MATRIX_README.md (application guide)
+- THUMBNAIL_CACHING_GUIDE.md (caching features)
+
+
+💡 TIPS
+========================================
+- Portable mode is great for testing
+- Full install offers best performance
+- Network deploy is perfect for families/offices
+- Use auto-updater to stay current
+
+
+📞 NEED HELP?
+========================================
+Check the documentation:
+- installer/INSTALLER_GUIDE.md
+- M3U_MATRIX_README.md
+- QUICK_START_GUIDE.txt
+
+
+🎬 READY TO START?
+========================================
+Choose your installation method above and follow the steps!
+
+Happy streaming! 🚀
