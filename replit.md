@@ -215,6 +215,29 @@ http://stream.url/video.m3u8
 
 ## Recent Changes
 
+### November 15, 2025 - Phase 5 Feature: Timestamp Generator (Version 4.6)
+**New Feature from Phase 5 Roadmap:**
+- 📹 **Timestamp Generator**: Scans video/audio files and creates M3U playlists with timestamps
+- ⏱️ **Smart Duration Detection**: Uses ffprobe (accurate) or file-size estimation (fallback)
+- 🎬 **Multi-Format Support**: MP4, MKV, AVI, MP3, OGG, WEBM, FLV, MOV, and more
+- 🔍 **Recursive Scanner**: Scans entire directory trees
+- ⚙️ **Configurable Intervals**: Set timestamp spacing (10s - 60min)
+- 📝 **Auto M3U Generation**: Creates playlists with `#t=` seek markers
+
+**New Button:**
+- `TIMESTAMP GEN` (Row 3) - Opens media scanner dialog
+
+**Use Cases:**
+- Chapter navigation for documentaries
+- Podcast time markers
+- Educational content bookmarks
+- Concert/event timestamps
+- Long-form video navigation
+
+**Files Modified:**
+- `src/M3U_MATRIX_PRO.py`: 2,988 lines (+218 lines, 3 new functions)
+- New documentation: `TIMESTAMP_GENERATOR.md`
+
 ### November 15, 2025 - Roadmap Phase 1 Complete (Version 4.5)
 **Phase 1 Features (87.5% Complete):**
 - ↩️ **Undo/Redo System**: 50-step history for all major operations (cut, paste, delete, organize)

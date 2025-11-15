@@ -2,7 +2,7 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk, font, simpledialog
 from tkinterdnd2 import DND_FILES, TkinterDnD
-import re, os, threading, tempfile, webbrowser, urllib.request, socket, json, csv
+import re, os, threading, tempfile, webbrowser, urllib.request, socket, json, csv, subprocess
 from datetime import datetime, timedelta
 from collections import defaultdict
 from urllib.parse import urlparse
@@ -318,9 +318,9 @@ class M3UMatrix:
         tb3.pack(fill=tk.X, pady=2)
         row3 = [("URL IMPORT", "#4ecdc4", self.url_import_workbench),
                 ("IMPORT URL", "#8e44ad", self.import_url),
+                ("TIMESTAMP GEN", "#ff6b6b", self.timestamp_generator),
                 ("FETCH EPG", "#d35400", self.fetch_epg),
-                ("TV GUIDE", "#9b59b6", self.open_guide),
-                ("SUBTITLES", "#ffd93d", self.manage_subtitles)]
+                ("TV GUIDE", "#9b59b6", self.open_guide)]
         for txt, col, cmd in row3:
             tk.Button(tb3, text=txt, bg=col, fg="white", width=14,
                       command=cmd).pack(side=tk.LEFT, padx=4)
@@ -2690,6 +2690,224 @@ Coverage: {(total_slots / total_channels):.1f}x per show
         tk.Button(btn_frame, text="Cancel", command=dialog.destroy,
                  bg="#e74c3c", fg="#fff", font=("Arial", 10),
                  width=12, height=2).pack(side=tk.LEFT, padx=5)
+    
+    # ========== TIMESTAMP GENERATOR ==========
+    def timestamp_generator(self):
+        """Generate M3U playlists with timestamps from media files"""
+        dialog = tk.Toplevel(self.root)
+        dialog.title("Timestamp Generator - Media Scanner")
+        dialog.geometry("700x600")
+        dialog.configure(bg="#1e1e1e")
+        
+        # Instructions
+        instructions = tk.Label(dialog, 
+                               text="📹 Timestamp Generator\n\n"
+                                    "Scans video/audio files and creates M3U playlists with timestamps.\n"
+                                    "Supports: MP4, MKV, AVI, MP3, OGG, WEBM, FLV, MOV",
+                               bg="#1e1e1e", fg="#fff", font=("Arial", 11), justify=tk.LEFT)
+        instructions.pack(pady=15, padx=15)
+        
+        # Directory selection
+        dir_frame = tk.Frame(dialog, bg="#1e1e1e")
+        dir_frame.pack(fill=tk.X, padx=15, pady=10)
+        
+        tk.Label(dir_frame, text="Scan Directory:", bg="#1e1e1e", fg="#fff").pack(side=tk.LEFT)
+        dir_var = tk.StringVar(value=str(Path.cwd()))
+        tk.Entry(dir_frame, textvariable=dir_var, width=40, bg="#333", fg="#fff").pack(side=tk.LEFT, padx=10)
+        tk.Button(dir_frame, text="Browse", command=lambda: self.browse_directory(dir_var),
+                 bg="#2980b9", fg="#fff").pack(side=tk.LEFT)
+        
+        # Options
+        options_frame = tk.Frame(dialog, bg="#1e1e1e")
+        options_frame.pack(fill=tk.X, padx=15, pady=10)
+        
+        tk.Label(options_frame, text="Timestamp Interval (seconds):", 
+                bg="#1e1e1e", fg="#fff").pack(side=tk.LEFT)
+        interval_var = tk.IntVar(value=60)
+        tk.Spinbox(options_frame, from_=10, to=3600, textvariable=interval_var,
+                  width=10, bg="#333", fg="#fff").pack(side=tk.LEFT, padx=10)
+        
+        recursive_var = tk.BooleanVar(value=True)
+        tk.Checkbutton(options_frame, text="Include subdirectories",
+                      variable=recursive_var, bg="#1e1e1e", fg="#fff",
+                      selectcolor="#333").pack(side=tk.LEFT, padx=20)
+        
+        # Results
+        result_frame = tk.Frame(dialog, bg="#1e1e1e")
+        result_frame.pack(fill=tk.BOTH, expand=True, padx=15, pady=10)
+        
+        tk.Label(result_frame, text="Found Media Files:", bg="#1e1e1e", fg="#fff").pack(anchor=tk.W)
+        
+        result_text = tk.Text(result_frame, height=15, bg="#333", fg="#0f0",
+                             font=("Courier", 9), wrap=tk.WORD)
+        result_text.pack(fill=tk.BOTH, expand=True)
+        
+        scrollbar = tk.Scrollbar(result_frame, command=result_text.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        result_text.config(yscrollcommand=scrollbar.set)
+        
+        # Buttons
+        button_frame = tk.Frame(dialog, bg="#1e1e1e")
+        button_frame.pack(fill=tk.X, padx=15, pady=15)
+        
+        def scan_files():
+            """Scan directory for media files"""
+            directory = Path(dir_var.get())
+            if not directory.exists():
+                messagebox.showerror("Error", f"Directory not found: {directory}")
+                return
+            
+            result_text.delete(1.0, tk.END)
+            result_text.insert(tk.END, f"Scanning {directory}...\n\n")
+            dialog.update()
+            
+            # Supported formats
+            video_formats = {'.mp4', '.mkv', '.avi', '.mov', '.flv', '.wmv', '.webm', '.m4v'}
+            audio_formats = {'.mp3', '.ogg', '.m4a', '.aac', '.flac', '.wav', '.wma'}
+            all_formats = video_formats | audio_formats
+            
+            # Scan files
+            found_files = []
+            if recursive_var.get():
+                for ext in all_formats:
+                    found_files.extend(directory.rglob(f"*{ext}"))
+            else:
+                for ext in all_formats:
+                    found_files.extend(directory.glob(f"*{ext}"))
+            
+            found_files.sort()
+            
+            result_text.insert(tk.END, f"✅ Found {len(found_files)} media files\n\n")
+            
+            for file in found_files:
+                size_mb = file.stat().st_size / (1024 * 1024)
+                result_text.insert(tk.END, f"📹 {file.name} ({size_mb:.1f} MB)\n")
+            
+            result_text.insert(tk.END, f"\n{'='*60}\n")
+            result_text.insert(tk.END, "Click 'Generate M3U' to create playlist with timestamps\n")
+            
+            # Store for generation
+            dialog.found_files = found_files
+        
+        def generate_m3u():
+            """Generate M3U with timestamps"""
+            if not hasattr(dialog, 'found_files') or not dialog.found_files:
+                messagebox.showwarning("No Files", "Scan for media files first!")
+                return
+            
+            # Ask for output location
+            output_file = filedialog.asksaveasfilename(
+                defaultextension=".m3u",
+                filetypes=[("M3U Playlist", "*.m3u"), ("M3U8 Playlist", "*.m3u8")],
+                initialfile=f"timestamps_{datetime.now().strftime('%Y%m%d_%H%M%S')}.m3u"
+            )
+            
+            if not output_file:
+                return
+            
+            interval = interval_var.get()
+            
+            try:
+                with open(output_file, 'w', encoding='utf-8') as f:
+                    f.write("#EXTM3U\n\n")
+                    
+                    for idx, file_path in enumerate(dialog.found_files, 1):
+                        # Try to get duration using ffprobe (if available)
+                        duration = self.get_media_duration(file_path)
+                        
+                        if duration:
+                            # Generate timestamp entries
+                            timestamps = list(range(0, int(duration), interval))
+                            if not timestamps or timestamps[-1] < duration - interval/2:
+                                timestamps.append(int(duration))
+                            
+                            for ts_idx, timestamp in enumerate(timestamps):
+                                time_str = self.format_timestamp(timestamp)
+                                
+                                f.write(f"#EXTINF:-1 ")
+                                f.write(f'tvg-id="{file_path.stem}_{ts_idx}" ')
+                                f.write(f'tvg-name="{file_path.stem} - {time_str}" ')
+                                f.write(f'group-title="Timestamps",')
+                                f.write(f'{file_path.stem} - {time_str}\n')
+                                f.write(f"{file_path}#t={timestamp}\n\n")
+                        else:
+                            # No duration available, single entry
+                            f.write(f"#EXTINF:-1 ")
+                            f.write(f'tvg-id="{file_path.stem}" ')
+                            f.write(f'tvg-name="{file_path.name}" ')
+                            f.write(f'group-title="Media",')
+                            f.write(f'{file_path.name}\n')
+                            f.write(f"{file_path}\n\n")
+                
+                result_text.insert(tk.END, f"\n✅ SUCCESS!\n")
+                result_text.insert(tk.END, f"Generated: {output_file}\n")
+                result_text.insert(tk.END, f"Interval: {interval}s\n")
+                
+                messagebox.showinfo("Success", 
+                                  f"Timestamp M3U created!\n\n"
+                                  f"Files: {len(dialog.found_files)}\n"
+                                  f"Interval: {interval}s\n"
+                                  f"Output: {Path(output_file).name}")
+                
+            except Exception as e:
+                self.show_error_dialog("Generation Failed", "Could not create M3U", e)
+        
+        tk.Button(button_frame, text="🔍 Scan Files", command=scan_files,
+                 bg="#27ae60", fg="#fff", width=15, font=("Arial", 10, "bold")).pack(side=tk.LEFT, padx=5)
+        tk.Button(button_frame, text="📝 Generate M3U", command=generate_m3u,
+                 bg="#e91e63", fg="#fff", width=15, font=("Arial", 10, "bold")).pack(side=tk.LEFT, padx=5)
+        tk.Button(button_frame, text="Close", command=dialog.destroy,
+                 bg="#7f8c8d", fg="#fff", width=15).pack(side=tk.RIGHT, padx=5)
+    
+    def browse_directory(self, dir_var):
+        """Browse for directory"""
+        directory = filedialog.askdirectory(initialdir=dir_var.get())
+        if directory:
+            dir_var.set(directory)
+    
+    def get_media_duration(self, file_path):
+        """Get media duration using ffprobe if available, else estimate"""
+        try:
+            # Try ffprobe first
+            result = subprocess.run(
+                ['ffprobe', '-v', 'error', '-show_entries', 
+                 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1',
+                 str(file_path)],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                return float(result.stdout.strip())
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            pass
+        
+        # Fallback: estimate based on file size (rough approximation)
+        # For videos: ~1MB per minute at medium quality
+        # For audio: ~1MB per 8 minutes
+        try:
+            size_mb = file_path.stat().st_size / (1024 * 1024)
+            ext = file_path.suffix.lower()
+            
+            if ext in {'.mp3', '.ogg', '.m4a', '.aac', '.flac'}:
+                # Audio estimate
+                return size_mb * 8 * 60  # Rough estimate
+            else:
+                # Video estimate
+                return size_mb * 60  # Rough estimate
+        except:
+            return None
+    
+    def format_timestamp(self, seconds):
+        """Format seconds as HH:MM:SS"""
+        hours = int(seconds // 3600)
+        minutes = int((seconds % 3600) // 60)
+        secs = int(seconds % 60)
+        
+        if hours > 0:
+            return f"{hours:02d}:{minutes:02d}:{secs:02d}"
+        else:
+            return f"{minutes:02d}:{secs:02d}"
     
     def manage_subtitles(self):
         """Subtitle file management and integration"""
