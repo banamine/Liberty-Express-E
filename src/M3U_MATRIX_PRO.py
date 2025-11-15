@@ -773,6 +773,74 @@ Success Rate: {results['working']/results['total']*100:.1f}%
             f"AUDIT COMPLETE: {results['working']}/{results['total']} channels working"
         )
 
+    # ========== MEDIA FILE DETECTION ==========
+    def is_media_file(self, file_path):
+        """Detect if file is a video/audio file instead of M3U playlist"""
+        media_extensions = {
+            # Video formats
+            '.mp4', '.mkv', '.avi', '.mov', '.wmv', '.flv', '.webm', '.m4v',
+            '.mpg', '.mpeg', '.3gp', '.ts', '.m2ts', '.vob', '.ogv',
+            # Audio formats
+            '.mp3', '.aac', '.wav', '.flac', '.ogg', '.m4a', '.wma', '.opus',
+            '.ape', '.alac', '.aiff'
+        }
+        
+        ext = os.path.splitext(file_path)[1].lower()
+        return ext in media_extensions
+    
+    def create_channel_from_media_file(self, file_path):
+        """Create a channel entry from a video/audio file"""
+        filename = os.path.basename(file_path)
+        name_without_ext = os.path.splitext(filename)[0]
+        ext = os.path.splitext(file_path)[1].lower()
+        
+        # Determine group based on file type
+        video_exts = {'.mp4', '.mkv', '.avi', '.mov', '.wmv', '.flv', '.webm', '.m4v',
+                      '.mpg', '.mpeg', '.3gp', '.ts', '.m2ts', '.vob', '.ogv'}
+        audio_exts = {'.mp3', '.aac', '.wav', '.flac', '.ogg', '.m4a', '.wma', '.opus',
+                      '.ape', '.alac', '.aiff'}
+        
+        if ext in video_exts:
+            group = "Videos"
+        elif ext in audio_exts:
+            group = "Audio"
+        else:
+            group = "Media Files"
+        
+        # Create channel structure
+        channel = {
+            "name": name_without_ext,
+            "group": group,
+            "logo": "",
+            "tvg_id": "",
+            "num": 0,
+            "url": file_path,  # Use local file path as URL
+            "backups": [],
+            "custom_tags": {
+                "FILE-TYPE": ext[1:].upper(),  # e.g., "MP4", "MKV"
+                "FILE-SIZE": self.get_file_size(file_path),
+                "SOURCE": "LOCAL-FILE"
+            }
+        }
+        
+        return channel
+    
+    def get_file_size(self, file_path):
+        """Get human-readable file size"""
+        try:
+            size_bytes = os.path.getsize(file_path)
+            
+            if size_bytes < 1024:
+                return f"{size_bytes} B"
+            elif size_bytes < 1024 * 1024:
+                return f"{size_bytes / 1024:.1f} KB"
+            elif size_bytes < 1024 * 1024 * 1024:
+                return f"{size_bytes / (1024 * 1024):.1f} MB"
+            else:
+                return f"{size_bytes / (1024 * 1024 * 1024):.2f} GB"
+        except:
+            return "Unknown"
+
     # ========== ENHANCED M3U PARSING ==========
     def parse_m3u_file(self, file_path):
         """Robust M3U parser with support for EXTGRP, custom tags, and duplicates handling"""
@@ -1593,16 +1661,28 @@ Success Rate: {results['working']/results['total']*100:.1f}%
             progress_win.update()
             
             try:
-                channels = self.parse_m3u_file(file_path)
-                for ch in channels:
-                    ch.setdefault("num", 0)
-                    ch.setdefault("backups", [])
-                    # Add unique UUID if not present
-                    if "uuid" not in ch:
-                        ch["uuid"] = str(uuid.uuid4())
-                all_channels.extend(channels)
+                # Check if this is a media file or M3U playlist
+                if self.is_media_file(file_path):
+                    # Create channel directly from media file
+                    channel = self.create_channel_from_media_file(file_path)
+                    channel.setdefault("num", 0)
+                    channel.setdefault("backups", [])
+                    channel["uuid"] = str(uuid.uuid4())
+                    all_channels.append(channel)
+                    self.logger.info(f"Created channel from media file: {os.path.basename(file_path)}")
+                else:
+                    # Parse as M3U playlist
+                    channels = self.parse_m3u_file(file_path)
+                    for ch in channels:
+                        ch.setdefault("num", 0)
+                        ch.setdefault("backups", [])
+                        # Add unique UUID if not present
+                        if "uuid" not in ch:
+                            ch["uuid"] = str(uuid.uuid4())
+                    all_channels.extend(channels)
+                    self.logger.info(f"Parsed {len(channels)} channels from M3U: {os.path.basename(file_path)}")
             except Exception as e:
-                self.logger.error(f"Failed to parse {file_path}: {e}")
+                self.logger.error(f"Failed to process {file_path}: {e}")
                 status_label.config(text=f"Error reading {os.path.basename(file_path)}")
                 progress_win.update()
                 continue
@@ -1611,9 +1691,13 @@ Success Rate: {results['working']/results['total']*100:.1f}%
         if not all_channels:
             progress_win.destroy()
             messagebox.showwarning(
-                "No Channels Found",
-                "No channels were found in the selected files.\n\n"
-                "Make sure the files contain valid M3U playlist data."
+                "No Content Found",
+                "No channels or media files were found in the selected files.\n\n"
+                "Supported file types:\n"
+                "• M3U Playlists (.m3u, .m3u8)\n"
+                "• Video Files (.mp4, .mkv, .avi, .mov, .wmv, etc.)\n"
+                "• Audio Files (.mp3, .aac, .wav, .flac, .ogg, etc.)\n\n"
+                "If you selected a text file, make sure it contains valid M3U format."
             )
             return
         
