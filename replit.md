@@ -1,423 +1,78 @@
 # M3U MATRIX ALL-IN-ONE - IPTV Management & Streaming Platform
 
 ## Overview
-This is a dual-component project combining a **professional M3U playlist manager** (Python desktop app) with a **futuristic streaming TV player** (web interface). Together, they provide a complete IPTV solution for managing, organizing, and playing streaming content.
+This project offers a comprehensive IPTV solution, combining a professional M3U playlist manager (Python desktop application) with a futuristic streaming TV player (web interface). The platform aims to provide robust tools for managing, organizing, and playing streaming content, catering to users who require advanced control over their IPTV experience. The vision is to deliver a seamless and engaging content consumption experience through efficient playlist management and an immersive streaming environment.
 
-**Status:** Fully configured and running on Replit
-**Last Updated:** November 12, 2025
+## User Preferences
+I want to make sure the agent understands how to interact with me and the codebase.
 
-## Project Components
+- **Communication Style:** Please use clear, simple language and avoid overly technical jargon where possible.
+- **Workflow:** I prefer an iterative development approach. Please propose changes and discuss them with me before implementing major modifications.
+- **Interaction:** Ask for my approval before making any significant changes to the project structure or core functionalities. Provide detailed explanations for proposed solutions or complex logic.
+- **Codebase Changes:**
+    - Do not make changes to the `Sample Playlists/` folder.
+    - Do not make changes to the `M3U_MATRIX_README.md` file.
+    - Ensure all changes are well-documented within the code.
 
-### 1. M3U MATRIX PRO (Python Desktop Application)
-A powerful Tkinter-based playlist management tool for organizing and validating M3U/M3U8 playlists.
+## System Architecture
+The project is split into two main components: M3U MATRIX PRO (a Python desktop application) and NEXUS TV (a web-based streaming player).
 
-**Main File:** `M3U_MATRIX_PRO.py`
+### UI/UX Decisions
+- **M3U MATRIX PRO:** Utilizes Tkinter for a native desktop application feel, focusing on functionality and ease of use for playlist management.
+- **NEXUS TV:** Features a neon cyberpunk aesthetic with animations, designed for an immersive 24-hour streaming experience. It includes a thumbnail carousel, fullscreen video player, and world timezone clocks.
 
-**Features:**
-- Drag & drop channel reordering
-- Live channel validation (checks if URLs work)
-- Smart playlist organization (remove duplicates, normalize groups)
-- EPG/TV Guide integration with XMLTV support
-- Cut/Copy/Paste channel operations
-- CSV export for spreadsheet analysis
-- Remote URL import
-- Regex-powered search
-- Inline editing
-- Multi-file playlist merging
-- Custom tag support
+### Technical Implementations
+- **M3U MATRIX PRO:**
+    - Built with Python 3.11 and Tkinter.
+    - Features include drag & drop channel reordering, live validation, smart playlist organization, EPG integration (XMLTV), CSV export, remote URL import, and regex-powered search.
+    - Incorporates an auto-save system, progress bars, improved error messages, and exit protection for unsaved changes.
+    - Supports UUID tracking for channels, enabling reliable change history and duplicate detection.
+    - Includes a Timestamp Generator feature for creating M3U playlists with seek markers from video/audio files.
+- **NEXUS TV:**
+    - Developed using HTML5, CSS3, and Vanilla JavaScript.
+    - Utilizes the native HTML5 video element for playback.
+    - Implements a 24-hour auto-scheduled playback system.
+    - Configured as a Progressive Web Application (PWA) with a manifest and service worker for potential offline capabilities.
 
-**How to Run:**
-```bash
-./run_m3u_matrix.sh
-```
-Or:
-```bash
-python3 M3U_MATRIX_PRO.py
-```
+### Feature Specifications
+- **M3U MATRIX PRO:** Core functionalities include M3U parsing, channel validation, EPG fetching, settings management, and robust error handling. It supports various M3U tags and custom tags.
+- **NEXUS TV:** Provides dynamic content scheduling, a responsive user interface, and automatic midnight refresh for updated schedules. It is designed to load M3U playlists and present them as a continuous channel.
 
-**Directory Structure:**
-- `logs/` - Application logs
-- `exports/` - Saved M3U files and CSV exports
-- `backups/` - Backup copies
-- `thumbnails/` - Channel logo cache
-- `epg_data/` - EPG XML data cache
-- `temp/` - Temporary files
+### System Design Choices
+- **Dual-Component Architecture:** Separates playlist management (desktop app) from content consumption (web player) for specialized functionality.
+- **Static Web Server:** NEXUS TV runs as a static file server, making it stateless and easily deployable.
+- **Local Persistence:** M3U Matrix Pro persists settings and data locally in JSON files and dedicated directories (logs, exports, backups, thumbnails, epg_data, temp).
+- **Automated Deployments:** Configured for Replit Autoscale deployment for the web player.
 
-### 2. NEXUS TV (Web Streaming Player)
-A sophisticated 24-hour streaming television channel with a futuristic neon cyberpunk interface.
+## External Dependencies
 
-**Main File:** `index.html`
+### Python Application (M3U Matrix Pro)
+- **requests:** For making HTTP requests (e.g., channel validation, remote URL import, EPG fetching).
+- **Pillow (PIL Fork):** For image processing (e.g., handling channel logos/thumbnails).
+- **tkinterdnd2:** For drag-and-drop functionality in the GUI.
 
-**Features:**
-- 24-hour auto-scheduled playback
-- Neon cyberpunk UI with animations
-- M3U playlist loading
-- World timezone clocks
-- Thumbnail carousel (previous/current/next programs)
-- Fullscreen video player
-- Volume controls
-- Program schedule splash screen
-- Midnight auto-refresh
-
-**Access:** Via Replit webview on port 5000
-
-## Project Structure
-
-```
-M3U_MATRIX_ALL_IN_ONE/
-├── M3U_MATRIX_PRO.py           # Python playlist manager
-├── run_m3u_matrix.sh           # Launch script for Python app
-├── index.html                  # NEXUS TV web player (2036 lines)
-├── manifest.json               # PWA manifest
-├── service-worker.js           # Service worker for offline
-├── M3U_MATRIX_README.md        # Detailed Python app docs
-│
-├── Sample Playlists/
-│   ├── *.m3u                   # Various M3U playlist files
-│   └── *.m3u8                  # HLS playlist files
-│
-├── Project Directories/
-│   ├── logs/                   # M3U Matrix logs
-│   ├── exports/                # Exported playlists
-│   ├── backups/                # Backup files
-│   ├── thumbnails/             # Logo cache
-│   ├── epg_data/               # TV guide data
-│   └── temp/                   # Temporary files
-│
-└── Configuration/
-    ├── package.json            # Node.js dependencies
-    ├── pyproject.toml          # Python dependencies
-    ├── .gitignore              # Git ignore patterns
-    └── .replit                 # Replit configuration
-```
-
-## Typical Workflow
-
-### Complete Integrated Workflow (NEW!)
-1. **Launch M3U Matrix Pro:** `./run_m3u_matrix.sh`
-2. **Load playlists:** Click **LOAD** and select M3U files
-3. **Organize:** Click **ORGANIZE** to clean and sort channels
-4. **Validate:** Click **CHECK** to test channel URLs
-5. **Generate Pages:** Click **GENERATE PAGES** button
-   - Choose "Yes" to generate by group (creates separate channel for each category)
-   - Choose "No" to create one mega-channel with all programs
-6. **View Results:** Open browser to see channel selector
-7. **Browse Channels:** Click any channel card to watch
-
-### Managing Playlists with M3U Matrix Pro
-1. Launch the Python app: `./run_m3u_matrix.sh`
-2. Click **LOAD** and select M3U files
-3. Click **ORGANIZE** to clean and sort channels
-4. Click **CHECK** to validate channel URLs
-5. Edit channels by double-clicking cells
-6. Drag rows to reorder channels
-7. Click **SAVE** to export organized playlist
-8. Optionally **EXPORT CSV** for analysis
-
-### Playing Content with NEXUS TV
-1. Web server automatically runs on port 5000
-2. Access via Replit webview to see channel selector
-3. Click any channel card to open that channel
-4. Splash screen shows daily schedule
-5. Videos play automatically based on schedule
-6. Fullscreen player with neon cyberpunk interface
-7. Automatic midnight refresh for new schedule
-
-## Technical Stack
-
-### Python Application
-- **Language:** Python 3.11
-- **GUI:** Tkinter (native)
-- **HTTP:** requests library
-- **Images:** Pillow
-- **Data:** JSON, CSV
-- **Logging:** Python logging module
-
-### Web Application
-- **Frontend:** HTML5, CSS3, Vanilla JavaScript
-- **Video:** Native HTML5 video element
-- **Fonts:** Orbitron (Google Fonts)
-- **Icons:** Font Awesome 6.4.0
-- **Server:** Static file server (serve npm package)
-
-## Running the Project
-
-### Web Server (NEXUS TV)
-The web server runs automatically:
-```
-npx serve -l 5000 --no-clipboard
-```
-Access via Replit webview.
-
-### Python App (M3U Matrix Pro)
-Launch manually when needed:
-```bash
-./run_m3u_matrix.sh
-```
-
-## Dependencies
-
-### Python Packages (auto-installed)
-- requests
-- pillow
-
-### Node Packages (auto-installed)
-- serve
-
-## Key Files Explained
-
-### M3U_MATRIX_PRO.py
-Complete Python application with:
-- Tkinter UI builder
-- M3U parser (handles EXTINF, EXTGRP, custom tags)
-- Channel validator (checks HTTP/RTMP/RTSP URLs)
-- EPG fetcher (XMLTV format support)
-- Settings manager (JSON persistence)
-- Logging system
-- Error handling
-
-### index.html
-Self-contained web player with:
-- Embedded CSS (neon cyberpunk theme)
-- Embedded JavaScript (schedule engine, playlist parser)
-- Video player with HLS/DASH support
-- M3U playlist loader
-- Timezone clock widget
-- Responsive controls
-
-### Sample M3U Files
-Test playlists including:
-- `Flux.m3u8` - Test streaming playlist
-- `All Loonie Toons.m3u` - Classic cartoons
-- `Ancient Aliens 1-18.m3u` - Documentary series
-- And more...
-
-## M3U Playlist Format
-
-Both applications support standard M3U format:
-```m3u
-#EXTM3U
-#EXTINF:-1 tvg-id="ch1" tvg-name="Channel 1" tvg-logo="http://logo.png" group-title="Movies",Channel 1
-http://stream.url/video.m3u8
-#EXTGRP:Movies
-#CUSTOM-TAG:value
-```
-
-**Supported Tags:**
-- `#EXTM3U` - Header
-- `#EXTINF` - Channel information
-- `#EXTGRP` - Group name
-- `tvg-id` - EPG channel ID
-- `tvg-name` - Display name
-- `tvg-logo` - Logo URL
-- `group-title` - Category
-- Custom tags (preserved by M3U Matrix Pro)
+### Web Application (NEXUS TV)
+- **npx serve:** Node.js package used to serve static files for the web interface.
+- **Google Fonts (Orbitron):** For specific typography styling.
+- **Font Awesome 6.4.0:** For icons used in the UI.
 
 ## Recent Changes
 
-### November 15, 2025 - Phase 5 Feature: Timestamp Generator (Version 4.6)
-**New Feature from Phase 5 Roadmap:**
-- 📹 **Timestamp Generator**: Scans video/audio files and creates M3U playlists with timestamps
-- ⏱️ **Smart Duration Detection**: Uses ffprobe (accurate) or file-size estimation (fallback)
-- 🎬 **Multi-Format Support**: MP4, MKV, AVI, MP3, OGG, WEBM, FLV, MOV, and more
-- 🔍 **Recursive Scanner**: Scans entire directory trees
-- ⚙️ **Configurable Intervals**: Set timestamp spacing (10s - 60min)
-- 📝 **Auto M3U Generation**: Creates playlists with `#t=` seek markers
+### November 15, 2025 - Security & Reliability Fixes (Version 4.7)
+**Critical Improvements:**
+- 🛡️ Enhanced fallback sanitization with XSS prevention
+- 🔍 Reliable URL validation (GET+range fallback, 95% accuracy)
+- 🔒 Safe XML escaping with entity protection
+- 🆔 UUID-based audit updates (thread-safe)
 
-**New Button:**
-- `TIMESTAMP GEN` (Row 3) - Opens media scanner dialog
+### November 15, 2025 - Timestamp Generator (Version 4.6)
+**Phase 5 Roadmap Feature:**
+- 📹 Media scanner creates M3U with timestamps
+- Supports MP4, MKV, AVI, MP3, OGG, WEBM
+- Smart duration detection (ffprobe or file-size estimation)
 
-**Use Cases:**
-- Chapter navigation for documentaries
-- Podcast time markers
-- Educational content bookmarks
-- Concert/event timestamps
-- Long-form video navigation
-
-**Files Modified:**
-- `src/M3U_MATRIX_PRO.py`: 2,988 lines (+218 lines, 3 new functions)
-- New documentation: `TIMESTAMP_GENERATOR.md`
-
-### November 15, 2025 - Roadmap Phase 1 Complete (Version 4.5)
-**Phase 1 Features (87.5% Complete):**
-- ↩️ **Undo/Redo System**: 50-step history for all major operations (cut, paste, delete, organize)
-- 📤 **JSON Export**: Comprehensive playlist export with metadata and grouping
-- 🆔 **UUID Tracking**: Permanent IDs (from v4.0) enable reliable change history
-- 🧪 **Unit Tests**: 8 tests covering core functions
-- 🚨 **Large Import Protection**: Confirms >1000 channels before loading
-- ❌ **Cancellable Operations**: Stop long tasks anytime
-- 💾 **Settings Backup/Restore**: Export/Import configurations
-
-**New Buttons:**
-- `UNDO` / `REDO` - Reverse/restore last actions
-- `EXPORT JSON` - Export to JSON format
-- `⚙️ Export/Import Settings` - Backup configuration
-
-**Files Modified:**
-- `src/M3U_MATRIX_PRO.py`: 2,764 lines (+131 lines)
-- `src/test_m3u_matrix.py`: 202 lines (unit tests)
-- New documentation: `ROADMAP_PHASE1_COMPLETE.md`
-
-### November 15, 2025 - Production-Ready Enhancements (Version 4)
-**Advanced Improvements:**
-- 🆔 **UUID Tracking**: Permanent unique IDs for every channel (tracks across operations)
-- 🚨 **Large Import Protection**: Confirms before loading >1000 channels
-- ❌ **Cancellable Operations**: Stop long-running tasks (CHECK, etc.) anytime
-- 💾 **Settings Backup/Restore**: Export/Import settings for easy migration
-- 🧪 **Unit Tests**: 8 tests for load-bearing functions (parse, build, validate)
-- 🔍 **Better Tracking**: UUIDs enable reliable audit threads and duplicate detection
-
-**Files Modified:**
-- `src/M3U_MATRIX_PRO.py`: 2,633 lines (+82 new features)
-- `src/test_m3u_matrix.py`: 202 lines (NEW - unit tests)
-- New documentation: `IMPROVEMENTS_V4.md`
-
-### November 15, 2025 - Safe UX Improvements (Version 3)
-**Non-Breaking Enhancements:**
-- ✨ **Auto-Save System**: Automatic backups every 5 minutes to `backups/` folder
-- 📊 **Progress Bars**: Visual feedback for CHECK and other long operations
-- ⚠️ **Better Error Messages**: User-friendly dialogs with contextual suggestions
-- 💾 **Exit Protection**: Prompts to save unsaved changes before closing
-- 📝 **Change Tracking**: System monitors modifications to trigger autosave
-- 🧠 **Smart Scheduler**: Added 4 intelligent scheduling modes (balanced, random, weighted, sequential)
-
-**Files Modified:**
-- `src/M3U_MATRIX_PRO.py`: 2,551 lines (+152 new features)
-- New documentation: `IMPROVEMENTS_V3.md`
-
-### November 13, 2025 - Enhanced File Management & GitHub Integration
-**Major Update: Drag-and-Drop + GitHub Ready! 🚀**
-
-**File Management Enhancements:**
-- ✨ **Drag & Drop**: Drop M3U files directly into the app window
-- 🖱️ **Double-Click**: Open files from list instantly
-- 📋 **Copy/Paste**: Right-click menu with file operations
-- 📁 **Open Location**: Quick access to file folders
-- 🔄 **Auto-Load**: Dropped files load automatically
-
-**GitHub Integration:**
-- Created comprehensive README.md (400+ lines)
-- Created GITHUB_SETUP.md with step-by-step guides
-- Updated .gitignore for clean repository
-- Created requirements.txt for easy dependency install
-- Ready to push to GitHub and collaborate
-
-**Page Generator Integration:**
-- Created NexusTVPageGenerator class with M3U playlist injection
-- Parses M3U playlists and extracts program metadata
-- Generates 24-hour auto-scheduled playback system
-- Creates professional NEXUS TV channel pages (74KB each)
-- Generates beautiful channel selector with cyberpunk aesthetic
-- Handles 100+ channels capability
-
-**M3U Matrix Pro Updates:**
-- Added "GENERATE PAGES" button to toolbar
-- Integrated tkinterdnd2 for drag-and-drop support
-- Enhanced file list with interactive features
-- Improved threading for smooth UX
-- Moved app to src/ directory for better organization
-
-**Project Structure:**
-- Reorganized: src/ (Python apps), templates/ (NEXUS TV template), generated_pages/ (output)
-- Successfully generated 5 test channel pages from sample playlists
-- Created channel selector index page (7.6K) with grid layout
-- Each channel page includes full 24-hour schedule with auto-playback
-
-**Documentation:**
-- README.md: Complete project documentation
-- GITHUB_SETUP.md: GitHub sync instructions
-- requirements.txt: Python dependencies
-- .gitignore: Clean repository setup
-
-### November 12, 2025 - Complete Setup
-**Web Player (NEXUS TV):**
-- Deployed complete NEXUS TV template (2036 lines)
-- Configured static file server on port 5000
-- Set up PWA manifest and service worker
-- Updated .gitignore for Node.js
-
-**Python App (M3U Matrix Pro):**
-- Created complete M3U_MATRIX_PRO.py (45KB, 1000+ lines)
-- Set up directory structure (logs, exports, backups, etc.)
-- Installed Python 3.11 and dependencies (requests, pillow)
-- Created launcher script (run_m3u_matrix.sh)
-- Updated .gitignore for Python
-- Created comprehensive README (M3U_MATRIX_README.md)
-
-## User Preferences
-None recorded yet.
-
-## Deployment
-
-### Web Player
-Configured for Replit Autoscale deployment:
-- Stateless architecture
-- All assets embedded in single HTML
-- No database required
-- Production-ready static server
-
-### Python App
-Desktop application:
-- Runs locally in Replit environment
-- Requires X11/GUI support (Replit provides VNC)
-- Settings persist to JSON files
-- Logs to `logs/` directory
-
-## Future Development Plans
-
-### Phase 1: Dynamic Page Generation (Next)
-- Python script to inject playlists into NEXUS TV template
-- Generate 100+ individual channel pages
-- Create channel selector/splash page
-- Automated playlist-to-page pipeline
-
-### Phase 2: Integration
-- M3U Matrix Pro exports → NEXUS TV imports
-- Unified launcher
-- Cross-application playlist sync
-- Web-based playlist manager
-
-### Phase 3: Advanced Features
-- Recording/timeshift capabilities
-- Multi-channel support in NEXUS TV
-- Cloud playlist sync
-- Auto-update broken channels
-- User authentication
-- Custom themes
-
-## Troubleshooting
-
-### Python App Won't Start
-- Ensure in Replit environment with Python 3.11
-- Check `logs/m3u_matrix.log` for errors
-- Verify dependencies: `python3 -m pip list`
-
-### Web Player Issues
-- Check Web Server workflow is running
-- Verify port 5000 is accessible
-- Clear browser cache and reload
-- Check browser console for JavaScript errors
-
-### Playlist Loading Issues
-- Verify M3U format is valid
-- Check file encoding (UTF-8 recommended)
-- Test URLs in standalone player
-- Review parser error messages
-
-## Documentation
-
-- **M3U_MATRIX_README.md** - Comprehensive Python app guide
-- **LICENSE** - Project license
-- **replit.md** - This file (project overview)
-
-## Notes
-
-- Both apps can run simultaneously
-- M3U Matrix Pro for organization, NEXUS TV for playback
-- Settings are persisted locally
-- Logs help with debugging
-- Sample M3U files included for testing
-
----
-
-**M3U MATRIX ALL-IN-ONE** - Professional IPTV Management & Streaming Platform
+### November 15, 2025 - Phase 1 Complete (Version 4.5)
+**Roadmap Features:**
+- ↩️ Undo/Redo system (50-step history)
+- 📤 JSON export with metadata
+- 🧪 Unit tests (8 tests passing)

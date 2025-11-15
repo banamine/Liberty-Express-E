@@ -26,23 +26,66 @@ try:
 except ImportError:
     UTILS_AVAILABLE = False
     # Minimal fallback functions
-    def sanitize_filename(name):
-        return re.sub(r'[<>:"/\\|?*]', '_', name)
+    def sanitize_filename(filename, max_length=255):
+        """Remove dangerous characters from filename"""
+        clean = re.sub(r'[<>:"/\\|?*]', '_', filename)
+        return clean[:max_length] if len(clean) > max_length else clean
+    
     def validate_url(url):
+        """Basic URL validation"""
         return url.startswith(('http://', 'https://', 'rtmp://', 'rtsp://'))
-    def validate_file_path(path):
-        return True
-    def sanitize_input(text):
-        return text
+    
+    def validate_file_path(file_path, base_dir=None):
+        """Basic path validation"""
+        try:
+            path = Path(file_path)
+            if base_dir and not path.is_relative_to(base_dir):
+                return False
+            return True
+        except:
+            return False
+    
+    def sanitize_input(text, max_length=None):
+        """Sanitize user input to prevent injection attacks"""
+        if not text:
+            return ""
+        # Remove control characters
+        sanitized = ''.join(char for char in text if ord(char) >= 32 or char in '\n\r\t')
+        # Remove potential script tags
+        sanitized = re.sub(r'<script[^>]*>.*?</script>', '', sanitized, flags=re.IGNORECASE | re.DOTALL)
+        # Remove HTML tags
+        sanitized = re.sub(r'<[^>]+>', '', sanitized)
+        # Limit length if specified
+        if max_length and len(sanitized) > max_length:
+            sanitized = sanitized[:max_length]
+        return sanitized
+    
     def is_valid_m3u(content):
+        """Check if content is valid M3U format"""
         return '#EXTM3U' in content or '#EXTINF' in content
+    
     class SimpleCache:
+        """Simple LRU cache implementation"""
         def __init__(self, max_size=200):
             self.cache = {}
+            self.max_size = max_size
+            self.access_order = []
+        
         def get(self, key):
-            return self.cache.get(key)
+            if key in self.cache:
+                self.access_order.remove(key)
+                self.access_order.append(key)
+                return self.cache[key]
+            return None
+        
         def set(self, key, value):
+            if key in self.cache:
+                self.access_order.remove(key)
+            elif len(self.cache) >= self.max_size:
+                oldest = self.access_order.pop(0)
+                del self.cache[oldest]
             self.cache[key] = value
+            self.access_order.append(key)
 
 # Setup logging
 log_path = Path(__file__).parent / "logs" / "m3u_matrix.log"
@@ -615,10 +658,11 @@ class M3UMatrix:
                     status_label.config(text=f"Checking {p}/{len(self.channels)}: {ch[:40]}...")
                 ))
 
-                # Update channel status in treeview
+                # Update channel status in treeview (using UUID for safety)
+                channel_uuid = channel.get('uuid', '')
                 self.root.after(0,
-                                lambda idx=i, stat=status: self.
-                                update_channel_status(idx, stat, results))
+                                lambda uuid=channel_uuid, stat=status: self.
+                                update_channel_status(uuid, stat, results))
 
                 # Small delay to avoid overwhelming servers
                 threading.Event().wait(0.1)
@@ -638,12 +682,26 @@ class M3UMatrix:
 
         try:
             if url.startswith('http'):
-                # HTTP-based streams
-                response = requests.head(url, timeout=5, allow_redirects=True)
-                if response.status_code == 200:
-                    return "working"
-                else:
-                    return "broken"
+                # HTTP-based streams - Try GET with range first (more reliable than HEAD)
+                try:
+                    response = requests.get(url, timeout=5, allow_redirects=True,
+                                          headers={'Range': 'bytes=0-1024'},
+                                          stream=True)
+                    # Accept 200 (OK), 206 (Partial Content), or 403 (stream exists but needs auth)
+                    if response.status_code in (200, 206, 403):
+                        return "working"
+                    else:
+                        return "broken"
+                except requests.exceptions.RequestException:
+                    # Fallback to HEAD request if GET fails
+                    try:
+                        response = requests.head(url, timeout=5, allow_redirects=True)
+                        if response.status_code in (200, 403):
+                            return "working"
+                        else:
+                            return "broken"
+                    except:
+                        return "broken"
             else:
                 # RTMP/RTSP - basic connection test
                 socket_timeout = socket.getdefaulttimeout()
@@ -664,9 +722,17 @@ class M3UMatrix:
         except Exception:
             return "broken"
 
-    def update_channel_status(self, index, status, results):
-        """Update UI with channel validation status"""
-        channel = self.channels[index]
+    def update_channel_status(self, channel_uuid, status, results):
+        """Update UI with channel validation status using UUID (safe from reordering)"""
+        # Find channel by UUID instead of index
+        channel = None
+        for ch in self.channels:
+            if ch.get('uuid') == channel_uuid:
+                channel = ch
+                break
+        
+        if not channel:
+            return  # Channel not found (may have been deleted)
 
         # Update treeview with status
         for iid in self.tv.get_children():
@@ -1201,11 +1267,29 @@ Success Rate: {results['working']/results['total']*100:.1f}%
                 f"Ensure the URL points to a valid XMLTV format file.")
 
     def clean_epg_xml(self, xml_content):
-        """Clean common XML issues in EPG files"""
+        """Clean common XML issues in EPG files with proper escaping"""
+        # Remove invalid XML characters (keep valid Unicode ranges)
         xml_content = re.sub(
             r'[^\x09\x0A\x0D\x20-\x7E\x85\xA0-\uD7FF\uE000-\uFFFD]', '',
             xml_content)
+        
+        # Fix ampersands properly - protect existing entities first
+        entities = ['&amp;', '&lt;', '&gt;', '&quot;', '&apos;', '&#']
+        placeholders = {}
+        
+        # Protect XML entities and numeric character references
+        for i, entity in enumerate(entities):
+            placeholder = f'__PROTECT_{i}__'
+            placeholders[placeholder] = entity
+            xml_content = xml_content.replace(entity, placeholder)
+        
+        # Now escape bare ampersands
         xml_content = xml_content.replace('&', '&amp;')
+        
+        # Restore protected entities
+        for placeholder, entity in placeholders.items():
+            xml_content = xml_content.replace(placeholder, entity)
+        
         return xml_content
 
     def parse_epg_time(self, time_str):
