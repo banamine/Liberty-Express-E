@@ -139,6 +139,10 @@ class M3UMatrixInstaller:
                  bg="#3498db", fg="#fff", font=("Arial", 12, "bold"),
                  width=15, height=2).pack(side=tk.LEFT, padx=5)
         
+        tk.Button(button_frame, text="🌐 Network Helper", command=self.open_network_helper,
+                 bg="#9b59b6", fg="#fff", font=("Arial", 12, "bold"),
+                 width=15, height=2).pack(side=tk.LEFT, padx=5)
+        
         tk.Button(button_frame, text="Exit", command=self.root.quit,
                  bg="#e74c3c", fg="#fff", font=("Arial", 12, "bold"),
                  width=15, height=2).pack(side=tk.LEFT, padx=5)
@@ -317,6 +321,14 @@ python src\\M3U_MATRIX_PRO.py
 pause
 """
             batch_path.write_text(batch_content)
+    
+    def open_network_helper(self):
+        """Open network helper tool"""
+        try:
+            from NETWORK_HELPER import NetworkHelper
+            helper = NetworkHelper(parent=self.root)
+        except Exception as e:
+            messagebox.showerror("Error", f"Could not open Network Helper:\n{e}")
     
     def check_updates(self):
         """Check for updates from GitHub"""
