@@ -1,0 +1,194 @@
+╔══════════════════════════════════════════════════════════════════╗
+║              M3U MATRIX - BUILD & INSTALLER GUIDE                ║
+╚══════════════════════════════════════════════════════════════════╝
+
+You now have THREE build options. Choose based on your needs:
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   OPTION 1: BUILD_INSTALLER_SIMPLE.bat (RECOMMENDED FOR NOW)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ RECOMMENDED: Start with this one!
+
+What it does:
+- Creates a single standalone EXE installer
+- No external files needed
+- Works even if Sample Playlists folder is missing
+- Smallest file size
+
+When to use:
+- You want a simple EXE you can share
+- You don't care about including sample playlists
+- You just want it to work quickly
+
+How to run:
+   cd installer
+   BUILD_INSTALLER_SIMPLE.bat
+
+Result:
+   dist\M3U_Matrix_Installer.exe (standalone)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   OPTION 2: BUILD_INSTALLER.bat (FULL VERSION - FIXED!)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+What it does:
+- Creates complete installer with all files
+- Includes Sample Playlists IF folder exists
+- Includes all documentation
+- Larger file size but has everything
+
+When to use:
+- You want to include sample playlists
+- You want documentation bundled in
+- You want a complete package
+
+How to run:
+   cd installer
+   BUILD_INSTALLER.bat
+
+Result:
+   dist\M3U_Matrix_Installer.exe (with bundled data)
+
+FIXES APPLIED:
+✅ Added EnableDelayedExpansion
+✅ Makes Sample Playlists optional (no error if missing)
+✅ Uses !variable! syntax for proper expansion
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   OPTION 3: BUILD_COMPLETE_PACKAGE.bat (NO COMPILATION)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+What it does:
+- Creates a ZIP file with all source code
+- NO compilation - pure Python
+- Includes EVERYTHING (src, templates, docs, tools)
+- Portable - extract and run anywhere
+
+When to use:
+- You want to share the entire project
+- You prefer source code over EXE
+- You want maximum portability
+- You want to edit the code after distribution
+
+How to run:
+   cd installer
+   BUILD_COMPLETE_PACKAGE.bat
+
+Result:
+   M3U_Matrix_Portable.zip (in project root)
+
+Contents:
+✅ All source code
+✅ All batch scripts
+✅ Complete installer system
+✅ Network helper tools
+✅ Documentation
+✅ Pre-created directories
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   WHAT WENT WRONG BEFORE?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Error you got:
+"ERROR: Unable to find 'Sample Playlists' when adding binary and data files"
+
+Root causes:
+1. ❌ Sample Playlists folder didn't exist on your system
+2. ❌ Script tried to include it anyway (hardcoded)
+3. ❌ No delayed expansion enabled
+4. ❌ No error handling for missing folders
+
+Fixes applied:
+1. ✅ Check if folder exists before including
+2. ✅ Skip gracefully if not found
+3. ✅ Enable delayed expansion
+4. ✅ Created simple version without external dependencies
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   RECOMMENDED WORKFLOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+For your setup (C:\Users\Jamess\Videos\TVStation):
+
+STEP 1: Try Simple Build First
+   cd C:\Users\Jamess\Videos\TVStation\installer
+   BUILD_INSTALLER_SIMPLE.bat
+
+   → Creates: dist\M3U_Matrix_Installer.exe
+   → Test it: Run the EXE and see if it works
+
+STEP 2: If that works, try the Complete Package
+   BUILD_COMPLETE_PACKAGE.bat
+
+   → Creates: M3U_Matrix_Portable.zip
+   → Extract on PUNK or Liberty Express
+   → Run QUICK_INSTALL.bat
+
+STEP 3: For network deployment
+   - Use SETUP_PUNK_LIBERTY.bat to share between PCs
+   - Use ONE_CLICK_NETWORK_CONNECT.bat for quick connection
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   FILE COMPARISON
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+BUILD_INSTALLER_SIMPLE.bat
+├─ Output: ~10-15 MB EXE
+├─ Build time: 1-2 minutes
+├─ Includes: Installer code only
+└─ Best for: Quick sharing, testing
+
+BUILD_INSTALLER.bat (Fixed)
+├─ Output: ~30-50 MB EXE
+├─ Build time: 3-5 minutes
+├─ Includes: Installer + data files + docs
+└─ Best for: Complete distribution
+
+BUILD_COMPLETE_PACKAGE.bat
+├─ Output: ~5-10 MB ZIP
+├─ Build time: 30 seconds
+├─ Includes: Everything in source form
+└─ Best for: Portability, development
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   PREREQUISITES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+For BUILD_INSTALLER_SIMPLE.bat and BUILD_INSTALLER.bat:
+✅ Python 3.11+ installed
+✅ pip working
+✅ PyInstaller (auto-installed by script)
+
+For BUILD_COMPLETE_PACKAGE.bat:
+✅ Python 3.11+ installed (to run the code)
+✅ PowerShell (for ZIP creation - optional)
+✅ No compilation needed!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   TROUBLESHOOTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+If BUILD_INSTALLER_SIMPLE.bat fails:
+1. Make sure you're in the installer folder
+2. Check Python is in PATH: python --version
+3. Try: pip install --upgrade pyinstaller
+4. Delete build/dist folders and try again
+
+If BUILD_COMPLETE_PACKAGE.bat doesn't create ZIP:
+1. It will open Explorer to the temp folder
+2. Manually zip the contents
+3. Move ZIP to project root
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   TRY IT NOW!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Open Command Prompt in C:\Users\Jamess\Videos\TVStation:
+
+   cd installer
+   BUILD_INSTALLER_SIMPLE.bat
+
+This should work without errors now! 🚀
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

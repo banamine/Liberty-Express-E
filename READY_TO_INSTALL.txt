@@ -1,0 +1,202 @@
+╔══════════════════════════════════════════════════════════════════╗
+║           M3U MATRIX - READY FOR INSTALLATION ON YOUR PC         ║
+╚══════════════════════════════════════════════════════════════════╝
+
+Installation Location: C:\Users\Jamess\Videos\TVStation
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   🚀 QUICK START (3 Easy Steps)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Download all files from Replit to your PC
+   → Extract to: C:\Users\Jamess\Videos\TVStation
+
+2. Run the Quick Installer
+   → Double-click: QUICK_INSTALL.bat
+   → Wait 2-3 minutes
+
+3. Launch M3U Matrix
+   → Double-click: Launch_M3U_Matrix.bat
+
+That's it! You're ready to use M3U Matrix! 🎬
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   📦 ALL INSTALLATION FILES CREATED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ QUICK_INSTALL.bat
+   └─ Automatic dependency installer
+   └─ Checks Python & Node.js
+   └─ Installs packages
+   └─ Creates folders and shortcuts
+
+✅ Launch_M3U_Matrix.bat (created after install)
+   └─ Launches desktop application
+
+✅ Launch_Web_Player.bat (created after install)
+   └─ Launches NEXUS TV web player
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   🌐 NETWORK SETUP FILES (PUNK & Liberty Express)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ installer\SETUP_PUNK_LIBERTY.bat
+   └─ Custom setup for your two PCs
+   └─ Auto-detects which PC (192.168.1.204 or 192.168.1.188)
+   └─ One-click sharing and connection
+
+✅ installer\ONE_CLICK_NETWORK_CONNECT.bat
+   └─ Fastest connection method
+   └─ Run on both PCs
+   └─ Auto-connects in <2 minutes
+
+✅ installer\NETWORK_HELPER.py
+   └─ Visual network scanner GUI
+   └─ Shows all PCs on network
+   └─ One-click connection
+
+✅ installer\NETWORK_QUICK_START.txt
+   └─ Complete network guide
+   └─ Your specific IPs and setup
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   🔧 BUILD SCRIPTS (FIXED!)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ installer\BUILD_INSTALLER_SIMPLE.bat
+   └─ Creates standalone EXE (RECOMMENDED)
+   └─ No external files needed
+   └─ FIXED: Works without Sample Playlists folder
+
+✅ installer\BUILD_INSTALLER.bat
+   └─ Creates complete installer with data
+   └─ FIXED: Makes Sample Playlists optional
+   └─ FIXED: Added delayed expansion
+
+✅ installer\BUILD_COMPLETE_PACKAGE.bat
+   └─ Creates portable ZIP package
+   └─ No compilation needed
+   └─ Pure Python source code
+
+✅ installer\BUILD_GUIDE.txt
+   └─ Complete guide for all build options
+   └─ Troubleshooting included
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   📖 DOCUMENTATION FILES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ INSTALLATION_COMPLETE.txt
+   └─ Step-by-step installation guide
+
+✅ READY_TO_INSTALL.txt (this file)
+   └─ Quick reference for installation
+
+✅ M3U_MATRIX_README.md
+   └─ Complete user documentation
+
+✅ installer\INSTALLER_GUIDE.md
+   └─ Installer system documentation
+
+✅ installer\BUILD_GUIDE.txt
+   └─ Build scripts guide
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   ⚙️ YOUR SYSTEM DETAILS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Installation Path:
+   C:\Users\Jamess\Videos\TVStation
+
+Python Detected:
+   Python 3.14.0
+
+Network Configuration:
+   🖥️  PUNK: 192.168.1.204 (MAC: 10-BF-48-B5-FB-D5)
+   🖥️  Liberty Express: 192.168.1.188 (MAC: 00-CE-39-D1-34-68)
+   🌐 Gateway: 192.168.1.254
+   ⚡ Speed: 1 Gbps (Gigabit)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   ✅ WHAT'S BEEN FIXED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Previous Error:
+   "Unable to find 'Sample Playlists' when adding binary and data files"
+
+Fixes Applied:
+   ✅ BUILD_INSTALLER.bat - Added delayed expansion
+   ✅ BUILD_INSTALLER.bat - Made Sample Playlists optional
+   ✅ Created BUILD_INSTALLER_SIMPLE.bat - No external dependencies
+   ✅ Created BUILD_COMPLETE_PACKAGE.bat - Portable ZIP option
+   ✅ All scripts now check if folders exist first
+   ✅ Graceful fallback if optional files missing
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   🎯 RECOMMENDED INSTALLATION PATH
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+EASIEST METHOD - Use Quick Install:
+
+1. Copy all files to: C:\Users\Jamess\Videos\TVStation
+2. Run: QUICK_INSTALL.bat
+3. Done!
+
+ALTERNATIVE - Build Portable Package:
+
+1. On your current PC (in Replit folder):
+   cd installer
+   BUILD_COMPLETE_PACKAGE.bat
+
+2. Copy M3U_Matrix_Portable.zip to both PCs
+
+3. Extract and run QUICK_INSTALL.bat on each PC
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   🌐 CONNECT PUNK & LIBERTY EXPRESS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+After installing on both PCs:
+
+ON PUNK:
+   Run: installer\SETUP_PUNK_LIBERTY.bat
+   Choose: Option 1 (Share with Liberty Express)
+
+ON LIBERTY EXPRESS:
+   Run: installer\SETUP_PUNK_LIBERTY.bat
+   Choose: Option 1 (Connect to PUNK)
+
+Or use the one-click method:
+   Run: installer\ONE_CLICK_NETWORK_CONNECT.bat (on both PCs)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   📋 REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Python 3.11 or later (you have 3.14 ✓)
+✅ Node.js 16+ (optional, for web player)
+✅ Windows 7/8/10/11
+✅ 500MB disk space
+✅ Internet connection (for package installation)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   🎬 AFTER INSTALLATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Desktop Application:
+   → Launch_M3U_Matrix.bat
+   → Load M3U playlists
+   → Organize channels
+   → Generate NEXUS TV pages
+
+Web Player:
+   → Launch_Web_Player.bat
+   → Opens at http://localhost:5000
+   → Watch 24-hour scheduled content
+   → Toggle Schedule/Live TV modes
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎉 Everything is ready! Just download files and run QUICK_INSTALL.bat!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
