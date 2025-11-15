@@ -83,6 +83,11 @@ class M3UMatrix:
         self.filter_cache = {}  # Cache for filter results
         self.autosave_counter = 0  # Track changes for autosave
         self.last_save_time = datetime.now()
+        
+        # Undo/Redo system
+        self.undo_stack = []
+        self.redo_stack = []
+        self.max_undo_history = 50
 
         self.setup_error_handling()
         self.load_settings()
@@ -290,7 +295,7 @@ class M3UMatrix:
         row1 = [("LOAD", "#2980b9", self.load),
                 ("SAVE", "#c0392b", self.save),
                 ("M3U OUTPUT", "#16a085", self.export_m3u_output),
-                ("EXPORT CSV", "#16a085", self.export_csv),
+                ("EXPORT JSON", "#16a085", self.export_json),
                 ("NEW", "#34495e", self.new_project)]
         for txt, col, cmd in row1:
             tk.Button(tb1, text=txt, bg=col, fg="white", width=14,
@@ -341,7 +346,9 @@ class M3UMatrix:
                  bg="#34495e", fg="#fff", font=("Arial", 9)).pack(side=tk.RIGHT, padx=5)
         for txt, col, cmd in [("CUT", "#e74c3c", self.cut),
                               ("COPY", "#3498db", self.copy),
-                              ("PASTE", "#2ecc71", self.paste)]:
+                              ("PASTE", "#2ecc71", self.paste),
+                              ("UNDO", "#f39c12", self.undo),
+                              ("REDO", "#9b59b6", self.redo)]:
             tk.Button(tools,
                       text=txt,
                       bg=col,
@@ -441,6 +448,8 @@ class M3UMatrix:
             messagebox.showwarning("No Selection",
                                    "Select channels to cut first!")
             return
+        
+        self.save_state(f"Cut {len(selection)} channels")
 
         self.clipboard = {
             "operation": "cut",
@@ -477,6 +486,65 @@ class M3UMatrix:
         self.stat.config(
             text=f"COPIED: {len(selection)} channels to clipboard")
 
+    def save_state(self, operation_name):
+        """Save current state for undo"""
+        state = {
+            'operation': operation_name,
+            'channels': [ch.copy() for ch in self.channels],
+            'timestamp': datetime.now()
+        }
+        
+        self.undo_stack.append(state)
+        if len(self.undo_stack) > self.max_undo_history:
+            self.undo_stack.pop(0)
+        
+        # Clear redo stack when new action is performed
+        self.redo_stack.clear()
+    
+    def undo(self):
+        """Undo last operation"""
+        if not self.undo_stack:
+            self.stat.config(text="Nothing to undo")
+            return
+        
+        # Save current state to redo stack
+        current_state = {
+            'operation': 'redo_point',
+            'channels': [ch.copy() for ch in self.channels],
+            'timestamp': datetime.now()
+        }
+        self.redo_stack.append(current_state)
+        
+        # Restore previous state
+        previous_state = self.undo_stack.pop()
+        self.channels = previous_state['channels']
+        
+        self.fill()
+        self.build_m3u()
+        self.stat.config(text=f"UNDO: {previous_state['operation']}")
+    
+    def redo(self):
+        """Redo last undone operation"""
+        if not self.redo_stack:
+            self.stat.config(text="Nothing to redo")
+            return
+        
+        # Save current state to undo stack
+        current_state = {
+            'operation': 'undo_point',
+            'channels': [ch.copy() for ch in self.channels],
+            'timestamp': datetime.now()
+        }
+        self.undo_stack.append(current_state)
+        
+        # Restore redo state
+        redo_state = self.redo_stack.pop()
+        self.channels = redo_state['channels']
+        
+        self.fill()
+        self.build_m3u()
+        self.stat.config(text="REDO")
+
     def paste(self):
         """Paste clipboard channels"""
         if not self.clipboard:
@@ -484,6 +552,7 @@ class M3UMatrix:
                                    "Cut or copy channels first!")
             return
         
+        self.save_state(f"Paste {len(self.clipboard['channels'])} channels")
         self.mark_changed()
 
         if self.clipboard["operation"] == "cut":
@@ -730,6 +799,7 @@ Success Rate: {results['working']/results['total']*100:.1f}%
             messagebox.showwarning("No Channels", "Load M3U files first!")
             return
 
+        self.save_state("Organize channels")
         self.mark_changed()
         
         group_mapping = self.normalize_groups()
@@ -813,7 +883,70 @@ Success Rate: {results['working']/results['total']*100:.1f}%
         for i, channel in enumerate(self.channels, 1):
             channel["num"] = i
 
-    # ========== EXPORT CSV FEATURE ==========
+    # ========== EXPORT FEATURES ==========
+    def export_json(self):
+        """Export channels as JSON with full metadata"""
+        if not self.channels:
+            messagebox.showwarning("No Channels", "Load channels first!")
+            return
+        
+        exports_dir = Path("exports")
+        exports_dir.mkdir(exist_ok=True)
+        
+        filename = filedialog.asksaveasfilename(
+            defaultextension=".json",
+            filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+            initialdir=str(exports_dir),
+            initialfile=f"playlist_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        )
+        
+        if filename:
+            try:
+                # Build comprehensive JSON export
+                export_data = {
+                    "metadata": {
+                        "generated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        "total_channels": len(self.channels),
+                        "app_version": "M3U Matrix Pro v4.0",
+                        "format": "M3U Matrix JSON Export"
+                    },
+                    "channels": []
+                }
+                
+                # Group channels by category
+                groups = defaultdict(list)
+                for ch in self.channels:
+                    group = ch.get('group', 'Other')
+                    channel_data = {
+                        "uuid": ch.get('uuid', ''),
+                        "number": ch.get('num', 0),
+                        "name": ch.get('name', ''),
+                        "url": ch.get('url', ''),
+                        "logo": ch.get('logo', ''),
+                        "group": group,
+                        "tvg_id": ch.get('tvg_id', ''),
+                        "custom_tags": ch.get('custom_tags', {})
+                    }
+                    groups[group].append(channel_data)
+                    export_data["channels"].append(channel_data)
+                
+                # Add group summary
+                export_data["groups"] = {
+                    group: len(channels) for group, channels in groups.items()
+                }
+                
+                with open(filename, 'w', encoding='utf-8') as f:
+                    json.dump(export_data, f, indent=2, ensure_ascii=False)
+                
+                messagebox.showinfo("Success", 
+                                  f"JSON export complete!\n\n"
+                                  f"Channels: {len(self.channels)}\n"
+                                  f"Groups: {len(groups)}\n"
+                                  f"File: {os.path.basename(filename)}")
+                self.stat.config(text=f"Exported {len(self.channels)} channels to JSON")
+            except Exception as e:
+                self.show_error_dialog("Export Failed", "Could not export to JSON", e)
+    
     def export_csv(self):
         """Export channel list to CSV file"""
         if not self.channels:
@@ -1476,6 +1609,10 @@ Success Rate: {results['working']/results['total']*100:.1f}%
     def delete_channel(self, iid):
         values = self.tv.item(iid, "values")
         num = int(values[0])
+        
+        self.save_state(f"Delete channel #{num}")
+        self.mark_changed()
+        
         self.channels = [ch for ch in self.channels if ch["num"] != num]
         self.auto_increment_channels()
         self.fill()
