@@ -2953,6 +2953,25 @@
         // =====================================================================
         // SCHEDULE DATA SECTION - CLASSIC MOVIES PLAYLIST
         // =====================================================================
+        // Enhanced Metadata Support:
+        // - segment_markers: Array of timestamps marking key scenes/breaks (optional)
+        // - ad_breaks: Array of objects with start/end times for commercial insertion (optional)
+        // - duration_seconds: Precise duration for FFmpeg timestamp calculations (optional)
+        // 
+        // Example enhanced entry:
+        // {
+        //   title: "Movie Title",
+        //   logo: "url",
+        //   video: "url",
+        //   start_time: "00:00",
+        //   end_time: "02:00",
+        //   duration_seconds: 7200,
+        //   segment_markers: [330, 900, 1500, 2400],  // Timestamps in seconds
+        //   ad_breaks: [
+        //     { start: 600, end: 630, type: "commercial" },
+        //     { start: 1800, end: 1830, type: "commercial" }
+        //   ]
+        // }
         
         let schedule_data = [
             {
