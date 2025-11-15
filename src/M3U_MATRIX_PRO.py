@@ -134,6 +134,11 @@ class M3UMatrix:
         self.undo_stack = []
         self.redo_stack = []
         self.max_undo_history = 50
+        
+        # Performance & UX improvements
+        self.uuid_to_iid_map = {}  # O(1) lookup for treeview updates
+        self.dirty = False  # Track unsaved changes
+        self.search_debounce_id = None  # For debounced search
 
         self.setup_error_handling()
         self.load_settings()
@@ -380,7 +385,7 @@ class M3UMatrix:
         tk.Label(tools, text="Search:", fg="#fff",
                  bg="#1e1e1e").pack(side=tk.LEFT)
         self.search = tk.StringVar()
-        self.search.trace("w", lambda *_: self.filter())
+        self.search.trace("w", lambda *_: self.filter_debounced())
         tk.Entry(tools,
                  textvariable=self.search,
                  width=30,
@@ -458,11 +463,28 @@ class M3UMatrix:
         cols = ("#", "Now Playing", "Next", "Group", "Name", "URL", "Backs",
                 "Tags", "Del")
         self.tv = ttk.Treeview(tf, columns=cols, show="headings")
-        widths = [50, 180, 180, 120, 200, 380, 70, 80, 50]
-        for i, c in enumerate(cols):
+        
+        # Responsive column configuration with relative sizing
+        # Format: (width, minwidth, stretch)
+        column_config = {
+            "#": (50, 40, False),
+            "Now Playing": (180, 120, True),
+            "Next": (180, 100, True),
+            "Group": (120, 80, True),
+            "Name": (200, 150, True),
+            "URL": (380, 200, True),
+            "Backs": (70, 50, False),
+            "Tags": (80, 60, False),
+            "Del": (50, 40, False)
+        }
+        
+        for c in cols:
+            width, minwidth, stretch = column_config[c]
             self.tv.heading(c, text=c, command=lambda col=c: self.sort_by(col))
             self.tv.column(c,
-                           width=widths[i],
+                           width=width,
+                           minwidth=minwidth,
+                           stretch=stretch,
                            anchor="center" if c in ("#", "Backs", "Tags",
                                                     "Del") else "w")
         self.tv.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
@@ -709,46 +731,95 @@ class M3UMatrix:
                     except:
                         return "broken"
             else:
-                # RTMP/RTSP - basic connection test
-                socket_timeout = socket.getdefaulttimeout()
-                socket.setdefaulttimeout(5)
-                try:
-                    parsed = urlparse(url)
-                    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    sock.connect((parsed.hostname, parsed.port or 1935))
-                    sock.close()
-                    return "working"
-                except:
-                    return "broken"
-                finally:
-                    socket.setdefaulttimeout(socket_timeout)
+                # RTMP/RTSP - enhanced connection test with handshake
+                return self.validate_stream_protocol(url)
 
         except requests.exceptions.Timeout:
             return "timeout"
         except Exception:
             return "broken"
+    
+    def validate_stream_protocol(self, url):
+        """Enhanced validation for RTMP/RTSP streams with socket handshake"""
+        try:
+            parsed = urlparse(url)
+            protocol = parsed.scheme.lower()
+            hostname = parsed.hostname
+            
+            if not hostname:
+                return "broken"
+            
+            # Determine default port based on protocol
+            if protocol == 'rtmp' or protocol == 'rtmps':
+                default_port = 1935
+            elif protocol == 'rtsp':
+                default_port = 554
+            else:
+                default_port = 1935  # Fallback
+            
+            port = parsed.port or default_port
+            
+            # Create socket with timeout
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(5)
+            
+            try:
+                # Attempt connection
+                sock.connect((hostname, port))
+                
+                # For RTSP, send OPTIONS request to verify server response
+                if protocol == 'rtsp':
+                    options_request = f"OPTIONS {url} RTSP/1.0\r\nCSeq: 1\r\n\r\n"
+                    sock.sendall(options_request.encode('utf-8'))
+                    
+                    # Try to receive response (with small timeout)
+                    sock.settimeout(2)
+                    try:
+                        response = sock.recv(1024).decode('utf-8', errors='ignore')
+                        # Check if we got a valid RTSP response
+                        if 'RTSP/1.0' in response or 'RTSP/2.0' in response:
+                            sock.close()
+                            return "working"
+                    except socket.timeout:
+                        # No response, but connection worked - likely valid
+                        sock.close()
+                        return "working"
+                else:
+                    # For RTMP, just connection test (full handshake is complex)
+                    sock.close()
+                    return "working"
+                    
+            except socket.timeout:
+                return "timeout"
+            except (socket.error, OSError):
+                return "broken"
+            finally:
+                try:
+                    sock.close()
+                except:
+                    pass
+                    
+        except Exception as e:
+            self.logger.debug(f"Stream protocol validation failed for {url}: {e}")
+            return "broken"
 
     def update_channel_status(self, channel_uuid, status, results):
-        """Update UI with channel validation status using UUID (safe from reordering)"""
-        # Find channel by UUID instead of index
-        channel = None
-        for ch in self.channels:
-            if ch.get('uuid') == channel_uuid:
-                channel = ch
-                break
+        """Update UI with channel validation status using UUID with O(1) lookup"""
+        # O(1) lookup using UUID-to-IID mapping
+        iid = self.uuid_to_iid_map.get(channel_uuid)
         
-        if not channel:
-            return  # Channel not found (may have been deleted)
+        if not iid or not self.tv.exists(iid):
+            return  # Channel not found (may have been deleted or not in view)
 
-        # Update treeview with status
-        for iid in self.tv.get_children():
-            if int(self.tv.item(iid, "values")[0]) == channel["num"]:
-                values = list(self.tv.item(iid, "values"))
-                # Add status indicator
-                status_icons = {"working": "✓", "broken": "✗", "timeout": "⌛"}
-                values[1] = f"{status_icons.get(status, '?')} {values[1]}"
-                self.tv.item(iid, values=values)
-                break
+        # Update treeview with status - O(1) operation
+        values = list(self.tv.item(iid, "values"))
+        status_icons = {"working": "✓", "broken": "✗", "timeout": "⌛"}
+        # Remove any previous status icon before adding new one
+        current_value = str(values[1])
+        for icon in status_icons.values():
+            current_value = current_value.replace(f"{icon} ", "")
+        values[1] = f"{status_icons.get(status, '?')} {current_value}"
+        self.tv.item(iid, values=values)
 
         # Update status bar
         self.stat.config(
@@ -772,6 +843,27 @@ Success Rate: {results['working']/results['total']*100:.1f}%
             text=
             f"AUDIT COMPLETE: {results['working']}/{results['total']} channels working"
         )
+
+    # ========== DIRTY FLAG FOR UNSAVED CHANGES ==========
+    def mark_dirty(self):
+        """Mark that there are unsaved changes and update window title"""
+        if not self.dirty:
+            self.dirty = True
+            self.update_window_title()
+    
+    def mark_clean(self):
+        """Mark that all changes are saved and update window title"""
+        if self.dirty:
+            self.dirty = False
+            self.update_window_title()
+    
+    def update_window_title(self):
+        """Update window title to reflect unsaved changes"""
+        base_title = "M3U MATRIX PRO • DRAG & DROP M3U FILES • DOUBLE-CLICK TO OPEN"
+        if self.dirty:
+            self.root.title(f"* (Unsaved Changes) - {base_title}")
+        else:
+            self.root.title(base_title)
 
     # ========== MEDIA FILE DETECTION ==========
     def is_media_file(self, file_path):
@@ -1424,6 +1516,15 @@ Success Rate: {results['working']/results['total']*100:.1f}%
                 })
 
     # ========== ENHANCED UI FEATURES ==========
+    def filter_debounced(self):
+        """Debounced search - delays filter execution by 300ms"""
+        # Cancel previous debounce timer if it exists
+        if self.search_debounce_id:
+            self.root.after_cancel(self.search_debounce_id)
+        
+        # Set new timer - filter will run 300ms after last keystroke
+        self.search_debounce_id = self.root.after(300, self.filter)
+    
     def filter(self):
         """Advanced filtering with regex support and caching"""
         search_term = self.search.get().lower()
@@ -1480,6 +1581,7 @@ Success Rate: {results['working']/results['total']*100:.1f}%
 
         # Update UI only with matching channels
         self.tv.delete(*self.tv.get_children())
+        self.uuid_to_iid_map.clear()  # Clear and rebuild mapping for filtered view
         
         for ch in matching_channels:
             now = "LIVE"
@@ -1493,7 +1595,7 @@ Success Rate: {results['working']/results['total']*100:.1f}%
 
             tags_count = len(ch.get('custom_tags', {}))
 
-            self.tv.insert(
+            iid = self.tv.insert(
                 "",
                 "end",
                 values=(ch["num"], now, "—", ch.get("group", "Other"),
@@ -1502,6 +1604,10 @@ Success Rate: {results['working']/results['total']*100:.1f}%
                         len(ch.get("url", "")) > 80 else ch.get("url", ""),
                         len(ch.get("backups",
                                    [])), f"{tags_count} tags", ""))
+            
+            # Map UUID to IID for O(1) lookups during audits
+            if "uuid" in ch:
+                self.uuid_to_iid_map[ch["uuid"]] = iid
 
     def sort_by(self, col):
         """Enhanced multi-column sorting"""
@@ -1528,8 +1634,10 @@ Success Rate: {results['working']/results['total']*100:.1f}%
 
     # ========== EXISTING CORE METHODS ==========
     def fill(self):
-        """Update the treeview with current channels"""
+        """Update the treeview with current channels and build UUID->IID mapping"""
         self.tv.delete(*self.tv.get_children())
+        self.uuid_to_iid_map.clear()  # Clear old mapping
+        
         for ch in self.channels:
             now_playing = "LIVE"
             shows = sorted(self.schedule.get(str(ch["num"]), []),
@@ -1543,7 +1651,7 @@ Success Rate: {results['working']/results['total']*100:.1f}%
             next_show = "—"
             tags_count = len(ch.get('custom_tags', {}))
 
-            self.tv.insert(
+            iid = self.tv.insert(
                 "",
                 "end",
                 values=(ch["num"], now_playing, next_show,
@@ -1551,6 +1659,10 @@ Success Rate: {results['working']/results['total']*100:.1f}%
                         ch.get("url", "")[:80] + "..." if len(ch.get(
                             "url", "")) > 80 else ch.get("url", ""),
                         len(ch.get("backups", [])), f"{tags_count} tags", ""))
+            
+            # Map UUID to IID for O(1) lookups during audits
+            if "uuid" in ch:
+                self.uuid_to_iid_map[ch["uuid"]] = iid
 
     def build_m3u(self):
         """Build M3U content with enhanced tags"""
@@ -1765,6 +1877,7 @@ Success Rate: {results['working']/results['total']*100:.1f}%
         progress_win.update()
         
         self.tv.delete(*self.tv.get_children())
+        self.uuid_to_iid_map.clear()  # Clear and rebuild mapping for loaded channels
         
         # Batch insert for better performance
         batch_size = 100
@@ -1786,7 +1899,7 @@ Success Rate: {results['working']/results['total']*100:.1f}%
                 next_show = "—"
                 tags_count = len(ch.get('custom_tags', {}))
                 
-                self.tv.insert(
+                iid = self.tv.insert(
                     "",
                     "end",
                     values=(ch["num"], now_playing, next_show,
@@ -1794,6 +1907,10 @@ Success Rate: {results['working']/results['total']*100:.1f}%
                            ch.get("url", "")[:80] + "..." if len(ch.get(
                                "url", "")) > 80 else ch.get("url", ""),
                            len(ch.get("backups", [])), f"{tags_count} tags", ""))
+                
+                # Map UUID to IID for O(1) lookups during audits
+                if "uuid" in ch:
+                    self.uuid_to_iid_map[ch["uuid"]] = iid
             
             # Update progress
             progress_val = 80 + ((i + batch_size) / total_channels) * 15
@@ -1833,6 +1950,7 @@ Success Rate: {results['working']/results['total']*100:.1f}%
             )
             with open(path, "w", encoding="utf-8") as f:
                 f.write(self.m3u)
+            self.mark_clean()  # Clear unsaved changes flag
             messagebox.showinfo(
                 "Saved", f"Playlist saved with {len(self.channels)} channels")
             self.stat.config(text=f"SAVED: {path}")
@@ -2622,6 +2740,7 @@ Services included:
     def mark_changed(self):
         """Mark that channels have been modified"""
         self.autosave_counter += 1
+        self.mark_dirty()  # Update window title to show unsaved changes
     
     def create_progress_dialog(self, title, total):
         """Create a progress bar dialog with cancel button for long operations"""
