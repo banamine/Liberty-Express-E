@@ -1,0 +1,245 @@
+╔══════════════════════════════════════════════════════════════════╗
+║        M3U MATRIX - Redis Integration Setup Guide               ║
+╚══════════════════════════════════════════════════════════════════╝
+
+🎯 QUICK START (3 Steps)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 1: Install Redis Dependencies
+   cd C:\Users\Jamess\Videos\TVStation\Liberty-Express-\redis
+   pip install -r requirements.txt
+
+STEP 2: Start All Services
+   START_ALL_SERVICES.bat
+
+STEP 3: Export Channels from M3U Matrix
+   Open M3U Matrix PRO → Load playlist → File → Export to Redis
+
+That's it! Your channels are now cached in Redis! 🎉
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   WHAT YOU GET
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Redis Server (localhost:6379)
+   └─ Fast in-memory cache for channel data
+
+✅ API Server (http://localhost:3000)
+   └─ REST API for NEXUS TV and other clients
+   └─ Auto-documented at http://localhost:3000/docs
+
+✅ Web Dashboard (http://localhost:8080)
+   └─ Browse cached channels in your browser
+   └─ See statistics and monitor cache
+
+✅ Auto-Export from M3U Matrix
+   └─ Channels automatically cached when you save
+   └─ Updates Redis in real-time
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   ARCHITECTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+M3U Matrix PRO  →  Redis Cache  →  API Server  →  NEXUS TV
+(Desktop App)      (Fast Store)    (REST API)      (Web Player)
+                       ↓
+                  Web Dashboard
+                  (Browse Data)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   DETAILED INSTALLATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Install Python Dependencies
+   ─────────────────────────────
+   cd redis
+   pip install -r requirements.txt
+
+   This installs:
+   - redis (Python Redis client)
+   - fastapi + uvicorn (API server)
+   - Flask (Web dashboard)
+
+2. Run Redis Installation Script (Optional)
+   ────────────────────────────────────────
+   install_redis_windows.bat
+
+   This creates:
+   - config/redis.conf (Redis configuration)
+   - start_redis.bat (Redis launcher)
+   - redis_cli.bat (Redis command line)
+
+3. Start All Services
+   ──────────────────
+   START_ALL_SERVICES.bat
+
+   Or start individually:
+   - start_redis.bat (Redis server)
+   - python api_server.py (API server)
+   - python dashboard.py (Web dashboard)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   USING THE SYSTEM
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Export Channels from M3U Matrix:
+   1. Open M3U Matrix PRO
+   2. Load your M3U playlist
+   3. Click "File" → "Export to Redis"
+   4. Channels are automatically cached!
+
+Browse Cached Data:
+   Open: http://localhost:8080
+   - See all cached channels
+   - View by groups
+   - Search channels
+   - See statistics
+
+Access API:
+   http://localhost:3000/api/channels
+   - Get all channels as JSON
+   - Filter by group
+   - Get individual channel details
+   - Auto-documented at /docs
+
+Update NEXUS TV:
+   NEXUS TV will automatically fetch channels from:
+   http://localhost:3000/api/channels
+   
+   Faster loading + real-time updates!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   API ENDPOINTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+GET /
+   API root with endpoint list
+
+GET /health
+   Health check (Redis status)
+
+GET /api/channels
+   Get all channels
+   Query params:
+   - group=Sports (filter by group)
+   - limit=100 (pagination)
+   - offset=0 (pagination)
+
+GET /api/channels/{channel_id}
+   Get specific channel details
+
+GET /api/groups
+   Get all channel groups with counts
+
+GET /api/epg/{channel_id}
+   Get EPG data for channel
+
+GET /api/stats
+   Get cache statistics
+
+POST /api/clear-cache
+   Clear all cached data
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   NETWORK ACCESS (PUNK & Liberty Express)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+On Liberty Express (192.168.1.188):
+   - Run START_ALL_SERVICES.bat
+   - Services run on localhost
+
+From PUNK (192.168.1.204):
+   Access services at:
+   - API: http://192.168.1.188:3000
+   - Dashboard: http://192.168.1.188:8080
+
+   NEXUS TV on PUNK will fetch from:
+   http://192.168.1.188:3000/api/channels
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   REDIS DATA STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Channels stored as:
+   channel:{id}:metadata (hash)
+   ├─ id
+   ├─ name
+   ├─ url
+   ├─ logo
+   ├─ group
+   ├─ tvg_id
+   └─ duration
+
+Groups indexed as:
+   group:{group_name}:channels (set)
+
+EPG data stored as:
+   epg:{channel_id} (JSON string)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   TROUBLESHOOTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Redis won't start:
+   - Make sure port 6379 is not in use
+   - Check firewall settings
+   - Try: redis-cli ping (should return PONG)
+
+API server won't start:
+   - Make sure port 3000 is not in use
+   - Check if Redis is running
+   - View logs in terminal
+
+Dashboard won't load:
+   - Make sure port 8080 is not in use
+   - Check if Redis is running
+   - Try: http://127.0.0.1:8080
+
+Export not working:
+   - Make sure Redis is running
+   - Check connection in M3U Matrix settings
+   - View logs in M3U Matrix
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   FILE STRUCTURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+redis/
+├── install_redis_windows.bat    (Redis installer)
+├── START_ALL_SERVICES.bat       (Start everything)
+├── api_server.py                (FastAPI backend)
+├── dashboard.py                 (Web dashboard)
+├── requirements.txt             (Python packages)
+├── REDIS_SETUP_GUIDE.txt        (This file)
+├── config/
+│   └── redis.conf               (Redis config)
+└── src/
+    └── redis_exporter.py        (M3U Matrix exporter)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   BENEFITS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚡ Faster NEXUS TV Loading
+   Channels load instantly from Redis cache
+
+🌐 Network Sharing
+   Both PCs access the same cached data
+
+📊 Real-time Updates
+   Changes in M3U Matrix instantly available
+
+🔍 Easy Browsing
+   Web dashboard shows all cached content
+
+📈 Statistics
+   Monitor cache usage and performance
+
+🔄 Auto-Sync
+   Export happens automatically on save
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎉 Ready to use! Just run START_ALL_SERVICES.bat and start exporting!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
