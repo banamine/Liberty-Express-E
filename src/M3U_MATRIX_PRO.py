@@ -80,11 +80,14 @@ class M3UMatrix:
         self.logger = logging.getLogger(__name__)
         self.thumbnail_cache = SimpleCache(max_size=200)  # Cache for thumbnails
         self.filter_cache = {}  # Cache for filter results
+        self.autosave_counter = 0  # Track changes for autosave
+        self.last_save_time = datetime.now()
 
         self.setup_error_handling()
         self.load_settings()
         self.build_ui()
         self.load_tv_guide()
+        self.start_autosave()
         self.logger.info("M3U Matrix started successfully")
         self.root.mainloop()
 
@@ -104,14 +107,75 @@ class M3UMatrix:
         sys.excepthook = handle_exception
 
     def show_error_dialog(self, title, message, exception=None):
-        """Show detailed error dialog"""
+        """Show user-friendly error dialog with helpful suggestions"""
+        # Log the full error
         if exception:
-            detailed_msg = f"{message}\n\nTechnical Details:\n{str(exception)}"
+            self.logger.error(f"{title}: {message} - {str(exception)}")
         else:
-            detailed_msg = message
-
-        self.logger.error(f"{title}: {message}")
-        messagebox.showerror(title, detailed_msg)
+            self.logger.error(f"{title}: {message}")
+        
+        # Create user-friendly dialog
+        dialog = tk.Toplevel(self.root)
+        dialog.title(f"⚠️ {title}")
+        dialog.geometry("600x400")
+        dialog.configure(bg="#1e1e1e")
+        dialog.resizable(True, True)
+        
+        # Title
+        tk.Label(dialog, text=f"⚠️ {title}", font=("Arial", 16, "bold"),
+                fg="#ff6b6b", bg="#1e1e1e").pack(pady=15)
+        
+        # Message frame
+        frame = tk.Frame(dialog, bg="#2e2e2e", relief=tk.RAISED, bd=2)
+        frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
+        
+        # Main message
+        tk.Label(frame, text=message, font=("Arial", 11), 
+                fg="#fff", bg="#2e2e2e", wraplength=550, justify=tk.LEFT).pack(pady=10, padx=10)
+        
+        # Technical details (if available)
+        if exception:
+            tk.Label(frame, text="Technical Details:", font=("Arial", 10, "bold"),
+                    fg="#ffd93d", bg="#2e2e2e").pack(anchor=tk.W, padx=10, pady=(10,5))
+            
+            details_text = tk.Text(frame, bg="#1a1a1a", fg="#aaa", 
+                                  font=("Courier", 9), height=6, wrap=tk.WORD)
+            details_text.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+            details_text.insert("1.0", str(exception))
+            details_text.config(state=tk.DISABLED)
+        
+        # Helpful suggestions based on error type
+        suggestions = []
+        error_str = str(exception).lower() if exception else message.lower()
+        
+        if "network" in error_str or "connection" in error_str or "timeout" in error_str:
+            suggestions.append("• Check your internet connection")
+            suggestions.append("• The server might be temporarily down")
+            suggestions.append("• Try again in a few moments")
+        elif "file" in error_str or "not found" in error_str:
+            suggestions.append("• Verify the file path is correct")
+            suggestions.append("• Check if the file exists")
+            suggestions.append("• Ensure you have permission to access it")
+        elif "permission" in error_str:
+            suggestions.append("• Run the application as administrator")
+            suggestions.append("• Check file/folder permissions")
+        elif "invalid" in error_str or "malformed" in error_str:
+            suggestions.append("• The M3U file may be corrupted")
+            suggestions.append("• Try opening it in a text editor first")
+            suggestions.append("• Verify the file format is correct")
+        
+        if suggestions:
+            tk.Label(frame, text="💡 Suggestions:", font=("Arial", 10, "bold"),
+                    fg="#00ff41", bg="#2e2e2e").pack(anchor=tk.W, padx=10, pady=(10,5))
+            
+            for suggestion in suggestions:
+                tk.Label(frame, text=suggestion, font=("Arial", 9),
+                        fg="#ddd", bg="#2e2e2e").pack(anchor=tk.W, padx=25, pady=2)
+        
+        # Close button
+        tk.Button(dialog, text="Close", command=dialog.destroy,
+                 bg="#e74c3c", fg="#fff", font=("Arial", 11),
+                 width=15, height=2).pack(pady=15)
 
     def load_settings(self):
         """Load user settings"""
@@ -369,6 +433,8 @@ class M3UMatrix:
             messagebox.showwarning("Empty Clipboard",
                                    "Cut or copy channels first!")
             return
+        
+        self.mark_changed()
 
         if self.clipboard["operation"] == "cut":
             # Remove original channels when pasting a cut
@@ -401,10 +467,11 @@ class M3UMatrix:
             messagebox.showwarning("No Channels", "Load channels first!")
             return
 
-        def check_thread():
-            self.root.after(
-                0, lambda: self.stat.config(text="Starting channel audit..."))
+        # Create progress dialog
+        progress_dialog, progress_var, status_label = self.create_progress_dialog(
+            "🔍 Checking Channels", len(self.channels))
 
+        def check_thread():
             results = {
                 "working": 0,
                 "broken": 0,
@@ -416,7 +483,13 @@ class M3UMatrix:
                 status = self.validate_channel(channel)
                 results[status] += 1
 
-                # Update progress in UI thread
+                # Update progress bar and status
+                self.root.after(0, lambda p=i+1, ch=channel.get('name', 'Unknown'): (
+                    progress_var.set(p),
+                    status_label.config(text=f"Checking {p}/{len(self.channels)}: {ch[:40]}...")
+                ))
+
+                # Update channel status in treeview
                 self.root.after(0,
                                 lambda idx=i, stat=status: self.
                                 update_channel_status(idx, stat, results))
@@ -424,7 +497,8 @@ class M3UMatrix:
                 # Small delay to avoid overwhelming servers
                 threading.Event().wait(0.1)
 
-            # Final summary
+            # Close progress dialog and show results
+            self.root.after(0, lambda: progress_dialog.destroy())
             self.root.after(0, lambda: self.show_audit_results(results))
 
         threading.Thread(target=check_thread, daemon=True).start()
@@ -599,6 +673,8 @@ Success Rate: {results['working']/results['total']*100:.1f}%
             messagebox.showwarning("No Channels", "Load M3U files first!")
             return
 
+        self.mark_changed()
+        
         group_mapping = self.normalize_groups()
         self.remove_duplicates()
         self.auto_increment_channels()
@@ -1662,8 +1738,84 @@ Success Rate: {results['working']/results['total']*100:.1f}%
             m3u += extinf + ch.get("url", "") + "\n"
         return m3u
 
+    def start_autosave(self):
+        """Start autosave timer - saves every 5 minutes if changes detected"""
+        def autosave_check():
+            if self.autosave_counter > 0 and self.channels:
+                minutes_since_save = (datetime.now() - self.last_save_time).total_seconds() / 60
+                if minutes_since_save >= 5:
+                    self.autosave()
+            # Schedule next check
+            self.root.after(60000, autosave_check)  # Check every minute
+        
+        # Start the autosave checker
+        self.root.after(60000, autosave_check)
+    
+    def autosave(self):
+        """Perform automatic save to backups folder"""
+        try:
+            backups_dir = Path("backups")
+            backups_dir.mkdir(exist_ok=True)
+            
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            backup_file = backups_dir / f"autosave_{timestamp}.m3u"
+            
+            with open(backup_file, 'w', encoding='utf-8') as f:
+                f.write(self.m3u)
+            
+            self.last_save_time = datetime.now()
+            self.autosave_counter = 0
+            self.stat.config(text=f"💾 Autosaved: {backup_file.name}")
+            self.logger.info(f"Autosaved to {backup_file}")
+            
+            # Keep only last 10 autosaves
+            autosaves = sorted(backups_dir.glob("autosave_*.m3u"))
+            if len(autosaves) > 10:
+                for old_file in autosaves[:-10]:
+                    old_file.unlink()
+        except Exception as e:
+            self.logger.error(f"Autosave failed: {e}")
+    
+    def mark_changed(self):
+        """Mark that channels have been modified"""
+        self.autosave_counter += 1
+    
+    def create_progress_dialog(self, title, total):
+        """Create a progress bar dialog for long operations"""
+        dialog = tk.Toplevel(self.root)
+        dialog.title(title)
+        dialog.geometry("500x150")
+        dialog.configure(bg="#1e1e1e")
+        dialog.resizable(False, False)
+        
+        # Center the dialog
+        dialog.transient(self.root)
+        dialog.grab_set()
+        
+        tk.Label(dialog, text=title, font=("Arial", 14, "bold"),
+                fg="#00ff41", bg="#1e1e1e").pack(pady=15)
+        
+        progress_var = tk.DoubleVar()
+        progress_bar = ttk.Progressbar(dialog, variable=progress_var,
+                                      maximum=total, length=450, mode='determinate')
+        progress_bar.pack(pady=10)
+        
+        status_label = tk.Label(dialog, text="Starting...", font=("Arial", 10),
+                               fg="#fff", bg="#1e1e1e")
+        status_label.pack(pady=5)
+        
+        return dialog, progress_var, status_label
+    
     def safe_exit(self):
         """Safe exit procedure"""
+        # Final autosave if there are unsaved changes
+        if self.autosave_counter > 0 and self.channels:
+            response = messagebox.askyesno(
+                "Unsaved Changes", 
+                "You have unsaved changes. Save before exit?")
+            if response:
+                self.save()
+        
         self.save_settings()
         self.root.quit()
 
