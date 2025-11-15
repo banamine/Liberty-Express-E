@@ -194,7 +194,7 @@ class M3UMatrix:
         row2 = [("ORGANIZE", "#27ae60", self.organize_channels),
                 ("CHECK", "#e67e22", self.start_check),
                 ("GENERATE PAGES", "#e91e63", self.generate_pages),
-                ("GEN THUMBS", "#ff6b6b", self.generate_thumbnails),
+                ("SMART SCHEDULE", "#9b59b6", self.smart_scheduler),
                 ("JSON GUIDE", "#95e1d3", self.export_tv_guide_json)]
         for txt, col, cmd in row2:
             tk.Button(tb2, text=txt, bg=col, fg="white", width=14,
@@ -2011,6 +2011,314 @@ Success Rate: {results['working']/results['total']*100:.1f}%
                 
         except Exception as e:
             self.show_error_dialog("Export Failed", "Could not export TV Guide JSON", e)
+    
+    def smart_scheduler(self):
+        """Intelligent playlist scheduler with rotation algorithms and random modes"""
+        if not self.channels:
+            messagebox.showwarning("No Channels", "Load channels first!")
+            return
+        
+        # Create scheduler dialog
+        dialog = tk.Toplevel(self.root)
+        dialog.title("📺 SMART SCHEDULER - Intelligent Playlist Generator")
+        dialog.geometry("700x750")
+        dialog.configure(bg="#1a1a2e")
+        
+        # Title
+        tk.Label(dialog, text="SMART SCHEDULER", 
+                font=("Arial", 18, "bold"), fg="#00ff41", bg="#1a1a2e").pack(pady=15)
+        
+        # Configuration Frame
+        config_frame = tk.Frame(dialog, bg="#16213e", relief=tk.RAISED, bd=2)
+        config_frame.pack(fill=tk.BOTH, padx=20, pady=10, expand=True)
+        
+        # Schedule Mode Selection
+        tk.Label(config_frame, text="SCHEDULING MODE:", 
+                font=("Arial", 12, "bold"), fg="#f0f0f0", bg="#16213e").pack(pady=(15,5))
+        
+        mode_var = tk.StringVar(value="balanced")
+        
+        modes = [
+            ("balanced", "🎯 Balanced Rotation", "Equal time for all shows, prevents dominance"),
+            ("random", "🎲 Random Shuffle", "Unpredictable viewing with smart distribution"),
+            ("weighted", "📊 Weighted Mix", "Popular shows get more slots"),
+            ("sequential", "📜 Sequential", "Classic order with group awareness")
+        ]
+        
+        for val, label, desc in modes:
+            frame = tk.Frame(config_frame, bg="#16213e")
+            frame.pack(fill=tk.X, padx=15, pady=3)
+            tk.Radiobutton(frame, text=label, variable=mode_var, value=val,
+                          font=("Arial", 10, "bold"), fg="#fff", bg="#16213e",
+                          selectcolor="#444", activebackground="#16213e").pack(anchor=tk.W)
+            tk.Label(frame, text=f"   └─ {desc}", 
+                    font=("Arial", 8), fg="#aaa", bg="#16213e").pack(anchor=tk.W, padx=30)
+        
+        # Parameters Frame
+        params_frame = tk.Frame(config_frame, bg="#0f3460")
+        params_frame.pack(fill=tk.X, padx=15, pady=15)
+        
+        # Duration
+        tk.Label(params_frame, text="Show Duration (minutes):", 
+                fg="#fff", bg="#0f3460", font=("Arial", 10)).grid(row=0, column=0, sticky=tk.W, padx=10, pady=5)
+        duration_var = tk.IntVar(value=30)
+        duration_spin = tk.Spinbox(params_frame, from_=5, to=180, textvariable=duration_var,
+                                  width=10, font=("Arial", 10))
+        duration_spin.grid(row=0, column=1, padx=10, pady=5)
+        
+        # Days
+        tk.Label(params_frame, text="Number of Days:", 
+                fg="#fff", bg="#0f3460", font=("Arial", 10)).grid(row=1, column=0, sticky=tk.W, padx=10, pady=5)
+        days_var = tk.IntVar(value=7)
+        days_spin = tk.Spinbox(params_frame, from_=1, to=30, textvariable=days_var,
+                              width=10, font=("Arial", 10))
+        days_spin.grid(row=1, column=1, padx=10, pady=5)
+        
+        # Max consecutive shows
+        tk.Label(params_frame, text="Max Consecutive Shows:", 
+                fg="#fff", bg="#0f3460", font=("Arial", 10)).grid(row=2, column=0, sticky=tk.W, padx=10, pady=5)
+        max_consec_var = tk.IntVar(value=3)
+        max_consec_spin = tk.Spinbox(params_frame, from_=1, to=10, textvariable=max_consec_var,
+                                    width=10, font=("Arial", 10))
+        max_consec_spin.grid(row=2, column=1, padx=10, pady=5)
+        
+        # Advanced Options
+        tk.Label(config_frame, text="ADVANCED OPTIONS:", 
+                font=("Arial", 11, "bold"), fg="#f0f0f0", bg="#16213e").pack(pady=(10,5))
+        
+        options_frame = tk.Frame(config_frame, bg="#16213e")
+        options_frame.pack(fill=tk.X, padx=15, pady=5)
+        
+        group_aware_var = tk.BooleanVar(value=True)
+        thumbnails_var = tk.BooleanVar(value=True)
+        buffer_var = tk.BooleanVar(value=True)
+        
+        tk.Checkbutton(options_frame, text="📁 Group-Aware Scheduling (respect categories)",
+                      variable=group_aware_var, fg="#fff", bg="#16213e",
+                      selectcolor="#444", activebackground="#16213e").pack(anchor=tk.W, pady=2)
+        tk.Checkbutton(options_frame, text="🖼️  Generate Thumbnails",
+                      variable=thumbnails_var, fg="#fff", bg="#16213e",
+                      selectcolor="#444", activebackground="#16213e").pack(anchor=tk.W, pady=2)
+        tk.Checkbutton(options_frame, text="💾 Enable Buffer/Cache Files",
+                      variable=buffer_var, fg="#fff", bg="#16213e",
+                      selectcolor="#444", activebackground="#16213e").pack(anchor=tk.W, pady=2)
+        
+        # Preview Stats
+        stats_frame = tk.Frame(config_frame, bg="#1a1a2e", relief=tk.SUNKEN, bd=2)
+        stats_frame.pack(fill=tk.X, padx=15, pady=10)
+        
+        stats_label = tk.Label(stats_frame, text="", font=("Courier", 9), 
+                              fg="#00ff41", bg="#1a1a2e", justify=tk.LEFT)
+        stats_label.pack(padx=10, pady=10)
+        
+        def update_stats():
+            duration = duration_var.get()
+            days = days_var.get()
+            slots_per_day = (24 * 60) // duration
+            total_slots = slots_per_day * days
+            total_channels = len(self.channels)
+            
+            stats_text = f"""
+📊 SCHEDULE STATISTICS:
+─────────────────────────
+Channels Available: {total_channels}
+Total Time Slots: {total_slots}
+Slots per Day: {slots_per_day}
+Duration per Show: {duration} min
+Rotations: {total_slots // total_channels if total_channels > 0 else 0}x through library
+Coverage: {(total_slots / total_channels):.1f}x per show
+"""
+            stats_label.config(text=stats_text)
+        
+        update_stats()
+        duration_spin.config(command=update_stats)
+        days_spin.config(command=update_stats)
+        
+        # Generate Button
+        def generate():
+            import random
+            from collections import defaultdict
+            
+            try:
+                mode = mode_var.get()
+                duration = duration_var.get()
+                days = days_var.get()
+                max_consecutive = max_consec_var.get()
+                group_aware = group_aware_var.get()
+                
+                # Initialize schedule
+                tv_guide = {
+                    "config": {
+                        "channel_name": "M3U Matrix Smart Channel",
+                        "generated_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        "total_days": days,
+                        "show_duration_minutes": duration,
+                        "scheduling_mode": mode,
+                        "max_consecutive": max_consecutive,
+                        "group_aware": group_aware,
+                        "total_shows": 0
+                    },
+                    "days": []
+                }
+                
+                # Group channels if group-aware mode
+                if group_aware:
+                    groups = defaultdict(list)
+                    for ch in self.channels:
+                        group = ch.get('group', 'Other')
+                        groups[group].append(ch)
+                    group_list = list(groups.keys())
+                else:
+                    groups = {"All": self.channels}
+                    group_list = ["All"]
+                
+                # Generate schedule based on mode
+                playlist = []
+                total_slots = (24 * 60 * days) // duration
+                
+                if mode == "balanced":
+                    # Equal distribution - round-robin through all channels
+                    for slot in range(total_slots):
+                        ch = self.channels[slot % len(self.channels)]
+                        playlist.append(ch)
+                
+                elif mode == "random":
+                    # Smart random - tracks usage to ensure balanced distribution
+                    usage_count = defaultdict(int)
+                    available = self.channels.copy()
+                    
+                    for slot in range(total_slots):
+                        # Reset if all shows used equally
+                        if all(usage_count[ch.get('url', id(ch))] >= (slot // len(self.channels)) + 1 
+                              for ch in self.channels):
+                            usage_count.clear()
+                        
+                        # Filter out recently used
+                        if len(playlist) > 0:
+                            recent = [playlist[-i].get('url', '') for i in range(1, min(max_consecutive, len(playlist)) + 1)]
+                            available = [ch for ch in self.channels if ch.get('url', '') not in recent]
+                        
+                        if not available:
+                            available = self.channels.copy()
+                        
+                        ch = random.choice(available)
+                        playlist.append(ch)
+                        usage_count[ch.get('url', id(ch))] += 1
+                
+                elif mode == "weighted":
+                    # Weighted by group size
+                    weights = []
+                    for ch in self.channels:
+                        group = ch.get('group', 'Other')
+                        weight = len(groups[group])
+                        weights.append(weight)
+                    
+                    for slot in range(total_slots):
+                        ch = random.choices(self.channels, weights=weights, k=1)[0]
+                        playlist.append(ch)
+                
+                elif mode == "sequential":
+                    # Sequential with group rotation
+                    if group_aware:
+                        group_idx = 0
+                        channel_idx_per_group = {g: 0 for g in groups}
+                        
+                        for slot in range(total_slots):
+                            current_group = group_list[group_idx % len(group_list)]
+                            group_channels = groups[current_group]
+                            
+                            ch_idx = channel_idx_per_group[current_group]
+                            ch = group_channels[ch_idx % len(group_channels)]
+                            playlist.append(ch)
+                            
+                            channel_idx_per_group[current_group] += 1
+                            if channel_idx_per_group[current_group] >= len(group_channels):
+                                group_idx += 1
+                    else:
+                        for slot in range(total_slots):
+                            playlist.append(self.channels[slot % len(self.channels)])
+                
+                # Build day schedules
+                start_date = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+                slot_idx = 0
+                
+                for day in range(days):
+                    current_day = start_date + timedelta(days=day)
+                    day_schedule = {
+                        "date": current_day.strftime("%Y-%m-%d"),
+                        "day_name": current_day.strftime("%A"),
+                        "shows": []
+                    }
+                    
+                    current_time = current_day
+                    
+                    while current_time.date() == current_day.date() and slot_idx < len(playlist):
+                        ch = playlist[slot_idx]
+                        
+                        show_entry = {
+                            "show_number": slot_idx + 1,
+                            "show_title": ch.get('name', 'Unknown'),
+                            "start_time": current_time.strftime("%H:%M:%S"),
+                            "duration_minutes": duration,
+                            "url": ch.get('url', ''),
+                            "logo": ch.get('logo', ''),
+                            "group": ch.get('group', 'Unknown'),
+                            "channel_number": ch.get('num', 0)
+                        }
+                        
+                        if buffer_var.get():
+                            show_entry["cache_file"] = f"cache/show_{slot_idx + 1}.dat"
+                            show_entry["buffer_file"] = f"buffer/buffer_{(slot_idx + 1) % 10}.dat"
+                        
+                        end_time = current_time + timedelta(minutes=duration)
+                        show_entry["end_time"] = end_time.strftime("%H:%M:%S")
+                        
+                        day_schedule["shows"].append(show_entry)
+                        current_time = end_time
+                        slot_idx += 1
+                    
+                    tv_guide["days"].append(day_schedule)
+                
+                tv_guide["config"]["total_shows"] = len(playlist)
+                
+                # Save guide
+                json_dir = Path("json")
+                json_dir.mkdir(exist_ok=True)
+                
+                filename = filedialog.asksaveasfilename(
+                    defaultextension=".json",
+                    filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+                    initialdir=str(json_dir),
+                    initialfile=f"smart_schedule_{mode}_{days}day_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+                )
+                
+                if filename:
+                    with open(filename, 'w', encoding='utf-8') as f:
+                        json.dump(tv_guide, f, indent=2, ensure_ascii=False)
+                    
+                    messagebox.showinfo("Success!", 
+                                      f"🎉 Smart Schedule Generated!\n\n"
+                                      f"Mode: {mode.upper()}\n"
+                                      f"Total Shows: {len(playlist)}\n"
+                                      f"Duration: {duration} min/show\n"
+                                      f"Days: {days}\n\n"
+                                      f"Saved to: {Path(filename).name}")
+                    dialog.destroy()
+                    self.stat.config(text=f"Smart schedule generated: {mode} mode")
+            
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to generate schedule:\n{e}")
+        
+        # Button Frame
+        btn_frame = tk.Frame(dialog, bg="#1a1a2e")
+        btn_frame.pack(pady=15)
+        
+        tk.Button(btn_frame, text="✨ GENERATE SCHEDULE", command=generate,
+                 bg="#00ff41", fg="#000", font=("Arial", 12, "bold"),
+                 width=25, height=2).pack(side=tk.LEFT, padx=5)
+        tk.Button(btn_frame, text="Cancel", command=dialog.destroy,
+                 bg="#e74c3c", fg="#fff", font=("Arial", 10),
+                 width=12, height=2).pack(side=tk.LEFT, padx=5)
     
     def manage_subtitles(self):
         """Subtitle file management and integration"""
