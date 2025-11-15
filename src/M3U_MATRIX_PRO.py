@@ -1539,14 +1539,60 @@ Success Rate: {results['working']/results['total']*100:.1f}%
                 ("All Files", "*.*")
             ]
         )
-        if f:
-            self.files.extend(f)
-            self.file_list.delete(0, tk.END)
-            for ff in self.files:
-                self.file_list.insert(tk.END, os.path.basename(ff))
-
-            all_channels = []
-            for file_path in f:
+        if not f:
+            return
+        
+        # Update file list immediately
+        self.files.extend(f)
+        self.file_list.delete(0, tk.END)
+        for ff in self.files:
+            self.file_list.insert(tk.END, os.path.basename(ff))
+        
+        # Create progress window
+        progress_win = tk.Toplevel(self.root)
+        progress_win.title("Loading Files")
+        progress_win.geometry("500x200")
+        progress_win.configure(bg="#1a1a2e")
+        progress_win.transient(self.root)
+        progress_win.grab_set()
+        
+        tk.Label(
+            progress_win,
+            text="📂 Loading Playlist Files",
+            font=("Arial", 16, "bold"),
+            fg="#00ff88",
+            bg="#1a1a2e"
+        ).pack(pady=20)
+        
+        status_label = tk.Label(
+            progress_win,
+            text="Reading files...",
+            font=("Arial", 12),
+            fg="#ffffff",
+            bg="#1a1a2e"
+        )
+        status_label.pack(pady=10)
+        
+        progress = ttk.Progressbar(
+            progress_win,
+            length=400,
+            mode='determinate'
+        )
+        progress.pack(pady=20)
+        
+        # Force window to show
+        progress_win.update()
+        
+        # Parse files with progress updates
+        all_channels = []
+        total_files = len(f)
+        
+        for idx, file_path in enumerate(f, 1):
+            status_label.config(text=f"Reading file {idx}/{total_files}: {os.path.basename(file_path)}")
+            progress['value'] = (idx / total_files) * 50  # First 50% for parsing
+            progress_win.update()
+            
+            try:
                 channels = self.parse_m3u_file(file_path)
                 for ch in channels:
                     ch.setdefault("num", 0)
@@ -1555,25 +1601,143 @@ Success Rate: {results['working']/results['total']*100:.1f}%
                     if "uuid" not in ch:
                         ch["uuid"] = str(uuid.uuid4())
                 all_channels.extend(channels)
-            
-            # Validate large imports
-            if len(all_channels) > 1000:
-                response = messagebox.askyesno(
-                    "Large Import Detected",
-                    f"You're importing {len(all_channels)} channels.\n\n"
-                    f"This may slow down the interface.\n"
-                    f"Continue?")
-                if not response:
-                    return
-
-            self.channels = all_channels
-            self.auto_increment_channels()
-            self.fill()
-            self.build_m3u()
-            self.mark_changed()
-            self.stat.config(
-                text=f"LOADED {len(self.channels)} channels from {len(f)} files"
+            except Exception as e:
+                self.logger.error(f"Failed to parse {file_path}: {e}")
+                status_label.config(text=f"Error reading {os.path.basename(file_path)}")
+                progress_win.update()
+                continue
+        
+        # Check if we got any channels
+        if not all_channels:
+            progress_win.destroy()
+            messagebox.showwarning(
+                "No Channels Found",
+                "No channels were found in the selected files.\n\n"
+                "Make sure the files contain valid M3U playlist data."
             )
+            return
+        
+        # Validate large imports
+        if len(all_channels) > 1000:
+            progress_win.destroy()
+            response = messagebox.askyesno(
+                "Large Import Detected",
+                f"You're importing {len(all_channels)} channels.\n\n"
+                f"This may slow down the interface.\n"
+                f"Continue?")
+            if not response:
+                return
+            
+            # Recreate progress window
+            progress_win = tk.Toplevel(self.root)
+            progress_win.title("Loading Channels")
+            progress_win.geometry("500x200")
+            progress_win.configure(bg="#1a1a2e")
+            progress_win.transient(self.root)
+            progress_win.grab_set()
+            
+            tk.Label(
+                progress_win,
+                text="📺 Loading Channels",
+                font=("Arial", 16, "bold"),
+                fg="#00ff88",
+                bg="#1a1a2e"
+            ).pack(pady=20)
+            
+            status_label = tk.Label(
+                progress_win,
+                text=f"Processing {len(all_channels)} channels...",
+                font=("Arial", 12),
+                fg="#ffffff",
+                bg="#1a1a2e"
+            )
+            status_label.pack(pady=10)
+            
+            progress = ttk.Progressbar(
+                progress_win,
+                length=400,
+                mode='determinate'
+            )
+            progress.pack(pady=20)
+            progress_win.update()
+        
+        # Update status
+        status_label.config(text="Processing channels...")
+        progress['value'] = 60
+        progress_win.update()
+        
+        # Set channels
+        self.channels = all_channels
+        
+        # Auto-increment
+        status_label.config(text="Numbering channels...")
+        progress['value'] = 70
+        progress_win.update()
+        self.auto_increment_channels()
+        
+        # Fill treeview with batching for large lists
+        status_label.config(text="Updating display...")
+        progress['value'] = 80
+        progress_win.update()
+        
+        self.tv.delete(*self.tv.get_children())
+        
+        # Batch insert for better performance
+        batch_size = 100
+        total_channels = len(self.channels)
+        
+        for i in range(0, total_channels, batch_size):
+            batch = self.channels[i:i + batch_size]
+            
+            for ch in batch:
+                now_playing = "LIVE"
+                shows = sorted(self.schedule.get(str(ch["num"]), []),
+                              key=lambda x: x["time"],
+                              reverse=True)
+                for s in shows:
+                    if s["time"] <= datetime.now().strftime("%H:%M"):
+                        now_playing = s["show"]
+                        break
+                
+                next_show = "—"
+                tags_count = len(ch.get('custom_tags', {}))
+                
+                self.tv.insert(
+                    "",
+                    "end",
+                    values=(ch["num"], now_playing, next_show,
+                           ch.get("group", "Other"), ch.get("name", "Unknown"),
+                           ch.get("url", "")[:80] + "..." if len(ch.get(
+                               "url", "")) > 80 else ch.get("url", ""),
+                           len(ch.get("backups", [])), f"{tags_count} tags", ""))
+            
+            # Update progress
+            progress_val = 80 + ((i + batch_size) / total_channels) * 15
+            progress['value'] = min(progress_val, 95)
+            status_label.config(text=f"Loading... {min(i + batch_size, total_channels)}/{total_channels} channels")
+            progress_win.update_idletasks()
+        
+        # Build M3U
+        status_label.config(text="Building M3U output...")
+        progress['value'] = 97
+        progress_win.update()
+        self.build_m3u()
+        
+        # Mark changed
+        self.mark_changed()
+        
+        # Final update
+        progress['value'] = 100
+        status_label.config(text="✅ Complete!")
+        progress_win.update()
+        
+        # Close progress window
+        progress_win.after(500, progress_win.destroy)
+        
+        # Update status bar
+        self.stat.config(
+            text=f"✅ LOADED {len(self.channels)} channels from {len(f)} files"
+        )
 
     def save(self):
         folder = filedialog.askdirectory()
