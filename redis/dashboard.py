@@ -60,6 +60,30 @@ DASHBOARD_HTML = """
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .back-btn {
+            background: #764ba2;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .back-btn:hover {
+            background: #5a3678;
         }
         
         h1 {
@@ -239,8 +263,15 @@ DASHBOARD_HTML = """
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎬 M3U Matrix - Redis Dashboard</h1>
-            <p class="subtitle">Real-time channel cache monitoring</p>
+            <div class="header-content">
+                <div>
+                    <h1>🎬 M3U Matrix - Redis Dashboard</h1>
+                    <p class="subtitle">Real-time channel cache monitoring</p>
+                </div>
+                <a href="/" class="back-btn">
+                    ← Back to Index
+                </a>
+            </div>
         </div>
         
         <div class="stats-grid">
@@ -408,7 +439,139 @@ DASHBOARD_HTML = """
 """
 
 
+INDEX_HTML = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M3U Matrix - Redis Integration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .index-container {
+            background: white;
+            border-radius: 20px;
+            padding: 60px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            text-align: center;
+        }
+        h1 {
+            color: #667eea;
+            font-size: 42px;
+            margin-bottom: 20px;
+        }
+        .subtitle {
+            color: #666;
+            font-size: 18px;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+        .btn-grid {
+            display: grid;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .btn-secondary {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        }
+        .btn-tertiary {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+        }
+        .feature-list {
+            text-align: left;
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        .feature-list li {
+            color: #333;
+            padding: 8px 0;
+            list-style: none;
+            padding-left: 25px;
+            position: relative;
+        }
+        .feature-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #2ecc71;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="index-container">
+        <h1>📡 M3U Matrix</h1>
+        <p class="subtitle">
+            Redis Integration - Fast channel caching and API
+        </p>
+        
+        <ul class="feature-list">
+            <li>Real-time Redis cache monitoring</li>
+            <li>REST API for channel access</li>
+            <li>Fast loading for NEXUS TV</li>
+            <li>Network sharing across devices</li>
+        </ul>
+        
+        <div class="btn-grid">
+            <a href="/dashboard" class="btn">
+                📊 View Dashboard
+            </a>
+            <a href="/api/stats" class="btn btn-secondary">
+                📈 API Statistics
+            </a>
+            <a href="http://localhost:3000/docs" class="btn btn-tertiary" target="_blank">
+                📚 API Documentation
+            </a>
+        </div>
+        
+        <p style="margin-top: 40px; color: #999; font-size: 14px;">
+            Services running on ports: 3000 (API), 6379 (Redis), 8080 (Dashboard)
+        </p>
+    </div>
+</body>
+</html>
+"""
+
 @app.route('/')
+def index():
+    """Index page"""
+    return render_template_string(INDEX_HTML)
+
+@app.route('/dashboard')
 def dashboard():
     """Main dashboard page"""
     return render_template_string(DASHBOARD_HTML)
