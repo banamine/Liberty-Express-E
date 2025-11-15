@@ -368,7 +368,8 @@ class M3UMatrix:
                 ("IMPORT URL", "#8e44ad", self.import_url),
                 ("TIMESTAMP GEN", "#ff6b6b", self.timestamp_generator),
                 ("FETCH EPG", "#d35400", self.fetch_epg),
-                ("TV GUIDE", "#9b59b6", self.open_guide)]
+                ("TV GUIDE", "#9b59b6", self.open_guide),
+                ("LAUNCH REDIS", "#FF5733", self.launch_redis_services)]
         for txt, col, cmd in row3:
             tk.Button(tb3, text=txt, bg=col, fg="white", width=14,
                       command=cmd).pack(side=tk.LEFT, padx=4)
@@ -1532,7 +1533,12 @@ Success Rate: {results['working']/results['total']*100:.1f}%
         self.build_m3u()
 
     def load(self):
-        f = filedialog.askopenfilenames(filetypes=[("M3U", "*.m3u *.m3u8")])
+        f = filedialog.askopenfilenames(
+            filetypes=[
+                ("M3U Files", "*.m3u *.m3u8"),
+                ("All Files", "*.*")
+            ]
+        )
         if f:
             self.files.extend(f)
             self.file_list.delete(0, tk.END)
@@ -1689,6 +1695,275 @@ Success Rate: {results['working']/results['total']*100:.1f}%
                     "Could not open stream. Ensure VLC is installed.")
         else:
             webbrowser.open(url)
+    
+    def launch_redis_services(self):
+        """Launch Redis server, API, and Dashboard with output window"""
+        redis_dir = Path("redis")
+        
+        if not redis_dir.exists():
+            messagebox.showwarning(
+                "Redis Not Found",
+                "Redis folder not found!\n\n"
+                "Make sure the 'redis' folder exists with:\n"
+                "• START_ALL_SERVICES.bat\n"
+                "• api_server.py\n"
+                "• dashboard.py"
+            )
+            return
+        
+        bat_file = redis_dir / "START_ALL_SERVICES.bat"
+        
+        if not bat_file.exists():
+            messagebox.showwarning(
+                "Startup Script Not Found",
+                "START_ALL_SERVICES.bat not found in redis folder!\n\n"
+                "Please ensure the Redis integration is properly installed."
+            )
+            return
+        
+        # Create output window
+        output_win = tk.Toplevel(self.root)
+        output_win.title("Redis Services Output")
+        output_win.geometry("900x600")
+        output_win.configure(bg="#1a1a2e")
+        
+        # Header
+        header = tk.Frame(output_win, bg="#667eea", height=60)
+        header.pack(fill=tk.X)
+        header.pack_propagate(False)
+        
+        tk.Label(
+            header,
+            text="🚀 Redis Services Launcher",
+            font=("Arial", 18, "bold"),
+            fg="white",
+            bg="#667eea"
+        ).pack(side=tk.LEFT, padx=20, pady=15)
+        
+        # Back to Index button
+        tk.Button(
+            header,
+            text="← Back to Index",
+            command=lambda: self.show_redis_index(output_win),
+            bg="#764ba2",
+            fg="white",
+            font=("Arial", 11, "bold"),
+            padx=20,
+            pady=8
+        ).pack(side=tk.RIGHT, padx=20, pady=10)
+        
+        # Status
+        status_frame = tk.Frame(output_win, bg="#1a1a2e")
+        status_frame.pack(fill=tk.X, padx=20, pady=10)
+        
+        status_label = tk.Label(
+            status_frame,
+            text="✅ Redis services are starting...",
+            font=("Arial", 12),
+            fg="#00ff88",
+            bg="#1a1a2e"
+        )
+        status_label.pack(pady=5)
+        
+        # Output text area
+        text_frame = tk.Frame(output_win, bg="#1a1a2e")
+        text_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
+        
+        output_text = tk.Text(
+            text_frame,
+            bg="#2e2e2e",
+            fg="#00ff88",
+            font=("Consolas", 10),
+            wrap=tk.WORD
+        )
+        output_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        scrollbar = tk.Scrollbar(text_frame, command=output_text.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        output_text.config(yscrollcommand=scrollbar.set)
+        
+        # Quick links
+        links_frame = tk.Frame(output_win, bg="#1a1a2e")
+        links_frame.pack(fill=tk.X, padx=20, pady=10)
+        
+        tk.Label(
+            links_frame,
+            text="🔗 Quick Access:",
+            font=("Arial", 11, "bold"),
+            fg="white",
+            bg="#1a1a2e"
+        ).pack(side=tk.LEFT, padx=10)
+        
+        def open_url(url):
+            webbrowser.open(url)
+        
+        tk.Button(
+            links_frame,
+            text="📊 Dashboard (port 8080)",
+            command=lambda: open_url("http://localhost:8080"),
+            bg="#3498db",
+            fg="white",
+            font=("Arial", 9)
+        ).pack(side=tk.LEFT, padx=5)
+        
+        tk.Button(
+            links_frame,
+            text="📡 API Docs (port 3000)",
+            command=lambda: open_url("http://localhost:3000/docs"),
+            bg="#2ecc71",
+            fg="white",
+            font=("Arial", 9)
+        ).pack(side=tk.LEFT, padx=5)
+        
+        # Launch services
+        try:
+            output_text.insert(tk.END, "="*80 + "\n")
+            output_text.insert(tk.END, "🚀 LAUNCHING REDIS SERVICES\n")
+            output_text.insert(tk.END, "="*80 + "\n\n")
+            output_text.insert(tk.END, f"📂 Working directory: {redis_dir.absolute()}\n")
+            output_text.insert(tk.END, f"📜 Running: {bat_file.name}\n\n")
+            output_text.insert(tk.END, "Starting services:\n")
+            output_text.insert(tk.END, "  • Redis Server (port 6379)\n")
+            output_text.insert(tk.END, "  • FastAPI Backend (port 3000)\n")
+            output_text.insert(tk.END, "  • Web Dashboard (port 8080)\n\n")
+            output_text.insert(tk.END, "-"*80 + "\n\n")
+            
+            if os.name == 'nt':
+                # Windows: Launch in new command window
+                subprocess.Popen(
+                    ['cmd', '/c', 'start', 'cmd', '/k', str(bat_file)],
+                    cwd=str(redis_dir)
+                )
+                output_text.insert(tk.END, "✅ Services launched in new window!\n\n")
+                output_text.insert(tk.END, "📝 Check the command window for live output\n\n")
+            else:
+                # Linux/Mac: Launch in background
+                process = subprocess.Popen(
+                    [str(bat_file)],
+                    cwd=str(redis_dir),
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True
+                )
+                output_text.insert(tk.END, "✅ Services launched in background!\n\n")
+            
+            output_text.insert(tk.END, "-"*80 + "\n\n")
+            output_text.insert(tk.END, "🎉 Services should now be running!\n\n")
+            output_text.insert(tk.END, "Access points:\n")
+            output_text.insert(tk.END, "  📊 Dashboard: http://localhost:8080\n")
+            output_text.insert(tk.END, "  📡 API: http://localhost:3000\n")
+            output_text.insert(tk.END, "  📚 API Docs: http://localhost:3000/docs\n\n")
+            output_text.insert(tk.END, "💡 Use 'EXPORT REDIS' button to send channels to cache\n")
+            
+            status_label.config(text="✅ Redis services launched successfully!")
+            
+        except Exception as e:
+            output_text.insert(tk.END, f"\n❌ ERROR: {str(e)}\n")
+            status_label.config(text="❌ Failed to launch services", fg="#ff4444")
+            self.logger.error(f"Failed to launch Redis services: {e}")
+    
+    def show_redis_index(self, current_window):
+        """Show Redis integration index page"""
+        current_window.destroy()
+        
+        # Create index window
+        index_win = tk.Toplevel(self.root)
+        index_win.title("Redis Integration - Index")
+        index_win.geometry("800x700")
+        index_win.configure(bg="#1a1a2e")
+        
+        # Header
+        header = tk.Frame(index_win, bg="#667eea", height=80)
+        header.pack(fill=tk.X)
+        header.pack_propagate(False)
+        
+        tk.Label(
+            header,
+            text="📡 M3U Matrix - Redis Integration",
+            font=("Arial", 24, "bold"),
+            fg="white",
+            bg="#667eea"
+        ).pack(pady=20)
+        
+        # Content
+        content = tk.Frame(index_win, bg="#1a1a2e")
+        content.pack(fill=tk.BOTH, expand=True, padx=40, pady=30)
+        
+        # Welcome message
+        tk.Label(
+            content,
+            text="Welcome to Redis Integration",
+            font=("Arial", 18, "bold"),
+            fg="#00ff88",
+            bg="#1a1a2e"
+        ).pack(pady=(0, 20))
+        
+        # Info text
+        info_text = """
+Redis provides fast caching for your M3U channels, making
+NEXUS TV and other applications load instantly!
+
+Services included:
+  • Redis Server - In-memory cache (port 6379)
+  • FastAPI Backend - REST API (port 3000)
+  • Web Dashboard - Browse channels (port 8080)
+"""
+        
+        tk.Label(
+            content,
+            text=info_text,
+            font=("Arial", 11),
+            fg="white",
+            bg="#1a1a2e",
+            justify=tk.LEFT
+        ).pack(pady=(0, 30))
+        
+        # Buttons
+        btn_frame = tk.Frame(content, bg="#1a1a2e")
+        btn_frame.pack(pady=20)
+        
+        tk.Button(
+            btn_frame,
+            text="🚀 Launch Redis Services",
+            command=lambda: [index_win.destroy(), self.launch_redis_services()],
+            bg="#2ecc71",
+            fg="white",
+            font=("Arial", 14, "bold"),
+            width=25,
+            height=2
+        ).pack(pady=10)
+        
+        tk.Button(
+            btn_frame,
+            text="📊 Open Dashboard",
+            command=lambda: webbrowser.open("http://localhost:8080"),
+            bg="#3498db",
+            fg="white",
+            font=("Arial", 12),
+            width=25,
+            height=2
+        ).pack(pady=10)
+        
+        tk.Button(
+            btn_frame,
+            text="📚 View API Documentation",
+            command=lambda: webbrowser.open("http://localhost:3000/docs"),
+            bg="#9b59b6",
+            fg="white",
+            font=("Arial", 12),
+            width=25,
+            height=2
+        ).pack(pady=10)
+        
+        tk.Button(
+            btn_frame,
+            text="❌ Close",
+            command=index_win.destroy,
+            bg="#e74c3c",
+            fg="white",
+            font=("Arial", 11),
+            width=25
+        ).pack(pady=20)
 
     def row_menu(self, e):
         iid = self.tv.identify_row(e.y)
