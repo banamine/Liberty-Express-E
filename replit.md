@@ -58,6 +58,34 @@ The project is split into two main components: M3U MATRIX PRO (a Python desktop 
 
 ## Recent Changes
 
+### November 15, 2025 - Hybrid Mode: Schedule + Live (Version 5.0)
+**Major Feature: Dual-Mode NEXUS TV**
+- 🔄 **Mode Toggle Button**: Switch between Schedule Mode and Live Mode
+- 📺 **Live Mode Panel**: Right-side channel selector (400px width)
+- 📤 **M3U Playlist Loading**: Upload file, paste URL, or paste content
+- ⭐ **Favorites System**: Mark/unmark channels, persistent storage
+- 📜 **History Tracking**: Auto-saves last 20 playlists loaded
+- 🔍 **Channel Search**: Real-time search across channel names
+- 🔔 **Notification Toasts**: Success/error/warning/info messages
+- 🎬 **HLS Detection**: Auto-detects .m3u8 streams (requires HLS.js library)
+- 💾 **LocalStorage Persistence**: Mode, channels, favorites, history saved
+
+**UI Components:**
+- Live channel list with logos (fallback to 📺 icon)
+- Channel groups displayed under names
+- Play & favorite buttons per channel
+- Load M3U dialog modal
+- Responsive design (full-width on mobile)
+
+**Template Size:**
+- 3,038 lines (+379 CSS, +290 JS)
+- Clean hybrid architecture
+- Zero breaking changes to schedule mode
+
+**Files Modified:**
+- `templates/nexus_tv_template.html`: Hybrid mode implementation
+- New documentation: `HYBRID_MODE_GUIDE.md`
+
 ### November 15, 2025 - Security & Reliability Fixes (Version 4.7)
 **Critical Improvements:**
 - 🛡️ Enhanced fallback sanitization with XSS prevention
