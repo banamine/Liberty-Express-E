@@ -6,6 +6,8 @@ Automatically exports channel data to Redis cache
 import redis
 import json
 import logging
+import hashlib
+import uuid
 from typing import List, Dict, Any, Optional
 
 logger = logging.getLogger(__name__)
@@ -75,7 +77,20 @@ class RedisExporter:
             exported_count = 0
             
             for channel in channels:
-                channel_id = channel.get('id') or channel.get('uuid') or str(hash(channel.get('name', '')))
+                # Generate deterministic channel ID
+                # Priority: explicit ID > UUID > deterministic hash from URL+name
+                channel_id = channel.get('id') or channel.get('uuid')
+                
+                if not channel_id:
+                    # Create stable UUID from channel URL and name
+                    # This ensures same channel always gets same ID across exports
+                    url = channel.get('url', '')
+                    name = channel.get('name', '')
+                    stable_string = f"{url}|{name}"
+                    
+                    # Use UUID5 (deterministic) based on URL namespace
+                    namespace = uuid.UUID('6ba7b810-9dad-11d1-80b4-00c04fd430c8')  # URL namespace
+                    channel_id = str(uuid.uuid5(namespace, stable_string))
                 
                 # Create metadata hash
                 metadata_key = f"channel:{channel_id}:metadata"
