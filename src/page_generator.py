@@ -85,15 +85,47 @@ class NexusTVPageGenerator:
         if not schedule:
             raise ValueError("No valid entries found in M3U content")
         
-        # Convert schedule to JavaScript array
-        schedule_js = json.dumps(schedule, indent=12)
+        # Convert schedule to JavaScript array with proper escaping
+        schedule_js = json.dumps(schedule, indent=12, ensure_ascii=False)
         
-        # Inject schedule into template
-        # Find the schedule_data array in the template and replace it
-        pattern = r'let schedule_data = \[[\s\S]*?\];'
-        replacement = f'let schedule_data = {schedule_js};'
+        # Sanitize any potential HTML/JS breaking characters
+        schedule_js = schedule_js.replace('</script>', '<\\/script>')
         
-        modified_html = re.sub(pattern, replacement, template, count=1)
+        # Find and replace the schedule_data array
+        # Split at the marker and rebuild to ensure clean replacement
+        start_marker = 'let schedule_data = ['
+        end_marker = '];'
+        
+        start_idx = template.find(start_marker)
+        if start_idx == -1:
+            raise ValueError("Template does not contain 'let schedule_data = [' marker")
+        
+        # Find the closing bracket and semicolon
+        # Count brackets to handle nested arrays
+        bracket_count = 0
+        search_start = start_idx + len(start_marker) - 1  # -1 to include the opening [
+        end_idx = -1
+        
+        for i in range(search_start, len(template)):
+            if template[i] == '[':
+                bracket_count += 1
+            elif template[i] == ']':
+                bracket_count -= 1
+                if bracket_count == 0:
+                    # Found the matching closing bracket
+                    if i + 1 < len(template) and template[i + 1] == ';':
+                        end_idx = i + 2  # Include the semicolon
+                        break
+        
+        if end_idx == -1:
+            raise ValueError("Could not find matching end of schedule_data array")
+        
+        # Rebuild the HTML with new schedule data
+        modified_html = (
+            template[:start_idx] +
+            f'let schedule_data = {schedule_js};' +
+            template[end_idx:]
+        )
         
         # Update channel name in title and display
         modified_html = modified_html.replace(
