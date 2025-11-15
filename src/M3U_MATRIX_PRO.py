@@ -10,6 +10,7 @@ import requests
 import sys
 import logging
 from pathlib import Path
+import uuid
 
 # Optional imports - only needed for advanced features
 try:
@@ -205,6 +206,49 @@ class M3UMatrix:
                 json.dump(self.settings, f, indent=2)
         except Exception as e:
             self.logger.error(f"Failed to save settings: {e}")
+    
+    def export_settings(self):
+        """Export settings to backup file"""
+        try:
+            filename = filedialog.asksaveasfilename(
+                defaultextension=".json",
+                filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+                initialfile=f"m3u_matrix_settings_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+            )
+            
+            if filename:
+                with open(filename, 'w') as f:
+                    json.dump(self.settings, f, indent=2)
+                messagebox.showinfo("Settings Exported", 
+                                  f"Settings exported successfully to:\n{os.path.basename(filename)}")
+                self.stat.config(text="Settings exported")
+        except Exception as e:
+            self.show_error_dialog("Export Failed", "Could not export settings", e)
+    
+    def import_settings(self):
+        """Import settings from backup file"""
+        try:
+            filename = filedialog.askopenfilename(
+                title="Import Settings",
+                filetypes=[("JSON files", "*.json"), ("All files", "*.*")]
+            )
+            
+            if filename:
+                with open(filename, 'r') as f:
+                    imported_settings = json.load(f)
+                
+                # Validate it's actually settings
+                if isinstance(imported_settings, dict):
+                    self.settings = imported_settings
+                    self.save_settings()
+                    messagebox.showinfo("Settings Imported", 
+                                      "Settings imported successfully!\nRestart app to apply all changes.")
+                    self.stat.config(text="Settings imported")
+                else:
+                    messagebox.showerror("Invalid File", 
+                                        "The selected file doesn't contain valid settings.")
+        except Exception as e:
+            self.show_error_dialog("Import Failed", "Could not import settings", e)
 
     def build_ui(self):
         style = ttk.Style()
@@ -276,7 +320,7 @@ class M3UMatrix:
             tk.Button(tb3, text=txt, bg=col, fg="white", width=14,
                       command=cmd).pack(side=tk.LEFT, padx=4)
 
-        # === SEARCH + TOOLS ===
+        # === SEARCH + TOOLS + SETTINGS ===
         tools = tk.Frame(self.root, bg="#1e1e1e")
         tools.pack(fill=tk.X, pady=5, padx=10)
         tk.Label(tools, text="Search:", fg="#fff",
@@ -289,6 +333,12 @@ class M3UMatrix:
                  bg="#333",
                  fg="#fff",
                  insertbackground="#fff").pack(side=tk.LEFT, padx=8)
+        
+        # Settings menu
+        tk.Button(tools, text="⚙️ Export Settings", command=self.export_settings,
+                 bg="#34495e", fg="#fff", font=("Arial", 9)).pack(side=tk.RIGHT, padx=5)
+        tk.Button(tools, text="⚙️ Import Settings", command=self.import_settings,
+                 bg="#34495e", fg="#fff", font=("Arial", 9)).pack(side=tk.RIGHT, padx=5)
         for txt, col, cmd in [("CUT", "#e74c3c", self.cut),
                               ("COPY", "#3498db", self.copy),
                               ("PASTE", "#2ecc71", self.paste)]:
@@ -467,8 +517,8 @@ class M3UMatrix:
             messagebox.showwarning("No Channels", "Load channels first!")
             return
 
-        # Create progress dialog
-        progress_dialog, progress_var, status_label = self.create_progress_dialog(
+        # Create progress dialog with cancel
+        progress_dialog, progress_var, status_label, cancel_flag = self.create_progress_dialog(
             "🔍 Checking Channels", len(self.channels))
 
         def check_thread():
@@ -480,6 +530,13 @@ class M3UMatrix:
             }
 
             for i, channel in enumerate(self.channels):
+                # Check if cancelled
+                if cancel_flag["cancelled"]:
+                    self.root.after(0, lambda: progress_dialog.destroy())
+                    self.root.after(0, lambda: self.stat.config(
+                        text=f"CHECK CANCELLED - Checked {i}/{len(self.channels)} channels"))
+                    return
+                
                 status = self.validate_channel(channel)
                 results[status] += 1
 
@@ -1253,12 +1310,26 @@ Success Rate: {results['working']/results['total']*100:.1f}%
                 for ch in channels:
                     ch.setdefault("num", 0)
                     ch.setdefault("backups", [])
+                    # Add unique UUID if not present
+                    if "uuid" not in ch:
+                        ch["uuid"] = str(uuid.uuid4())
                 all_channels.extend(channels)
+            
+            # Validate large imports
+            if len(all_channels) > 1000:
+                response = messagebox.askyesno(
+                    "Large Import Detected",
+                    f"You're importing {len(all_channels)} channels.\n\n"
+                    f"This may slow down the interface.\n"
+                    f"Continue?")
+                if not response:
+                    return
 
             self.channels = all_channels
             self.auto_increment_channels()
             self.fill()
             self.build_m3u()
+            self.mark_changed()
             self.stat.config(
                 text=f"LOADED {len(self.channels)} channels from {len(f)} files"
             )
@@ -1781,16 +1852,19 @@ Success Rate: {results['working']/results['total']*100:.1f}%
         self.autosave_counter += 1
     
     def create_progress_dialog(self, title, total):
-        """Create a progress bar dialog for long operations"""
+        """Create a progress bar dialog with cancel button for long operations"""
         dialog = tk.Toplevel(self.root)
         dialog.title(title)
-        dialog.geometry("500x150")
+        dialog.geometry("500x180")
         dialog.configure(bg="#1e1e1e")
         dialog.resizable(False, False)
         
         # Center the dialog
         dialog.transient(self.root)
         dialog.grab_set()
+        
+        # Cancel flag
+        cancel_flag = {"cancelled": False}
         
         tk.Label(dialog, text=title, font=("Arial", 14, "bold"),
                 fg="#00ff41", bg="#1e1e1e").pack(pady=15)
@@ -1804,7 +1878,15 @@ Success Rate: {results['working']/results['total']*100:.1f}%
                                fg="#fff", bg="#1e1e1e")
         status_label.pack(pady=5)
         
-        return dialog, progress_var, status_label
+        def cancel_operation():
+            cancel_flag["cancelled"] = True
+            status_label.config(text="Cancelling...", fg="#ff6b6b")
+        
+        tk.Button(dialog, text="Cancel", command=cancel_operation,
+                 bg="#e74c3c", fg="#fff", font=("Arial", 10),
+                 width=12).pack(pady=10)
+        
+        return dialog, progress_var, status_label, cancel_flag
     
     def safe_exit(self):
         """Safe exit procedure"""
