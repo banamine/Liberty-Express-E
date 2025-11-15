@@ -215,6 +215,19 @@ http://stream.url/video.m3u8
 
 ## Recent Changes
 
+### November 15, 2025 - Safe UX Improvements (Version 3)
+**Non-Breaking Enhancements:**
+- ✨ **Auto-Save System**: Automatic backups every 5 minutes to `backups/` folder
+- 📊 **Progress Bars**: Visual feedback for CHECK and other long operations
+- ⚠️ **Better Error Messages**: User-friendly dialogs with contextual suggestions
+- 💾 **Exit Protection**: Prompts to save unsaved changes before closing
+- 📝 **Change Tracking**: System monitors modifications to trigger autosave
+- 🧠 **Smart Scheduler**: Added 4 intelligent scheduling modes (balanced, random, weighted, sequential)
+
+**Files Modified:**
+- `src/M3U_MATRIX_PRO.py`: 2,551 lines (+152 new features)
+- New documentation: `IMPROVEMENTS_V3.md`
+
 ### November 13, 2025 - Enhanced File Management & GitHub Integration
 **Major Update: Drag-and-Drop + GitHub Ready! 🚀**
 
