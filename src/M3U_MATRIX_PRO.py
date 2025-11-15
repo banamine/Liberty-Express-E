@@ -2746,30 +2746,99 @@ Coverage: {(total_slots / total_channels):.1f}x per show
                 
                 tv_guide["config"]["total_shows"] = len(playlist)
                 
-                # Save guide
-                json_dir = Path("json")
-                json_dir.mkdir(exist_ok=True)
+                # Show preview window with SAVE button
+                preview_win = tk.Toplevel(dialog)
+                preview_win.title("Smart Schedule Preview")
+                preview_win.geometry("800x600")
+                preview_win.configure(bg="#1a1a2e")
                 
-                filename = filedialog.asksaveasfilename(
-                    defaultextension=".json",
-                    filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
-                    initialdir=str(json_dir),
-                    initialfile=f"smart_schedule_{mode}_{days}day_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-                )
+                # Header
+                header = tk.Label(preview_win, 
+                                text=f"✅ SCHEDULE GENERATED - {mode.upper()} MODE\n"
+                                     f"Total Shows: {len(playlist)} | Duration: {duration} min/show | Days: {days}",
+                                bg="#00ff41", fg="#000", font=("Arial", 12, "bold"),
+                                pady=10)
+                header.pack(fill=tk.X)
                 
-                if filename:
-                    with open(filename, 'w', encoding='utf-8') as f:
-                        json.dump(tv_guide, f, indent=2, ensure_ascii=False)
+                # Preview Text
+                preview_frame = tk.Frame(preview_win, bg="#1a1a2e")
+                preview_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+                
+                preview_text = tk.Text(preview_frame, bg="#2a2a3e", fg="#00ff41",
+                                     font=("Courier", 9), wrap=tk.WORD)
+                preview_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+                
+                scrollbar = tk.Scrollbar(preview_frame, command=preview_text.yview)
+                scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+                preview_text.config(yscrollcommand=scrollbar.set)
+                
+                # Insert schedule preview
+                preview_text.insert(tk.END, json.dumps(tv_guide, indent=2, ensure_ascii=False))
+                preview_text.config(state=tk.DISABLED)
+                
+                # Button frame
+                btn_frame = tk.Frame(preview_win, bg="#1a1a2e")
+                btn_frame.pack(fill=tk.X, pady=10)
+                
+                def save_schedule():
+                    json_dir = Path("json")
+                    json_dir.mkdir(exist_ok=True)
                     
-                    messagebox.showinfo("Success!", 
-                                      f"🎉 Smart Schedule Generated!\n\n"
-                                      f"Mode: {mode.upper()}\n"
-                                      f"Total Shows: {len(playlist)}\n"
-                                      f"Duration: {duration} min/show\n"
-                                      f"Days: {days}\n\n"
-                                      f"Saved to: {Path(filename).name}")
-                    dialog.destroy()
-                    self.stat.config(text=f"Smart schedule generated: {mode} mode")
+                    filename = filedialog.asksaveasfilename(
+                        defaultextension=".json",
+                        filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+                        initialdir=str(json_dir),
+                        initialfile=f"smart_schedule_{mode}_{days}day_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+                    )
+                    
+                    if filename:
+                        with open(filename, 'w', encoding='utf-8') as f:
+                            json.dump(tv_guide, f, indent=2, ensure_ascii=False)
+                        
+                        messagebox.showinfo("💾 Saved!", 
+                                          f"Smart Schedule saved successfully!\n\n"
+                                          f"File: {Path(filename).name}\n"
+                                          f"Location: {Path(filename).parent}")
+                        preview_win.destroy()
+                        dialog.destroy()
+                        self.stat.config(text=f"✅ Smart schedule saved: {mode} mode")
+                
+                def save_and_generate_page():
+                    json_dir = Path("json")
+                    json_dir.mkdir(exist_ok=True)
+                    
+                    filename = filedialog.asksaveasfilename(
+                        defaultextension=".json",
+                        filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+                        initialdir=str(json_dir),
+                        initialfile=f"smart_schedule_{mode}_{days}day_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+                    )
+                    
+                    if filename:
+                        with open(filename, 'w', encoding='utf-8') as f:
+                            json.dump(tv_guide, f, indent=2, ensure_ascii=False)
+                        
+                        messagebox.showinfo("💾 Saved!", 
+                                          f"Smart Schedule saved!\n\n"
+                                          f"File: {Path(filename).name}\n\n"
+                                          f"Now use GENERATE PAGES to create NEXUS TV page.")
+                        preview_win.destroy()
+                        dialog.destroy()
+                        self.stat.config(text=f"✅ Smart schedule saved")
+                
+                # Buttons
+                tk.Button(btn_frame, text="💾 SAVE SCHEDULE", command=save_schedule,
+                         bg="#00ff41", fg="#000", font=("Arial", 11, "bold"),
+                         width=20, height=2).pack(side=tk.LEFT, padx=10)
+                
+                tk.Button(btn_frame, text="📋 COPY TO CLIPBOARD", 
+                         command=lambda: self.root.clipboard_append(json.dumps(tv_guide, indent=2)),
+                         bg="#3498db", fg="#fff", font=("Arial", 10),
+                         width=20, height=2).pack(side=tk.LEFT, padx=10)
+                
+                tk.Button(btn_frame, text="❌ CLOSE", command=preview_win.destroy,
+                         bg="#e74c3c", fg="#fff", font=("Arial", 10),
+                         width=15, height=2).pack(side=tk.LEFT, padx=10)
             
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to generate schedule:\n{e}")
