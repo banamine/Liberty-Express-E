@@ -56,7 +56,7 @@
             50% { opacity: 1; }
         }
         
-        /* Top Bar - Redesigned to use full width */
+        /* Top Bar - Redesigned to use full width with dynamic resizing */
         #top-bar {
             position: fixed;
             top: 0;
@@ -72,7 +72,24 @@
             backdrop-filter: blur(10px);
             border-bottom: 1px solid rgba(0, 243, 255, 0.3);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-            transition: transform 0.3s ease;
+            transition: all 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+        }
+        
+        /* Compact mode - activated after 1 minute of playback */
+        #top-bar.compact-mode {
+            width: 50%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 8px 25px rgba(0, 243, 255, 0.4);
+        }
+        
+        /* Expand on hover in compact mode */
+        #top-bar.compact-mode:hover {
+            width: 100%;
+            left: 0;
+            transform: translateX(0);
+            border-radius: 0;
         }
         
         /* Left Section - Thumbnail Carousel - Expanded */
