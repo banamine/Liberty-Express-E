@@ -56,7 +56,7 @@
             50% { opacity: 1; }
         }
         
-        /* Top Bar - Redesigned to use full width */
+        /* Top Bar - Redesigned to use full width with dynamic resizing */
         #top-bar {
             position: fixed;
             top: 0;
@@ -72,7 +72,24 @@
             backdrop-filter: blur(10px);
             border-bottom: 1px solid rgba(0, 243, 255, 0.3);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-            transition: transform 0.3s ease;
+            transition: all 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+        }
+        
+        /* Compact mode - activated after 1 minute of playback */
+        #top-bar.compact-mode {
+            width: 50%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 8px 25px rgba(0, 243, 255, 0.4);
+        }
+        
+        /* Expand on hover in compact mode */
+        #top-bar.compact-mode:hover {
+            width: 100%;
+            left: 0;
+            transform: translateX(0);
+            border-radius: 0;
         }
         
         /* Left Section - Thumbnail Carousel - Expanded */
@@ -2936,6 +2953,25 @@
         // =====================================================================
         // SCHEDULE DATA SECTION - CLASSIC MOVIES PLAYLIST
         // =====================================================================
+        // Enhanced Metadata Support:
+        // - segment_markers: Array of timestamps marking key scenes/breaks (optional)
+        // - ad_breaks: Array of objects with start/end times for commercial insertion (optional)
+        // - duration_seconds: Precise duration for FFmpeg timestamp calculations (optional)
+        // 
+        // Example enhanced entry:
+        // {
+        //   title: "Movie Title",
+        //   logo: "url",
+        //   video: "url",
+        //   start_time: "00:00",
+        //   end_time: "02:00",
+        //   duration_seconds: 7200,
+        //   segment_markers: [330, 900, 1500, 2400],  // Timestamps in seconds
+        //   ad_breaks: [
+        //     { start: 600, end: 630, type: "commercial" },
+        //     { start: 1800, end: 1830, type: "commercial" }
+        //   ]
+        // }
         
         let schedule_data = [
             {
@@ -3723,6 +3759,8 @@
         }
         
         // Update video progress bar and time display
+        let compactModeActivated = false;
+        
         function updateVideoProgress() {
             const currentTime = videoPlayer.currentTime;
             const duration = videoPlayer.duration;
@@ -3739,6 +3777,24 @@
             
             const timeRemaining = duration - currentTime;
             document.getElementById('time-remaining').textContent = '(-' + formatTime(timeRemaining) + ')';
+            
+            // Activate compact mode after 60 seconds of playback
+            if (currentTime >= 60 && !compactModeActivated && currentMode === 'schedule') {
+                const topBar = document.getElementById('top-bar');
+                if (topBar) {
+                    topBar.classList.add('compact-mode');
+                    compactModeActivated = true;
+                }
+            }
+            
+            // Reset compact mode when video changes (new program starts)
+            if (currentTime < 5 && compactModeActivated) {
+                const topBar = document.getElementById('top-bar');
+                if (topBar) {
+                    topBar.classList.remove('compact-mode');
+                }
+                compactModeActivated = false;
+            }
         }
         
         // Format seconds to MM:SS

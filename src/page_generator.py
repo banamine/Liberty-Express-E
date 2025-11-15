@@ -2,10 +2,13 @@
 """
 NEXUS TV Page Generator
 Generates individual NEXUS TV channel pages from M3U playlists
+With FFmpeg timestamp extraction support for accurate show timing
 """
 
 import re
 import json
+import subprocess
+import shutil
 from pathlib import Path
 from datetime import datetime, timedelta
 
@@ -14,8 +17,91 @@ class NexusTVPageGenerator:
         self.template_path = Path(template_path)
         self.output_dir = Path("generated_pages")
         self.output_dir.mkdir(exist_ok=True)
+        self.ffprobe_available = shutil.which('ffprobe') is not None
+    
+    def extract_video_duration(self, video_url):
+        """
+        Extract precise video duration using FFmpeg/ffprobe
+        Returns duration in minutes, or None if extraction fails
+        """
+        if not self.ffprobe_available:
+            return None
         
-    def parse_m3u_to_schedule(self, m3u_content, channel_name="Channel"):
+        try:
+            # Only try ffprobe for local files
+            if video_url.startswith('http://') or video_url.startswith('https://'):
+                return None
+            
+            video_path = Path(video_url)
+            if not video_path.exists():
+                return None
+            
+            # Use ffprobe to get duration
+            cmd = [
+                'ffprobe',
+                '-v', 'error',
+                '-show_entries', 'format=duration',
+                '-of', 'default=noprint_wrappers=1:nokey=1',
+                str(video_path)
+            ]
+            
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+            
+            if result.returncode == 0 and result.stdout.strip():
+                duration_seconds = float(result.stdout.strip())
+                duration_minutes = int(duration_seconds / 60)
+                return duration_minutes if duration_minutes > 0 else 1
+            
+        except (subprocess.TimeoutExpired, subprocess.SubprocessError, ValueError, FileNotFoundError):
+            pass
+        
+        return None
+    
+    def extract_segment_markers(self, video_url, interval_seconds=300):
+        """
+        Extract segment markers at regular intervals using FFmpeg
+        Returns list of timestamps in seconds for key frames
+        """
+        if not self.ffprobe_available:
+            return []
+        
+        try:
+            if not (video_url.startswith('http://') or video_url.startswith('https://')):
+                video_path = Path(video_url)
+                if not video_path.exists():
+                    return []
+                
+                # Get keyframe timestamps
+                cmd = [
+                    'ffprobe',
+                    '-v', 'error',
+                    '-select_streams', 'v:0',
+                    '-show_entries', 'frame=pts_time,pict_type',
+                    '-of', 'csv=p=0',
+                    str(video_path)
+                ]
+                
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+                
+                if result.returncode == 0:
+                    markers = []
+                    for line in result.stdout.strip().split('\n'):
+                        parts = line.split(',')
+                        if len(parts) == 2 and parts[1] == 'I':
+                            try:
+                                timestamp = float(parts[0])
+                                if timestamp > 0 and timestamp % interval_seconds < 10:
+                                    markers.append(int(timestamp))
+                            except ValueError:
+                                continue
+                    return markers[:10]
+        
+        except (subprocess.TimeoutExpired, subprocess.SubprocessError, FileNotFoundError):
+            pass
+        
+        return []
+        
+    def parse_m3u_to_schedule(self, m3u_content, channel_name="Channel", use_ffmpeg=False):
         """Parse M3U content and convert to NEXUS TV schedule format"""
         lines = m3u_content.strip().split('\n')
         schedule = []
@@ -53,12 +139,27 @@ class NexusTVPageGenerator:
                 if current_entry:
                     current_entry['video'] = line
                     
+                    # Try to extract accurate duration using FFmpeg if enabled
+                    duration = default_duration
+                    if use_ffmpeg:
+                        extracted_duration = self.extract_video_duration(line)
+                        if extracted_duration:
+                            duration = extracted_duration
+                            current_entry['duration_seconds'] = duration * 60
+                    
                     # Calculate end time
-                    end_time = current_time + timedelta(minutes=default_duration)
+                    end_time = current_time + timedelta(minutes=duration)
                     if end_time.day > current_time.day:
                         end_time = datetime.strptime("23:59", "%H:%M")
                     
                     current_entry['end_time'] = end_time.strftime("%H:%M")
+                    
+                    # Extract segment markers if FFmpeg is enabled
+                    if use_ffmpeg:
+                        markers = self.extract_segment_markers(line)
+                        if markers:
+                            current_entry['segment_markers'] = markers
+                    
                     schedule.append(current_entry)
                     
                     # Move to next slot
