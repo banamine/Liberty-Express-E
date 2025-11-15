@@ -58,6 +58,37 @@ The project is split into two main components: M3U MATRIX PRO (a Python desktop 
 
 ## Recent Changes
 
+### November 15, 2025 - Advanced Video Player UX Features (Version 5.2)
+**Complete Implementation of 4 Advanced Features:**
+- 🎬 **Dynamic Top Panel**: Automatically shrinks to 50% width after 60 seconds of playback for immersive viewing experience
+- ⏱️ **FFmpeg Timestamp Extraction**: Accurate video duration and keyframe detection from local files for precise scheduling
+- 📊 **Enhanced Metadata Support**: Extended schedule schema with segment markers and ad break timing data
+- ✨ **Smooth CSS Animations**: Cubic-bezier transitions for panel resize with hover expansion back to full width
+
+**Feature Details:**
+- Top panel activates compact mode after 1 minute, centers with rounded corners, expands on hover
+- Compact mode properly resets when new program starts (bug fix: classList.remove added)
+- FFmpeg integration gracefully falls back to defaults if ffmpeg/ffprobe not available
+- Segment markers array stores I-frame timestamps for navigation
+- Ad breaks support start/end times and type classification
+- All transitions use 0.5s cubic-bezier(0.4, 0, 0.2, 1) for smooth motion
+
+**Technical Specifications:**
+- New CSS: .compact-mode class with transform, width, border-radius rules
+- New JavaScript: compactModeActivated state tracking in updateVideoProgress()
+- New Python methods: extract_video_duration() and extract_segment_markers() in page_generator.py
+- Subprocess calls to ffprobe with proper timeout and error handling
+- Optional use_ffmpeg parameter in parse_m3u_to_schedule()
+
+**Template Size:**
+- 4,035+ lines total (was 3,700)
+- Zero breaking changes, all features backward compatible
+- Architect-approved implementation
+
+**Files Modified:**
+- `templates/nexus_tv_template.html`: Dynamic panel CSS + JavaScript
+- `src/page_generator.py`: FFmpeg integration for timestamp extraction
+
 ### November 15, 2025 - Advanced Live Mode Features (Version 5.1)
 **Complete Implementation of 5 Advanced Features:**
 - 🎨 **Theme Toggle**: Full light/dark mode with CSS variables, localStorage persistence, smooth transitions
