@@ -3810,6 +3810,8 @@
         }
         
         // Update video progress bar and time display
+        let compactModeActivated = false;
+        
         function updateVideoProgress() {
             const currentTime = videoPlayer.currentTime;
             const duration = videoPlayer.duration;
@@ -3826,6 +3828,20 @@
             
             const timeRemaining = duration - currentTime;
             document.getElementById('time-remaining').textContent = '(-' + formatTime(timeRemaining) + ')';
+            
+            // Activate compact mode after 60 seconds of playback
+            if (currentTime >= 60 && !compactModeActivated && currentMode === 'schedule') {
+                const topBar = document.getElementById('top-bar');
+                if (topBar) {
+                    topBar.classList.add('compact-mode');
+                    compactModeActivated = true;
+                }
+            }
+            
+            // Reset compact mode when video changes (new program starts)
+            if (currentTime < 5) {
+                compactModeActivated = false;
+            }
         }
         
         // Format seconds to MM:SS
