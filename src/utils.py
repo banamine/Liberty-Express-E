@@ -5,12 +5,23 @@ Provides security, validation, and helper functions
 
 import re
 import os
+import hashlib
 from pathlib import Path
 from urllib.parse import urlparse
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Tuple
 import logging
+import requests
+from io import BytesIO
 
 logger = logging.getLogger(__name__)
+
+# Optional imports for thumbnail caching
+try:
+    from PIL import Image
+    PILLOW_AVAILABLE = True
+except ImportError:
+    PILLOW_AVAILABLE = False
+    logger.warning("Pillow not installed - thumbnail caching will be disabled")
 
 # ===== SECURITY & VALIDATION =====
 
@@ -267,5 +278,120 @@ def extract_safe_text(text: str, max_length: int = 500) -> str:
         text = text[:max_length] + '...'
     
     return text
+
+
+# ===== THUMBNAIL CACHING =====
+
+def download_and_cache_thumbnail(logo_url: str, channel_name: str, thumbnails_dir: Path, timeout: int = 10) -> Tuple[Optional[str], str]:
+    """
+    Download and cache channel logo/thumbnail
+    
+    Args:
+        logo_url: URL of the logo to download
+        channel_name: Name of the channel (for fallback filename)
+        thumbnails_dir: Directory to save thumbnails
+        timeout: Request timeout in seconds
+        
+    Returns:
+        Tuple of (local_file_path, status_message)
+        local_file_path is None if download failed
+    """
+    if not PILLOW_AVAILABLE:
+        return None, "Pillow not installed"
+    
+    if not logo_url or not logo_url.startswith(('http://', 'https://')):
+        return None, "Invalid URL"
+    
+    try:
+        # Create hash of URL for unique filename
+        url_hash = hashlib.md5(logo_url.encode()).hexdigest()[:12]
+        
+        # Sanitize channel name for filename
+        safe_name = sanitize_filename(channel_name, max_length=50)
+        safe_name = re.sub(r'[^\w\-]', '_', safe_name)
+        
+        # Determine file extension from URL
+        ext = '.jpg'
+        if logo_url.lower().endswith(('.png', '.gif', '.webp', '.jpeg', '.jpg')):
+            ext = os.path.splitext(logo_url.lower())[1]
+        
+        # Create filename: channelname_hash.ext
+        filename = f"{safe_name}_{url_hash}{ext}"
+        local_path = thumbnails_dir / filename
+        
+        # Check if already cached
+        if local_path.exists():
+            return str(local_path), "Cached"
+        
+        # Download thumbnail
+        response = requests.get(logo_url, timeout=timeout, stream=True)
+        response.raise_for_status()
+        
+        # Verify it's an image
+        try:
+            img = Image.open(BytesIO(response.content))
+            img.verify()
+            
+            # Save to disk
+            with open(local_path, 'wb') as f:
+                f.write(response.content)
+            
+            return str(local_path), "Downloaded"
+            
+        except Exception as img_error:
+            logger.warning(f"Invalid image from {logo_url}: {img_error}")
+            return None, "Invalid image"
+    
+    except requests.Timeout:
+        logger.warning(f"Timeout downloading thumbnail: {logo_url}")
+        return None, "Timeout"
+    
+    except requests.RequestException as e:
+        logger.warning(f"Failed to download thumbnail {logo_url}: {e}")
+        return None, f"Download failed: {str(e)[:50]}"
+    
+    except Exception as e:
+        logger.error(f"Unexpected error caching thumbnail: {e}")
+        return None, f"Error: {str(e)[:50]}"
+
+
+def get_cached_thumbnail_stats(thumbnails_dir: Path) -> Dict[str, Any]:
+    """
+    Get statistics about cached thumbnails
+    
+    Args:
+        thumbnails_dir: Directory containing cached thumbnails
+        
+    Returns:
+        Dictionary with stats (count, total_size_mb, oldest, newest)
+    """
+    if not thumbnails_dir.exists():
+        return {
+            'count': 0,
+            'total_size_mb': 0,
+            'oldest': None,
+            'newest': None
+        }
+    
+    files = list(thumbnails_dir.glob('*'))
+    image_files = [f for f in files if f.suffix.lower() in ['.jpg', '.jpeg', '.png', '.gif', '.webp']]
+    
+    if not image_files:
+        return {
+            'count': 0,
+            'total_size_mb': 0,
+            'oldest': None,
+            'newest': None
+        }
+    
+    total_size = sum(f.stat().st_size for f in image_files)
+    mtimes = [f.stat().st_mtime for f in image_files]
+    
+    return {
+        'count': len(image_files),
+        'total_size_mb': round(total_size / (1024 * 1024), 2),
+        'oldest': min(mtimes) if mtimes else None,
+        'newest': max(mtimes) if mtimes else None
+    }
 
 
