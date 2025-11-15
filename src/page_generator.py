@@ -13,7 +13,9 @@ from pathlib import Path
 from datetime import datetime, timedelta
 
 class NexusTVPageGenerator:
-    def __init__(self, template_path="templates/nexus_tv_template.html"):
+    def __init__(self, template_path=None):
+        if template_path is None:
+            template_path = Path(__file__).resolve().parent.parent / "templates" / "nexus_tv_template.html"
         self.template_path = Path(template_path)
         self.output_dir = Path("generated_pages")
         self.output_dir.mkdir(exist_ok=True)
