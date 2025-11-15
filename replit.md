@@ -58,6 +58,35 @@ The project is split into two main components: M3U MATRIX PRO (a Python desktop 
 
 ## Recent Changes
 
+### November 15, 2025 - Thumbnail Caching System (Version 5.3)
+**Complete Implementation:**
+- 📸 **Automatic Thumbnail Downloading**: Downloads tvg-logo images when loading M3U files
+- 💾 **Local Caching**: Saves images to `thumbnails/` folder with hash-based filenames
+- ⚡ **Fast Reloading**: Cached thumbnails load instantly on subsequent loads
+- 🛡️ **Image Verification**: Uses Pillow to verify images before saving
+- ⚙️ **Settings Control**: Toggle via `cache_thumbnails: true` in settings JSON
+
+**Technical Details:**
+- Hash-based filenames: `channelname_hash.ext` (prevents duplicates)
+- 5-second timeout per image download
+- Graceful error handling (404s, timeouts, invalid images)
+- Updates playlist JSON with local cached paths
+- Conditional Pillow import (degrades gracefully if missing)
+
+**Settings:**
+- `cache_thumbnails: true` (default) - Download and cache logos
+- `use_ffmpeg_extraction: false` - Extract durations from local video files only
+
+**Files Modified:**
+- `src/utils.py`: Added `download_and_cache_thumbnail()` and `get_cached_thumbnail_stats()`
+- `src/M3U_MATRIX_PRO.py`: Integrated caching into `parse_m3u_file()`
+- `THUMBNAIL_CACHING_GUIDE.md`: Comprehensive user documentation
+
+**Limitations:**
+- Remote MP4 URL duration extraction not supported (archive.org links use default 30min)
+- FFmpeg extraction only works for local file paths, not remote URLs
+- Thumbnail downloads are synchronous (may pause UI on first load of large playlists)
+
 ### November 15, 2025 - Advanced Video Player UX Features (Version 5.2)
 **Complete Implementation of 4 Advanced Features:**
 - 🎬 **Dynamic Top Panel**: Automatically shrinks to 50% width after 60 seconds of playback for immersive viewing experience
