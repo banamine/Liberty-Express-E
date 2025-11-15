@@ -1980,7 +1980,7 @@ Success Rate: {results['working']/results['total']*100:.1f}%
                             m3u_content, group_name)
                         generated.append({
                             'name': group_name,
-                            'file': f'generated_pages/{output_path.name}',
+                            'file': output_path.name,
                             'programs': len(group_channels)
                         })
                         self.root.after(0,
@@ -1993,7 +1993,7 @@ Success Rate: {results['working']/results['total']*100:.1f}%
                         m3u_content, "All Channels")
                     generated.append({
                         'name': 'All Channels',
-                        'file': f'generated_pages/{output_path.name}',
+                        'file': output_path.name,
                         'programs': len(self.channels)
                     })
 
@@ -2001,16 +2001,26 @@ Success Rate: {results['working']/results['total']*100:.1f}%
                 selector_path = generator.generate_channel_selector(generated)
 
                 # Show success message
+                abs_selector = selector_path.absolute()
+                abs_dir = Path('generated_pages').absolute()
+                
                 self.root.after(
                     0, lambda: messagebox.showinfo(
-                        "Success!",
-                        f"Generated {len(generated)} channel pages!\n\n"
-                        f"Selector page: {selector_path}\n"
-                        f"Channel pages in: generated_pages/\n\n"
-                        f"Open {selector_path} in your browser to view."))
+                        "✅ Pages Generated Successfully!",
+                        f"Generated {len(generated)} channel pages\n\n"
+                        f"📁 Location:\n{abs_dir}\n\n"
+                        f"🌐 HOW TO VIEW (IMPORTANT):\n\n"
+                        f"✅ OPTION 1 - Web Server (RECOMMENDED):\n"
+                        f"   Open: http://localhost:5000/generated_pages/\n"
+                        f"   (Web server must be running on port 5000)\n\n"
+                        f"⚠️ OPTION 2 - Direct File:\n"
+                        f"   Open: {abs_selector}\n"
+                        f"   Note: Videos may not play due to browser\n"
+                        f"   security. Use Option 1 for best results.\n\n"
+                        f"💡 TIP: Keep your web server running!"))
                 self.root.after(
                     0, lambda: self.stat.config(
-                        text=f"GENERATED: {len(generated)} pages"))
+                        text=f"✅ GENERATED: {len(generated)} pages"))
 
             except Exception as e:
                 self.root.after(
