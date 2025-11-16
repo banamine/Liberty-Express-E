@@ -87,7 +87,17 @@ function loadEmbeddedChannels() {
         // Parse embedded channel data
         const embeddedData = channelContainer.textContent.trim();
         if (embeddedData && embeddedData !== '__CHANNEL_DATA__') {
-            parseM3UContent(embeddedData);
+            // Try to parse as JSON first (pre-cleaned channel data)
+            try {
+                const channelsArray = JSON.parse(embeddedData);
+                if (Array.isArray(channelsArray)) {
+                    parseJSONContent(JSON.stringify(channelsArray));
+                    return;
+                }
+            } catch (e) {
+                // If JSON parsing fails, fall back to M3U parsing
+                parseM3UContent(embeddedData);
+            }
         }
     }
 }

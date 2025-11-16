@@ -651,8 +651,9 @@ class WebIPTVGenerator:
             template_html = f.read()
         
         # Inject channel data into template
-        # Replace __CHANNEL_DATA__ placeholder with actual M3U content
-        output_html = template_html.replace('__CHANNEL_DATA__', m3u_content)
+        # Use cleaned channel data (JSON) instead of raw M3U to preserve clean titles
+        channels_json = json.dumps(channels, ensure_ascii=False)
+        output_html = template_html.replace('__CHANNEL_DATA__', channels_json)
         
         # Write output file
         output_file = page_dir / "player.html"
