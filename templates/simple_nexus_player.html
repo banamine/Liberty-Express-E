@@ -305,9 +305,85 @@
         const currentTimeEl = document.getElementById('current-time');
         const totalTimeEl = document.getElementById('total-time');
 
-        // Load playlist from plain text (one URL per line)
+        // Parse M3U playlist format
+        function parseM3UPlaylist(text) {
+            const playlist = [];
+            const lines = text.split('\n');
+            let currentItem = null;
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                
+                // Skip empty lines and comments (except EXTINF)
+                if (!line || (line.startsWith('#') && !line.startsWith('#EXTINF'))) {
+                    continue;
+                }
+                
+                // Parse #EXTINF line
+                if (line.startsWith('#EXTINF')) {
+                    currentItem = {
+                        title: '',
+                        thumb: '',
+                        url: ''
+                    };
+                    
+                    // Extract tvg-name
+                    const tvgNameMatch = line.match(/tvg-name="([^"]*)"/);
+                    if (tvgNameMatch) {
+                        currentItem.title = tvgNameMatch[1];
+                    }
+                    
+                    // Extract tvg-logo (thumbnail)
+                    const tvgLogoMatch = line.match(/tvg-logo="([^"]*)"/);
+                    if (tvgLogoMatch) {
+                        currentItem.thumb = tvgLogoMatch[1];
+                    }
+                    
+                    // Fallback: Extract title after last comma
+                    if (!currentItem.title) {
+                        const commaIndex = line.lastIndexOf(',');
+                        if (commaIndex !== -1) {
+                            currentItem.title = line.substring(commaIndex + 1).trim();
+                        }
+                    }
+                }
+                // Get URL (line after #EXTINF)
+                else if (currentItem && line && !line.startsWith('#')) {
+                    currentItem.url = line;
+                    
+                    // Fallback title from filename if still empty
+                    if (!currentItem.title) {
+                        const filename = line.split('/').pop().split('?')[0];
+                        currentItem.title = filename.replace(/\.[^/.]+$/, "").replace(/[-_]/g, ' ');
+                    }
+                    
+                    // Fallback thumbnail if missing
+                    if (!currentItem.thumb) {
+                        const filename = line.split('/').pop().split('?')[0];
+                        currentItem.thumb = `thumbs/${filename.replace(/\.[^/.]+$/, "")}.jpg`;
+                    }
+                    
+                    playlist.push(currentItem);
+                    currentItem = null;
+                }
+            }
+            
+            return playlist;
+        }
+        
+        // Load playlist from plain text (one URL per line) or M3U format
         function loadPlaylistFromText(text) {
-            const lines = text.split('\n').filter(line => line.trim());
+            // Auto-detect M3U format
+            if (text.includes('#EXTM3U') || text.includes('#EXTINF')) {
+                return parseM3UPlaylist(text);
+            }
+            
+            // Plain URL list
+            const lines = text.split('\n').filter(line => {
+                const trimmed = line.trim();
+                return trimmed && !trimmed.startsWith('#');
+            });
+            
             return lines.map((url, index) => {
                 const filename = url.split('/').pop().split('?')[0];
                 const title = filename.replace(/\.[^/.]+$/, "").replace(/[-_]/g, ' ');
