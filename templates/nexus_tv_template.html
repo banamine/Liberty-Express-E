@@ -2080,6 +2080,9 @@
     <script>
         // PLACEHOLDER_DASH_JS
     </script>
+    <script>
+        // PLACEHOLDER_THUMBNAIL_SYSTEM_JS
+    </script>
 
     <script>
         // =====================================================================
@@ -2294,6 +2297,11 @@
                         });
                     });
                     
+                    // Setup thumbnail auto-capture after media is attached
+                    hls.on(Hls.Events.MEDIA_ATTACHED, function() {
+                        setupVideoThumbnailCapture();
+                    });
+                    
                     hls.on(Hls.Events.ERROR, function(event, data) {
                         if (data.fatal) {
                             switch(data.type) {
@@ -2322,6 +2330,8 @@
                         console.error('Native HLS play error:', e);
                         showNotification('Failed to play HLS stream', 'error');
                     });
+                    // Setup thumbnail auto-capture for this live stream
+                    setupVideoThumbnailCapture();
                     showNotification(`Playing HLS: ${channel.name}`, 'success');
                 } else {
                     showNotification('HLS not supported in this browser', 'error');
@@ -2358,6 +2368,8 @@
                             console.error('DASH play error:', e);
                             showNotification('Failed to play DASH stream', 'error');
                         });
+                        // Setup thumbnail auto-capture for this live stream
+                        setupVideoThumbnailCapture();
                     });
                     
                     window.currentDashPlayer = player;
@@ -2372,6 +2384,8 @@
                     console.error('Direct play error:', e);
                     showNotification('Failed to play stream', 'error');
                 });
+                // Setup thumbnail auto-capture for this live stream
+                setupVideoThumbnailCapture();
                 showNotification(`Playing: ${channel.name}`, 'success');
             }
             
@@ -3468,6 +3482,9 @@
                     videoPlayer.currentTime = elapsedTime * 60; // Convert minutes to seconds
                     
                     videoPlayer.play();
+                    
+                    // Setup thumbnail auto-capture for this video
+                    setupVideoThumbnailCapture();
                 }
 
                 // Update thumbnails with titles and times
@@ -3726,6 +3743,9 @@
             setTimeout(() => {
                 videoPlayer.src = currentVideo.video;
                 videoPlayer.load();
+                
+                // Setup thumbnail auto-capture for this video
+                setupVideoThumbnailCapture();
                 
                 // Calculate how far into the video we should start based on actual schedule time
                 const currentTime = getCurrentTimeInMinutes();
@@ -4057,8 +4077,50 @@
             currentTimeDisplay.textContent = now.toLocaleTimeString('en-US', timeOptions);
         }
 
+        // =====================================================================
+        // THUMBNAIL SYSTEM - Auto-Screenshot Capture
+        // =====================================================================
+        let thumbnailManager = null;
+        
+        // Initialize Thumbnail Manager
+        async function initThumbnailManager() {
+            try {
+                thumbnailManager = new ThumbnailManager('NEXUS_TV_THUMBNAILS');
+                await thumbnailManager.init();
+                console.log('✅ Thumbnail system initialized');
+            } catch (error) {
+                console.error('Failed to initialize thumbnail system:', error);
+            }
+        }
+        
+        // Setup auto-capture for current video
+        function setupVideoThumbnailCapture() {
+            if (!thumbnailManager || !videoPlayer.src) return;
+            
+            // Get current video info
+            const currentProgram = getCurrentProgram();
+            const videoUrl = videoPlayer.src;
+            const channelName = currentProgram ? currentProgram.title : 'Unknown';
+            
+            // Setup auto-capture on loadedmetadata event
+            const handleMetadata = () => {
+                thumbnailManager.setupAutoCapture(videoPlayer, videoUrl, channelName);
+                videoPlayer.removeEventListener('loadedmetadata', handleMetadata);
+            };
+            
+            // If metadata already loaded, capture immediately; otherwise wait
+            if (videoPlayer.readyState >= 1) {
+                thumbnailManager.setupAutoCapture(videoPlayer, videoUrl, channelName);
+            } else {
+                videoPlayer.addEventListener('loadedmetadata', handleMetadata);
+            }
+        }
+
         // Start when page loads
-        window.addEventListener('load', init);
+        window.addEventListener('load', async function() {
+            await initThumbnailManager();
+            init();
+        });
     </script>
 </body>
 </html>

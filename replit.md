@@ -4,10 +4,11 @@
 This project offers a comprehensive IPTV solution, combining a professional M3U playlist manager (Python desktop application) with a futuristic streaming TV player (web interface). The platform aims to provide robust tools for managing, organizing, and playing streaming content, catering to users who require advanced control over their IPTV experience. The vision is to deliver a seamless and engaging content consumption experience through efficient playlist management and an immersive streaming environment.
 
 ## Recent Changes (November 2025)
+- **Auto-Thumbnail System (Nov 16):** Implemented IndexedDB-based automatic thumbnail generation for all player templates. Features include: 2 screenshots per video captured at 25% and 75% playtime, browser-based storage using IndexedDB (non-portable but fast), per-page thumbnail databases, placeholder system until captures complete, HLS/DASH/direct stream support. Thumbnails auto-generate as videos play with zero user interaction required.
+- **CDN Elimination (Nov 16):** Eliminated ALL external CDN dependencies across templates. NEXUS TV embeds HLS.js, DASH.js, and thumbnail-system.js inline. Web IPTV and Simple Player use local bundled copies in js/libs/ folders. All generated pages work 100% offline (except for remote video stream URLs). Fail-fast error handling ensures library files are present before generation.
 - **Smart TV Scheduler (Nov 16):** Added intelligent 7-day TV scheduling system for NEXUS TV. Features include: global content randomization, configurable show durations, no daily repeats, max consecutive episode limiting, and automated schedule generation. Scheduler dialog appears before NEXUS TV generation with settings for show duration (5-180 min), number of days (1-30), and max consecutive shows (1-10).
 - **Enhanced File Import System (Nov 16):** Fixed "No channels found" error by removing restrictive URL filtering. Now accepts ALL URL types (HTTPS, HTTP, RTMP, RTSP, local paths, file:// URLs). Added TXT file support with automatic link extraction. Added folder/subfolder scanning to recursively find all media files and playlists. Import dialog now offers "Files" or "Folder" selection.
 - **Title Cleaning Fix:** Fixed workbench import mode displaying URL-encoded filenames (e.g., `Hogan%27s%20Heroes.mp4`) in generated pages. Now properly decodes URLs, removes file extensions, and formats titles cleanly (e.g., `Hogan's Heroes`). Applied to all 3 player templates.
-- **Offline Capability:** Eliminated ALL external CDN dependencies. Downloaded HLS.js, Dash.js, and Feather Icons locally. Pages now work 100% offline (except for remote video stream URLs).
 - **Folder Organization:** Implemented proper folder structure `generated_pages/<name>/` with isolated assets for each generated page.
 
 ## User Preferences
@@ -55,7 +56,8 @@ The project includes M3U MATRIX PRO (Python desktop application) with three web 
 
 ### Feature Specifications
 - **M3U MATRIX PRO:** Core functionalities include M3U parsing, channel validation, EPG fetching, settings management, robust error handling, and security features like XSS prevention and URL validation.
-- **NEXUS TV:** Provides dynamic content scheduling, a responsive user interface, automatic midnight refresh for updated schedules, comprehensive channel analysis with charts, and export of favorites as M3U.
+- **NEXUS TV:** Provides dynamic content scheduling, a responsive user interface, automatic midnight refresh for updated schedules, comprehensive channel analysis with charts, export of favorites as M3U, and auto-thumbnail generation with IndexedDB storage.
+- **Auto-Thumbnail System:** Built-in thumbnail generation across all player templates. Captures 2 screenshots per video (at 25% and 75% playtime) automatically during playback. Stores thumbnails in IndexedDB (browser storage) with separate databases per page. Supports HLS, DASH, and direct stream formats. No user intervention required - fully automatic.
 
 ### System Design Choices
 - **Dual-Component Architecture:** Separates playlist management (desktop app) from content consumption (web player) for specialized functionality.
