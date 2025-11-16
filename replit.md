@@ -50,9 +50,11 @@ The project includes M3U MATRIX PRO (Python desktop application) with three web 
 
 ### System Design Choices
 - **Dual-Component Architecture:** Separates playlist management (desktop app) from content consumption (web player) for specialized functionality.
-- **Static Web Server:** NEXUS TV runs as a static file server.
+- **Static Web Server:** All player templates run as static file servers.
 - **Local Persistence:** M3U Matrix Pro persists settings and data locally in JSON files and dedicated directories.
 - **Automated Deployments:** Configured for Replit Autoscale deployment for the web player.
+- **Standalone Page Generation:** All generated pages are completely self-contained with embedded playlist data and bundled dependencies (no external CDNs required).
+- **Offline-First Design:** Pages work 100% offline for local video files, with zero external dependencies except for remote video stream URLs.
 
 ## External Dependencies
 
@@ -62,9 +64,10 @@ The project includes M3U MATRIX PRO (Python desktop application) with three web 
 - **tkinterdnd2:** For drag-and-drop functionality in the GUI.
 - **PyInstaller:** For creating standalone Windows executables.
 
-### Web Application (NEXUS TV)
-- **npx serve:** Node.js package used to serve static files for the web interface.
-- **Google Fonts (Orbitron):** For specific typography styling.
-- **Font Awesome 6.4.0:** For icons used in the UI.
-- **HLS.js:** For HLS stream playback.
-- **dash.js:** For DASH stream playback.
+### Web Applications (All Player Templates)
+- **npx serve:** Node.js package used to serve static files for the web interface (optional - pages can also run directly via file://).
+- **HLS.js (Bundled):** For HLS stream playback - downloaded locally (529KB) for offline use.
+- **dash.js (Bundled):** For DASH stream playback in Web IPTV - downloaded locally (908KB) for offline use.
+- **Feather Icons (Bundled):** For icons in Web IPTV - downloaded locally (75KB) for offline use.
+- **System Fonts:** NEXUS TV uses system fonts ('Segoe UI', 'Arial Black', 'Impact') instead of Google Fonts for offline compatibility.
+- **Note:** All CDN dependencies have been eliminated. Generated pages are 100% self-contained and work offline.
