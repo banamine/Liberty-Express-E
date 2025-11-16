@@ -78,27 +78,31 @@ function setupEventListeners() {
 }
 
 function loadEmbeddedChannels() {
-    // Check if channel data was embedded in the HTML
-    const channelContainer = document.getElementById('channelList');
-    if (channelContainer && channelContainer.innerHTML.includes('__CHANNEL_DATA__')) {
-        // No embedded data, show default message
-        channelContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">Upload a playlist or enter a stream URL to start</div>';
-    } else if (channelContainer) {
-        // Parse embedded channel data
-        const embeddedData = channelContainer.textContent.trim();
+    // Check for embedded channel data in script tag
+    const embeddedScript = document.getElementById('embedded-channels');
+    if (embeddedScript) {
+        const embeddedData = embeddedScript.textContent.trim();
         if (embeddedData && embeddedData !== '__CHANNEL_DATA__') {
-            // Try to parse as JSON first (pre-cleaned channel data)
+            // Try to parse as JSON first (pre-cleaned channel data from generator)
             try {
                 const channelsArray = JSON.parse(embeddedData);
                 if (Array.isArray(channelsArray)) {
-                    parseJSONContent(JSON.stringify(channelsArray));
+                    channels = channelsArray;
+                    renderChannels();
                     return;
                 }
             } catch (e) {
-                // If JSON parsing fails, fall back to M3U parsing
+                // If JSON parsing fails, try M3U parsing as fallback
                 parseM3UContent(embeddedData);
+                return;
             }
         }
+    }
+    
+    // No embedded data, show default message
+    const channelContainer = document.getElementById('channelList');
+    if (channelContainer) {
+        channelContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">Upload a playlist or enter a stream URL to start</div>';
     }
 }
 
