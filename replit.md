@@ -13,11 +13,12 @@ This project offers a comprehensive IPTV solution, combining a professional M3U 
     - Ensure all changes are well-documented within the code.
 
 ## System Architecture
-The project is split into two main components: M3U MATRIX PRO (a Python desktop application) and NEXUS TV (a web-based streaming player).
+The project includes M3U MATRIX PRO (Python desktop application) with three web player templates: NEXUS TV (24-hour scheduled player), Web IPTV (sequential channel player), and Simple Player (clean video-focused player).
 
 ### UI/UX Decisions
 - **M3U MATRIX PRO:** Utilizes Tkinter for a native desktop application feel, focusing on functionality and ease of use for playlist management.
 - **NEXUS TV:** Features a neon cyberpunk aesthetic with animations, designed for an immersive 24-hour streaming experience. It includes a thumbnail carousel, fullscreen video player, world timezone clocks, dynamic top panel, and a theme toggle (light/dark mode).
+- **Simple Player:** Clean, responsive video player with minimal UI focusing on video content. Features sequential and shuffle playback modes without time-based scheduling or clocks.
 
 ### Technical Implementations
 - **M3U MATRIX PRO:**
@@ -26,6 +27,7 @@ The project is split into two main components: M3U MATRIX PRO (a Python desktop 
     - Incorporates an installer system for Windows with portable and full installation modes, auto-updates, and user verification.
     - Includes an automatic thumbnail caching system.
     - Implements Undo/Redo functionality and JSON export with metadata.
+    - Template generator supports three player types: NEXUS TV, Web IPTV, and Simple Player.
 - **NEXUS TV:**
     - Developed using HTML5, CSS3, and Vanilla JavaScript.
     - Utilizes the native HTML5 video element for playback.
@@ -33,6 +35,14 @@ The project is split into two main components: M3U MATRIX PRO (a Python desktop 
     - Configured as a Progressive Web Application (PWA).
     - Features HLS.js and DASH.js integration for various streaming formats, a favorites system, history tracking, channel search, and URL encryption/sharing.
     - Uses FFmpeg for accurate video duration and keyframe detection from local files.
+- **Simple Player:**
+    - Clean, responsive HTML5 video player built with vanilla JavaScript.
+    - HLS.js integration for .m3u8 stream support.
+    - Dual playback modes: Sequential (plays in order) and Shuffle (randomizes).
+    - Group-based playlist organization with modal view.
+    - Auto-advance to next video on completion.
+    - Mobile-optimized with touch controls.
+    - No time-based scheduling or clocks - video-focused UI.
 
 ### Feature Specifications
 - **M3U MATRIX PRO:** Core functionalities include M3U parsing, channel validation, EPG fetching, settings management, robust error handling, and security features like XSS prevention and URL validation.
