@@ -502,6 +502,229 @@ class NexusTVPageGenerator:
         
         return selector_path
 
+class WebIPTVGenerator:
+    """
+    Web-IPTV-Extension Page Generator
+    Generates a Web IPTV player with channel list from M3U playlists
+    """
+    def __init__(self, template_path=None):
+        if template_path is None:
+            template_path = Path(__file__).resolve().parent.parent / "templates" / "web-iptv-extension"
+        self.template_dir = Path(template_path)
+        self.output_dir = Path("generated_pages")
+        self.output_dir.mkdir(exist_ok=True)
+    
+    def parse_m3u_to_channels(self, m3u_content):
+        """Parse M3U content and extract channel information"""
+        channels = []
+        lines = m3u_content.strip().split('\n')
+        current_channel = {}
+        
+        for line in lines:
+            line = line.strip()
+            
+            if line.startswith('#EXTINF'):
+                # Extract channel info
+                name_match = re.search(r'tvg-name="([^"]*)"', line)
+                logo_match = re.search(r'tvg-logo="([^"]*)"', line)
+                title_match = re.search(r',(.+)$', line)
+                
+                current_channel = {
+                    'name': name_match.group(1) if name_match else (title_match.group(1) if title_match else 'Unknown'),
+                    'logo': logo_match.group(1) if logo_match else '',
+                    'url': ''
+                }
+            elif line and not line.startswith('#') and current_channel.get('name'):
+                current_channel['url'] = line
+                channels.append({**current_channel})
+                current_channel = {}
+        
+        return channels
+    
+    def generate_page(self, m3u_content, output_name="iptv_player"):
+        """
+        Generate a Web IPTV player page from M3U content
+        
+        Args:
+            m3u_content: M3U playlist content as string
+            output_name: Name for the output folder
+        
+        Returns:
+            Path to the generated player HTML file
+        """
+        # Parse channels
+        channels = self.parse_m3u_to_channels(m3u_content)
+        
+        if not channels:
+            raise ValueError("No valid channels found in M3U content")
+        
+        # Create output directory
+        page_dir = self.output_dir / output_name
+        page_dir.mkdir(exist_ok=True)
+        
+        # Copy template files
+        import shutil
+        
+        # Copy CSS
+        css_dir = page_dir / "css"
+        css_dir.mkdir(exist_ok=True)
+        if (self.template_dir / "css" / "styles.css").exists():
+            shutil.copy(self.template_dir / "css" / "styles.css", css_dir / "styles.css")
+        
+        # Copy JS
+        js_dir = page_dir / "js"
+        js_dir.mkdir(exist_ok=True)
+        if (self.template_dir / "js" / "app.js").exists():
+            shutil.copy(self.template_dir / "js" / "app.js", js_dir / "app.js")
+        
+        # Copy icons if they exist
+        icons_dir = page_dir / "icons"
+        icons_dir.mkdir(exist_ok=True)
+        if (self.template_dir / "icons").exists():
+            for icon_file in (self.template_dir / "icons").glob("*.png"):
+                shutil.copy(icon_file, icons_dir / icon_file.name)
+        
+        # Generate channel list HTML
+        channel_html = ""
+        for i, channel in enumerate(channels):
+            channel_html += f'''
+                <div class="channel-item" data-index="{i}">
+                    <div class="channel-name">{channel['name']}</div>
+                    <div class="channel-url">{channel['url'][:50]}...</div>
+                </div>
+            '''
+        
+        # Read template
+        template_file = self.template_dir / "player.html"
+        if not template_file.exists():
+            raise FileNotFoundError(f"Template not found: {template_file}")
+        
+        with open(template_file, 'r', encoding='utf-8') as f:
+            template_html = f.read()
+        
+        # Inject channel data into template
+        # Replace __CHANNEL_DATA__ placeholder with actual M3U content
+        output_html = template_html.replace('__CHANNEL_DATA__', m3u_content)
+        
+        # Write output file
+        output_file = page_dir / "player.html"
+        with open(output_file, 'w', encoding='utf-8') as f:
+            f.write(output_html)
+        
+        # Copy manifest and background.js for Chrome extension
+        for file_name in ["manifest.json", "background.js"]:
+            src_file = self.template_dir / file_name
+            if src_file.exists():
+                shutil.copy(src_file, page_dir / file_name)
+        
+        return output_file
+    
+    def generate_selector_page(self, generated_pages):
+        """
+        Generate a selector/index page listing all generated players
+        
+        Args:
+            generated_pages: List of dicts with 'name' and 'file' keys
+        
+        Returns:
+            Path to the selector HTML file
+        """
+        selector_html = '''<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web IPTV Player - Channel Selector</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #fff;
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.5rem;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+        }
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .card h2 {
+            color: #333;
+            margin-bottom: 12px;
+        }
+        .card p {
+            color: #666;
+            margin-bottom: 16px;
+        }
+        .btn {
+            display: inline-block;
+            background: #667eea;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+        .btn:hover {
+            background: #5568d3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 Web IPTV Player</h1>
+        <div class="grid" id="grid"></div>
+    </div>
+    <script>
+        const channels = ''' + json.dumps([
+            {
+                'name': page['name'],
+                'file': page['file'],
+                'channels': page.get('channels', 0)
+            } for page in generated_pages
+        ], indent=12) + ''';
+        
+        const grid = document.getElementById('grid');
+        channels.forEach(channel => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+                <h2>${channel.name}</h2>
+                <p>${channel.channels} channels available</p>
+                <a href="${channel.file}" class="btn">Watch Now</a>
+            `;
+            grid.appendChild(card);
+        });
+    </script>
+</body>
+</html>'''
+        
+        selector_path = self.output_dir / "index.html"
+        with open(selector_path, 'w', encoding='utf-8') as f:
+            f.write(selector_html)
+        
+        return selector_path
+
 if __name__ == "__main__":
     # Example usage
     generator = NexusTVPageGenerator()

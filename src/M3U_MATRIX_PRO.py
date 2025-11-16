@@ -19,7 +19,7 @@ if script_dir not in sys.path:
 
 # Optional imports - only needed for advanced features
 try:
-    from page_generator import NexusTVPageGenerator
+    from page_generator import NexusTVPageGenerator, WebIPTVGenerator
     PAGE_GENERATOR_AVAILABLE = True
 except ImportError as e:
     PAGE_GENERATOR_AVAILABLE = False
@@ -2598,6 +2598,91 @@ Services included:
             messagebox.showwarning("No Channels", "Load channels first!")
             return
 
+        # Template selection dialog
+        template_dialog = tk.Toplevel(self.root)
+        template_dialog.title("Choose Template")
+        template_dialog.geometry("500x300")
+        template_dialog.configure(bg="#1e1e1e")
+        template_dialog.resizable(False, False)
+        template_dialog.transient(self.root)
+        template_dialog.grab_set()
+        
+        selected_template = tk.StringVar(value="nexus")
+        
+        tk.Label(
+            template_dialog,
+            text="Select Player Template",
+            font=("Segoe UI", 16, "bold"),
+            bg="#1e1e1e",
+            fg="#00ff88"
+        ).pack(pady=20)
+        
+        # NEXUS TV option
+        nexus_frame = tk.Frame(template_dialog, bg="#2a2a2a", relief=tk.RAISED, bd=2)
+        nexus_frame.pack(pady=10, padx=20, fill=tk.X)
+        
+        tk.Radiobutton(
+            nexus_frame,
+            text="NEXUS TV (24-Hour Scheduled Player)",
+            variable=selected_template,
+            value="nexus",
+            font=("Segoe UI", 11),
+            bg="#2a2a2a",
+            fg="white",
+            selectcolor="#0066cc",
+            activebackground="#2a2a2a",
+            activeforeground="white"
+        ).pack(anchor=tk.W, padx=10, pady=10)
+        
+        tk.Label(
+            nexus_frame,
+            text="Cyberpunk-themed player with time-based scheduling",
+            font=("Segoe UI", 9),
+            bg="#2a2a2a",
+            fg="#aaa"
+        ).pack(anchor=tk.W, padx=30, pady=(0, 10))
+        
+        # Web IPTV option
+        iptv_frame = tk.Frame(template_dialog, bg="#2a2a2a", relief=tk.RAISED, bd=2)
+        iptv_frame.pack(pady=10, padx=20, fill=tk.X)
+        
+        tk.Radiobutton(
+            iptv_frame,
+            text="Web IPTV (Sequential Channel Player)",
+            variable=selected_template,
+            value="webiptv",
+            font=("Segoe UI", 11),
+            bg="#2a2a2a",
+            fg="white",
+            selectcolor="#0066cc",
+            activebackground="#2a2a2a",
+            activeforeground="white"
+        ).pack(anchor=tk.W, padx=10, pady=10)
+        
+        tk.Label(
+            iptv_frame,
+            text="Modern IPTV player with channel list, favorites, and analysis",
+            font=("Segoe UI", 9),
+            bg="#2a2a2a",
+            fg="#aaa"
+        ).pack(anchor=tk.W, padx=30, pady=(0, 10))
+        
+        def on_template_selected():
+            template_dialog.destroy()
+            self._continue_generation(selected_template.get())
+        
+        tk.Button(
+            template_dialog,
+            text="CONTINUE",
+            bg="#00ff88",
+            fg="#000",
+            font=("Segoe UI", 11, "bold"),
+            command=on_template_selected,
+            cursor="hand2"
+        ).pack(pady=20)
+
+    def _continue_generation(self, template_type):
+        """Continue page generation with selected template"""
         # Ask how to generate pages
         choice = messagebox.askquestion(
             "Generate Pages",
@@ -2606,28 +2691,46 @@ Services included:
 
         def generation_thread():
             try:
+                template_name = "NEXUS TV" if template_type == "nexus" else "Web IPTV"
                 self.root.after(
                     0, lambda: self.stat.config(
-                        text="Generating NEXUS TV pages..."))
+                        text=f"Generating {template_name} pages..."))
                 
-                # Check for template file
-                template_path = Path("../templates/nexus_tv_template.html")
-                if not template_path.exists():
-                    template_path = Path("templates/nexus_tv_template.html")
-                if not template_path.exists():
-                    self.root.after(0, lambda: messagebox.showerror(
-                        "Template Not Found",
-                        "Template file missing!\n\n"
-                        "Download the full project from GitHub:\n"
-                        "- templates/nexus_tv_template.html\n"
-                        "- src/page_generator.py\n"
-                        "- src/utils.py\n\n"
-                        "Or use the SAVE button to export M3U files."))
-                    self.root.after(0, lambda: self.stat.config(text="Template missing"))
-                    return
+                # Initialize the correct generator
+                if template_type == "nexus":
+                    # Check for NEXUS TV template file
+                    template_path = Path("../templates/nexus_tv_template.html")
+                    if not template_path.exists():
+                        template_path = Path("templates/nexus_tv_template.html")
+                    if not template_path.exists():
+                        self.root.after(0, lambda: messagebox.showerror(
+                            "Template Not Found",
+                            "NEXUS TV template file missing!\n\n"
+                            "Download the full project from GitHub:\n"
+                            "- templates/nexus_tv_template.html\n"
+                            "- src/page_generator.py\n"
+                            "- src/utils.py\n\n"
+                            "Or use the SAVE button to export M3U files."))
+                        self.root.after(0, lambda: self.stat.config(text="Template missing"))
+                        return
+                    generator = NexusTVPageGenerator(template_path=str(template_path))
+                else:  # webiptv
+                    # Check for Web IPTV template
+                    template_path = Path("../templates/web-iptv-extension")
+                    if not template_path.exists():
+                        template_path = Path("templates/web-iptv-extension")
+                    if not template_path.exists() or not (template_path / "player.html").exists():
+                        self.root.after(0, lambda: messagebox.showerror(
+                            "Template Not Found",
+                            "Web IPTV template files missing!\n\n"
+                            "Download the full project from GitHub:\n"
+                            "- templates/web-iptv-extension/\n"
+                            "- src/page_generator.py\n\n"
+                            "Or use the SAVE button to export M3U files."))
+                        self.root.after(0, lambda: self.stat.config(text="Template missing"))
+                        return
+                    generator = WebIPTVGenerator(template_path=str(template_path))
                 
-                generator = NexusTVPageGenerator(
-                    template_path=str(template_path))
                 generated = []
 
                 if choice == 'yes':
@@ -2664,7 +2767,10 @@ Services included:
                     })
 
                 # Generate channel selector
-                selector_path = generator.generate_channel_selector(generated)
+                if template_type == "nexus":
+                    selector_path = generator.generate_channel_selector(generated)
+                else:  # webiptv
+                    selector_path = generator.generate_selector_page(generated)
 
                 # Show success message
                 abs_selector = selector_path.absolute()
