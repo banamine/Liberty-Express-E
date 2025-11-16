@@ -158,6 +158,9 @@ class VideoPlayerWorkbench(tk.Toplevel):
         self.playlist_tree.column('duration', width=80)
         self.playlist_tree.column('type', width=60)
         
+        # Bind selection event to update current_index
+        self.playlist_tree.bind('<<TreeviewSelect>>', self.on_playlist_select)
+        # Bind double-click to play video
         self.playlist_tree.bind('<Double-Button-1>', self.on_playlist_double_click)
         
         btn_frame = tk.Frame(parent, bg='#1a1a2e')
@@ -412,6 +415,7 @@ class VideoPlayerWorkbench(tk.Toplevel):
         return f"{hours:02d}:{minutes:02d}:{secs:02d}"
     
     def update_playlist_ui(self):
+        """Update playlist display and auto-select first item"""
         self.playlist_tree.delete(*self.playlist_tree.get_children())
         
         for idx, video in enumerate(self.playlist, 1):
@@ -421,12 +425,27 @@ class VideoPlayerWorkbench(tk.Toplevel):
                 text=str(idx),
                 values=(video['title'], video['duration_str'], video['type'])
             )
+        
+        # Auto-select first video after adding to playlist
+        if self.playlist:
+            first_item = self.playlist_tree.get_children()[0]
+            self.playlist_tree.selection_set(first_item)
+            self.current_index = 0
     
-    def on_playlist_double_click(self, event):
+    def on_playlist_select(self, event):
+        """Update current_index when playlist selection changes"""
         selection = self.playlist_tree.selection()
         if selection:
             item = selection[0]
+            self.current_index = self.playlist_tree.index(item)
+    
+    def on_playlist_double_click(self, event):
+        """Play video on double-click"""
+        # Get clicked item directly from event position
+        item = self.playlist_tree.identify_row(event.y)
+        if item:
             index = self.playlist_tree.index(item)
+            self.current_index = index
             self.play_video(index)
     
     def play_video(self, index):
@@ -472,28 +491,42 @@ class VideoPlayerWorkbench(tk.Toplevel):
                     messagebox.showerror("Playback Error", f"Failed to play video:\n{str(e)}")
     
     def toggle_play(self):
-        if self.current_index >= 0:
-            if self.vlc_available and self.vlc_player:
-                # VLC embedded player toggle
-                if self.is_playing:
-                    self.vlc_player.pause()
-                    self.is_playing = False
-                    self.play_btn.config(text="▶ Play")
-                    self.stop_playback_timer()
-                else:
+        # If no video selected, try to use current tree selection or first video
+        if self.current_index < 0:
+            selection = self.playlist_tree.selection()
+            if selection:
+                item = selection[0]
+                self.current_index = self.playlist_tree.index(item)
+            elif self.playlist:
+                # Auto-select first video
+                self.current_index = 0
+                first_item = self.playlist_tree.get_children()[0]
+                self.playlist_tree.selection_set(first_item)
+            else:
+                messagebox.showinfo("No Video", "Please load videos into the playlist first.")
+                return
+        
+        if self.vlc_available and self.vlc_player:
+            # VLC embedded player toggle
+            if self.is_playing:
+                self.vlc_player.pause()
+                self.is_playing = False
+                self.play_btn.config(text="▶ Play")
+                self.stop_playback_timer()
+            else:
+                if self.vlc_player.get_state() == vlc.State.Paused:
+                    # Resume from pause
                     self.vlc_player.play()
                     self.is_playing = True
                     self.play_btn.config(text="⏸ Pause")
                     self.start_playback_timer()
-            else:
-                # External player fallback
-                if self.is_playing:
-                    self.is_playing = False
-                    self.play_btn.config(text="▶ Play")
                 else:
+                    # Start new video
                     self.play_video(self.current_index)
         else:
-            messagebox.showinfo("No Video", "Please select a video from the playlist first.")
+            # External player fallback - just launch
+            if not self.is_playing:
+                self.play_video(self.current_index)
     
     def start_playback_timer(self):
         """Start timer to update playback position"""
