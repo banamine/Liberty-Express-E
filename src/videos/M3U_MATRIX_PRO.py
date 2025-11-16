@@ -942,6 +942,80 @@ Success Rate: {results['working']/results['total']*100:.1f}%
         except:
             return "Unknown"
 
+    # ========== RUMBLE URL DETECTION & OEMBED ==========
+    def detect_rumble_url(self, url):
+        """Detect if URL is a Rumble video and extract video ID + publisher code"""
+        if not url or 'rumble.com' not in url.lower():
+            return None
+        
+        # Pattern 1: Embed URL: https://rumble.com/embed/v6zldbc/?pub=15son
+        embed_match = re.search(r'rumble\.com/embed/(v[a-zA-Z0-9]+)/?\?pub=([a-zA-Z0-9]+)', url)
+        if embed_match:
+            return {
+                'video_id': embed_match.group(1),
+                'pub_code': embed_match.group(2),
+                'embed_url': url  # Preserve full URL with query params
+            }
+        
+        # Pattern 2: Watch URL: https://rumble.com/v6zldbc-title.html or https://rumble.com/watch/v6zldbc
+        watch_match = re.search(r'rumble\.com/(?:watch/)?(v[a-zA-Z0-9]+)', url)
+        if watch_match:
+            video_id = watch_match.group(1)
+            # Try to fetch pub code from oEmbed
+            return {
+                'video_id': video_id,
+                'pub_code': None,  # Will be fetched from oEmbed
+                'embed_url': None  # Will be constructed or fetched
+            }
+        
+        return None
+    
+    def fetch_rumble_metadata(self, url):
+        """Fetch Rumble video metadata using oEmbed API"""
+        try:
+            oembed_url = f"https://rumble.com/api/Media/oembed.json?url={urllib.parse.quote(url)}"
+            response = requests.get(oembed_url, timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Extract embed URL from HTML
+                html = data.get('html', '')
+                embed_match = re.search(r'src=["\']([^"\']+)["\']', html)
+                embed_url = embed_match.group(1) if embed_match else None
+                
+                # Extract video ID and pub code from embed URL
+                video_info = self.detect_rumble_url(embed_url) if embed_url else {}
+                
+                return {
+                    'title': data.get('title', 'Rumble Video'),
+                    'thumbnail': data.get('thumbnail_url', ''),
+                    'width': data.get('width', 640),
+                    'height': data.get('height', 360),
+                    'embed_url': embed_url,
+                    'video_id': video_info.get('video_id') if video_info else None,
+                    'pub_code': video_info.get('pub_code') if video_info else None,
+                    'provider': 'Rumble'
+                }
+        except Exception as e:
+            logging.warning(f"Failed to fetch Rumble oEmbed for {url}: {e}")
+        
+        # Fallback: try to extract from URL directly
+        video_info = self.detect_rumble_url(url)
+        if video_info:
+            return {
+                'title': f"Rumble Video {video_info['video_id']}",
+                'thumbnail': '',
+                'width': 640,
+                'height': 360,
+                'embed_url': video_info.get('embed_url'),
+                'video_id': video_info['video_id'],
+                'pub_code': video_info.get('pub_code'),
+                'provider': 'Rumble'
+            }
+        
+        return None
+
     # ========== ENHANCED M3U PARSING ==========
     def parse_m3u_file(self, file_path):
         """Robust M3U parser with support for EXTGRP, custom tags, and duplicates handling"""
@@ -994,6 +1068,26 @@ Success Rate: {results['working']/results['total']*100:.1f}%
             if current_channel and not line.startswith("#"):
                 current_channel["url"] = line.strip()
                 current_channel["custom_tags"] = custom_tags.copy()
+                
+                # Detect and enrich Rumble URLs
+                rumble_info = self.detect_rumble_url(current_channel["url"])
+                if rumble_info:
+                    # Mark as Rumble channel
+                    current_channel["custom_tags"]["PROVIDER"] = "RUMBLE"
+                    current_channel["custom_tags"]["VIDEO_ID"] = rumble_info.get('video_id', '')
+                    current_channel["custom_tags"]["PUB_CODE"] = rumble_info.get('pub_code', '')
+                    
+                    # Fetch metadata from oEmbed API
+                    rumble_meta = self.fetch_rumble_metadata(current_channel["url"])
+                    if rumble_meta:
+                        # Update channel with Rumble metadata
+                        if not current_channel.get("name") or current_channel["name"] == "Unknown":
+                            current_channel["name"] = rumble_meta['title']
+                        if not current_channel.get("logo"):
+                            current_channel["logo"] = rumble_meta.get('thumbnail', '')
+                        current_channel["custom_tags"]["EMBED_URL"] = rumble_meta.get('embed_url', '')
+                        current_channel["custom_tags"]["WIDTH"] = str(rumble_meta.get('width', 640))
+                        current_channel["custom_tags"]["HEIGHT"] = str(rumble_meta.get('height', 360))
                 
                 # Download and cache thumbnail if enabled
                 if self.settings.get("cache_thumbnails", True) and current_channel.get("logo") and download_and_cache_thumbnail:
