@@ -800,13 +800,16 @@ File Path: {video['filepath']}
         if not all_videos:
             self.after(0, lambda: messagebox.showwarning(
                 "No Content Found",
-                "No URLs, media files, or playlists were found.\n\n"
-                "The Load button accepts ANY file type:\n"
-                "• M3U/M3U8 Playlists\n"
-                "• Text files (TXT, HTML, XML, JSON, etc.)\n"
-                "• Video/Audio files (MP4, MKV, AVI, MP3, etc.)\n"
-                "• Any file containing URLs\n\n"
-                "URLs will be automatically extracted from any file type."
+                f"No channels or media files were found in the selected files/folders.\n\n"
+                f"Supported file types:\n"
+                f"• M3U Playlists (.m3u, .m3u8)\n"
+                f"• Text Files with URLs (.txt)\n"
+                f"• Video Files (.mp4, .mkv, .avi, .mov, .wmv, etc.)\n"
+                f"• Audio Files (.mp3, .aac, .wav, .flac, .ogg, etc.)\n"
+                f"• Folders (scans all subfolders for media and playlists)\n\n"
+                f"Text files should contain URLs (one per line) or M3U format.\n\n"
+                f"Files scanned: {len(files)}\n"
+                f"The file(s) were accepted but no valid URLs or media were extracted."
             ))
             return
         
@@ -854,7 +857,7 @@ File Path: {video['filepath']}
         return ext in media_extensions
     
     def parse_m3u_file(self, file_path):
-        """Parse M3U playlist file"""
+        """Parse M3U playlist file - supports standard #EXTINF and non-standard #EXTM variants"""
         videos = []
         current_video = None
         
@@ -872,26 +875,32 @@ File Path: {video['filepath']}
         for line in lines:
             line = line.strip()
             
-            if not line or line == "#EXTM3U":
+            if not line or line == "#EXTM3U" or line == "#EXTMM3U":
                 continue
             
-            if line.startswith("#EXTINF:"):
+            # Accept both standard #EXTINF: and non-standard #EXTM:/#EXTMM: tags
+            if line.startswith("#EXTINF:") or line.startswith("#EXTM:") or line.startswith("#EXTMM:"):
                 name_part = line.split(',')[-1].strip()
                 current_video = {
                     'title': name_part or "Unknown",
                     'filepath': '',
                     'duration': 0,
                     'duration_str': "00:00:00",
-                    'type': 'STREAM'
+                    'type': 'STREAM',
+                    'resolution': 'Unknown',
+                    'codec': 'unknown',
+                    'filesize': 0
                 }
             elif not line.startswith("#"):
                 if current_video:
                     current_video['filepath'] = line
                     current_video['url'] = line
                     
-                    metadata = self.extract_video_metadata(line) if os.path.exists(line) else None
-                    if metadata:
-                        current_video.update(metadata)
+                    # Try to extract metadata if it's a local file
+                    if os.path.exists(line):
+                        metadata = self.extract_video_metadata(line)
+                        if metadata:
+                            current_video.update(metadata)
                     
                     videos.append(current_video)
                     current_video = None
@@ -920,9 +929,16 @@ File Path: {video['filepath']}
                     print(f"Cannot read file {file_path}: {e}")
                     return []
         
-        # Extract ALL possible URLs
-        url_pattern = r'https?://[^\s<>"\']+|rtmp://[^\s<>"\']+|rtsp://[^\s<>"\']+|file://[^\s<>"\']+|/[^\s<>"\']+\.[a-zA-Z0-9]+'
+        # Extract ALL possible URLs (HTTP, HTTPS, RTMP, RTSP, file://, local paths)
+        url_pattern = r'https?://[^\s<>"\'()]+|rtmp[st]?://[^\s<>"\'()]+|file://[^\s<>"\'()]+|[A-Za-z]:[/\\][^\s<>"\'()]+\.[a-zA-Z0-9]+'
         urls = re.findall(url_pattern, content)
+        
+        # Also try line-by-line for simple URLs
+        for line in content.split('\n'):
+            line = line.strip()
+            if line and not line.startswith('#') and ('://' in line or line.endswith(('.mp4', '.mkv', '.avi', '.mov', '.m3u8', '.m3u', '.mp3', '.flac'))):
+                if line not in urls:
+                    urls.append(line)
         
         for idx, url in enumerate(urls, 1):
             url = url.strip()
