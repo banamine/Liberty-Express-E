@@ -1,35 +1,60 @@
-VIDEO PLAYER PRO - Standalone Python Application
-================================================
+VIDEO PLAYER PRO - VLC EMBEDDED EDITION
+=========================================
 
 DESCRIPTION:
-Advanced video player application with playlist management, scheduling,
-and metadata extraction capabilities.
+Advanced video player with EMBEDDED VLC VIDEO PLAYBACK, intelligent scheduling,
+live screenshot capture, and real-time video information display.
 
-FEATURES:
-✓ Advanced Video Playback (uses system default player)
+✨ NEW: EMBEDDED VLC PLAYER ✨
+Videos now play INSIDE the application window with full playback controls!
+
+KEY FEATURES:
+✓ Embedded VLC Video Player - Watch videos directly in the app
+✓ Live Screenshot Capture - Capture exact frame at current playback position
+✓ Real-Time Video Info - See codec, resolution, bitrate while playing
+✓ Time-Stamping - All screenshots include exact playback timestamp
 ✓ Smart Scheduling System with time predictions
-✓ Screenshot & Metadata Capture with JSON export
 ✓ Playlist Management with copy/paste support
 ✓ Video Metadata Extraction (duration, resolution, codec, file size)
 ✓ Automatic Thumbnail Generation
 ✓ Folder scanning for batch video import
-✓ Schedule export and visualization
+✓ Auto-Advance - Automatically plays next video when current ends
+✓ Universal Import - Accepts ANY file type and extracts URLs/content
 
 REQUIREMENTS:
+
+REQUIRED:
 - Python 3.7+
-- FFmpeg (for video metadata extraction and screenshots)
+- VLC Media Player (for embedded video playback)
+- python-vlc (installed automatically via pip)
+- FFmpeg (for metadata extraction)
 - Pillow (PIL) - for image/thumbnail processing
-- tkinterdnd2 (optional - for drag & drop support)
 
 INSTALLATION:
 
-1. Install Python dependencies:
-   pip install pillow
+1. Install VLC Media Player (REQUIRED for embedded playback):
 
-2. Install FFmpeg:
+   Windows:
+   - Download from: https://www.videolan.org/vlc/
+   - Install VLC (64-bit recommended)
+   - VLC libraries will be auto-detected
+
+   Mac:
+   - Download VLC.app from videolan.org, OR
+   - Install via Homebrew: brew install --cask vlc
+
+   Linux:
+   - Ubuntu/Debian: sudo apt install vlc
+   - Fedora: sudo dnf install vlc
+   - Arch: sudo pacman -S vlc
+
+2. Install Python dependencies:
+   pip install python-vlc Pillow
+
+3. Install FFmpeg:
    - Windows: Download from https://ffmpeg.org/download.html
+   - Mac: brew install ffmpeg
    - Linux: sudo apt install ffmpeg
-   - macOS: brew install ffmpeg
 
 USAGE:
 
@@ -43,30 +68,33 @@ USAGE:
 2. Click "LAUNCH PLAYER" to open the workbench
 
 3. Add videos:
-   - Click blue "LOAD" button (TOP-LEFT, FIRST BUTTON) for universal import
+   - Click blue "📂 Load" button (FIRST BUTTON) for universal import
    - File menu > Open Video(s)
    - File menu > Open Folder
-   - Drag and drop support (if tkinterdnd2 installed)
 
-3a. Universal Import with "LOAD" button (accepts ANY file):
-   - ACCEPTS ANY FILE TYPE YOU GIVE IT
-   - Automatically extracts URLs from any file (TXT, HTML, XML, JSON, LOG, etc.)
-   - Supports M3U/M3U8 playlists
+4. Universal Import with "📂 Load" button:
+   - ACCEPTS ANY FILE TYPE
+   - Automatically extracts URLs from TXT, HTML, XML, JSON, LOG files
+   - Supports M3U/M3U8 playlists (including non-standard formats)
    - Supports video/audio files (MP4, MKV, AVI, MP3, WAV, etc.)
    - Supports folder scanning (recursive search)
-   - Extracts: HTTP, HTTPS, RTMP, RTSP, file:// URLs
+   - Extracts: HTTP, HTTPS, RTMP, RTSP, file:// URLs, Windows paths
 
-4. Playback:
+5. Playback (EMBEDDED VLC MODE):
    - Double-click a video in the playlist to play
+   - Video plays INSIDE the app window
+   - Use Play/Pause button to control playback
    - Use Previous/Next buttons for navigation
-   - Videos play in system default player
+   - See real-time playback position and video info
 
-5. Screenshots:
-   - Click "Screenshot" button while video is selected
+6. Screenshots (LIVE CAPTURE):
+   - Click "📸 Screenshot" button while video is playing
+   - Captures exact frame at current playback position
    - Screenshots saved to: screenshots/ folder
-   - Includes JSON metadata and thumbnail
+   - Includes JSON metadata with playback time and position
+   - Auto-generates thumbnail
 
-6. Scheduling:
+7. Scheduling:
    - Schedule menu > Generate Schedule
    - Set start time and show duration
    - View/Export schedule as JSON
@@ -86,13 +114,42 @@ KEYBOARD SHORTCUTS:
 - Ctrl+V: Paste videos
 - Delete: Remove selected videos
 
+VLC EMBEDDED MODE vs FALLBACK MODE:
+
+EMBEDDED MODE (VLC Installed):
+✓ Videos play inside the app window
+✓ Live screenshot capture at exact playback position
+✓ Real-time codec/resolution/bitrate display
+✓ Accurate time-stamping with playback position
+✓ Full playback controls (play/pause/seek)
+✓ Auto-advance to next video
+
+FALLBACK MODE (No VLC):
+- Videos open in external system player
+- Screenshots use FFmpeg (5-second default position)
+- Basic metadata display only
+- Limited playback control
+
 NOTES:
-- Videos are played using the system's default video player
-- FFmpeg must be installed for metadata extraction and screenshots
+- For best experience, install VLC Media Player
+- python-vlc is installed automatically via pip
+- FFmpeg is required for metadata extraction
 - All data is stored locally in the application folder
 - Playlist auto-saves on changes
 
 TROUBLESHOOTING:
-- If metadata extraction fails, ensure FFmpeg is installed and in PATH
-- If screenshots don't work, check FFmpeg installation
-- For playback issues, check your system's default video player settings
+
+"VLC Not Available" message on startup:
+- Install VLC Media Player from videolan.org
+- Restart the application
+
+Metadata extraction fails:
+- Ensure FFmpeg is installed and in PATH
+
+Screenshot capture not working:
+- VLC mode: Ensure VLC is installed and video is playing
+- Fallback mode: Check FFmpeg installation
+
+Video not playing:
+- VLC mode: Check VLC installation
+- Fallback mode: Check system default video player settings
