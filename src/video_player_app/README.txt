@@ -43,17 +43,18 @@ USAGE:
 2. Click "LAUNCH PLAYER" to open the workbench
 
 3. Add videos:
-   - Click blue "📂 Load" button for advanced import
+   - Click blue "LOAD" button (TOP-LEFT, FIRST BUTTON) for universal import
    - File menu > Open Video(s)
    - File menu > Open Folder
    - Drag and drop support (if tkinterdnd2 installed)
 
-3a. Advanced Import with "Load" button:
+3a. Universal Import with "LOAD" button (accepts ANY file):
+   - ACCEPTS ANY FILE TYPE YOU GIVE IT
+   - Automatically extracts URLs from any file (TXT, HTML, XML, JSON, LOG, etc.)
    - Supports M3U/M3U8 playlists
-   - Supports TXT files with URL extraction
-   - Supports video/audio files directly
-   - Supports folder scanning (recursive)
-   - Automatically extracts URLs from any text file
+   - Supports video/audio files (MP4, MKV, AVI, MP3, WAV, etc.)
+   - Supports folder scanning (recursive search)
+   - Extracts: HTTP, HTTPS, RTMP, RTSP, file:// URLs
 
 4. Playback:
    - Double-click a video in the playlist to play
