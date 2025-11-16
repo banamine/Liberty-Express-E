@@ -189,6 +189,44 @@
             margin-bottom: 8px;
         }
         
+        /* Progress Bar and Time Display */
+        #progress-time-container {
+            width: 100%;
+            margin: 8px 0;
+        }
+        
+        #video-time-display {
+            font-size: 0.85rem;
+            color: var(--neon-blue);
+            text-align: center;
+            margin-bottom: 5px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 600;
+        }
+        
+        #video-progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(0, 243, 255, 0.2);
+            border-radius: 3px;
+            overflow: hidden;
+            box-shadow: inset 0 0 8px rgba(0, 243, 255, 0.3);
+            cursor: pointer;
+        }
+        
+        #video-progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+            border-radius: 3px;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px var(--neon-blue);
+        }
+        
+        #video-progress-bar:hover #video-progress-fill {
+            box-shadow: 0 0 15px var(--neon-blue), 0 0 20px var(--neon-purple);
+        }
+        
         /* Audio Controls */
         #audio-controls {
             display: flex;
@@ -941,6 +979,657 @@
                 width: 80px;
             }
         }
+        
+        /* Bumper indicator animations */
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+        
+        /* ===================================== */
+        /* LIVE MODE STYLES */
+        /* ===================================== */
+        
+        #live-mode-panel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 400px;
+            height: 100%;
+            background: rgba(10, 10, 22, 0.98);
+            border-left: 2px solid var(--neon-blue);
+            z-index: 100;
+            flex-direction: column;
+            backdrop-filter: blur(10px);
+            box-shadow: -5px 0 20px rgba(0, 243, 255, 0.2);
+        }
+        
+        .live-panel-header {
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(0, 243, 255, 0.1), rgba(188, 19, 254, 0.1));
+            border-bottom: 1px solid var(--neon-blue);
+        }
+        
+        .live-panel-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px var(--neon-blue);
+            margin-bottom: 15px;
+        }
+        
+        .live-panel-controls {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .live-control-btn {
+            background: rgba(0, 243, 255, 0.1);
+            color: var(--neon-blue);
+            border: 1px solid var(--neon-blue);
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+        
+        .live-control-btn:hover {
+            background: var(--neon-blue);
+            color: #000;
+            box-shadow: 0 0 15px var(--neon-blue);
+        }
+        
+        .live-panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+        
+        .channel-list-header {
+            margin-bottom: 15px;
+        }
+        
+        .playlist-name {
+            font-size: 1.1rem;
+            color: var(--neon-green);
+            margin-bottom: 10px;
+            text-shadow: 0 0 5px var(--neon-green);
+        }
+        
+        .channel-search input {
+            width: 100%;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--neon-blue);
+            border-radius: 4px;
+            color: #fff;
+            font-size: 0.9rem;
+        }
+        
+        .channel-search input:focus {
+            outline: none;
+            box-shadow: 0 0 10px var(--neon-blue);
+        }
+        
+        .channel-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .channel-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .channel-item:hover {
+            background: rgba(0, 243, 255, 0.1);
+            border-color: var(--neon-blue);
+            transform: translateX(5px);
+        }
+        
+        .channel-logo {
+            width: 50px;
+            height: 50px;
+            border-radius: 4px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        
+        .channel-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .channel-info {
+            flex: 1;
+        }
+        
+        .channel-name {
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+        
+        .channel-group {
+            font-size: 0.75rem;
+            color: var(--neon-purple);
+            opacity: 0.8;
+        }
+        
+        .channel-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .channel-action-btn {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .channel-action-btn:hover {
+            background: var(--neon-blue);
+            border-color: var(--neon-blue);
+            color: #000;
+        }
+        
+        .channel-action-btn .fa-star.favorited {
+            color: var(--neon-yellow);
+        }
+        
+        .no-channels-message {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .no-channels-message i {
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+        
+        .no-channels-message .hint {
+            font-size: 0.9rem;
+            color: var(--neon-blue);
+            margin-top: 10px;
+        }
+        
+        /* Dialog Styles */
+        #m3u-load-dialog {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .dialog-content {
+            background: var(--dark-bg);
+            border: 2px solid var(--neon-blue);
+            border-radius: 8px;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.3);
+        }
+        
+        .dialog-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid rgba(0, 243, 255, 0.3);
+        }
+        
+        .dialog-header h3 {
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px var(--neon-blue);
+        }
+        
+        .dialog-close-btn {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        
+        .dialog-close-btn:hover {
+            color: var(--neon-pink);
+        }
+        
+        .dialog-body {
+            padding: 20px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--neon-green);
+        }
+        
+        .input-group textarea,
+        .input-group input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--neon-blue);
+            border-radius: 4px;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        
+        .input-group textarea {
+            resize: vertical;
+        }
+        
+        .input-group textarea:focus,
+        .input-group input[type="file"]:focus {
+            outline: none;
+            box-shadow: 0 0 10px var(--neon-blue);
+        }
+        
+        .dialog-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 20px;
+            border-top: 1px solid rgba(0, 243, 255, 0.3);
+        }
+        
+        .dialog-btn {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .dialog-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .dialog-btn-primary {
+            background: var(--neon-blue);
+            border-color: var(--neon-blue);
+            color: #000;
+        }
+        
+        .dialog-btn-primary:hover {
+            box-shadow: 0 0 20px var(--neon-blue);
+        }
+        
+        /* Notification Toast */
+        #notification-toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(10, 10, 22, 0.95);
+            border: 2px solid var(--neon-blue);
+            border-radius: 8px;
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 2000;
+            min-width: 300px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        #notification-toast.show {
+            opacity: 1;
+        }
+        
+        .toast-icon {
+            font-size: 1.5rem;
+        }
+        
+        .toast-message {
+            flex: 1;
+            color: #fff;
+        }
+        
+        #notification-toast.success {
+            border-color: var(--neon-green);
+        }
+        
+        #notification-toast.success .toast-icon {
+            color: var(--neon-green);
+        }
+        
+        #notification-toast.error {
+            border-color: #ff4444;
+        }
+        
+        #notification-toast.error .toast-icon {
+            color: #ff4444;
+        }
+        
+        #notification-toast.warning {
+            border-color: var(--neon-yellow);
+        }
+        
+        #notification-toast.warning .toast-icon {
+            color: var(--neon-yellow);
+        }
+        
+        #notification-toast.info .toast-icon {
+            color: var(--neon-blue);
+        }
+        
+        /* Mode Toggle Button Highlight */
+        .mode-toggle-btn {
+            border: 2px solid var(--neon-green) !important;
+            background: rgba(57, 255, 20, 0.1) !important;
+        }
+        
+        .mode-toggle-btn:hover {
+            box-shadow: 0 0 20px var(--neon-green);
+        }
+        
+        /* Responsive adjustments for Live Mode */
+        @media (max-width: 768px) {
+            #live-mode-panel {
+                width: 100%;
+                left: 0;
+            }
+        }
+        
+        /* ===================================== */
+        /* LIGHT THEME STYLES */
+        /* ===================================== */
+        
+        body.light-theme {
+            --dark-bg: #f5f5f5;
+            --neon-blue: #2196f3;
+            --neon-green: #4caf50;
+            --neon-purple: #9c27b0;
+            --neon-pink: #e91e63;
+            --neon-yellow: #ffc107;
+        }
+        
+        body.light-theme {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+        }
+        
+        body.light-theme #bg-animation {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+        }
+        
+        body.light-theme #top-bar {
+            background: rgba(255, 255, 255, 0.95);
+        }
+        
+        body.light-theme #live-mode-panel {
+            background: rgba(255, 255, 255, 0.98);
+            border-left: 2px solid #2196f3;
+        }
+        
+        body.light-theme .channel-item {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(33, 150, 243, 0.3);
+        }
+        
+        body.light-theme .channel-name {
+            color: #333;
+        }
+        
+        body.light-theme .live-panel-title,
+        body.light-theme .playlist-name {
+            color: #2196f3;
+        }
+        
+        body.light-theme .dialog-content {
+            background: #ffffff;
+            color: #333;
+        }
+        
+        body.light-theme .dialog-header h3 {
+            color: #2196f3;
+        }
+        
+        body.light-theme .input-group label {
+            color: #4caf50;
+        }
+        
+        body.light-theme .input-group textarea,
+        body.light-theme .input-group input {
+            background: #f5f5f5;
+            color: #333;
+            border: 1px solid #2196f3;
+        }
+        
+        /* ===================================== */
+        /* ANALYSIS DIALOG STYLES */
+        /* ===================================== */
+        
+        .analysis-section {
+            margin-bottom: 25px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            border: 1px solid rgba(0, 243, 255, 0.3);
+        }
+        
+        .analysis-section h4 {
+            color: var(--neon-blue);
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            text-shadow: 0 0 5px var(--neon-blue);
+        }
+        
+        .analysis-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .stat-item {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--neon-green);
+            text-shadow: 0 0 10px var(--neon-green);
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            text-transform: uppercase;
+        }
+        
+        .analysis-chart {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .chart-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .chart-label {
+            min-width: 150px;
+            color: #fff;
+            font-size: 0.9rem;
+        }
+        
+        .chart-bar-container {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+            height: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .chart-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            color: #fff;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+        
+        .chart-percentage {
+            min-width: 50px;
+            text-align: right;
+            color: var(--neon-green);
+            font-weight: bold;
+        }
+        
+        /* ===================================== */
+        /* FAVORITES & HISTORY LIST STYLES */
+        /* ===================================== */
+        
+        .favorite-item,
+        .history-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            margin-bottom: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+        
+        .favorite-item:hover,
+        .history-item:hover {
+            background: rgba(0, 243, 255, 0.1);
+            border-color: var(--neon-blue);
+        }
+        
+        .favorite-item-info,
+        .history-item-info {
+            flex: 1;
+        }
+        
+        .favorite-item-name,
+        .history-item-name {
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+        
+        .favorite-item-group,
+        .history-item-type {
+            font-size: 0.85rem;
+            color: var(--neon-purple);
+            opacity: 0.8;
+        }
+        
+        .history-item-time {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 4px;
+        }
+        
+        .favorite-item-actions,
+        .history-item-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .item-action-btn {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .item-action-btn:hover {
+            background: var(--neon-blue);
+            border-color: var(--neon-blue);
+            transform: scale(1.1);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+        
+        .empty-state p {
+            font-size: 1.1rem;
+        }
     </style>
 </head>
 <body>
@@ -989,6 +1678,15 @@
         <div id="center-section">
             <div id="current-time">00:00:00</div>
             <div id="channel-name">CLASSIC MOVIES</div>
+            <div id="progress-time-container">
+                <div id="video-time-display">
+                    <span id="time-elapsed">00:00</span> / <span id="time-total">00:00</span>
+                    <span id="time-remaining" style="margin-left: 10px; opacity: 0.7;">(-00:00)</span>
+                </div>
+                <div id="video-progress-bar">
+                    <div id="video-progress-fill"></div>
+                </div>
+            </div>
             <div id="audio-controls">
                 <button class="audio-btn" id="mute-btn" title="Mute/Unmute">
                     <i class="fas fa-volume-up"></i>
@@ -1056,6 +1754,9 @@
         
         <!-- Right Control Group - Additional Controls -->
         <div class="control-group">
+            <button class="control-btn mode-toggle-btn" id="mode-toggle-btn" title="Switch between Schedule Mode and Live Mode">
+                <i class="fas fa-exchange-alt"></i> <span id="mode-label">SCHEDULE</span>
+            </button>
             <button class="control-btn" id="playlist-btn">
                 <i class="fas fa-list-music"></i> PLAYLIST
             </button>
@@ -1139,6 +1840,213 @@
         </div>
     </div>
     
+    <!-- Live Mode Channel Panel -->
+    <div id="live-mode-panel" style="display: none;">
+        <div class="live-panel-header">
+            <div class="live-panel-title">📺 LIVE MODE - Channel Selector</div>
+            <div class="live-panel-controls">
+                <button class="live-control-btn" id="theme-toggle-btn" title="Toggle Light/Dark Theme">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button class="live-control-btn" id="load-m3u-btn" title="Load M3U Playlist">
+                    <i class="fas fa-file-upload"></i> Load M3U
+                </button>
+                <button class="live-control-btn" id="favorites-btn" title="View Favorites">
+                    <i class="fas fa-star"></i> Favorites
+                </button>
+                <button class="live-control-btn" id="history-btn" title="View History">
+                    <i class="fas fa-history"></i> History
+                </button>
+                <button class="live-control-btn" id="analyze-btn" title="Analyze All Channels">
+                    <i class="fas fa-chart-pie"></i> Analyze
+                </button>
+                <button class="live-control-btn" id="share-btn" title="Share Playlist">
+                    <i class="fas fa-share-alt"></i> Share
+                </button>
+            </div>
+        </div>
+        
+        <div class="live-panel-content">
+            <div class="channel-list-container">
+                <div class="channel-list-header">
+                    <div class="playlist-name" id="live-playlist-name">No Playlist Loaded</div>
+                    <div class="channel-search">
+                        <input type="text" id="channel-search-input" placeholder="🔍 Search channels...">
+                    </div>
+                </div>
+                
+                <div class="channel-list" id="live-channel-list">
+                    <div class="no-channels-message">
+                        <i class="fas fa-tv fa-3x"></i>
+                        <p>No channels loaded</p>
+                        <p class="hint">Click "Load M3U" to get started</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- M3U Load Dialog -->
+    <div id="m3u-load-dialog" style="display: none;">
+        <div class="dialog-content">
+            <div class="dialog-header">
+                <h3>Load M3U Playlist</h3>
+                <button class="dialog-close-btn" onclick="closeLiveDialog('m3u-load-dialog')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="dialog-body">
+                <div class="input-group">
+                    <label>Paste M3U URL or content:</label>
+                    <textarea id="m3u-input" placeholder="http://example.com/playlist.m3u or paste M3U content here..." rows="8"></textarea>
+                </div>
+                <div class="input-group">
+                    <label>Or upload M3U file:</label>
+                    <input type="file" id="m3u-file-input" accept=".m3u,.m3u8">
+                </div>
+            </div>
+            <div class="dialog-footer">
+                <button class="dialog-btn dialog-btn-primary" onclick="loadM3UPlaylist()">
+                    <i class="fas fa-check"></i> Load Playlist
+                </button>
+                <button class="dialog-btn" onclick="closeLiveDialog('m3u-load-dialog')">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification Toast -->
+    <div id="notification-toast" style="display: none;">
+        <div class="toast-icon"></div>
+        <div class="toast-message"></div>
+    </div>
+    
+    <!-- Favorites Dialog -->
+    <div id="favorites-dialog" style="display: none;">
+        <div class="dialog-content">
+            <div class="dialog-header">
+                <h3>⭐ Favorite Channels</h3>
+                <button class="dialog-close-btn" onclick="closeLiveDialog('favorites-dialog')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="dialog-body">
+                <div id="favorites-list-container" style="max-height: 400px; overflow-y: auto;">
+                    <div id="favorites-list"></div>
+                </div>
+            </div>
+            <div class="dialog-footer">
+                <button class="dialog-btn dialog-btn-primary" onclick="exportFavoritesAsM3U()">
+                    <i class="fas fa-download"></i> Export as M3U
+                </button>
+                <button class="dialog-btn" onclick="clearAllFavorites()">
+                    <i class="fas fa-trash"></i> Clear All
+                </button>
+                <button class="dialog-btn" onclick="closeLiveDialog('favorites-dialog')">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- History Dialog -->
+    <div id="history-dialog" style="display: none;">
+        <div class="dialog-content">
+            <div class="dialog-header">
+                <h3>📜 Playlist History</h3>
+                <button class="dialog-close-btn" onclick="closeLiveDialog('history-dialog')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="dialog-body">
+                <div id="history-list-container" style="max-height: 400px; overflow-y: auto;">
+                    <div id="history-list"></div>
+                </div>
+            </div>
+            <div class="dialog-footer">
+                <button class="dialog-btn" onclick="clearAllHistory()">
+                    <i class="fas fa-trash"></i> Clear All
+                </button>
+                <button class="dialog-btn" onclick="closeLiveDialog('history-dialog')">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Channel Analysis Dialog -->
+    <div id="analysis-dialog" style="display: none;">
+        <div class="dialog-content" style="max-width: 800px;">
+            <div class="dialog-header">
+                <h3>📊 Channel Analysis</h3>
+                <button class="dialog-close-btn" onclick="closeLiveDialog('analysis-dialog')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="dialog-body">
+                <div id="analysis-content">
+                    <div class="analysis-section">
+                        <h4>Overview</h4>
+                        <div id="analysis-overview" class="analysis-stats"></div>
+                    </div>
+                    <div class="analysis-section">
+                        <h4>Groups Distribution</h4>
+                        <div id="analysis-groups" class="analysis-chart"></div>
+                    </div>
+                    <div class="analysis-section">
+                        <h4>Stream Formats</h4>
+                        <div id="analysis-formats" class="analysis-chart"></div>
+                    </div>
+                    <div class="analysis-section">
+                        <h4>Favorites Statistics</h4>
+                        <div id="analysis-favorites" class="analysis-stats"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="dialog-footer">
+                <button class="dialog-btn dialog-btn-primary" onclick="exportAnalysisReport()">
+                    <i class="fas fa-file-export"></i> Export Report
+                </button>
+                <button class="dialog-btn" onclick="closeLiveDialog('analysis-dialog')">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Share Dialog -->
+    <div id="share-dialog" style="display: none;">
+        <div class="dialog-content">
+            <div class="dialog-header">
+                <h3>🔗 Share Playlist</h3>
+                <button class="dialog-close-btn" onclick="closeLiveDialog('share-dialog')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="dialog-body">
+                <div class="input-group">
+                    <label>Encrypted Share URL:</label>
+                    <textarea id="share-url-output" readonly rows="4" style="font-family: monospace; font-size: 0.85rem;"></textarea>
+                </div>
+                <div class="input-group">
+                    <label>
+                        <input type="checkbox" id="share-include-favorites" checked>
+                        Include favorite channels only
+                    </label>
+                </div>
+            </div>
+            <div class="dialog-footer">
+                <button class="dialog-btn dialog-btn-primary" onclick="copyShareURL()">
+                    <i class="fas fa-copy"></i> Copy URL
+                </button>
+                <button class="dialog-btn" onclick="closeLiveDialog('share-dialog')">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+    
     <!-- Auto-refresh Notification -->
     <div id="refresh-notification">
         <h2>DAILY SCHEDULE REFRESH</h2>
@@ -1146,8 +2054,885 @@
         <div id="refresh-countdown">5</div>
         <p>System will refresh automatically</p>
     </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dashjs@latest/dist/dash.all.min.js"></script>
 
     <script>
+        // =====================================================================
+        // MODE MANAGEMENT
+        // =====================================================================
+        let currentMode = 'schedule'; // 'schedule' or 'live'
+        let liveChannels = [];
+        let currentLiveChannel = null;
+        let favoriteChannels = [];
+        let channelHistory = [];
+        
+        // Load saved mode from localStorage
+        function initializeMode() {
+            const savedMode = localStorage.getItem('nexus_tv_mode') || 'schedule';
+            if (savedMode === 'live') {
+                switchToLiveMode();
+            }
+        }
+        
+        // Toggle between modes
+        document.addEventListener('DOMContentLoaded', function() {
+            const modeToggleBtn = document.getElementById('mode-toggle-btn');
+            if (modeToggleBtn) {
+                modeToggleBtn.addEventListener('click', toggleMode);
+            }
+            initializeMode();
+        });
+        
+        function toggleMode() {
+            if (currentMode === 'schedule') {
+                switchToLiveMode();
+            } else {
+                switchToScheduleMode();
+            }
+        }
+        
+        function switchToLiveMode() {
+            currentMode = 'live';
+            localStorage.setItem('nexus_tv_mode', 'live');
+            
+            // Update UI
+            document.getElementById('mode-label').textContent = 'LIVE';
+            document.getElementById('live-mode-panel').style.display = 'flex';
+            document.getElementById('top-bar').style.display = 'none';
+            document.getElementById('splash-screen').style.display = 'none';
+            
+            // Load saved channels if any
+            loadSavedChannels();
+            
+            showNotification('Switched to Live Mode', 'success');
+        }
+        
+        function switchToScheduleMode() {
+            currentMode = 'schedule';
+            localStorage.setItem('nexus_tv_mode', 'schedule');
+            
+            // Update UI
+            document.getElementById('mode-label').textContent = 'SCHEDULE';
+            document.getElementById('live-mode-panel').style.display = 'none';
+            document.getElementById('top-bar').style.display = 'flex';
+            
+            showNotification('Switched to Schedule Mode', 'success');
+        }
+        
+        // =====================================================================
+        // LIVE MODE FUNCTIONS
+        // =====================================================================
+        
+        function loadM3UPlaylist() {
+            const input = document.getElementById('m3u-input').value.trim();
+            const fileInput = document.getElementById('m3u-file-input');
+            
+            if (fileInput.files.length > 0) {
+                // Load from file
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    parseM3U(e.target.result);
+                    addToHistory(file.name, 'file');
+                };
+                reader.readAsText(file);
+            } else if (input) {
+                // Load from URL or content
+                if (input.startsWith('http')) {
+                    // It's a URL
+                    fetch(input)
+                        .then(r => r.text())
+                        .then(content => {
+                            parseM3U(content);
+                            addToHistory(input, 'url');
+                        })
+                        .catch(err => showNotification('Failed to load playlist: ' + err.message, 'error'));
+                } else {
+                    // It's content
+                    parseM3U(input);
+                    addToHistory('Pasted content', 'paste');
+                }
+            } else {
+                showNotification('Please provide a URL, file, or M3U content', 'warning');
+                return;
+            }
+            
+            closeLiveDialog('m3u-load-dialog');
+        }
+        
+        function parseM3U(content) {
+            const lines = content.split('\n');
+            const channels = [];
+            let currentChannel = {};
+            
+            for (let line of lines) {
+                line = line.trim();
+                
+                if (line.startsWith('#EXTINF:')) {
+                    // Parse channel info
+                    const match = line.match(/#EXTINF:(-?\d+)\s*(.*)?,(.+)/);
+                    if (match) {
+                        currentChannel = {
+                            duration: match[1],
+                            info: match[2] || '',
+                            name: match[3].trim()
+                        };
+                        
+                        // Extract logo if present
+                        const logoMatch = line.match(/tvg-logo="([^"]+)"/);
+                        if (logoMatch) {
+                            currentChannel.logo = logoMatch[1];
+                        }
+                        
+                        // Extract group
+                        const groupMatch = line.match(/group-title="([^"]+)"/);
+                        if (groupMatch) {
+                            currentChannel.group = groupMatch[1];
+                        }
+                    }
+                } else if (line && !line.startsWith('#')) {
+                    // This is the URL
+                    currentChannel.url = line;
+                    channels.push({...currentChannel});
+                    currentChannel = {};
+                }
+            }
+            
+            liveChannels = channels;
+            localStorage.setItem('nexus_tv_channels', JSON.stringify(channels));
+            displayChannels(channels);
+            document.getElementById('live-playlist-name').textContent = `${channels.length} channels loaded`;
+            showNotification(`Loaded ${channels.length} channels`, 'success');
+        }
+        
+        function displayChannels(channels) {
+            const container = document.getElementById('live-channel-list');
+            container.innerHTML = '';
+            
+            channels.forEach((channel, index) => {
+                const channelEl = document.createElement('div');
+                channelEl.className = 'channel-item';
+                channelEl.innerHTML = `
+                    <div class="channel-logo">
+                        <img src="${channel.logo || 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22><text y=%2220%22>📺</text></svg>'}" 
+                             onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22><text y=%2220%22>📺</text></svg>'">
+                    </div>
+                    <div class="channel-info">
+                        <div class="channel-name">${channel.name}</div>
+                        <div class="channel-group">${channel.group || 'Other'}</div>
+                    </div>
+                    <div class="channel-actions">
+                        <button class="channel-action-btn" onclick="toggleFavorite(${index})" title="Toggle Favorite">
+                            <i class="fas fa-star ${isFavorite(index) ? 'favorited' : ''}"></i>
+                        </button>
+                        <button class="channel-action-btn" onclick="playChannel(${index})" title="Play Channel">
+                            <i class="fas fa-play"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(channelEl);
+            });
+        }
+        
+        function playChannel(index) {
+            const channel = liveChannels[index];
+            if (!channel) return;
+            
+            const video = document.getElementById('video-player');
+            const url = channel.url;
+            
+            if (window.currentHlsPlayer) {
+                window.currentHlsPlayer.destroy();
+                window.currentHlsPlayer = null;
+            }
+            
+            if (window.currentDashPlayer) {
+                window.currentDashPlayer.reset();
+                window.currentDashPlayer = null;
+            }
+            
+            if (url.includes('.m3u8')) {
+                if (typeof Hls !== 'undefined' && Hls.isSupported()) {
+                    const hls = new Hls({
+                        enableWorker: true,
+                        lowLatencyMode: true,
+                        backBufferLength: 90
+                    });
+                    
+                    hls.loadSource(url);
+                    hls.attachMedia(video);
+                    
+                    hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                        video.play().catch(e => {
+                            console.error('HLS play error:', e);
+                            showNotification('Failed to play HLS stream', 'error');
+                        });
+                    });
+                    
+                    hls.on(Hls.Events.ERROR, function(event, data) {
+                        if (data.fatal) {
+                            switch(data.type) {
+                                case Hls.ErrorTypes.NETWORK_ERROR:
+                                    console.error('Fatal network error encountered, trying to recover');
+                                    hls.startLoad();
+                                    break;
+                                case Hls.ErrorTypes.MEDIA_ERROR:
+                                    console.error('Fatal media error encountered, trying to recover');
+                                    hls.recoverMediaError();
+                                    break;
+                                default:
+                                    console.error('Fatal error, cannot recover');
+                                    hls.destroy();
+                                    showNotification('HLS stream error', 'error');
+                                    break;
+                            }
+                        }
+                    });
+                    
+                    window.currentHlsPlayer = hls;
+                    showNotification(`Playing HLS: ${channel.name}`, 'success');
+                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    video.src = url;
+                    video.play().catch(e => {
+                        console.error('Native HLS play error:', e);
+                        showNotification('Failed to play HLS stream', 'error');
+                    });
+                    showNotification(`Playing HLS: ${channel.name}`, 'success');
+                } else {
+                    showNotification('HLS not supported in this browser', 'error');
+                    return;
+                }
+            } else if (url.includes('.mpd')) {
+                if (typeof dashjs !== 'undefined') {
+                    const player = dashjs.MediaPlayer().create();
+                    
+                    player.initialize(video, url, false);
+                    
+                    player.updateSettings({
+                        streaming: {
+                            bufferPruningInterval: 30,
+                            bufferToKeep: 20,
+                            stableBufferTime: 12,
+                            bufferTimeAtTopQuality: 30,
+                            bufferTimeAtTopQualityLongForm: 60,
+                            lowLatencyEnabled: true
+                        }
+                    });
+                    
+                    player.on(dashjs.MediaPlayer.events.PLAYBACK_STARTED, function() {
+                        console.log('DASH playback started');
+                    });
+                    
+                    player.on(dashjs.MediaPlayer.events.ERROR, function(e) {
+                        console.error('DASH player error:', e);
+                        showNotification('DASH stream error: ' + (e.error || 'Unknown error'), 'error');
+                    });
+                    
+                    player.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, function() {
+                        video.play().catch(e => {
+                            console.error('DASH play error:', e);
+                            showNotification('Failed to play DASH stream', 'error');
+                        });
+                    });
+                    
+                    window.currentDashPlayer = player;
+                    showNotification(`Playing DASH: ${channel.name}`, 'success');
+                } else {
+                    showNotification('DASH.js library not loaded', 'error');
+                    return;
+                }
+            } else {
+                video.src = url;
+                video.play().catch(e => {
+                    console.error('Direct play error:', e);
+                    showNotification('Failed to play stream', 'error');
+                });
+                showNotification(`Playing: ${channel.name}`, 'success');
+            }
+            
+            currentLiveChannel = index;
+        }
+        
+        function toggleFavorite(index) {
+            const favIndex = favoriteChannels.indexOf(index);
+            if (favIndex > -1) {
+                favoriteChannels.splice(favIndex, 1);
+            } else {
+                favoriteChannels.push(index);
+            }
+            localStorage.setItem('nexus_tv_favorites', JSON.stringify(favoriteChannels));
+            displayChannels(liveChannels);
+        }
+        
+        function isFavorite(index) {
+            return favoriteChannels.includes(index);
+        }
+        
+        function addToHistory(name, type) {
+            channelHistory.unshift({name, type, timestamp: Date.now()});
+            if (channelHistory.length > 20) channelHistory.pop();
+            localStorage.setItem('nexus_tv_history', JSON.stringify(channelHistory));
+        }
+        
+        function loadSavedChannels() {
+            const saved = localStorage.getItem('nexus_tv_channels');
+            const savedFavorites = localStorage.getItem('nexus_tv_favorites');
+            const savedHistory = localStorage.getItem('nexus_tv_history');
+            
+            if (saved) {
+                liveChannels = JSON.parse(saved);
+                displayChannels(liveChannels);
+                document.getElementById('live-playlist-name').textContent = `${liveChannels.length} channels loaded`;
+            }
+            if (savedFavorites) {
+                favoriteChannels = JSON.parse(savedFavorites);
+            }
+            if (savedHistory) {
+                channelHistory = JSON.parse(savedHistory);
+            }
+        }
+        
+        function showNotification(message, type = 'info') {
+            const toast = document.getElementById('notification-toast');
+            const icon = toast.querySelector('.toast-icon');
+            const msg = toast.querySelector('.toast-message');
+            
+            const icons = {
+                success: '<i class="fas fa-check-circle"></i>',
+                error: '<i class="fas fa-exclamation-circle"></i>',
+                warning: '<i class="fas fa-exclamation-triangle"></i>',
+                info: '<i class="fas fa-info-circle"></i>'
+            };
+            
+            icon.innerHTML = icons[type];
+            msg.textContent = message;
+            toast.className = `notification-toast show ${type}`;
+            toast.style.display = 'flex';
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    toast.style.display = 'none';
+                }, 300);
+            }, 3000);
+        }
+        
+        function closeLiveDialog(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+        
+        // Button event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            const loadM3UBtn = document.getElementById('load-m3u-btn');
+            if (loadM3UBtn) {
+                loadM3UBtn.addEventListener('click', () => {
+                    document.getElementById('m3u-load-dialog').style.display = 'flex';
+                });
+            }
+            
+            const favoritesBtn = document.getElementById('favorites-btn');
+            if (favoritesBtn) {
+                favoritesBtn.addEventListener('click', showFavoritesDialog);
+            }
+            
+            const historyBtn = document.getElementById('history-btn');
+            if (historyBtn) {
+                historyBtn.addEventListener('click', showHistoryDialog);
+            }
+            
+            const analyzeBtn = document.getElementById('analyze-btn');
+            if (analyzeBtn) {
+                analyzeBtn.addEventListener('click', analyzeChannels);
+            }
+            
+            const themeToggleBtn = document.getElementById('theme-toggle-btn');
+            if (themeToggleBtn) {
+                themeToggleBtn.addEventListener('click', toggleTheme);
+                loadThemePreference();
+            }
+            
+            const channelSearchInput = document.getElementById('channel-search-input');
+            if (channelSearchInput) {
+                channelSearchInput.addEventListener('input', filterChannels);
+            }
+            
+            const shareBtn = document.getElementById('share-btn');
+            if (shareBtn) {
+                shareBtn.addEventListener('click', generateShareURL);
+            }
+            
+            checkForEncryptedURL();
+        });
+        
+        function filterChannels() {
+            const searchTerm = document.getElementById('channel-search-input').value.toLowerCase();
+            const channelItems = document.querySelectorAll('.channel-item');
+            
+            channelItems.forEach(item => {
+                const channelName = item.querySelector('.channel-name').textContent.toLowerCase();
+                const channelGroup = item.querySelector('.channel-group').textContent.toLowerCase();
+                
+                if (channelName.includes(searchTerm) || channelGroup.includes(searchTerm)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+        
+        function toggleTheme() {
+            const body = document.body;
+            const themeIcon = document.querySelector('#theme-toggle-btn i');
+            
+            if (body.classList.contains('light-theme')) {
+                body.classList.remove('light-theme');
+                themeIcon.className = 'fas fa-moon';
+                localStorage.setItem('nexus_tv_theme', 'dark');
+                showNotification('Switched to Dark Theme', 'success');
+            } else {
+                body.classList.add('light-theme');
+                themeIcon.className = 'fas fa-sun';
+                localStorage.setItem('nexus_tv_theme', 'light');
+                showNotification('Switched to Light Theme', 'success');
+            }
+        }
+        
+        function loadThemePreference() {
+            const savedTheme = localStorage.getItem('nexus_tv_theme');
+            const themeIcon = document.querySelector('#theme-toggle-btn i');
+            
+            if (savedTheme === 'light') {
+                document.body.classList.add('light-theme');
+                if (themeIcon) {
+                    themeIcon.className = 'fas fa-sun';
+                }
+            }
+        }
+        
+        function showFavoritesDialog() {
+            const dialog = document.getElementById('favorites-dialog');
+            const listContainer = document.getElementById('favorites-list');
+            
+            listContainer.innerHTML = '';
+            
+            if (favoriteChannels.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-star"></i>
+                        <p>No favorite channels yet</p>
+                        <p style="font-size: 0.9rem; margin-top: 10px;">
+                            Click the star icon on any channel to add it to favorites
+                        </p>
+                    </div>
+                `;
+            } else {
+                favoriteChannels.forEach((favIndex, index) => {
+                    const channel = liveChannels[favIndex];
+                    if (channel) {
+                        const favItem = document.createElement('div');
+                        favItem.className = 'favorite-item';
+                        favItem.innerHTML = `
+                            <div class="favorite-item-info">
+                                <div class="favorite-item-name">${channel.name}</div>
+                                <div class="favorite-item-group">${channel.group || 'Other'}</div>
+                            </div>
+                            <div class="favorite-item-actions">
+                                <button class="item-action-btn" onclick="playChannel(${favIndex})" title="Play">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                                <button class="item-action-btn" onclick="removeFavorite(${index})" title="Remove">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        `;
+                        listContainer.appendChild(favItem);
+                    }
+                });
+            }
+            
+            dialog.style.display = 'flex';
+        }
+        
+        function removeFavorite(arrayIndex) {
+            favoriteChannels.splice(arrayIndex, 1);
+            localStorage.setItem('nexus_tv_favorites', JSON.stringify(favoriteChannels));
+            showFavoritesDialog();
+            displayChannels(liveChannels);
+            showNotification('Removed from favorites', 'info');
+        }
+        
+        function clearAllFavorites() {
+            if (confirm('Are you sure you want to clear all favorites?')) {
+                favoriteChannels = [];
+                localStorage.setItem('nexus_tv_favorites', JSON.stringify(favoriteChannels));
+                showFavoritesDialog();
+                displayChannels(liveChannels);
+                showNotification('All favorites cleared', 'warning');
+            }
+        }
+        
+        function exportFavoritesAsM3U() {
+            if (favoriteChannels.length === 0) {
+                showNotification('No favorites to export', 'warning');
+                return;
+            }
+            
+            let m3uContent = '#EXTM3U\n\n';
+            
+            favoriteChannels.forEach(favIndex => {
+                const channel = liveChannels[favIndex];
+                if (channel) {
+                    m3uContent += `#EXTINF:-1`;
+                    
+                    if (channel.logo) {
+                        m3uContent += ` tvg-logo="${channel.logo}"`;
+                    }
+                    
+                    if (channel.group) {
+                        m3uContent += ` group-title="${channel.group}"`;
+                    }
+                    
+                    m3uContent += `,${channel.name}\n`;
+                    m3uContent += `${channel.url}\n\n`;
+                }
+            });
+            
+            const blob = new Blob([m3uContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `nexus_tv_favorites_${Date.now()}.m3u`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showNotification('Favorites exported as M3U', 'success');
+        }
+        
+        function showHistoryDialog() {
+            const dialog = document.getElementById('history-dialog');
+            const listContainer = document.getElementById('history-list');
+            
+            listContainer.innerHTML = '';
+            
+            if (channelHistory.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-history"></i>
+                        <p>No history yet</p>
+                        <p style="font-size: 0.9rem; margin-top: 10px;">
+                            Loaded playlists will appear here
+                        </p>
+                    </div>
+                `;
+            } else {
+                const sortedHistory = [...channelHistory].sort((a, b) => b.timestamp - a.timestamp);
+                
+                sortedHistory.forEach((historyItem, index) => {
+                    const timeAgo = getTimeAgo(historyItem.timestamp);
+                    const histItem = document.createElement('div');
+                    histItem.className = 'history-item';
+                    histItem.innerHTML = `
+                        <div class="history-item-info">
+                            <div class="history-item-name">${historyItem.name}</div>
+                            <div class="history-item-type">
+                                ${historyItem.type === 'file' ? '📄 File' : historyItem.type === 'url' ? '🌐 URL' : '📋 Pasted'}
+                            </div>
+                            <div class="history-item-time">${timeAgo}</div>
+                        </div>
+                        <div class="history-item-actions">
+                            <button class="item-action-btn" onclick="removeHistoryItem(${index})" title="Remove">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                    listContainer.appendChild(histItem);
+                });
+            }
+            
+            dialog.style.display = 'flex';
+        }
+        
+        function getTimeAgo(timestamp) {
+            const now = Date.now();
+            const diff = now - timestamp;
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+            
+            if (minutes < 1) return 'Just now';
+            if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+            if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+            return `${days} day${days > 1 ? 's' : ''} ago`;
+        }
+        
+        function removeHistoryItem(index) {
+            channelHistory.splice(index, 1);
+            localStorage.setItem('nexus_tv_history', JSON.stringify(channelHistory));
+            showHistoryDialog();
+            showNotification('History item removed', 'info');
+        }
+        
+        function clearAllHistory() {
+            if (confirm('Are you sure you want to clear all history?')) {
+                channelHistory = [];
+                localStorage.setItem('nexus_tv_history', JSON.stringify(channelHistory));
+                showHistoryDialog();
+                showNotification('All history cleared', 'warning');
+            }
+        }
+        
+        function analyzeChannels() {
+            if (liveChannels.length === 0) {
+                showNotification('No channels to analyze. Load a playlist first.', 'warning');
+                return;
+            }
+            
+            const dialog = document.getElementById('analysis-dialog');
+            
+            const totalChannels = liveChannels.length;
+            const totalFavorites = favoriteChannels.length;
+            const groupsData = {};
+            const formatsData = {
+                'HLS (.m3u8)': 0,
+                'DASH (.mpd)': 0,
+                'Direct MP4': 0,
+                'RTMP/RTSP': 0,
+                'Other': 0
+            };
+            
+            liveChannels.forEach(channel => {
+                const group = channel.group || 'Uncategorized';
+                groupsData[group] = (groupsData[group] || 0) + 1;
+                
+                const url = channel.url.toLowerCase();
+                if (url.includes('.m3u8')) {
+                    formatsData['HLS (.m3u8)']++;
+                } else if (url.includes('.mpd')) {
+                    formatsData['DASH (.mpd)']++;
+                } else if (url.includes('.mp4')) {
+                    formatsData['Direct MP4']++;
+                } else if (url.startsWith('rtmp') || url.startsWith('rtsp')) {
+                    formatsData['RTMP/RTSP']++;
+                } else {
+                    formatsData['Other']++;
+                }
+            });
+            
+            const uniqueGroups = Object.keys(groupsData).length;
+            const avgChannelsPerGroup = (totalChannels / uniqueGroups).toFixed(1);
+            const favoritePercentage = ((totalFavorites / totalChannels) * 100).toFixed(1);
+            
+            const overviewHTML = `
+                <div class="stat-item">
+                    <div class="stat-value">${totalChannels}</div>
+                    <div class="stat-label">Total Channels</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${uniqueGroups}</div>
+                    <div class="stat-label">Groups</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${avgChannelsPerGroup}</div>
+                    <div class="stat-label">Avg per Group</div>
+                </div>
+            `;
+            
+            document.getElementById('analysis-overview').innerHTML = overviewHTML;
+            
+            const groupsChartHTML = Object.entries(groupsData)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10)
+                .map(([group, count]) => {
+                    const percentage = ((count / totalChannels) * 100).toFixed(1);
+                    return `
+                        <div class="chart-bar">
+                            <div class="chart-label">${group}</div>
+                            <div class="chart-bar-container">
+                                <div class="chart-bar-fill" style="width: ${percentage}%;">
+                                    ${count}
+                                </div>
+                            </div>
+                            <div class="chart-percentage">${percentage}%</div>
+                        </div>
+                    `;
+                }).join('');
+            
+            document.getElementById('analysis-groups').innerHTML = groupsChartHTML;
+            
+            const formatsChartHTML = Object.entries(formatsData)
+                .filter(([format, count]) => count > 0)
+                .sort((a, b) => b[1] - a[1])
+                .map(([format, count]) => {
+                    const percentage = ((count / totalChannels) * 100).toFixed(1);
+                    return `
+                        <div class="chart-bar">
+                            <div class="chart-label">${format}</div>
+                            <div class="chart-bar-container">
+                                <div class="chart-bar-fill" style="width: ${percentage}%;">
+                                    ${count}
+                                </div>
+                            </div>
+                            <div class="chart-percentage">${percentage}%</div>
+                        </div>
+                    `;
+                }).join('');
+            
+            document.getElementById('analysis-formats').innerHTML = formatsChartHTML;
+            
+            const favoritesHTML = `
+                <div class="stat-item">
+                    <div class="stat-value">${totalFavorites}</div>
+                    <div class="stat-label">Favorites</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${favoritePercentage}%</div>
+                    <div class="stat-label">Favorited</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${channelHistory.length}</div>
+                    <div class="stat-label">History Items</div>
+                </div>
+            `;
+            
+            document.getElementById('analysis-favorites').innerHTML = favoritesHTML;
+            
+            dialog.style.display = 'flex';
+            showNotification('Analysis complete', 'success');
+        }
+        
+        function exportAnalysisReport() {
+            const reportData = {
+                timestamp: new Date().toISOString(),
+                totalChannels: liveChannels.length,
+                totalFavorites: favoriteChannels.length,
+                groups: {},
+                formats: {},
+                channels: liveChannels.map(ch => ({
+                    name: ch.name,
+                    group: ch.group,
+                    url: ch.url,
+                    isFavorite: favoriteChannels.some(fav => liveChannels[fav] === ch)
+                }))
+            };
+            
+            liveChannels.forEach(channel => {
+                const group = channel.group || 'Uncategorized';
+                reportData.groups[group] = (reportData.groups[group] || 0) + 1;
+                
+                const url = channel.url.toLowerCase();
+                if (url.includes('.m3u8')) {
+                    reportData.formats['HLS'] = (reportData.formats['HLS'] || 0) + 1;
+                } else if (url.includes('.mpd')) {
+                    reportData.formats['DASH'] = (reportData.formats['DASH'] || 0) + 1;
+                } else if (url.includes('.mp4')) {
+                    reportData.formats['MP4'] = (reportData.formats['MP4'] || 0) + 1;
+                } else if (url.startsWith('rtmp') || url.startsWith('rtsp')) {
+                    reportData.formats['RTMP'] = (reportData.formats['RTMP'] || 0) + 1;
+                } else {
+                    reportData.formats['Other'] = (reportData.formats['Other'] || 0) + 1;
+                }
+            });
+            
+            const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `nexus_tv_analysis_${Date.now()}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showNotification('Analysis report exported', 'success');
+        }
+        
+        function simpleEncrypt(text) {
+            return btoa(encodeURIComponent(text));
+        }
+        
+        function simpleDecrypt(encoded) {
+            try {
+                return decodeURIComponent(atob(encoded));
+            } catch (e) {
+                return null;
+            }
+        }
+        
+        function generateShareURL() {
+            const includeOnlyFavorites = document.getElementById('share-include-favorites').checked;
+            
+            let channelsToShare;
+            if (includeOnlyFavorites && favoriteChannels.length > 0) {
+                channelsToShare = favoriteChannels.map(idx => liveChannels[idx]).filter(ch => ch);
+            } else {
+                channelsToShare = liveChannels;
+            }
+            
+            if (channelsToShare.length === 0) {
+                showNotification('No channels to share', 'warning');
+                return;
+            }
+            
+            const playlistData = {
+                channels: channelsToShare.map(ch => ({
+                    name: ch.name,
+                    url: ch.url,
+                    logo: ch.logo || '',
+                    group: ch.group || ''
+                })),
+                timestamp: Date.now()
+            };
+            
+            const encoded = simpleEncrypt(JSON.stringify(playlistData));
+            const baseURL = window.location.href.split('?')[0];
+            const shareURL = `${baseURL}?playlist=${encoded}`;
+            
+            document.getElementById('share-url-output').value = shareURL;
+            document.getElementById('share-dialog').style.display = 'flex';
+            
+            showNotification('Share URL generated', 'success');
+        }
+        
+        function copyShareURL() {
+            const textarea = document.getElementById('share-url-output');
+            textarea.select();
+            document.execCommand('copy');
+            showNotification('Share URL copied to clipboard', 'success');
+        }
+        
+        function checkForEncryptedURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const encodedPlaylist = urlParams.get('playlist');
+            
+            if (encodedPlaylist) {
+                const decoded = simpleDecrypt(encodedPlaylist);
+                if (decoded) {
+                    try {
+                        const playlistData = JSON.parse(decoded);
+                        if (playlistData.channels && Array.isArray(playlistData.channels)) {
+                            liveChannels = playlistData.channels;
+                            localStorage.setItem('nexus_tv_channels', JSON.stringify(liveChannels));
+                            
+                            if (currentMode === 'live') {
+                                displayChannels(liveChannels);
+                                document.getElementById('live-playlist-name').textContent = 
+                                    `${liveChannels.length} channels loaded from shared link`;
+                            }
+                            
+                            addToHistory('Shared playlist', 'url');
+                            showNotification(`Loaded ${liveChannels.length} channels from shared link`, 'success');
+                        }
+                    } catch (e) {
+                        console.error('Failed to parse shared playlist:', e);
+                    }
+                }
+            }
+        }
+        
         // =====================================================================
         // SCHEDULE DATA SECTION - CLASSIC MOVIES PLAYLIST
         // =====================================================================
@@ -1891,21 +3676,197 @@
         // Load current video
         function loadCurrentVideo() {
             const currentVideo = schedule_data[currentVideoIndex];
-            videoPlayer.src = currentVideo.video;
-            videoPlayer.load();
             
-            // Calculate how far into the video we should start based on actual schedule time
-            const currentTime = getCurrentTimeInMinutes();
-            const startTime = timeToMinutes(currentVideo.start_time);
-            const videoPosition = Math.max(0, currentTime - startTime);
+            // Smooth fade transition
+            videoPlayer.style.transition = 'opacity 0.8s ease-in-out';
+            videoPlayer.style.opacity = '0';
             
-            // Set video to start at correct position based on real schedule timing
-            videoPlayer.currentTime = videoPosition * 60; // Convert to seconds
+            setTimeout(() => {
+                videoPlayer.src = currentVideo.video;
+                videoPlayer.load();
+                
+                // Calculate how far into the video we should start based on actual schedule time
+                const currentTime = getCurrentTimeInMinutes();
+                const startTime = timeToMinutes(currentVideo.start_time);
+                const videoPosition = Math.max(0, currentTime - startTime);
+                
+                // Set video to start at correct position based on real schedule timing
+                videoPlayer.currentTime = videoPosition * 60; // Convert to seconds
+                
+                // Fade in
+                videoPlayer.style.opacity = '1';
+            }, 800);
         }
 
         // Handle video end and play next
         function handleVideoEnd() {
-            playNextVideo();
+            const currentTime = getCurrentTimeInMinutes();
+            const nextVideo = schedule_data[(currentVideoIndex + 1) % schedule_data.length];
+            const nextStartTime = timeToMinutes(nextVideo.start_time);
+            
+            // Check if there's a gap before next show
+            const timeUntilNext = nextStartTime - currentTime;
+            
+            if (timeUntilNext > 1) {
+                // There's a gap - play bumper to fill the time
+                playBumper(timeUntilNext);
+            } else {
+                // No gap - proceed to next video
+                playNextVideo();
+            }
+        }
+        
+        // Play show bumper with smooth transitions
+        function playBumper(duration) {
+            // Create bumper from random clips of today's playlist
+            const bumperClips = [];
+            const clipCount = Math.min(5, schedule_data.length); // Use up to 5 random clips
+            const clipDuration = (duration * 60) / clipCount; // Duration in seconds per clip
+            
+            // Select random programs for bumper
+            const usedIndices = new Set();
+            while (bumperClips.length < clipCount) {
+                const randomIndex = Math.floor(Math.random() * schedule_data.length);
+                if (!usedIndices.has(randomIndex)) {
+                    usedIndices.add(randomIndex);
+                    bumperClips.push(schedule_data[randomIndex]);
+                }
+            }
+            
+            let currentClipIndex = 0;
+            
+            function playBumperClip() {
+                if (currentClipIndex >= bumperClips.length) {
+                    // Bumper finished - move to next show
+                    videoPlayer.style.opacity = '0';
+                    setTimeout(() => {
+                        playNextVideo();
+                        fadeInVideo();
+                    }, 500);
+                    return;
+                }
+                
+                const clip = bumperClips[currentClipIndex];
+                
+                // Fade out current
+                videoPlayer.style.transition = 'opacity 0.5s ease-in-out';
+                videoPlayer.style.opacity = '0';
+                
+                setTimeout(() => {
+                    // Load new clip
+                    videoPlayer.src = clip.video;
+                    videoPlayer.load();
+                    
+                    // Start at random position
+                    const randomStart = Math.random() * 30; // Random start within first 30 seconds
+                    videoPlayer.currentTime = randomStart;
+                    
+                    // Play clip for specified duration
+                    videoPlayer.play().then(() => {
+                        // Fade in
+                        videoPlayer.style.opacity = '1';
+                        
+                        // Show bumper indicator
+                        showBumperIndicator(clip.title);
+                        
+                        // Schedule next clip or end
+                        setTimeout(() => {
+                            currentClipIndex++;
+                            playBumperClip();
+                        }, clipDuration * 1000);
+                    }).catch(err => {
+                        console.log('Bumper clip playback issue:', err);
+                        // Skip to next clip on error
+                        currentClipIndex++;
+                        playBumperClip();
+                    });
+                }, 500);
+            }
+            
+            playBumperClip();
+        }
+        
+        // Fade in video smoothly
+        function fadeInVideo() {
+            videoPlayer.style.transition = 'opacity 0.8s ease-in-out';
+            videoPlayer.style.opacity = '1';
+        }
+        
+        // Update video progress bar and time display
+        function updateVideoProgress() {
+            const currentTime = videoPlayer.currentTime;
+            const duration = videoPlayer.duration;
+            
+            if (isNaN(duration) || duration === 0) return;
+            
+            // Update progress bar
+            const percentage = (currentTime / duration) * 100;
+            document.getElementById('video-progress-fill').style.width = percentage + '%';
+            
+            // Update time displays
+            document.getElementById('time-elapsed').textContent = formatTime(currentTime);
+            document.getElementById('time-total').textContent = formatTime(duration);
+            
+            const timeRemaining = duration - currentTime;
+            document.getElementById('time-remaining').textContent = '(-' + formatTime(timeRemaining) + ')';
+        }
+        
+        // Format seconds to MM:SS
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return '00:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+        
+        // Seek video when clicking progress bar
+        function seekVideo(event) {
+            const progressBar = document.getElementById('video-progress-bar');
+            const clickX = event.clientX - progressBar.getBoundingClientRect().left;
+            const barWidth = progressBar.offsetWidth;
+            const percentage = clickX / barWidth;
+            const newTime = percentage * videoPlayer.duration;
+            
+            if (!isNaN(newTime)) {
+                videoPlayer.currentTime = newTime;
+            }
+        }
+        
+        // Show bumper indicator
+        function showBumperIndicator(title) {
+            const indicator = document.createElement('div');
+            indicator.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, rgba(0, 243, 255, 0.9), rgba(255, 0, 255, 0.9));
+                color: white;
+                padding: 15px 25px;
+                border-radius: 10px;
+                font-family: 'Orbitron', sans-serif;
+                font-size: 14px;
+                font-weight: bold;
+                z-index: 1000;
+                box-shadow: 0 0 20px rgba(0, 243, 255, 0.5);
+                animation: slideInRight 0.5s ease-out;
+            `;
+            indicator.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-film"></i>
+                    <div>
+                        <div style="font-size: 10px; opacity: 0.8;">COMING UP NEXT</div>
+                        <div>${title}</div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(indicator);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                indicator.style.animation = 'slideOutRight 0.5s ease-out';
+                setTimeout(() => indicator.remove(), 500);
+            }, 3000);
         }
 
         // Set up video schedule and display upcoming shows
@@ -1954,6 +3915,10 @@
             
             // Video events
             videoPlayer.addEventListener('ended', handleVideoEnd);
+            videoPlayer.addEventListener('timeupdate', updateVideoProgress);
+            
+            // Progress bar click to seek
+            document.getElementById('video-progress-bar').addEventListener('click', seekVideo);
             
             // Control panel hover events
             controlPanel.addEventListener('mouseenter', () => {
