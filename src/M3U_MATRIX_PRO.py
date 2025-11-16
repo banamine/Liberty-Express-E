@@ -988,9 +988,8 @@ Success Rate: {results['working']/results['total']*100:.1f}%
                 i += 1
                 continue
 
-            if current_channel and (line.startswith("http")
-                                    or line.startswith("rtmp")
-                                    or line.startswith("rtsp")):
+            # Accept any non-comment line after #EXTINF as a URL/path
+            if current_channel and not line.startswith("#"):
                 current_channel["url"] = line.strip()
                 current_channel["custom_tags"] = custom_tags.copy()
                 
@@ -1043,6 +1042,89 @@ Success Rate: {results['working']/results['total']*100:.1f}%
             channel["tvg_id"] = attributes["tvg-id"]
 
         return channel
+
+    def parse_txt_file(self, file_path):
+        """Parse TXT file containing URLs (one per line) or extract links from any text"""
+        channels = []
+        
+        try:
+            with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                content = f.read()
+        except Exception:
+            try:
+                with open(file_path, 'r', encoding='latin-1') as f:
+                    content = f.read()
+            except Exception as e:
+                self.logger.error(f"Cannot read TXT file {file_path}: {e}")
+                return []
+        
+        # Extract all URLs from the content
+        url_pattern = r'https?://[^\s<>"\']+|rtmp://[^\s<>"\']+|rtsp://[^\s<>"\']+|file://[^\s<>"\']+|/[^\s<>"\']+\.[a-zA-Z0-9]+'
+        urls = re.findall(url_pattern, content)
+        
+        # Create channels from found URLs
+        for idx, url in enumerate(urls, 1):
+            url = url.strip()
+            if not url:
+                continue
+            
+            # Try to extract a meaningful name from the URL
+            name = url.split('/')[-1]
+            if '?' in name:
+                name = name.split('?')[0]
+            name = urllib.parse.unquote(name) if hasattr(urllib.parse, 'unquote') else name
+            
+            channel = {
+                "name": name or f"Link {idx}",
+                "group": "Imported Links",
+                "logo": "",
+                "tvg_id": "",
+                "num": 0,
+                "url": url,
+                "backups": []
+            }
+            channels.append(channel)
+        
+        self.logger.info(f"Extracted {len(channels)} links from {os.path.basename(file_path)}")
+        return channels
+    
+    def scan_folder_for_media(self, folder_path):
+        """Recursively scan folder for media files and playlists"""
+        all_channels = []
+        supported_playlist_exts = {'.m3u', '.m3u8', '.txt'}
+        
+        try:
+            for root, dirs, files in os.walk(folder_path):
+                for filename in files:
+                    file_path = os.path.join(root, filename)
+                    ext = os.path.splitext(filename)[1].lower()
+                    
+                    try:
+                        # Check if it's a playlist file
+                        if ext in supported_playlist_exts:
+                            if ext == '.txt':
+                                channels = self.parse_txt_file(file_path)
+                            else:
+                                channels = self.parse_m3u_file(file_path)
+                            all_channels.extend(channels)
+                            self.logger.info(f"Found {len(channels)} channels in {filename}")
+                        
+                        # Check if it's a media file
+                        elif self.is_media_file(file_path):
+                            channel = self.create_channel_from_media_file(file_path)
+                            channel.setdefault("num", 0)
+                            channel.setdefault("backups", [])
+                            all_channels.append(channel)
+                            self.logger.info(f"Found media file: {filename}")
+                    
+                    except Exception as e:
+                        self.logger.error(f"Error processing {filename}: {e}")
+                        continue
+        
+        except Exception as e:
+            self.logger.error(f"Error scanning folder {folder_path}: {e}")
+        
+        return all_channels
 
     # ========== ADVANCED ORGANIZE ROUTINE ==========
     def organize_channels(self):
@@ -1720,20 +1802,41 @@ Success Rate: {results['working']/results['total']*100:.1f}%
         self.build_m3u()
 
     def load(self):
-        f = filedialog.askopenfilenames(
-            filetypes=[
-                ("M3U Files", "*.m3u *.m3u8"),
-                ("All Files", "*.*")
-            ]
+        # Ask user if they want to load files or a folder
+        response = messagebox.askyesnocancel(
+            "Select Import Type",
+            "Do you want to load individual files?\n\n"
+            "Yes = Select Files\n"
+            "No = Select Folder (scans subfolders)\n"
+            "Cancel = Abort"
         )
-        if not f:
+        
+        if response is None:  # Cancel
             return
         
-        # Update file list immediately
-        self.files.extend(f)
-        self.file_list.delete(0, tk.END)
-        for ff in self.files:
-            self.file_list.insert(tk.END, os.path.basename(ff))
+        if response:  # Yes - load files
+            f = filedialog.askopenfilenames(
+                filetypes=[
+                    ("All Playlists", "*.m3u *.m3u8 *.txt"),
+                    ("M3U Files", "*.m3u *.m3u8"),
+                    ("Text Files", "*.txt"),
+                    ("All Files", "*.*")
+                ]
+            )
+            if not f:
+                return
+            files_to_process = f
+            is_folder = False
+        else:  # No - load folder
+            folder = filedialog.askdirectory(title="Select Folder to Scan")
+            if not folder:
+                return
+            files_to_process = [folder]
+            is_folder = True
+        
+        # Return early if no selection
+        if not files_to_process:
+            return
         
         # Create progress window
         progress_win = tk.Toplevel(self.root)
@@ -1772,51 +1875,83 @@ Success Rate: {results['working']/results['total']*100:.1f}%
         
         # Parse files with progress updates
         all_channels = []
-        total_files = len(f)
         
-        for idx, file_path in enumerate(f, 1):
-            status_label.config(text=f"Reading file {idx}/{total_files}: {os.path.basename(file_path)}")
-            progress['value'] = (idx / total_files) * 50  # First 50% for parsing
+        if is_folder:
+            # Scan folder for all media and playlist files
+            status_label.config(text=f"Scanning folder: {os.path.basename(files_to_process[0])}")
+            progress['value'] = 10
             progress_win.update()
             
-            try:
-                # Check if this is a media file or M3U playlist
-                if self.is_media_file(file_path):
-                    # Create channel directly from media file
-                    channel = self.create_channel_from_media_file(file_path)
-                    channel.setdefault("num", 0)
-                    channel.setdefault("backups", [])
-                    channel["uuid"] = str(uuid.uuid4())
-                    all_channels.append(channel)
-                    self.logger.info(f"Created channel from media file: {os.path.basename(file_path)}")
-                else:
-                    # Parse as M3U playlist
-                    channels = self.parse_m3u_file(file_path)
-                    for ch in channels:
-                        ch.setdefault("num", 0)
-                        ch.setdefault("backups", [])
-                        # Add unique UUID if not present
-                        if "uuid" not in ch:
-                            ch["uuid"] = str(uuid.uuid4())
-                    all_channels.extend(channels)
-                    self.logger.info(f"Parsed {len(channels)} channels from M3U: {os.path.basename(file_path)}")
-            except Exception as e:
-                self.logger.error(f"Failed to process {file_path}: {e}")
-                status_label.config(text=f"Error reading {os.path.basename(file_path)}")
+            all_channels = self.scan_folder_for_media(files_to_process[0])
+            
+            progress['value'] = 50
+            progress_win.update()
+            
+            # Update file list to show folder
+            self.files.append(files_to_process[0])
+            self.file_list.delete(0, tk.END)
+            for ff in self.files:
+                self.file_list.insert(tk.END, os.path.basename(ff) if os.path.isfile(ff) else f"[Folder] {os.path.basename(ff)}")
+        else:
+            # Process individual files
+            total_files = len(files_to_process)
+            
+            for idx, file_path in enumerate(files_to_process, 1):
+                status_label.config(text=f"Reading file {idx}/{total_files}: {os.path.basename(file_path)}")
+                progress['value'] = (idx / total_files) * 50  # First 50% for parsing
                 progress_win.update()
-                continue
+                
+                try:
+                    ext = os.path.splitext(file_path)[1].lower()
+                    
+                    # Check if this is a TXT file
+                    if ext == '.txt':
+                        channels = self.parse_txt_file(file_path)
+                        all_channels.extend(channels)
+                        self.logger.info(f"Extracted {len(channels)} links from TXT: {os.path.basename(file_path)}")
+                    # Check if this is a media file
+                    elif self.is_media_file(file_path):
+                        channel = self.create_channel_from_media_file(file_path)
+                        channel.setdefault("num", 0)
+                        channel.setdefault("backups", [])
+                        channel["uuid"] = str(uuid.uuid4())
+                        all_channels.append(channel)
+                        self.logger.info(f"Created channel from media file: {os.path.basename(file_path)}")
+                    # Parse as M3U playlist
+                    else:
+                        channels = self.parse_m3u_file(file_path)
+                        for ch in channels:
+                            ch.setdefault("num", 0)
+                            ch.setdefault("backups", [])
+                            if "uuid" not in ch:
+                                ch["uuid"] = str(uuid.uuid4())
+                        all_channels.extend(channels)
+                        self.logger.info(f"Parsed {len(channels)} channels from M3U: {os.path.basename(file_path)}")
+                except Exception as e:
+                    self.logger.error(f"Failed to process {file_path}: {e}")
+                    status_label.config(text=f"Error reading {os.path.basename(file_path)}")
+                    progress_win.update()
+                    continue
+            
+            # Update file list
+            self.files.extend(files_to_process)
+            self.file_list.delete(0, tk.END)
+            for ff in self.files:
+                self.file_list.insert(tk.END, os.path.basename(ff))
         
         # Check if we got any channels
         if not all_channels:
             progress_win.destroy()
             messagebox.showwarning(
                 "No Content Found",
-                "No channels or media files were found in the selected files.\n\n"
+                "No channels or media files were found in the selected files/folder.\n\n"
                 "Supported file types:\n"
                 "• M3U Playlists (.m3u, .m3u8)\n"
+                "• Text Files with URLs (.txt)\n"
                 "• Video Files (.mp4, .mkv, .avi, .mov, .wmv, etc.)\n"
-                "• Audio Files (.mp3, .aac, .wav, .flac, .ogg, etc.)\n\n"
-                "If you selected a text file, make sure it contains valid M3U format."
+                "• Audio Files (.mp3, .aac, .wav, .flac, .ogg, etc.)\n"
+                "• Folders (scans all subfolders for media and playlists)\n\n"
+                "Text files should contain URLs (one per line) or M3U format."
             )
             return
         
