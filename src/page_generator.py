@@ -218,6 +218,27 @@ class NexusTVPageGenerator:
         with open(self.template_path, 'r', encoding='utf-8') as f:
             template = f.read()
         
+        # Embed HLS.js and DASH.js libraries inline for offline support
+        libs_path = Path(__file__).resolve().parent.parent / "templates" / "web-iptv-extension" / "js" / "libs"
+        
+        # Read HLS.js (required for offline support)
+        hls_js_path = libs_path / "hls.min.js"
+        if not hls_js_path.exists():
+            raise FileNotFoundError(f"HLS.js library required for offline support not found at: {hls_js_path}")
+        
+        with open(hls_js_path, 'r', encoding='utf-8') as f:
+            hls_js_content = f.read()
+        template = template.replace('// PLACEHOLDER_HLS_JS', hls_js_content)
+        
+        # Read DASH.js (required for offline support)
+        dash_js_path = libs_path / "dash.all.min.js"
+        if not dash_js_path.exists():
+            raise FileNotFoundError(f"DASH.js library required for offline support not found at: {dash_js_path}")
+        
+        with open(dash_js_path, 'r', encoding='utf-8') as f:
+            dash_js_content = f.read()
+        template = template.replace('// PLACEHOLDER_DASH_JS', dash_js_content)
+        
         # Parse M3U to schedule
         schedule = self.parse_m3u_to_schedule(m3u_content, channel_name)
         
