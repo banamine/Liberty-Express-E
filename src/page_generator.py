@@ -729,6 +729,197 @@ class WebIPTVGenerator:
         
         return selector_path
 
+class SimplePlayerGenerator:
+    """
+    Simple Player Generator
+    Generates a clean, responsive player with playlist support
+    """
+    def __init__(self, template_path=None):
+        if template_path is None:
+            template_path = Path(__file__).resolve().parent.parent / "templates" / "simple-player"
+        self.template_dir = Path(template_path)
+        self.output_dir = Path("generated_pages")
+        self.output_dir.mkdir(exist_ok=True)
+    
+    def parse_m3u_to_channels(self, m3u_content):
+        """Parse M3U content and extract channel information with group support"""
+        channels = []
+        lines = m3u_content.strip().split('\n')
+        current_channel = {}
+        
+        for line in lines:
+            line = line.strip()
+            
+            if line.startswith('#EXTINF'):
+                name_match = re.search(r'tvg-name="([^"]*)"', line)
+                logo_match = re.search(r'tvg-logo="([^"]*)"', line)
+                group_match = re.search(r'group-title="([^"]*)"', line)
+                title_match = re.search(r',(.+)$', line)
+                
+                current_channel = {
+                    'name': name_match.group(1) if name_match else (title_match.group(1) if title_match else 'Unknown'),
+                    'logo': logo_match.group(1) if logo_match else '',
+                    'group': group_match.group(1) if group_match else 'Uncategorized',
+                    'url': ''
+                }
+            elif line and not line.startswith('#') and current_channel.get('name'):
+                current_channel['url'] = line
+                channels.append({**current_channel})
+                current_channel = {}
+        
+        return channels
+    
+    def generate_page(self, m3u_content, channel_name, output_filename=None):
+        """
+        Generate a Simple Player page from M3U content
+        
+        Args:
+            m3u_content: M3U playlist content as string
+            channel_name: Name for the channel/playlist
+            output_filename: Optional custom filename (defaults to channel_name)
+        
+        Returns:
+            Path to the generated player HTML file
+        """
+        channels = self.parse_m3u_to_channels(m3u_content)
+        
+        if not channels:
+            raise ValueError("No valid channels found in M3U content")
+        
+        output_name = output_filename if output_filename else channel_name
+        page_dir = self.output_dir / output_name
+        page_dir.mkdir(exist_ok=True)
+        
+        # Copy CSS
+        css_dir = page_dir / "css"
+        css_dir.mkdir(exist_ok=True)
+        if (self.template_dir / "css" / "styles.css").exists():
+            shutil.copy(self.template_dir / "css" / "styles.css", css_dir / "styles.css")
+        
+        # Copy JS
+        js_dir = page_dir / "js"
+        js_dir.mkdir(exist_ok=True)
+        if (self.template_dir / "js" / "app.js").exists():
+            shutil.copy(self.template_dir / "js" / "app.js", js_dir / "app.js")
+        
+        # Read template
+        template_file = self.template_dir / "player.html"
+        if not template_file.exists():
+            raise FileNotFoundError(f"Template not found: {template_file}")
+        
+        with open(template_file, 'r', encoding='utf-8') as f:
+            html_content = f.read()
+        
+        # Replace placeholders
+        channels_data = {'channels': channels}
+        channels_json = json.dumps(channels_data, ensure_ascii=False)
+        html_content = html_content.replace('__PLAYLIST_NAME__', channel_name)
+        html_content = html_content.replace("window.PLAYLIST_DATA = '__PLAYLIST_JSON__';", 
+                                           f"window.PLAYLIST_DATA = {channels_json};")
+        
+        # Write output
+        output_path = page_dir / "player.html"
+        with open(output_path, 'w', encoding='utf-8') as f:
+            f.write(html_content)
+        
+        return output_path
+    
+    def generate_selector_page(self, generated_pages):
+        """Generate a selector page with all generated players"""
+        selector_html = f'''<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Player - Channel Selector</title>
+    <style>
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        body {{ 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #000 0%, #1a1a2e 100%); 
+            color: #ffff00; 
+            padding: 40px 20px;
+            min-height: 100vh;
+        }}
+        .container {{ max-width: 1200px; margin: 0 auto; }}
+        h1 {{ 
+            text-align: center; 
+            margin-bottom: 40px; 
+            font-size: 2.5em; 
+            text-shadow: 0 0 20px rgba(255, 255, 0, 0.5);
+        }}
+        .grid {{ 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+            gap: 30px; 
+        }}
+        .card {{ 
+            background: rgba(0, 0, 50, 0.8); 
+            padding: 30px; 
+            border-radius: 10px; 
+            border: 2px solid #00f;
+            transition: all 0.3s;
+            text-align: center;
+        }}
+        .card:hover {{ 
+            transform: translateY(-5px); 
+            box-shadow: 0 10px 30px rgba(0, 0, 255, 0.5);
+            border-color: #ffff00;
+        }}
+        .card h2 {{ color: #ffff00; margin-bottom: 15px; font-size: 1.5em; }}
+        .card p {{ color: #ccc; margin-bottom: 20px; }}
+        .btn {{ 
+            display: inline-block;
+            background: rgba(0, 0, 200, 0.8); 
+            color: #ffff00; 
+            padding: 12px 30px; 
+            text-decoration: none; 
+            border-radius: 5px;
+            font-weight: bold;
+            border: 1px solid #00f;
+            transition: all 0.2s;
+        }}
+        .btn:hover {{ 
+            background: rgba(0, 0, 255, 0.9); 
+            box-shadow: 0 0 15px rgba(0, 0, 255, 0.6);
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📺 Simple Player - Select Channel</h1>
+        <div class="grid" id="grid"></div>
+    </div>
+    <script>
+        const channels = ''' + json.dumps([
+            {
+                'name': page['name'],
+                'file': page['file'],
+                'channels': page.get('channels', 0)
+            } for page in generated_pages
+        ], indent=12) + ''';
+        
+        const grid = document.getElementById('grid');
+        channels.forEach(channel => {{
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+                <h2>${{channel.name}}</h2>
+                <p>${{channel.channels}} channels available</p>
+                <a href="${{channel.file}}" class="btn">▶ Watch Now</a>
+            `;
+            grid.appendChild(card);
+        }});
+    </script>
+</body>
+</html>'''
+        
+        selector_path = self.output_dir / "index.html"
+        with open(selector_path, 'w', encoding='utf-8') as f:
+            f.write(selector_html)
+        
+        return selector_path
+
 if __name__ == "__main__":
     # Example usage
     generator = NexusTVPageGenerator()
