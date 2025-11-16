@@ -3,7 +3,10 @@
 ## Overview
 This project offers a comprehensive IPTV solution, combining a professional M3U playlist manager (Python desktop application) with a futuristic streaming TV player (web interface). The platform aims to provide robust tools for managing, organizing, and playing streaming content, catering to users who require advanced control over their IPTV experience. The vision is to deliver a seamless and engaging content consumption experience through efficient playlist management and an immersive streaming environment.
 
+**NEW:** Video Player Pro - A standalone vanilla Python video player application with advanced scheduling, screenshot capture, and metadata extraction capabilities (see Video Player Pro section below).
+
 ## Recent Changes (November 2025)
+- **Video Player Pro (Nov 16):** Created standalone vanilla Python video player application. Features include: minimalist launcher GUI, video player workbench with dual-panel layout, FFmpeg-based metadata extraction, screenshot capture with JSON metadata and auto-thumbnails, playlist management (copy/paste/delete), smart scheduling system with time predictions, auto-save functionality, and cross-platform playback support.
 - **Auto-Thumbnail System (Nov 16):** Implemented IndexedDB-based automatic thumbnail generation for all player templates. Features include: 2 screenshots per video captured at 25% and 75% playtime, browser-based storage using IndexedDB (non-portable but fast), per-page thumbnail databases, placeholder system until captures complete, HLS/DASH/direct stream support. Thumbnails auto-generate as videos play with zero user interaction required.
 - **CDN Elimination (Nov 16):** Eliminated ALL external CDN dependencies across templates. NEXUS TV embeds HLS.js, DASH.js, and thumbnail-system.js inline. Web IPTV and Simple Player use local bundled copies in js/libs/ folders. All generated pages work 100% offline (except for remote video stream URLs). Fail-fast error handling ensures library files are present before generation.
 - **Smart TV Scheduler (Nov 16):** Added intelligent 7-day TV scheduling system for NEXUS TV. Features include: global content randomization, configurable show durations, no daily repeats, max consecutive episode limiting, and automated schedule generation. Scheduler dialog appears before NEXUS TV generation with settings for show duration (5-180 min), number of days (1-30), and max consecutive shows (1-10).
@@ -66,6 +69,46 @@ The project includes M3U MATRIX PRO (Python desktop application) with three web 
 - **Automated Deployments:** Configured for Replit Autoscale deployment for the web player.
 - **Standalone Page Generation:** All generated pages are completely self-contained with embedded playlist data and bundled dependencies (no external CDNs required).
 - **Offline-First Design:** Pages work 100% offline for local video files, with zero external dependencies except for remote video stream URLs.
+
+## Video Player Pro
+
+### Description
+A standalone vanilla Python desktop application for advanced video playback, scheduling, and management. Built entirely with standard Python libraries (Tkinter) and FFmpeg integration.
+
+### Key Features
+- **Main Launcher**: Minimalist GUI with single-click launch button
+- **Video Workbench**: Advanced dual-panel interface for playlist management and playback
+- **File Management**: Open, close, delete, copy, paste video operations
+- **FFmpeg Integration**: Automatic metadata extraction (duration, resolution, codec, file size)
+- **Screenshot System**: Capture screenshots with automatic JSON metadata and thumbnail generation
+- **Smart Scheduling**: Generate TV-style schedules with customizable time slots and predictions
+- **Playlist Persistence**: Auto-save and manual save/load of playlists in JSON format
+- **Cross-Platform**: Works on Windows, macOS, and Linux
+
+### Technical Stack
+- Python 3.7+ with Tkinter (built-in GUI framework)
+- FFmpeg for video processing and metadata extraction
+- Pillow (PIL) for image/thumbnail processing
+- JSON-based data storage
+
+### File Structure
+```
+src/video_player_app/
+├── main_launcher.py           # Main launcher GUI
+├── video_player_workbench.py  # Workbench interface
+├── run_player.py              # Entry point script
+├── README.txt                 # User documentation
+├── FEATURES.md                # Feature documentation
+├── screenshots/               # Screenshot storage
+├── data/                      # Application data
+└── data/playlist.json        # Auto-saved playlist
+```
+
+### Usage
+```bash
+cd src/video_player_app
+python run_player.py
+```
 
 ## External Dependencies
 
