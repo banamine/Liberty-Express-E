@@ -181,6 +181,21 @@ function loadVideo(index) {
   
   const url = item.url || item.src;
   
+  // Debug logging
+  console.log('Loading video:', {
+    index,
+    name: item.name,
+    url: url,
+    urlType: url.includes('.m3u8') ? 'HLS' : 'Direct',
+    protocol: url.split(':')[0]
+  });
+  
+  if (!url) {
+    showError('No URL found for this channel');
+    setTimeout(() => nextVideo(), 2000);
+    return;
+  }
+  
   if (url.includes('.m3u8')) {
     loadHLS(url);
   } else {
@@ -271,10 +286,38 @@ function onVideoEnded() {
   nextVideo();
 }
 
-function onVideoError() {
-  console.error('Video error, skipping...');
-  showError('Failed to load video');
-  setTimeout(nextVideo, 2000);
+function onVideoError(e) {
+  const item = playlist[currentIndex];
+  const errorDetails = {
+    error: e,
+    mediaError: video.error ? {
+      code: video.error.code,
+      message: video.error.message,
+      MEDIA_ERR_ABORTED: video.error.code === 1,
+      MEDIA_ERR_NETWORK: video.error.code === 2,
+      MEDIA_ERR_DECODE: video.error.code === 3,
+      MEDIA_ERR_SRC_NOT_SUPPORTED: video.error.code === 4
+    } : null,
+    url: item?.url,
+    channel: item?.name
+  };
+  
+  console.error('Video playback error:', errorDetails);
+  
+  if (retryTimer) clearTimeout(retryTimer);
+  loading.classList.remove('show');
+  
+  let errorMsg = 'Playback error - Skipping...';
+  if (video.error?.code === 4) {
+    errorMsg = 'Format not supported - Skipping...';
+  } else if (video.error?.code === 2) {
+    errorMsg = 'Network error - Skipping...';
+  }
+  
+  showError(errorMsg);
+  setTimeout(() => {
+    nextVideo();
+  }, 2000);
 }
 
 function showError(message) {
