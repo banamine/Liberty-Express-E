@@ -3050,31 +3050,151 @@ Services included:
                                  "Could not generate thumbnails", e)
     
     def url_import_workbench(self):
-        """Import URLs from text file or clipboard"""
+        """Import URLs from text file or clipboard - Enhanced Notepad Mode"""
         dialog = tk.Toplevel(self.root)
-        dialog.title("URL Import Workbench")
-        dialog.geometry("800x600")
+        dialog.title("Import Workbench - Notepad Mode")
+        dialog.geometry("900x700")
         dialog.configure(bg="#1e1e1e")
         
-        tk.Label(dialog, text="URL IMPORT WORKBENCH", 
+        tk.Label(dialog, text="📝 IMPORT WORKBENCH - NOTEPAD MODE", 
                 font=("Arial", 18, "bold"), 
                 fg="gold", bg="#1e1e1e").pack(pady=10)
         
-        tk.Label(dialog, text="Paste URLs below (one per line):", 
+        tk.Label(dialog, text="Paste URLs or M3U content below:", 
                 fg="#fff", bg="#1e1e1e").pack()
         
         text_frame = tk.Frame(dialog)
         text_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
         
         text = tk.Text(text_frame, bg="#333", fg="#fff", 
-                      insertbackground="#fff", font=("Consolas", 10))
+                      insertbackground="#fff", font=("Consolas", 10),
+                      wrap=tk.NONE)
         text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         
-        scroll = tk.Scrollbar(text_frame, command=text.yview)
-        scroll.pack(side=tk.RIGHT, fill=tk.Y)
-        text.config(yscrollcommand=scroll.set)
+        scroll_y = tk.Scrollbar(text_frame, command=text.yview)
+        scroll_y.pack(side=tk.RIGHT, fill=tk.Y)
+        text.config(yscrollcommand=scroll_y.set)
+        
+        scroll_x = tk.Scrollbar(dialog, orient=tk.HORIZONTAL, command=text.xview)
+        scroll_x.pack(fill=tk.X, padx=20)
+        text.config(xscrollcommand=scroll_x.set)
+        
+        def load_from_file():
+            """Open a file and load content"""
+            file = filedialog.askopenfilename(
+                title="Open File",
+                filetypes=[("All files", "*.*"), ("M3U files", "*.m3u"), 
+                          ("Text files", "*.txt"), ("M3U8 files", "*.m3u8")]
+            )
+            if file:
+                try:
+                    with open(file, 'r', encoding='utf-8', errors='ignore') as f:
+                        content = f.read()
+                        text.delete("1.0", tk.END)
+                        text.insert("1.0", content)
+                        self.stat.config(text=f"Loaded: {os.path.basename(file)}")
+                except Exception as e:
+                    messagebox.showerror("Error", f"Could not open file:\n{e}")
+        
+        def save_to_file():
+            """Save text content to file"""
+            content = text.get("1.0", tk.END).strip()
+            if not content:
+                messagebox.showwarning("Empty", "Nothing to save!")
+                return
+            
+            file = filedialog.asksaveasfilename(
+                title="Save As",
+                defaultextension=".txt",
+                filetypes=[("Text files", "*.txt"), ("M3U files", "*.m3u"), 
+                          ("M3U8 files", "*.m3u8"), ("All files", "*.*")]
+            )
+            if file:
+                try:
+                    with open(file, 'w', encoding='utf-8') as f:
+                        f.write(content)
+                    messagebox.showinfo("Saved", f"File saved:\n{os.path.basename(file)}")
+                    self.stat.config(text=f"Saved: {os.path.basename(file)}")
+                except Exception as e:
+                    messagebox.showerror("Error", f"Could not save file:\n{e}")
+        
+        def copy_to_clipboard():
+            """Copy text to clipboard"""
+            content = text.get("1.0", tk.END).strip()
+            if not content:
+                messagebox.showwarning("Empty", "Nothing to copy!")
+                return
+            
+            self.root.clipboard_clear()
+            self.root.clipboard_append(content)
+            self.root.update()
+            messagebox.showinfo("Copied", "Content copied to clipboard!")
+            self.stat.config(text="Copied to clipboard")
+        
+        def clear_text():
+            """Clear all text"""
+            if text.get("1.0", tk.END).strip():
+                if messagebox.askyesno("Clear All", "Delete all text?"):
+                    text.delete("1.0", tk.END)
+                    self.stat.config(text="Text cleared")
+        
+        def generate_m3u():
+            """Parse M3U content and add to playlist"""
+            content = text.get("1.0", tk.END).strip()
+            if not content:
+                messagebox.showwarning("Empty", "Enter M3U content first!")
+                return
+            
+            try:
+                # Save to temporary file for parsing
+                temp_file = Path(tempfile.gettempdir()) / "workbench_temp.m3u"
+                with open(temp_file, 'w', encoding='utf-8') as f:
+                    f.write(content)
+                
+                # Parse M3U
+                channels = self.parse_m3u_file(str(temp_file))
+                
+                if not channels:
+                    messagebox.showwarning("No Channels", "No valid channels found in M3U content!")
+                    temp_file.unlink()
+                    return
+                
+                # Add to playlist with proper numbering and required fields
+                start_num = len(self.channels) + 1
+                for idx, channel in enumerate(channels):
+                    # Ensure all required fields exist
+                    channel['num'] = start_num + idx
+                    channel.setdefault('uuid', str(uuid.uuid4()))
+                    channel.setdefault('name', 'Unknown')
+                    channel.setdefault('group', 'Other')
+                    channel.setdefault('logo', '')
+                    channel.setdefault('tvg_id', '')
+                    channel.setdefault('url', '')
+                    channel.setdefault('backups', [])
+                    channel.setdefault('custom_tags', {})
+                    
+                    self.channels.append(channel)
+                
+                # Clean up temp file
+                temp_file.unlink()
+                
+                # Refresh UI
+                self.fill()
+                self.build_m3u()
+                
+                messagebox.showinfo("Success", 
+                                  f"✅ Generated M3U!\n\n"
+                                  f"Added {len(channels)} channels to playlist\n"
+                                  f"Total channels: {len(self.channels)}")
+                self.stat.config(text=f"Added {len(channels)} channels from M3U")
+                dialog.destroy()
+                
+            except Exception as e:
+                messagebox.showerror("Parse Error", 
+                                   f"Could not parse M3U content:\n{str(e)}")
         
         def import_urls():
+            """Import plain URLs (legacy function)"""
             urls = text.get("1.0", tk.END).strip().split('\n')
             urls = [u.strip() for u in urls if u.strip()]
             
@@ -3091,33 +3211,42 @@ Services included:
                         'group': 'Imported',
                         'url': url,
                         'logo': '',
-                        'tags': {}
+                        'num': len(self.channels) + 1,
+                        'uuid': str(uuid.uuid4()),
+                        'custom_tags': {}
                     })
                     added += 1
             
-            self.refresh()
+            self.fill()
+            self.build_m3u()
             messagebox.showinfo("Success", f"Imported {added} URLs!")
+            self.stat.config(text=f"Imported {added} URLs")
             dialog.destroy()
         
-        def load_from_file():
-            file = filedialog.askopenfilename(
-                title="Select URL List File",
-                filetypes=[("Text files", "*.txt"), ("All files", "*.*")]
-            )
-            if file:
-                with open(file, 'r', encoding='utf-8', errors='ignore') as f:
-                    text.delete("1.0", tk.END)
-                    text.insert("1.0", f.read())
+        # Button row 1: File operations
+        btn_frame1 = tk.Frame(dialog, bg="#1e1e1e")
+        btn_frame1.pack(pady=5)
         
-        btn_frame = tk.Frame(dialog, bg="#1e1e1e")
-        btn_frame.pack(pady=10)
+        tk.Button(btn_frame1, text="📁 Open", bg="#3498db", 
+                 fg="white", width=12, command=load_from_file).pack(side=tk.LEFT, padx=3)
+        tk.Button(btn_frame1, text="💾 Save", bg="#2ecc71", 
+                 fg="white", width=12, command=save_to_file).pack(side=tk.LEFT, padx=3)
+        tk.Button(btn_frame1, text="📋 Copy", bg="#9b59b6", 
+                 fg="white", width=12, command=copy_to_clipboard).pack(side=tk.LEFT, padx=3)
+        tk.Button(btn_frame1, text="🗑️ Clear", bg="#e67e22", 
+                 fg="white", width=12, command=clear_text).pack(side=tk.LEFT, padx=3)
         
-        tk.Button(btn_frame, text="Load from File", bg="#3498db", 
-                 fg="white", width=15, command=load_from_file).pack(side=tk.LEFT, padx=5)
-        tk.Button(btn_frame, text="Import URLs", bg="#27ae60", 
-                 fg="white", width=15, command=import_urls).pack(side=tk.LEFT, padx=5)
-        tk.Button(btn_frame, text="Cancel", bg="#e74c3c", 
-                 fg="white", width=15, command=dialog.destroy).pack(side=tk.LEFT, padx=5)
+        # Button row 2: Import operations
+        btn_frame2 = tk.Frame(dialog, bg="#1e1e1e")
+        btn_frame2.pack(pady=5)
+        
+        tk.Button(btn_frame2, text="🎬 Generate M3U", bg="#27ae60", 
+                 fg="white", width=20, height=2, font=("Arial", 11, "bold"),
+                 command=generate_m3u).pack(side=tk.LEFT, padx=5)
+        tk.Button(btn_frame2, text="Import URLs Only", bg="#16a085", 
+                 fg="white", width=20, height=2, command=import_urls).pack(side=tk.LEFT, padx=5)
+        tk.Button(btn_frame2, text="❌ Close", bg="#e74c3c", 
+                 fg="white", width=15, height=2, command=dialog.destroy).pack(side=tk.LEFT, padx=5)
     
     def export_tv_guide_json(self):
         """Export 7-day TV Guide in JSON format with timestamps"""
