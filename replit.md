@@ -4,6 +4,7 @@
 This project offers a comprehensive IPTV solution, combining a professional M3U playlist manager (Python desktop application) with a futuristic streaming TV player (web interface). The platform aims to provide robust tools for managing, organizing, and playing streaming content, catering to users who require advanced control over their IPTV experience. The vision is to deliver a seamless and engaging content consumption experience through efficient playlist management and an immersive streaming environment.
 
 ## Recent Changes (November 2025)
+- **Smart TV Scheduler (Nov 16):** Added intelligent 7-day TV scheduling system for NEXUS TV. Features include: global content randomization, configurable show durations, no daily repeats, max consecutive episode limiting, and automated schedule generation. Scheduler dialog appears before NEXUS TV generation with settings for show duration (5-180 min), number of days (1-30), and max consecutive shows (1-10).
 - **Enhanced File Import System (Nov 16):** Fixed "No channels found" error by removing restrictive URL filtering. Now accepts ALL URL types (HTTPS, HTTP, RTMP, RTSP, local paths, file:// URLs). Added TXT file support with automatic link extraction. Added folder/subfolder scanning to recursively find all media files and playlists. Import dialog now offers "Files" or "Folder" selection.
 - **Title Cleaning Fix:** Fixed workbench import mode displaying URL-encoded filenames (e.g., `Hogan%27s%20Heroes.mp4`) in generated pages. Now properly decodes URLs, removes file extensions, and formats titles cleanly (e.g., `Hogan's Heroes`). Applied to all 3 player templates.
 - **Offline Capability:** Eliminated ALL external CDN dependencies. Downloaded HLS.js, Dash.js, and Feather Icons locally. Pages now work 100% offline (except for remote video stream URLs).
@@ -30,6 +31,7 @@ The project includes M3U MATRIX PRO (Python desktop application) with three web 
 - **M3U MATRIX PRO:**
     - Built with Python 3.11 and Tkinter.
     - Features include drag & drop channel reordering, live validation, smart playlist organization, EPG integration (XMLTV), CSV export, remote URL import, regex-powered search, auto-save, progress bars, improved error messages, exit protection, UUID tracking for channels, and a Timestamp Generator for M3U playlists with seek markers.
+    - **Smart TV Scheduler:** Creates 7-day TV schedules with global randomization, configurable show durations, no daily repeats, and consecutive episode limiting. Integrated into NEXUS TV generation workflow.
     - **Enhanced Import System:** Accepts M3U/M3U8 playlists, TXT files (with automatic URL extraction), video/audio files, and folder scanning (recursive). Supports all URL types including local paths, file:// URLs, HTTPS, RTMP, RTSP.
     - Incorporates an installer system for Windows with portable and full installation modes, auto-updates, and user verification.
     - Includes an automatic thumbnail caching system.
