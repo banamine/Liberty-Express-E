@@ -11,6 +11,42 @@ import subprocess
 import shutil
 from pathlib import Path
 from datetime import datetime, timedelta
+from urllib.parse import unquote, urlparse
+
+
+def clean_title(raw_title):
+    """
+    Clean up titles from URL-encoded filenames or full URLs
+    Examples:
+      - "Hogan%27s%20Heroes_S03E10.mp4" → "Hogan's Heroes S03E10"
+      - "https://archive.org/.../movie.mp4" → "movie"
+      - "My_Movie_2024.mkv" → "My Movie 2024"
+    """
+    if not raw_title:
+        return 'Unknown'
+    
+    # URL decode first (convert %27 → ', %20 → space, etc.)
+    title = unquote(raw_title)
+    
+    # If it's a full URL, extract just the filename
+    if title.startswith('http://') or title.startswith('https://'):
+        parsed = urlparse(title)
+        title = Path(parsed.path).name
+    
+    # Remove common video file extensions
+    for ext in ['.mp4', '.mkv', '.avi', '.mov', '.webm', '.flv', '.wmv', '.m3u8', '.ts']:
+        if title.lower().endswith(ext):
+            title = title[:-len(ext)]
+            break
+    
+    # Replace underscores with spaces
+    title = title.replace('_', ' ')
+    
+    # Clean up multiple spaces
+    title = re.sub(r'\s+', ' ', title).strip()
+    
+    return title if title else 'Unknown'
+
 
 class NexusTVPageGenerator:
     def __init__(self, template_path=None):
@@ -120,7 +156,8 @@ class NexusTVPageGenerator:
                 logo_match = re.search(r'tvg-logo="([^"]*)"', line)
                 name_match = re.search(r',(.+)$', line)
                 
-                title = name_match.group(1).strip() if name_match else 'Unknown'
+                raw_title = name_match.group(1).strip() if name_match else 'Unknown'
+                title = clean_title(raw_title)
                 if logo_match and logo_match.group(1):
                     logo = logo_match.group(1)
                 else:
@@ -528,8 +565,9 @@ class WebIPTVGenerator:
                 logo_match = re.search(r'tvg-logo="([^"]*)"', line)
                 title_match = re.search(r',(.+)$', line)
                 
+                raw_name = name_match.group(1) if name_match else (title_match.group(1) if title_match else 'Unknown')
                 current_channel = {
-                    'name': name_match.group(1) if name_match else (title_match.group(1) if title_match else 'Unknown'),
+                    'name': clean_title(raw_name),
                     'logo': logo_match.group(1) if logo_match else '',
                     'url': ''
                 }
@@ -762,8 +800,9 @@ class SimplePlayerGenerator:
                 group_match = re.search(r'group-title="([^"]*)"', line)
                 title_match = re.search(r',(.+)$', line)
                 
+                raw_name = name_match.group(1) if name_match else (title_match.group(1) if title_match else 'Unknown')
                 current_channel = {
-                    'name': name_match.group(1) if name_match else (title_match.group(1) if title_match else 'Unknown'),
+                    'name': clean_title(raw_name),
                     'logo': logo_match.group(1) if logo_match else '',
                     'group': group_match.group(1) if group_match else 'Uncategorized',
                     'url': ''
