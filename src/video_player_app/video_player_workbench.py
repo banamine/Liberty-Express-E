@@ -12,6 +12,8 @@ from datetime import datetime, timedelta
 import os
 import sys
 import shutil
+import re
+import urllib.parse
 from PIL import Image, ImageTk
 import threading
 
@@ -129,6 +131,18 @@ class VideoPlayerWorkbench(tk.Toplevel):
         
         tk.Button(
             btn_frame,
+            text="📂 Load",
+            command=self.import_files,
+            bg='#4444ff',
+            fg='white',
+            font=('Arial', 9, 'bold'),
+            padx=15,
+            pady=5,
+            cursor='hand2'
+        ).grid(row=0, column=0, padx=5)
+        
+        tk.Button(
+            btn_frame,
             text="Add Videos",
             command=self.open_videos,
             bg='#00ff88',
@@ -136,7 +150,7 @@ class VideoPlayerWorkbench(tk.Toplevel):
             font=('Arial', 9, 'bold'),
             padx=10,
             pady=5
-        ).grid(row=0, column=0, padx=5)
+        ).grid(row=0, column=1, padx=5)
         
         tk.Button(
             btn_frame,
@@ -147,7 +161,7 @@ class VideoPlayerWorkbench(tk.Toplevel):
             font=('Arial', 9, 'bold'),
             padx=10,
             pady=5
-        ).grid(row=0, column=1, padx=5)
+        ).grid(row=0, column=2, padx=5)
         
         tk.Button(
             btn_frame,
@@ -158,7 +172,7 @@ class VideoPlayerWorkbench(tk.Toplevel):
             font=('Arial', 9, 'bold'),
             padx=10,
             pady=5
-        ).grid(row=0, column=2, padx=5)
+        ).grid(row=0, column=3, padx=5)
     
     def create_player_panel(self, parent):
         header = tk.Label(
@@ -735,3 +749,227 @@ File Path: {video['filepath']}
                 self.update_playlist_ui()
             except:
                 pass
+    
+    def import_files(self):
+        """Import files with support for M3U, TXT, videos, audio, and folders"""
+        choice = messagebox.askquestion(
+            "Import",
+            "Import FILES (Yes) or FOLDER (No)?",
+            icon='question'
+        )
+        
+        if choice == 'yes':
+            files = filedialog.askopenfilenames(
+                title="Select Files to Import",
+                filetypes=[
+                    ("All Supported", "*.m3u *.m3u8 *.txt *.mp4 *.mkv *.avi *.mov *.wmv *.flv *.webm *.m4v *.mp3 *.aac *.wav *.flac *.ogg"),
+                    ("Playlists", "*.m3u *.m3u8"),
+                    ("Text Files", "*.txt"),
+                    ("Video Files", "*.mp4 *.mkv *.avi *.mov *.wmv *.flv *.webm *.m4v"),
+                    ("Audio Files", "*.mp3 *.aac *.wav *.flac *.ogg *.m4a"),
+                    ("All Files", "*.*")
+                ]
+            )
+            
+            if files:
+                threading.Thread(target=self.process_import_files, args=(list(files),), daemon=True).start()
+        else:
+            folder = filedialog.askdirectory(title="Select Folder to Import")
+            if folder:
+                threading.Thread(target=self.process_import_folder, args=(folder,), daemon=True).start()
+    
+    def process_import_files(self, files):
+        """Process imported files"""
+        all_videos = []
+        
+        for file_path in files:
+            try:
+                ext = os.path.splitext(file_path)[1].lower()
+                
+                if ext in {'.m3u', '.m3u8'}:
+                    videos = self.parse_m3u_file(file_path)
+                    all_videos.extend(videos)
+                elif ext == '.txt':
+                    videos = self.parse_txt_file(file_path)
+                    all_videos.extend(videos)
+                elif self.is_media_file(file_path):
+                    metadata = self.extract_video_metadata(file_path)
+                    if metadata:
+                        all_videos.append(metadata)
+            except Exception as e:
+                print(f"Error processing {file_path}: {e}")
+        
+        if not all_videos:
+            self.after(0, lambda: messagebox.showwarning(
+                "No Content Found",
+                "No channels or media files were found in the selected files/folder.\n\n"
+                "Supported file types:\n"
+                "• M3U Playlists (.m3u, .m3u8)\n"
+                "• Text Files with URLs (.txt)\n"
+                "• Video Files (.mp4, .mkv, .avi, .mov, .wmv, etc.)\n"
+                "• Audio Files (.mp3, .aac, .wav, .flac, .ogg, etc.)\n"
+                "• Folders (scans all subfolders for media and playlists)\n\n"
+                "Text files should contain URLs (one per line) or M3U format."
+            ))
+            return
+        
+        self.playlist.extend(all_videos)
+        self.after(0, self.update_playlist_ui)
+        self.after(0, self.save_playlist_to_disk)
+        self.after(0, lambda: messagebox.showinfo(
+            "Import Complete",
+            f"Loaded {len(all_videos)} videos from {len(files)} file(s)"
+        ))
+    
+    def process_import_folder(self, folder):
+        """Process folder import"""
+        all_videos = self.scan_folder_for_media(folder)
+        
+        if not all_videos:
+            self.after(0, lambda: messagebox.showwarning(
+                "No Content Found",
+                "No media files or playlists found in the selected folder.\n\n"
+                "The folder will be scanned recursively for:\n"
+                "• M3U Playlists (.m3u, .m3u8)\n"
+                "• Text Files with URLs (.txt)\n"
+                "• Video Files (.mp4, .mkv, .avi, .mov, .wmv, etc.)\n"
+                "• Audio Files (.mp3, .aac, .wav, .flac, .ogg, etc.)"
+            ))
+            return
+        
+        self.playlist.extend(all_videos)
+        self.after(0, self.update_playlist_ui)
+        self.after(0, self.save_playlist_to_disk)
+        self.after(0, lambda: messagebox.showinfo(
+            "Import Complete",
+            f"Loaded {len(all_videos)} videos from folder scan"
+        ))
+    
+    def is_media_file(self, file_path):
+        """Check if file is a video/audio file"""
+        media_extensions = {
+            '.mp4', '.mkv', '.avi', '.mov', '.wmv', '.flv', '.webm', '.m4v',
+            '.mpg', '.mpeg', '.3gp', '.ts', '.m2ts', '.vob', '.ogv',
+            '.mp3', '.aac', '.wav', '.flac', '.ogg', '.m4a', '.wma', '.opus',
+            '.ape', '.alac', '.aiff'
+        }
+        ext = os.path.splitext(file_path)[1].lower()
+        return ext in media_extensions
+    
+    def parse_m3u_file(self, file_path):
+        """Parse M3U playlist file"""
+        videos = []
+        current_video = None
+        
+        try:
+            with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                lines = f.readlines()
+        except:
+            try:
+                with open(file_path, 'r', encoding='latin-1') as f:
+                    lines = f.readlines()
+            except Exception as e:
+                print(f"Cannot read M3U file {file_path}: {e}")
+                return []
+        
+        for line in lines:
+            line = line.strip()
+            
+            if not line or line == "#EXTM3U":
+                continue
+            
+            if line.startswith("#EXTINF:"):
+                name_part = line.split(',')[-1].strip()
+                current_video = {
+                    'title': name_part or "Unknown",
+                    'filepath': '',
+                    'duration': 0,
+                    'duration_str': "00:00:00",
+                    'type': 'STREAM'
+                }
+            elif not line.startswith("#"):
+                if current_video:
+                    current_video['filepath'] = line
+                    current_video['url'] = line
+                    
+                    metadata = self.extract_video_metadata(line) if os.path.exists(line) else None
+                    if metadata:
+                        current_video.update(metadata)
+                    
+                    videos.append(current_video)
+                    current_video = None
+        
+        return videos
+    
+    def parse_txt_file(self, file_path):
+        """Parse TXT file containing URLs (one per line) or extract links"""
+        videos = []
+        
+        try:
+            with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                content = f.read()
+        except:
+            try:
+                with open(file_path, 'r', encoding='latin-1') as f:
+                    content = f.read()
+            except Exception as e:
+                print(f"Cannot read TXT file {file_path}: {e}")
+                return []
+        
+        url_pattern = r'https?://[^\s<>"\']+|rtmp://[^\s<>"\']+|rtsp://[^\s<>"\']+|file://[^\s<>"\']+|/[^\s<>"\']+\.[a-zA-Z0-9]+'
+        urls = re.findall(url_pattern, content)
+        
+        for idx, url in enumerate(urls, 1):
+            url = url.strip()
+            if not url:
+                continue
+            
+            name = url.split('/')[-1]
+            if '?' in name:
+                name = name.split('?')[0]
+            name = urllib.parse.unquote(name)
+            
+            video = {
+                'title': name or f"Link {idx}",
+                'filepath': url,
+                'url': url,
+                'duration': 0,
+                'duration_str': "00:00:00",
+                'resolution': "Unknown",
+                'type': 'URL',
+                'codec': 'unknown',
+                'filesize': 0
+            }
+            videos.append(video)
+        
+        return videos
+    
+    def scan_folder_for_media(self, folder_path):
+        """Recursively scan folder for media files and playlists"""
+        all_videos = []
+        supported_playlist_exts = {'.m3u', '.m3u8', '.txt'}
+        
+        try:
+            for root, dirs, files in os.walk(folder_path):
+                for filename in files:
+                    file_path = os.path.join(root, filename)
+                    ext = os.path.splitext(filename)[1].lower()
+                    
+                    try:
+                        if ext in supported_playlist_exts:
+                            if ext == '.txt':
+                                videos = self.parse_txt_file(file_path)
+                            else:
+                                videos = self.parse_m3u_file(file_path)
+                            all_videos.extend(videos)
+                        elif self.is_media_file(file_path):
+                            metadata = self.extract_video_metadata(file_path)
+                            if metadata:
+                                all_videos.append(metadata)
+                    except Exception as e:
+                        print(f"Error processing {filename}: {e}")
+                        continue
+        except Exception as e:
+            print(f"Error scanning folder {folder_path}: {e}")
+        
+        return all_videos

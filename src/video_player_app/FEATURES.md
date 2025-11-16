@@ -14,9 +14,14 @@
 - **Right Panel**: Video player controls and information display
 
 #### Playlist Management
+- **Advanced Import (Load Button)**: Import M3U playlists, TXT files with URLs, video/audio files, and folders
+  - **M3U/M3U8 Support**: Full playlist parsing with metadata
+  - **URL Extraction**: Automatically extracts URLs from TXT files (HTTP, HTTPS, RTMP, RTSP, file://)
+  - **Folder Scanning**: Recursive scanning for all media files and playlists
+  - **Multi-Format**: Supports playlists, videos, audio, and text files with links
 - **Add Videos**: Individual file selection or batch import
 - **Folder Scanning**: Recursive folder scanning for all video files
-- **Supported Formats**: MP4, AVI, MKV, MOV, WMV, FLV, WebM, M4V
+- **Supported Formats**: MP4, AVI, MKV, MOV, WMV, FLV, WebM, M4V, MP3, AAC, WAV, FLAC, OGG
 - **Auto-Save**: Playlist automatically saves on changes
 - **Persistent Storage**: Playlist preserved between sessions
 

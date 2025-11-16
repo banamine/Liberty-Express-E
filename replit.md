@@ -6,6 +6,7 @@ This project offers a comprehensive IPTV solution, combining a professional M3U 
 **NEW:** Video Player Pro - A standalone vanilla Python video player application with advanced scheduling, screenshot capture, and metadata extraction capabilities (see Video Player Pro section below).
 
 ## Recent Changes (November 2025)
+- **Video Player Pro Enhanced Import (Nov 16):** Added advanced "Load" button (blue) with full M3U MATRIX PRO import capabilities. Now supports: M3U/M3U8 playlist parsing, TXT file URL extraction (HTTP/HTTPS/RTMP/RTSP/file://), video/audio file import, recursive folder scanning, and automatic link detection from any text file. Same functionality as M3U MATRIX PRO workbench import.
 - **Video Player Pro (Nov 16):** Created standalone vanilla Python video player application. Features include: minimalist launcher GUI, video player workbench with dual-panel layout, FFmpeg-based metadata extraction, screenshot capture with JSON metadata and auto-thumbnails, playlist management (copy/paste/delete), smart scheduling system with time predictions, auto-save functionality, and cross-platform playback support.
 - **Auto-Thumbnail System (Nov 16):** Implemented IndexedDB-based automatic thumbnail generation for all player templates. Features include: 2 screenshots per video captured at 25% and 75% playtime, browser-based storage using IndexedDB (non-portable but fast), per-page thumbnail databases, placeholder system until captures complete, HLS/DASH/direct stream support. Thumbnails auto-generate as videos play with zero user interaction required.
 - **CDN Elimination (Nov 16):** Eliminated ALL external CDN dependencies across templates. NEXUS TV embeds HLS.js, DASH.js, and thumbnail-system.js inline. Web IPTV and Simple Player use local bundled copies in js/libs/ folders. All generated pages work 100% offline (except for remote video stream URLs). Fail-fast error handling ensures library files are present before generation.
@@ -78,6 +79,12 @@ A standalone vanilla Python desktop application for advanced video playback, sch
 ### Key Features
 - **Main Launcher**: Minimalist GUI with single-click launch button
 - **Video Workbench**: Advanced dual-panel interface for playlist management and playback
+- **Advanced Import (Load Button)**: Blue "📂 Load" button with full import capabilities:
+  - M3U/M3U8 playlist parsing with metadata
+  - TXT file URL extraction (HTTP, HTTPS, RTMP, RTSP, file://)
+  - Video/audio file direct import
+  - Recursive folder scanning for all media and playlists
+  - Automatic link detection from text files
 - **File Management**: Open, close, delete, copy, paste video operations
 - **FFmpeg Integration**: Automatic metadata extraction (duration, resolution, codec, file size)
 - **Screenshot System**: Capture screenshots with automatic JSON metadata and thumbnail generation
