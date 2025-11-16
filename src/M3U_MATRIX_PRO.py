@@ -2816,7 +2816,7 @@ Services included:
                 # Generate channel selector
                 if template_type == "nexus":
                     selector_path = generator.generate_channel_selector(generated)
-                else:  # webiptv
+                else:  # webiptv or simple
                     selector_path = generator.generate_selector_page(generated)
 
                 # Show success message
