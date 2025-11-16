@@ -356,7 +356,9 @@ class M3UMatrix:
                 ("SAVE", "#c0392b", self.save),
                 ("M3U OUTPUT", "#16a085", self.export_m3u_output),
                 ("EXPORT JSON", "#16a085", self.export_json),
-                ("NEW", "#34495e", self.new_project)]
+                ("NEW", "#34495e", self.new_project),
+                ("THUMBS", "#ff9500", self.open_thumbnails_folder),
+                ("VIDEO", "#00d4ff", self.launch_video_player)]
         for txt, col, cmd in row1:
             tk.Button(tb1, text=txt, bg=col, fg="white", width=14,
                       command=cmd).pack(side=tk.LEFT, padx=4)
@@ -966,11 +968,11 @@ Success Rate: {results['working']/results['total']*100:.1f}%
         while i < len(lines):
             line = lines[i].strip()
 
-            if not line or line == "#EXTM3U":
+            if not line or line == "#EXTM3U" or line == "#EXTMM3U":
                 i += 1
                 continue
 
-            if line.startswith("#EXTINF"):
+            if line.startswith("#EXTINF") or line.startswith("#EXTM:") or line.startswith("#EXTMM:"):
                 current_channel = self.parse_extinf_line(line)
                 if i + 1 < len(lines) and lines[i + 1].startswith("#EXTGRP"):
                     current_channel["group"] = lines[i +
@@ -1014,7 +1016,7 @@ Success Rate: {results['working']/results['total']*100:.1f}%
         return channels
 
     def parse_extinf_line(self, line):
-        """Parse EXTINF line with support for various attributes"""
+        """Parse EXTINF/EXTM line with support for various attributes"""
         channel = {
             "name": "Unknown",
             "group": "Other",
@@ -1028,6 +1030,7 @@ Success Rate: {results['working']/results['total']*100:.1f}%
         attr_pattern = r'([a-zA-Z-]+)="([^"]*)"'
         attributes = dict(re.findall(attr_pattern, line))
 
+        # Extract name - works for both #EXTINF: and #EXTM: formats
         name_part = line.split(',')[-1].strip()
         if name_part:
             channel["name"] = name_part
@@ -2419,6 +2422,56 @@ Success Rate: {results['working']/results['total']*100:.1f}%
             self.file_list.delete(0, tk.END)
             self.tv.delete(*self.tv.get_children())
             self.stat.config(text="MATRIX RESET")
+    
+    def open_thumbnails_folder(self):
+        """Open the thumbnails folder in file explorer"""
+        thumb_folder = os.path.join(os.getcwd(), "generated_pages")
+        
+        if not os.path.exists(thumb_folder):
+            messagebox.showinfo(
+                "No Thumbnails Yet",
+                "No generated pages found.\n\n"
+                "Thumbnails are created when you:\n"
+                "• Generate NEXUS TV pages\n"
+                "• Generate Web IPTV pages\n"
+                "• Generate Simple Player pages\n\n"
+                "Use 'GENERATE PAGES' to create pages with thumbnails."
+            )
+            return
+        
+        try:
+            if sys.platform == 'win32':
+                os.startfile(thumb_folder)
+            elif sys.platform == 'darwin':
+                subprocess.run(['open', thumb_folder])
+            else:
+                subprocess.run(['xdg-open', thumb_folder])
+            self.stat.config(text=f"Opened: {thumb_folder}")
+        except Exception as e:
+            self.show_error_dialog("Cannot Open Folder", f"Failed to open thumbnails folder:\n{thumb_folder}", e)
+    
+    def launch_video_player(self):
+        """Launch Video Player Pro application"""
+        try:
+            # Find Video Player Pro path relative to this script
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            video_player_path = os.path.join(current_dir, "..", "video_player_app", "run_player.py")
+            video_player_path = os.path.normpath(video_player_path)
+            
+            if not os.path.exists(video_player_path):
+                messagebox.showerror(
+                    "Video Player Not Found",
+                    f"Video Player Pro not found at:\n{video_player_path}\n\n"
+                    "Expected location:\n"
+                    "src/video_player_app/run_player.py"
+                )
+                return
+            
+            # Launch Video Player Pro
+            subprocess.Popen([sys.executable, video_player_path])
+            self.stat.config(text="Launched Video Player Pro")
+        except Exception as e:
+            self.show_error_dialog("Launch Failed", "Could not launch Video Player Pro", e)
 
     def on_double(self, e):
         col = self.tv.identify_column(e.x)
