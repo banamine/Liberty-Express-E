@@ -12,3 +12,4 @@ tkinterdnd2>=0.4.3
 # Optional: Enhanced Features
 # beautifulsoup4>=4.12.0  # For HTML parsing
 # lxml>=4.9.0             # For XMLTV/EPG parsing
+python-vlc

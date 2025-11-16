@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Video Player Workbench - Advanced video playback and management interface
+Video Player Workbench - Advanced video playback and management interface with embedded VLC player
 """
 
 import tkinter as tk
@@ -17,11 +17,19 @@ import urllib.parse
 from PIL import Image, ImageTk
 import threading
 
+# VLC player import with graceful degradation
+try:
+    import vlc
+    VLC_AVAILABLE = True
+except ImportError:
+    VLC_AVAILABLE = False
+    print("WARNING: python-vlc not available. Install VLC media player for embedded playback.")
+
 class VideoPlayerWorkbench(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
         
-        self.title("Video Player Workbench")
+        self.title("Video Player Workbench - VLC Embedded Player")
         self.geometry("1400x900")
         self.configure(bg='#0f0f1e')
         
@@ -32,6 +40,20 @@ class VideoPlayerWorkbench(tk.Toplevel):
         self.is_playing = False
         self.current_process = None
         
+        # VLC player setup
+        self.vlc_instance = None
+        self.vlc_player = None
+        self.vlc_available = VLC_AVAILABLE
+        self.playback_timer = None
+        
+        if self.vlc_available:
+            try:
+                self.vlc_instance = vlc.Instance('--no-xlib')
+                self.vlc_player = self.vlc_instance.media_player_new()
+            except Exception as e:
+                self.vlc_available = False
+                print(f"VLC initialization failed: {e}")
+        
         self.screenshots_dir = Path(__file__).parent / "screenshots"
         self.data_dir = Path(__file__).parent / "data"
         self.screenshots_dir.mkdir(exist_ok=True)
@@ -40,6 +62,18 @@ class VideoPlayerWorkbench(tk.Toplevel):
         self.create_menu()
         self.create_layout()
         self.load_playlist_from_disk()
+        
+        # Show VLC status
+        if not self.vlc_available:
+            self.after(500, lambda: messagebox.showwarning(
+                "VLC Not Available",
+                "VLC media player libraries not found!\n\n"
+                "For embedded video playback, please install VLC:\n"
+                "• Windows: Download from videolan.org\n"
+                "• Mac: Install VLC.app\n"
+                "• Linux: sudo apt install vlc\n\n"
+                "External player mode will be used until VLC is installed."
+            ))
         
     def create_menu(self):
         menubar = tk.Menu(self, bg='#1a1a2e', fg='white')
@@ -177,37 +211,65 @@ class VideoPlayerWorkbench(tk.Toplevel):
     def create_player_panel(self, parent):
         header = tk.Label(
             parent,
-            text="VIDEO PLAYER",
+            text="VIDEO PLAYER" + (" (VLC Embedded)" if self.vlc_available else " (External Mode)"),
             font=('Arial', 14, 'bold'),
             bg='#1a1a2e',
             fg='#00ff88'
         )
         header.pack(pady=10)
         
+        # VLC Video Canvas
         video_frame = tk.Frame(parent, bg='#000000', height=500)
         video_frame.pack(fill=tk.BOTH, expand=True, padx=10)
+        video_frame.pack_propagate(False)
         
-        self.video_placeholder = tk.Label(
-            video_frame,
-            text="No Video Loaded\n\nDouble-click a video in the playlist to play",
-            font=('Arial', 14),
-            fg='#666666',
-            bg='#000000'
-        )
-        self.video_placeholder.pack(expand=True)
+        if self.vlc_available:
+            # Embedded VLC canvas for video output
+            self.video_canvas = tk.Frame(video_frame, bg='#000000')
+            self.video_canvas.pack(fill=tk.BOTH, expand=True)
+            
+            # Bind VLC player to canvas
+            if sys.platform.startswith('linux'):
+                self.vlc_player.set_xwindow(self.video_canvas.winfo_id())
+            elif sys.platform == 'win32':
+                self.vlc_player.set_hwnd(self.video_canvas.winfo_id())
+            elif sys.platform == 'darwin':
+                self.vlc_player.set_nsobject(self.video_canvas.winfo_id())
+        else:
+            # Fallback placeholder if VLC not available
+            self.video_placeholder = tk.Label(
+                video_frame,
+                text="VLC Not Available\n\nInstall VLC for embedded playback\n\nVideos will open in external player",
+                font=('Arial', 14),
+                fg='#ff6666',
+                bg='#000000'
+            )
+            self.video_placeholder.pack(expand=True)
         
+        # Info panel with playback status
         info_frame = tk.Frame(parent, bg='#1a1a2e')
         info_frame.pack(fill=tk.X, padx=10, pady=10)
         
         self.info_label = tk.Label(
             info_frame,
-            text="Ready",
+            text="Ready - Double-click a video to play",
             font=('Arial', 10),
             fg='#cccccc',
             bg='#1a1a2e',
             anchor='w'
         )
         self.info_label.pack(fill=tk.X)
+        
+        # Playback time/position display
+        self.position_label = tk.Label(
+            info_frame,
+            text="00:00:00 / 00:00:00",
+            font=('Courier', 10, 'bold'),
+            fg='#00ff88',
+            bg='#1a1a2e',
+            anchor='e'
+        )
+        self.position_label.pack(fill=tk.X)
         
         controls_frame = tk.Frame(parent, bg='#1a1a2e')
         controls_frame.pack(fill=tk.X, padx=10, pady=(0, 10))
@@ -372,32 +434,127 @@ class VideoPlayerWorkbench(tk.Toplevel):
             self.current_index = index
             video = self.playlist[index]
             
-            self.info_label.config(text=f"Playing: {video['title']} ({video['duration_str']})")
-            self.video_placeholder.config(text=f"Now Playing:\n{video['title']}\n\nExternal player launched")
-            
-            try:
-                if os.name == 'nt':
-                    os.startfile(video['filepath'])
-                elif os.name == 'posix':
-                    if sys.platform == 'darwin':
-                        subprocess.Popen(['open', video['filepath']])
-                    else:
-                        subprocess.Popen(['xdg-open', video['filepath']])
+            if self.vlc_available and self.vlc_player:
+                # Embedded VLC playback
+                try:
+                    # Create media
+                    media = self.vlc_instance.media_new(video['filepath'])
+                    self.vlc_player.set_media(media)
+                    
+                    # Start playback
+                    self.vlc_player.play()
+                    
+                    self.is_playing = True
+                    self.play_btn.config(text="⏸ Pause")
+                    self.info_label.config(text=f"Now Playing: {video['title']}")
+                    
+                    # Start playback timer for position updates
+                    self.start_playback_timer()
+                    
+                except Exception as e:
+                    messagebox.showerror("VLC Playback Error", f"Failed to play video:\n{str(e)}")
+            else:
+                # Fallback to external player
+                self.info_label.config(text=f"External Player: {video['title']}")
                 
-                self.is_playing = True
-                self.play_btn.config(text="⏸ Pause")
-            except Exception as e:
-                messagebox.showerror("Playback Error", f"Failed to play video:\n{str(e)}")
+                try:
+                    if os.name == 'nt':
+                        os.startfile(video['filepath'])
+                    elif os.name == 'posix':
+                        if sys.platform == 'darwin':
+                            subprocess.Popen(['open', video['filepath']])
+                        else:
+                            subprocess.Popen(['xdg-open', video['filepath']])
+                    
+                    self.is_playing = True
+                    self.play_btn.config(text="⏸ Pause")
+                except Exception as e:
+                    messagebox.showerror("Playback Error", f"Failed to play video:\n{str(e)}")
     
     def toggle_play(self):
         if self.current_index >= 0:
-            if self.is_playing:
-                self.is_playing = False
-                self.play_btn.config(text="▶ Play")
+            if self.vlc_available and self.vlc_player:
+                # VLC embedded player toggle
+                if self.is_playing:
+                    self.vlc_player.pause()
+                    self.is_playing = False
+                    self.play_btn.config(text="▶ Play")
+                    self.stop_playback_timer()
+                else:
+                    self.vlc_player.play()
+                    self.is_playing = True
+                    self.play_btn.config(text="⏸ Pause")
+                    self.start_playback_timer()
             else:
-                self.play_video(self.current_index)
+                # External player fallback
+                if self.is_playing:
+                    self.is_playing = False
+                    self.play_btn.config(text="▶ Play")
+                else:
+                    self.play_video(self.current_index)
         else:
             messagebox.showinfo("No Video", "Please select a video from the playlist first.")
+    
+    def start_playback_timer(self):
+        """Start timer to update playback position"""
+        self.update_playback_info()
+    
+    def stop_playback_timer(self):
+        """Stop playback timer"""
+        if self.playback_timer:
+            self.after_cancel(self.playback_timer)
+            self.playback_timer = None
+    
+    def update_playback_info(self):
+        """Update playback position and video info in real-time"""
+        if not self.vlc_available or not self.vlc_player:
+            return
+        
+        try:
+            # Get current playback time and duration
+            current_time = self.vlc_player.get_time()  # milliseconds
+            total_time = self.vlc_player.get_length()  # milliseconds
+            
+            if current_time >= 0 and total_time > 0:
+                current_str = self.format_duration(current_time / 1000)
+                total_str = self.format_duration(total_time / 1000)
+                self.position_label.config(text=f"{current_str} / {total_str}")
+                
+                # Get video info from VLC
+                if self.current_index >= 0:
+                    video = self.playlist[self.current_index]
+                    
+                    # Try to get real-time codec/resolution from VLC
+                    try:
+                        media = self.vlc_player.get_media()
+                        if media:
+                            tracks = media.tracks_get()
+                            if tracks:
+                                for track in tracks:
+                                    if track.type == vlc.TrackType.video:
+                                        width = track.video.i_width
+                                        height = track.video.i_height
+                                        codec = track.codec
+                                        self.info_label.config(
+                                            text=f"Playing: {video['title']} | {width}x{height} | Codec: {codec:08x}"
+                                        )
+                                        break
+                    except:
+                        pass  # Fallback to basic info
+            
+            # Check if playback ended
+            state = self.vlc_player.get_state()
+            if state == vlc.State.Ended:
+                self.is_playing = False
+                self.play_btn.config(text="▶ Play")
+                self.next_video()  # Auto-advance
+                return
+            
+            # Schedule next update
+            if self.is_playing:
+                self.playback_timer = self.after(500, self.update_playback_info)
+        except Exception as e:
+            print(f"Error updating playback info: {e}")
     
     def previous_video(self):
         if self.current_index > 0:
@@ -419,31 +576,72 @@ class VideoPlayerWorkbench(tk.Toplevel):
             screenshot_filename = f"screenshot_{timestamp}.jpg"
             screenshot_path = self.screenshots_dir / screenshot_filename
             
-            cmd = [
-                'ffmpeg',
-                '-ss', '00:00:05',
-                '-i', video['filepath'],
-                '-vframes', '1',
-                '-q:v', '2',
-                str(screenshot_path)
-            ]
+            if self.vlc_available and self.vlc_player and self.is_playing:
+                # VLC live snapshot - captures current playing frame
+                current_time = self.vlc_player.get_time() / 1000  # Convert ms to seconds
+                current_position = self.vlc_player.get_position()  # 0.0 to 1.0
+                
+                # Take snapshot of current frame
+                self.vlc_player.video_take_snapshot(0, str(screenshot_path), 0, 0)
+                
+                # Wait a moment for snapshot to save
+                self.after(500, lambda: self._finalize_screenshot(
+                    screenshot_path,
+                    screenshot_filename,
+                    timestamp,
+                    video,
+                    current_time,
+                    current_position
+                ))
+            else:
+                # Fallback to FFmpeg if VLC not playing
+                cmd = [
+                    'ffmpeg',
+                    '-ss', '00:00:05',
+                    '-i', video['filepath'],
+                    '-vframes', '1',
+                    '-q:v', '2',
+                    str(screenshot_path)
+                ]
+                
+                subprocess.run(cmd, capture_output=True, timeout=10)
+                
+                self._finalize_screenshot(
+                    screenshot_path,
+                    screenshot_filename,
+                    timestamp,
+                    video,
+                    5.0,  # FFmpeg default seek position
+                    None
+                )
+        except Exception as e:
+            messagebox.showerror("Screenshot Error", f"Failed to capture screenshot:\n{str(e)}")
+    
+    def _finalize_screenshot(self, screenshot_path, screenshot_filename, timestamp, video, current_time, position):
+        """Finalize screenshot with metadata and thumbnail"""
+        try:
+            if not screenshot_path.exists():
+                messagebox.showerror("Screenshot Error", "Screenshot file was not created.")
+                return
             
-            subprocess.run(cmd, capture_output=True, timeout=10)
-            
+            # Create metadata with timestamp
             metadata = {
                 'video': video['title'],
                 'filepath': video['filepath'],
                 'timestamp': timestamp,
                 'screenshot': screenshot_filename,
-                'resolution': video['resolution'],
-                'duration': video['duration_str'],
-                'capture_time': datetime.now().isoformat()
+                'resolution': video.get('resolution', 'Unknown'),
+                'duration': video.get('duration_str', '00:00:00'),
+                'capture_time': datetime.now().isoformat(),
+                'playback_time': self.format_duration(current_time),
+                'playback_position': f"{position:.2%}" if position else "N/A"
             }
             
             metadata_path = self.screenshots_dir / f"screenshot_{timestamp}.json"
             with open(metadata_path, 'w') as f:
                 json.dump(metadata, f, indent=2)
             
+            # Create thumbnail
             thumbnail_path = self.screenshots_dir / f"thumb_{timestamp}.jpg"
             img = Image.open(screenshot_path)
             img.thumbnail((320, 180))
@@ -451,10 +649,12 @@ class VideoPlayerWorkbench(tk.Toplevel):
             
             messagebox.showinfo(
                 "Screenshot Captured",
-                f"Screenshot saved:\n{screenshot_filename}\n\nMetadata and thumbnail created."
+                f"Screenshot saved:\n{screenshot_filename}\n\n"
+                f"Playback Time: {self.format_duration(current_time)}\n"
+                f"Metadata and thumbnail created."
             )
         except Exception as e:
-            messagebox.showerror("Screenshot Error", f"Failed to capture screenshot:\n{str(e)}")
+            messagebox.showerror("Screenshot Error", f"Failed to finalize screenshot:\n{str(e)}")
     
     def show_video_info(self):
         if self.current_index < 0:
