@@ -124,9 +124,8 @@ class NexusTVPageGenerator:
                 if logo_match and logo_match.group(1):
                     logo = logo_match.group(1)
                 else:
-                    # Generate placeholder logo
-                    short_title = title[:20].replace(' ', '+')
-                    logo = f"https://placehold.co/300x169/1a1a2a/00f3ff?text={short_title}"
+                    # No logo available - use empty string for offline compatibility
+                    logo = ""
                 
                 current_entry = {
                     'title': title,
@@ -236,12 +235,13 @@ class NexusTVPageGenerator:
             f'<title>NEXUS TV - {channel_name}</title>'
         )
         
-        # Output filename
-        if not output_filename:
-            safe_name = re.sub(r'[^a-z0-9]+', '_', channel_name.lower())
-            output_filename = f"{safe_name}.html"
+        # Create output directory structure
+        output_name = output_filename if output_filename else channel_name
+        safe_name = re.sub(r'[^a-z0-9]+', '_', output_name.lower())
+        page_dir = self.output_dir / safe_name
+        page_dir.mkdir(exist_ok=True)
         
-        output_path = self.output_dir / output_filename
+        output_path = page_dir / "player.html"
         
         # Write generated page
         with open(output_path, 'w', encoding='utf-8') as f:
@@ -272,13 +272,12 @@ class NexusTVPageGenerator:
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NEXUS TV - Channel Selector</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
-            font-family: 'Orbitron', sans-serif;
+            font-family: 'Segoe UI', 'Arial Black', 'Impact', sans-serif;
+            font-weight: 700;
             background: linear-gradient(135deg, #0a0a0f 0%, #1a0a2e 50%, #0a0a0f 100%);
             color: #fff;
             min-height: 100vh;
@@ -581,6 +580,13 @@ class WebIPTVGenerator:
         if (self.template_dir / "js" / "app.js").exists():
             shutil.copy(self.template_dir / "js" / "app.js", js_dir / "app.js")
         
+        # Copy JS libraries (HLS.js, etc) for offline use
+        libs_dir = js_dir / "libs"
+        libs_dir.mkdir(exist_ok=True)
+        if (self.template_dir / "js" / "libs").exists():
+            for lib_file in (self.template_dir / "js" / "libs").glob("*.js"):
+                shutil.copy(lib_file, libs_dir / lib_file.name)
+        
         # Copy icons if they exist
         icons_dir = page_dir / "icons"
         icons_dir.mkdir(exist_ok=True)
@@ -801,6 +807,13 @@ class SimplePlayerGenerator:
         js_dir.mkdir(exist_ok=True)
         if (self.template_dir / "js" / "app.js").exists():
             shutil.copy(self.template_dir / "js" / "app.js", js_dir / "app.js")
+        
+        # Copy JS libraries (HLS.js, etc) for offline use
+        libs_dir = js_dir / "libs"
+        libs_dir.mkdir(exist_ok=True)
+        if (self.template_dir / "js" / "libs").exists():
+            for lib_file in (self.template_dir / "js" / "libs").glob("*.js"):
+                shutil.copy(lib_file, libs_dir / lib_file.name)
         
         # Read template
         template_file = self.template_dir / "player.html"

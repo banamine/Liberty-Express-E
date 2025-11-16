@@ -5,15 +5,15 @@
     <meta name="viewport" content="width=340, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Web IPTV Player</title>
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="icon" type="image/x-icon" href="https://bugsfreecdn.netlify.app/BugsfreeDefault/logo.png">
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.6.13/dist/hls.min.js"></script>
-    <script src="https://cdn.dashjs.org/v5.0.0/modern/umd/dash.all.min.js"></script>    
-    <script src="https://unpkg.com/feather-icons"></script>
+    <!-- Local copies for offline use -->
+    <script src="js/libs/hls.min.js"></script>
+    <script src="js/libs/dash.all.min.js"></script>    
+    <script src="js/libs/feather.min.js"></script>
 </head>
 <body class="light">
     <div class="container">
         <div class="localtime-bar" id="localTime"></div>
-        <video id="player" controls autoplay playsinline muted poster="https://bugsfreecdn.netlify.app/BugsfreeDefault/player-poster.webp"></video>
+        <video id="player" controls autoplay playsinline muted></video>
         <button id="toggleTheme" class="theme-toggle-btn" title="Toggle theme"><i data-feather="moon" class="w-6 h-6"></i></button>
         <button id="toggleSidebar" class="sidebar-toggle" title="Toggle sidebar"><i data-feather="x" class="w-6 h-6"></i></button>
         <div class="sidebar">
