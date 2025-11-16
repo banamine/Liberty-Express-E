@@ -274,6 +274,17 @@ class VideoPlayerWorkbench(tk.Toplevel):
         )
         self.position_label.pack(fill=tk.X)
         
+        # Status label for parsing feedback
+        self.status_label = tk.Label(
+            info_frame,
+            text="Ready",
+            font=('Arial', 9),
+            fg='#888888',
+            bg='#1a1a2e',
+            anchor='w'
+        )
+        self.status_label.pack(fill=tk.X, pady=(5, 0))
+        
         controls_frame = tk.Frame(parent, bg='#1a1a2e')
         controls_frame.pack(fill=tk.X, padx=10, pady=(0, 10))
         
@@ -361,16 +372,52 @@ class VideoPlayerWorkbench(tk.Toplevel):
                 messagebox.showinfo("No Videos", "No video files found in the selected folder.")
     
     def add_videos_to_playlist(self, files):
-        for filepath in files:
+        total = len(files)
+        for idx, filepath in enumerate(files, 1):
+            # Update status
+            filename = os.path.basename(filepath)
+            self.after(0, lambda f=filename, i=idx, t=total: 
+                      self.status_label.config(text=f"Parsing {i}/{t}: {f[:50]}..."))
+            
             metadata = self.extract_video_metadata(filepath)
             if metadata:
                 self.playlist.append(metadata)
                 self.after(0, self.update_playlist_ui)
         
         self.after(0, self.save_playlist_to_disk)
+        self.after(0, lambda: self.status_label.config(text=f"✓ Loaded {total} items"))
     
     def extract_video_metadata(self, filepath):
+        """Extract metadata from video file or URL"""
         try:
+            # Check if it's a remote URL (HTTP/HTTPS/RTMP/RTSP)
+            is_url = any(filepath.lower().startswith(proto) for proto in ['http://', 'https://', 'rtmp://', 'rtsp://'])
+            
+            if is_url:
+                # For URLs, skip ffprobe and create basic metadata
+                # Extract title from URL
+                url_path = filepath.split('?')[0]  # Remove query params
+                title = urllib.parse.unquote(url_path.split('/')[-1])
+                if not title or title.endswith(('.m3u8', '.m3u')):
+                    title = "Stream"
+                
+                # Check if it's YouTube
+                is_youtube = 'youtube.com' in filepath or 'youtu.be' in filepath
+                
+                return {
+                    'filepath': filepath,
+                    'title': title,
+                    'duration': 0,
+                    'duration_str': "STREAM",
+                    'resolution': "Unknown",
+                    'type': 'YOUTUBE' if is_youtube else 'STREAM',
+                    'codec': 'unknown',
+                    'filesize': 0,
+                    'is_url': True,
+                    'is_youtube': is_youtube
+                }
+            
+            # Local file - use ffprobe
             cmd = [
                 'ffprobe',
                 '-v', 'quiet',
@@ -400,7 +447,9 @@ class VideoPlayerWorkbench(tk.Toplevel):
                 'resolution': f"{width}x{height}" if width and height else "Unknown",
                 'type': Path(filepath).suffix.upper()[1:],
                 'codec': codec,
-                'filesize': os.path.getsize(filepath)
+                'filesize': os.path.getsize(filepath),
+                'is_url': False,
+                'is_youtube': False
             }
         except Exception as e:
             print(f"Error extracting metadata from {filepath}: {e}")
@@ -452,6 +501,26 @@ class VideoPlayerWorkbench(tk.Toplevel):
         if 0 <= index < len(self.playlist):
             self.current_index = index
             video = self.playlist[index]
+            
+            # Warn about YouTube URLs and auto-advance to next playable item
+            if video.get('is_youtube', False):
+                messagebox.showwarning(
+                    "YouTube Not Supported",
+                    "YouTube videos require yt-dlp to play in VLC.\n\n"
+                    "YouTube URLs cannot be played directly.\n\n"
+                    "To play YouTube videos:\n"
+                    "1. Install yt-dlp: pip install yt-dlp\n"
+                    "2. Use yt-dlp to download videos first\n\n"
+                    "Skipping to next playable video..."
+                )
+                # Try to find next non-YouTube video
+                for next_idx in range(index + 1, len(self.playlist)):
+                    if not self.playlist[next_idx].get('is_youtube', False):
+                        self.play_video(next_idx)
+                        return
+                # No more playable videos found
+                self.info_label.config(text="No playable videos found")
+                return
             
             if self.vlc_available and self.vlc_player:
                 # Embedded VLC playback
