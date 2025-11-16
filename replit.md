@@ -3,6 +3,11 @@
 ## Overview
 This project offers a comprehensive IPTV solution, combining a professional M3U playlist manager (Python desktop application) with a futuristic streaming TV player (web interface). The platform aims to provide robust tools for managing, organizing, and playing streaming content, catering to users who require advanced control over their IPTV experience. The vision is to deliver a seamless and engaging content consumption experience through efficient playlist management and an immersive streaming environment.
 
+## Recent Changes (November 2025)
+- **Title Cleaning Fix:** Fixed workbench import mode displaying URL-encoded filenames (e.g., `Hogan%27s%20Heroes.mp4`) in generated pages. Now properly decodes URLs, removes file extensions, and formats titles cleanly (e.g., `Hogan's Heroes`). Applied to all 3 player templates.
+- **Offline Capability:** Eliminated ALL external CDN dependencies. Downloaded HLS.js, Dash.js, and Feather Icons locally. Pages now work 100% offline (except for remote video stream URLs).
+- **Folder Organization:** Implemented proper folder structure `generated_pages/<name>/` with isolated assets for each generated page.
+
 ## User Preferences
 - **Communication Style:** Please use clear, simple language and avoid overly technical jargon where possible.
 - **Workflow:** I prefer an iterative development approach. Please propose changes and discuss them with me before implementing major modifications.
