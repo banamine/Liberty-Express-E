@@ -4,16 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NEXUS TV - Classic Movies Channel</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Orbitron', 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI', 'Arial Black', 'Impact', sans-serif;
+            font-weight: 700;
         }
         
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&display=swap');
+        /* Using system fonts for offline compatibility - no external CDN dependencies */
         
         :root {
             --neon-blue: #00f3ff;
@@ -3152,8 +3152,8 @@
                     if (logoMatch) {
                         currentItem.logo = logoMatch[1];
                     } else {
-                        // Use a placeholder if no logo available
-                        currentItem.logo = `https://placehold.co/140x80/1a1a2a/cccccc?text=${encodeURIComponent(title.substring(0, 10))}`;
+                        // Use a simple fallback if no logo available
+                        currentItem.logo = '';
                     }
                 } 
                 // If it's a URL line and we have a title
