@@ -1,0 +1,228 @@
+╔══════════════════════════════════════════════════════════════════╗
+║       SIMPLE NEXUS TV PLAYER - M3U PLAYLIST SUPPORT              ║
+╚══════════════════════════════════════════════════════════════════╝
+
+## NOW SUPPORTS M3U PLAYLISTS!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ **Auto-detects M3U format** - Recognizes #EXTM3U and #EXTINF
+✅ **Extracts thumbnails** - Uses tvg-logo URLs automatically
+✅ **Extracts titles** - Uses tvg-name for video names
+✅ **Still supports plain URLs** - Paste any URL list
+✅ **Hybrid support** - Mix M3U and plain URLs
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## HOW TO USE WITH M3U PLAYLISTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+### STEP 1: Copy Your M3U Playlist
+
+Example (like your Hogan's Heroes playlist):
+
+```
+#EXTM3U
+#EXTINF:-1 tvg-name="Hogan's Heroes S03E01 The Crittendon Plan" tvg-logo="https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/hogans-heroes-s-01-e-01-the-informer_202509.thumbs/Hogan%27s%20Heroes_S03E01_The%20Crittendon%20Plan_001495.jpg",Hogan's Heroes S03E01 The Crittendon Plan
+https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S03E01_The%20Crittendon%20Plan.mp4
+#EXTINF:-1 tvg-name="Hogan's Heroes S03E02 Some Of Their Planes Are Missing" tvg-logo="https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/hogans-heroes-s-01-e-01-the-informer_202509.thumbs/Hogan%27s%20Heroes_S03E02_Some%20Of%20Their%20Planes%20Are%20Missing_001496.jpg",Hogan's Heroes S03E02 Some Of Their Planes Are Missing
+https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S03E02_Some%20Of%20Their%20Planes%20Are%20Missing.mp4
+```
+
+### STEP 2: Paste Into Player
+
+Open `simple_nexus_player.html` in Notepad and find:
+
+```javascript
+const playlistText = `__PLAYLIST_DATA__`;
+```
+
+Replace `__PLAYLIST_DATA__` with your M3U playlist:
+
+```javascript
+const playlistText = `#EXTM3U
+#EXTINF:-1 tvg-name="Hogan's Heroes S03E01 The Crittendon Plan" tvg-logo="https://archive.org/.../image.jpg",Episode 1
+https://archive.org/.../video.mp4
+#EXTINF:-1 tvg-name="Episode 2" tvg-logo="https://archive.org/.../image2.jpg",Episode 2
+https://archive.org/.../video2.mp4`;
+```
+
+### STEP 3: Run and Watch!
+
+```powershell
+python -m http.server 8000
+```
+
+Open: `http://localhost:8000/simple_nexus_player.html`
+
+**Thumbnails load automatically from tvg-logo URLs!** 🎉
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## WHAT THE PARSER EXTRACTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+From each #EXTINF line:
+
+1. **tvg-name** → Video title
+   ```
+   tvg-name="Hogan's Heroes S03E01"
+   ```
+
+2. **tvg-logo** → Thumbnail URL
+   ```
+   tvg-logo="https://archive.org/.../image.jpg"
+   ```
+
+3. **Next line** → Video URL
+   ```
+   https://archive.org/.../video.mp4
+   ```
+
+**Fallbacks:**
+- No tvg-name? Uses text after comma
+- No tvg-logo? Looks for `thumbs/filename.jpg`
+- No title at all? Uses filename
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## SUPPORTED FORMATS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+### Format 1: Full M3U with Metadata
+```
+#EXTM3U
+#EXTINF:-1 tvg-name="Video Title" tvg-logo="http://thumb.jpg",Description
+http://video.mp4
+```
+✅ Title from tvg-name
+✅ Thumbnail from tvg-logo
+✅ URL from next line
+
+### Format 2: Basic M3U
+```
+#EXTM3U
+#EXTINF:-1,My Video
+http://video.mp4
+```
+✅ Title from text after comma
+✅ Thumbnail from thumbs/ folder
+✅ URL from next line
+
+### Format 3: Plain URL List
+```
+http://video1.mp4
+http://video2.mp4
+C:\Videos\movie.mp4
+```
+✅ Title from filename
+✅ Thumbnail from thumbs/ folder
+✅ URL from each line
+
+### Format 4: Mixed (All Supported!)
+```
+#EXTINF:-1 tvg-name="Video 1" tvg-logo="http://thumb.jpg",Video 1
+http://video1.mp4
+http://video2.mp4
+#EXTINF:-1,Video 3
+http://video3.mp4
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## SUPPORTED MEDIA FILES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+**Video:**
+- MP4, WebM, OGG, AVI, MKV, MOV, FLV, WMV
+- M3U8 (HLS streams)
+- MPD (DASH streams)
+
+**Audio:**
+- MP3, WAV, OGG, AAC, FLAC, M4A
+
+**Protocols:**
+- HTTP/HTTPS (remote files)
+- File paths (local files)
+- Streaming protocols (RTMP, RTSP, HLS)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## QUICK EXAMPLE - YOUR HOGAN'S HEROES PLAYLIST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. **Save this as `hogans_heroes.m3u`:**
+
+```
+#EXTM3U
+#EXTINF:-1 tvg-name="Hogan's Heroes S03E01 The Crittendon Plan" tvg-logo="https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/hogans-heroes-s-01-e-01-the-informer_202509.thumbs/Hogan%27s%20Heroes_S03E01_The%20Crittendon%20Plan_001495.jpg",Hogan's Heroes S03E01 The Crittendon Plan
+https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S03E01_The%20Crittendon%20Plan.mp4
+#EXTINF:-1 tvg-name="Hogan's Heroes S03E02 Some Of Their Planes Are Missing" tvg-logo="https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/hogans-heroes-s-01-e-01-the-informer_202509.thumbs/Hogan%27s%20Heroes_S03E02_Some%20Of%20Their%20Planes%20Are%20Missing_001496.jpg",Hogan's Heroes S03E02 Some Of Their Planes Are Missing
+https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S03E02_Some%20Of%20Their%20Planes%20Are%20Missing.mp4
+```
+
+2. **Open `simple_nexus_player.html`**
+
+3. **Find this line:**
+   ```javascript
+   const playlistText = `__PLAYLIST_DATA__`;
+   ```
+
+4. **Paste your M3U playlist:**
+   ```javascript
+   const playlistText = `#EXTM3U
+#EXTINF:-1 tvg-name="Hogan's Heroes S03E01 The Crittendon Plan" tvg-logo="https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/hogans-heroes-s-01-e-01-the-informer_202509.thumbs/Hogan%27s%20Heroes_S03E01_The%20Crittendon%20Plan_001495.jpg",Hogan's Heroes S03E01 The Crittendon Plan
+https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S03E01_The%20Crittendon%20Plan.mp4
+#EXTINF:-1 tvg-name="Hogan's Heroes S03E02 Some Of Their Planes Are Missing" tvg-logo="https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/hogans-heroes-s-01-e-01-the-informer_202509.thumbs/Hogan%27s%20Heroes_S03E02_Some%20Of%20Their%20Planes%20Are%20Missing_001496.jpg",Hogan's Heroes S03E02 Some Of Their Planes Are Missing
+https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S03E02_Some%20Of%20Their%20Planes%20Are%20Missing.mp4`;
+   ```
+
+5. **Save and run:**
+   ```powershell
+   python -m http.server 8000
+   ```
+
+6. **Open:** `http://localhost:8000/simple_nexus_player.html`
+
+**Result:**
+✅ Episodes play in order
+✅ Thumbnails load from Archive.org
+✅ Titles show episode names
+✅ Click any episode to jump to it
+✅ Shuffle/loop modes work
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## THUMBNAIL BEHAVIOR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+**Priority:**
+1. **tvg-logo URL** (from M3U) - Uses this first
+2. **Local thumbs/ folder** - Falls back if no tvg-logo
+3. **Default icon** - Shows play button if nothing found
+
+**Image Loading:**
+- Remote thumbnails load via HTTP/HTTPS
+- Failed loads show default play icon
+- No errors if thumbnail missing
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## FEATURES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ **M3U Parser** - Full #EXTINF metadata extraction
+✅ **Auto-detect** - Recognizes M3U vs plain URLs
+✅ **Remote Thumbnails** - Loads images from HTTP URLs
+✅ **Sequential Playback** - Plays videos end-to-end
+✅ **Shuffle Mode** - Random playback order
+✅ **Loop Mode** - Restart when done
+✅ **Progress Bar** - Seek anywhere in video
+✅ **Keyboard Control** - Arrows and spacebar
+✅ **No Schedules** - Just plays videos in order
+✅ **No Clocks** - Clean, simple interface
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎉 PASTE YOUR M3U PLAYLIST AND START WATCHING!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
