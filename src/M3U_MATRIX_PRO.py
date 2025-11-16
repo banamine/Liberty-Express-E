@@ -3006,7 +3006,7 @@ Services included:
                   command=save).pack(pady=10)
 
     def generate_pages(self):
-        """Generate NEXUS TV pages from current channels"""
+        """Generate ALL 3 player pages automatically"""
         if not PAGE_GENERATOR_AVAILABLE:
             messagebox.showwarning("Feature Unavailable", 
                 "Page generator not available.\n\n"
@@ -3017,114 +3017,118 @@ Services included:
             messagebox.showwarning("No Channels", "Load channels first!")
             return
 
-        # Template selection dialog
-        template_dialog = tk.Toplevel(self.root)
-        template_dialog.title("Choose Template")
-        template_dialog.geometry("540x520")
-        template_dialog.configure(bg="#1e1e1e")
-        template_dialog.resizable(False, False)
-        template_dialog.transient(self.root)
-        template_dialog.grab_set()
+        # Show scheduler dialog - works for all pages now
+        def on_scheduler_callback(scheduler_params):
+            self._generate_all_three_pages(scheduler_params)
         
-        selected_template = tk.StringVar(value="nexus")
-        
-        tk.Label(
-            template_dialog,
-            text="Select Player Template",
-            font=("Segoe UI", 16, "bold"),
-            bg="#1e1e1e",
-            fg="#00ff88"
-        ).pack(pady=20)
-        
-        # NEXUS TV option
-        nexus_frame = tk.Frame(template_dialog, bg="#2a2a2a", relief=tk.RAISED, bd=2)
-        nexus_frame.pack(pady=10, padx=20, fill=tk.X)
-        
-        tk.Radiobutton(
-            nexus_frame,
-            text="NEXUS TV (24-Hour Scheduled Player)",
-            variable=selected_template,
-            value="nexus",
-            font=("Segoe UI", 11),
-            bg="#2a2a2a",
-            fg="white",
-            selectcolor="#0066cc",
-            activebackground="#2a2a2a",
-            activeforeground="white"
-        ).pack(anchor=tk.W, padx=10, pady=10)
-        
-        tk.Label(
-            nexus_frame,
-            text="Cyberpunk-themed player with time-based scheduling",
-            font=("Segoe UI", 9),
-            bg="#2a2a2a",
-            fg="#aaa"
-        ).pack(anchor=tk.W, padx=30, pady=(0, 10))
-        
-        # Web IPTV option
-        iptv_frame = tk.Frame(template_dialog, bg="#2a2a2a", relief=tk.RAISED, bd=2)
-        iptv_frame.pack(pady=10, padx=20, fill=tk.X)
-        
-        tk.Radiobutton(
-            iptv_frame,
-            text="Web IPTV (Sequential Channel Player)",
-            variable=selected_template,
-            value="webiptv",
-            font=("Segoe UI", 11),
-            bg="#2a2a2a",
-            fg="white",
-            selectcolor="#0066cc",
-            activebackground="#2a2a2a",
-            activeforeground="white"
-        ).pack(anchor=tk.W, padx=10, pady=10)
-        
-        tk.Label(
-            iptv_frame,
-            text="Modern IPTV player with channel list, favorites, and analysis",
-            font=("Segoe UI", 9),
-            bg="#2a2a2a",
-            fg="#aaa"
-        ).pack(anchor=tk.W, padx=30, pady=(0, 10))
-        
-        # Simple Player option (NEW!)
-        simple_frame = tk.Frame(template_dialog, bg="#2a2a2a", relief=tk.RAISED, bd=2)
-        simple_frame.pack(pady=10, padx=20, fill=tk.X)
-        
-        tk.Radiobutton(
-            simple_frame,
-            text="Simple Player (Clean Video Player)",
-            variable=selected_template,
-            value="simple",
-            font=("Segoe UI", 11),
-            bg="#2a2a2a",
-            fg="white",
-            selectcolor="#0066cc",
-            activebackground="#2a2a2a",
-            activeforeground="white"
-        ).pack(anchor=tk.W, padx=10, pady=10)
-        
-        tk.Label(
-            simple_frame,
-            text="Responsive player with sequential/shuffle modes - no clocks",
-            font=("Segoe UI", 9),
-            bg="#2a2a2a",
-            fg="#aaa"
-        ).pack(anchor=tk.W, padx=30, pady=(0, 10))
-        
-        def on_template_selected():
-            template_dialog.destroy()
-            self._continue_generation(selected_template.get())
-        
-        tk.Button(
-            template_dialog,
-            text="CONTINUE",
-            bg="#00ff88",
-            fg="#000",
-            font=("Segoe UI", 11, "bold"),
-            command=on_template_selected,
-            cursor="hand2"
-        ).pack(pady=20)
+        self.show_scheduler_dialog(on_scheduler_callback)
 
+    def _generate_all_three_pages(self, scheduler_params):
+        """Generate all 3 player pages (NEXUS TV, Web IPTV, Simple Player)"""
+        def generation_thread():
+            try:
+                # Get the first channel name for page naming
+                first_channel_name = self.channels[0].get('name', 'Playlist') if self.channels else 'Playlist'
+                
+                self.root.after(0, lambda: self.stat.config(text="Generating 3 player pages..."))
+                
+                # Build M3U content (with or without scheduling)
+                if scheduler_params:
+                    # Create smart schedule
+                    scheduled_channels = self.create_smart_schedule(
+                        self.channels,
+                        show_duration=scheduler_params['show_duration'],
+                        num_days=scheduler_params['num_days'],
+                        max_consecutive=scheduler_params['max_consecutive']
+                    )
+                    
+                    # Build M3U with schedule metadata
+                    m3u_content = "#EXTM3U\n"
+                    for item in scheduled_channels:
+                        extinf = f'#EXTINF:{item["scheduled_duration"]} tvg-id="{item.get("tvg_id", "")}" '
+                        extinf += f'tvg-name="{item.get("name", "")}" tvg-logo="{item.get("logo", "")}" '
+                        extinf += f'group-title="{item.get("group", "Other")}" '
+                        extinf += f'scheduled-start="{item["scheduled_start"]}",{item.get("name", "")}\n'
+                        m3u_content += extinf + item.get("url", "") + "\n"
+                else:
+                    # Use regular playlist
+                    m3u_content = self.m3u
+                
+                generated = []
+                
+                # Generate NEXUS TV
+                self.root.after(0, lambda: self.stat.config(text="Generating NEXUS TV..."))
+                nexus_path = Path("../templates/nexus_tv_template.html")
+                if not nexus_path.exists():
+                    nexus_path = Path("templates/nexus_tv_template.html")
+                if nexus_path.exists():
+                    from page_generator import NexusTVPageGenerator
+                    nexus_gen = NexusTVPageGenerator(template_path=str(nexus_path))
+                    nexus_output = nexus_gen.generate_page(m3u_content, first_channel_name)
+                    generated.append({
+                        'name': f"{first_channel_name} - NEXUS TV",
+                        'file': nexus_output.name,
+                        'type': 'nexus'
+                    })
+                
+                # Generate Web IPTV
+                self.root.after(0, lambda: self.stat.config(text="Generating Web IPTV..."))
+                webiptv_path = Path("../templates/web-iptv-extension")
+                if not webiptv_path.exists():
+                    webiptv_path = Path("templates/web-iptv-extension")
+                if webiptv_path.exists():
+                    from page_generator import WebIPTVPageGenerator
+                    webiptv_gen = WebIPTVPageGenerator(template_path=str(webiptv_path))
+                    webiptv_output = webiptv_gen.generate_page(m3u_content, first_channel_name)
+                    generated.append({
+                        'name': f"{first_channel_name} - Web IPTV",
+                        'file': webiptv_output.name,
+                        'type': 'webiptv'
+                    })
+                
+                # Generate Simple Player
+                self.root.after(0, lambda: self.stat.config(text="Generating Simple Player..."))
+                simple_path = Path("../templates/simple-player")
+                if not simple_path.exists():
+                    simple_path = Path("templates/simple-player")
+                if simple_path.exists():
+                    from page_generator import SimplePlayerPageGenerator
+                    simple_gen = SimplePlayerPageGenerator(template_path=str(simple_path))
+                    simple_output = simple_gen.generate_page(m3u_content, first_channel_name)
+                    generated.append({
+                        'name': f"{first_channel_name} - Simple Player",
+                        'file': simple_output.name,
+                        'type': 'simple'
+                    })
+                
+                # Show success message
+                abs_dir = Path('generated_pages').absolute()
+                
+                mode_text = f"with {scheduler_params['num_days']}-day schedule" if scheduler_params else "sequential mode"
+                
+                self.root.after(
+                    0, lambda: messagebox.showinfo(
+                        "✅ 3 Pages Generated!",
+                        f"Created 3 player pages {mode_text}\n\n"
+                        f"📁 Location:\n{abs_dir}\n\n"
+                        f"🌐 Open: http://localhost:5000/generated_pages/\n\n"
+                        f"📺 Pages Created:\n"
+                        f"• {first_channel_name} - NEXUS TV\n"
+                        f"• {first_channel_name} - Web IPTV\n"
+                        f"• {first_channel_name} - Simple Player\n\n"
+                        f"💡 Each page has a SCHEDULER TOGGLE in the menu!"))
+                
+                self.root.after(0, lambda: self.stat.config(
+                    text=f"✅ GENERATED: 3 pages with {len(self.channels)} channels"))
+                
+            except Exception as e:
+                import traceback
+                error_msg = f"{str(e)}\n\n{traceback.format_exc()}"
+                self.root.after(0, lambda: messagebox.showerror("Generation Error", error_msg))
+                self.root.after(0, lambda: self.stat.config(text="Generation failed"))
+        
+        threading.Thread(target=generation_thread, daemon=True).start()
+    
     def _continue_generation(self, template_type):
         """Continue page generation with selected template"""
         
