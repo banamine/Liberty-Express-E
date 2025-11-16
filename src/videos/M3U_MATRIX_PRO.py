@@ -3635,7 +3635,8 @@ Services included:
         
         text = tk.Text(text_frame, bg="#333", fg="#fff", 
                       insertbackground="#fff", font=("Consolas", 10),
-                      wrap=tk.NONE)
+                      wrap=tk.NONE, selectbackground="#0066cc",
+                      selectforeground="#fff", cursor="xterm")
         text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         
         scroll_y = tk.Scrollbar(text_frame, command=text.yview)
@@ -3645,6 +3646,49 @@ Services included:
         scroll_x = tk.Scrollbar(dialog, orient=tk.HORIZONTAL, command=text.xview)
         scroll_x.pack(fill=tk.X, padx=20)
         text.config(xscrollcommand=scroll_x.set)
+        
+        # Enable drag-and-drop for files
+        def handle_file_drop(event):
+            """Handle files dropped onto the workbench"""
+            files = dialog.tk.splitlist(event.data)
+            if files:
+                file_path = files[0]
+                
+                # Check if there's existing content
+                existing_content = text.get("1.0", tk.END).strip()
+                if existing_content:
+                    response = messagebox.askyesno(
+                        "Replace Content?",
+                        f"Replace current text with content from:\n{os.path.basename(file_path)}?",
+                        icon='warning'
+                    )
+                    if not response:
+                        return
+                
+                try:
+                    with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                        content = f.read()
+                        # Create undo separator to preserve history
+                        text.edit_separator()
+                        text.delete("1.0", tk.END)
+                        text.insert("1.0", content)
+                        # Create another separator so the whole operation can be undone
+                        text.edit_separator()
+                        self.stat.config(text=f"Loaded: {os.path.basename(file_path)} (Undo available)")
+                except Exception as e:
+                    messagebox.showerror("Error", f"Could not open file:\n{e}")
+        
+        # Register drag-and-drop
+        text.drop_target_register(DND_FILES)
+        text.dnd_bind('<<Drop>>', handle_file_drop)
+        
+        # Enable standard text editing shortcuts
+        def select_all(e):
+            text.tag_add(tk.SEL, "1.0", tk.END)
+            return "break"  # Prevent default behavior
+        
+        text.bind('<Control-a>', select_all)
+        text.bind('<Control-A>', select_all)
         
         def load_from_file():
             """Open a file and load content"""
