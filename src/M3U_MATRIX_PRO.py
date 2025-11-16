@@ -19,7 +19,7 @@ if script_dir not in sys.path:
 
 # Optional imports - only needed for advanced features
 try:
-    from page_generator import NexusTVPageGenerator, WebIPTVGenerator
+    from page_generator import NexusTVPageGenerator, WebIPTVGenerator, SimplePlayerGenerator
     PAGE_GENERATOR_AVAILABLE = True
 except ImportError as e:
     PAGE_GENERATOR_AVAILABLE = False
@@ -2601,7 +2601,7 @@ Services included:
         # Template selection dialog
         template_dialog = tk.Toplevel(self.root)
         template_dialog.title("Choose Template")
-        template_dialog.geometry("520x400")
+        template_dialog.geometry("540x520")
         template_dialog.configure(bg="#1e1e1e")
         template_dialog.resizable(False, False)
         template_dialog.transient(self.root)
@@ -2667,6 +2667,31 @@ Services included:
             fg="#aaa"
         ).pack(anchor=tk.W, padx=30, pady=(0, 10))
         
+        # Simple Player option (NEW!)
+        simple_frame = tk.Frame(template_dialog, bg="#2a2a2a", relief=tk.RAISED, bd=2)
+        simple_frame.pack(pady=10, padx=20, fill=tk.X)
+        
+        tk.Radiobutton(
+            simple_frame,
+            text="Simple Player (Clean Video Player)",
+            variable=selected_template,
+            value="simple",
+            font=("Segoe UI", 11),
+            bg="#2a2a2a",
+            fg="white",
+            selectcolor="#0066cc",
+            activebackground="#2a2a2a",
+            activeforeground="white"
+        ).pack(anchor=tk.W, padx=10, pady=10)
+        
+        tk.Label(
+            simple_frame,
+            text="Responsive player with sequential/shuffle modes - no clocks",
+            font=("Segoe UI", 9),
+            bg="#2a2a2a",
+            fg="#aaa"
+        ).pack(anchor=tk.W, padx=30, pady=(0, 10))
+        
         def on_template_selected():
             template_dialog.destroy()
             self._continue_generation(selected_template.get())
@@ -2691,7 +2716,12 @@ Services included:
 
         def generation_thread():
             try:
-                template_name = "NEXUS TV" if template_type == "nexus" else "Web IPTV"
+                template_names = {
+                    "nexus": "NEXUS TV",
+                    "webiptv": "Web IPTV",
+                    "simple": "Simple Player"
+                }
+                template_name = template_names.get(template_type, "Player")
                 self.root.after(
                     0, lambda: self.stat.config(
                         text=f"Generating {template_name} pages..."))
@@ -2714,7 +2744,7 @@ Services included:
                         self.root.after(0, lambda: self.stat.config(text="Template missing"))
                         return
                     generator = NexusTVPageGenerator(template_path=str(template_path))
-                else:  # webiptv
+                elif template_type == "webiptv":
                     # Check for Web IPTV template
                     template_path = Path("../templates/web-iptv-extension")
                     if not template_path.exists():
@@ -2730,6 +2760,23 @@ Services included:
                         self.root.after(0, lambda: self.stat.config(text="Template missing"))
                         return
                     generator = WebIPTVGenerator(template_path=str(template_path))
+                else:  # simple
+                    # Check for Simple Player template
+                    template_path = Path("../templates/simple-player")
+                    if not template_path.exists():
+                        template_path = Path("templates/simple-player")
+                    if not template_path.exists() or not (template_path / "player.html").exists():
+                        self.root.after(0, lambda: messagebox.showerror(
+                            "Template Not Found",
+                            "Simple Player template files missing!\n\n"
+                            "Ensure these files exist:\n"
+                            "- templates/simple-player/player.html\n"
+                            "- templates/simple-player/css/styles.css\n"
+                            "- templates/simple-player/js/app.js\n\n"
+                            "Or use the SAVE button to export M3U files."))
+                        self.root.after(0, lambda: self.stat.config(text="Template missing"))
+                        return
+                    generator = SimplePlayerGenerator(template_path=str(template_path))
                 
                 generated = []
 
