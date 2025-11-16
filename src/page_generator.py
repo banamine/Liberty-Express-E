@@ -541,13 +541,14 @@ class WebIPTVGenerator:
         
         return channels
     
-    def generate_page(self, m3u_content, output_name="iptv_player"):
+    def generate_page(self, m3u_content, channel_name, output_filename=None):
         """
         Generate a Web IPTV player page from M3U content
         
         Args:
             m3u_content: M3U playlist content as string
-            output_name: Name for the output folder
+            channel_name: Name for the channel/playlist
+            output_filename: Optional custom filename (defaults to channel_name)
         
         Returns:
             Path to the generated player HTML file
@@ -557,6 +558,9 @@ class WebIPTVGenerator:
         
         if not channels:
             raise ValueError("No valid channels found in M3U content")
+        
+        # Use channel_name as folder name if no custom filename specified
+        output_name = output_filename if output_filename else channel_name
         
         # Create output directory
         page_dir = self.output_dir / output_name
