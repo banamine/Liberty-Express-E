@@ -2451,25 +2451,42 @@ Success Rate: {results['working']/results['total']*100:.1f}%
             self.show_error_dialog("Cannot Open Folder", f"Failed to open thumbnails folder:\n{thumb_folder}", e)
     
     def launch_video_player(self):
-        """Launch Video Player Pro application"""
+        """Launch Video Player Pro application - works from any location"""
         try:
-            # Find Video Player Pro path relative to this script
-            current_dir = os.path.dirname(os.path.abspath(__file__))
-            video_player_path = os.path.join(current_dir, "..", "video_player_app", "run_player.py")
-            video_player_path = os.path.normpath(video_player_path)
+            # Get the directory containing this script
+            script_dir = os.path.dirname(os.path.abspath(__file__))
             
-            if not os.path.exists(video_player_path):
+            # Try multiple possible locations for video_player_app
+            possible_paths = [
+                # Same directory as script (for deployment)
+                os.path.join(script_dir, "video_player_app", "run_player.py"),
+                # Parent directory (if in src/videos/)
+                os.path.join(script_dir, "..", "video_player_app", "run_player.py"),
+                # Root of project (if in nested structure)
+                os.path.join(script_dir, "..", "..", "video_player_app", "run_player.py"),
+                # Sibling to script (alt deployment)
+                os.path.join(os.path.dirname(script_dir), "video_player_app", "run_player.py")
+            ]
+            
+            video_player_path = None
+            for path in possible_paths:
+                normalized_path = os.path.normpath(path)
+                if os.path.exists(normalized_path):
+                    video_player_path = normalized_path
+                    break
+            
+            if not video_player_path:
                 messagebox.showerror(
                     "Video Player Not Found",
-                    f"Video Player Pro not found at:\n{video_player_path}\n\n"
-                    "Expected location:\n"
-                    "src/video_player_app/run_player.py"
+                    "Video Player Pro not found!\n\n"
+                    f"Searched in:\n{script_dir}\n\n"
+                    "Please ensure video_player_app folder is in the same directory as M3U_MATRIX_PRO.py"
                 )
                 return
             
             # Launch Video Player Pro
             subprocess.Popen([sys.executable, video_player_path])
-            self.stat.config(text="Launched Video Player Pro")
+            self.stat.config(text=f"Launched Video Player Pro from {os.path.dirname(video_player_path)}")
         except Exception as e:
             self.show_error_dialog("Launch Failed", "Could not launch Video Player Pro", e)
 
