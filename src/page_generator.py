@@ -218,8 +218,9 @@ class NexusTVPageGenerator:
         with open(self.template_path, 'r', encoding='utf-8') as f:
             template = f.read()
         
-        # Embed HLS.js and DASH.js libraries inline for offline support
+        # Embed HLS.js, DASH.js, and Thumbnail System libraries inline for offline support
         libs_path = Path(__file__).resolve().parent.parent / "templates" / "web-iptv-extension" / "js" / "libs"
+        templates_path = Path(__file__).resolve().parent.parent / "templates"
         
         # Read HLS.js (required for offline support)
         hls_js_path = libs_path / "hls.min.js"
@@ -238,6 +239,15 @@ class NexusTVPageGenerator:
         with open(dash_js_path, 'r', encoding='utf-8') as f:
             dash_js_content = f.read()
         template = template.replace('// PLACEHOLDER_DASH_JS', dash_js_content)
+        
+        # Read Thumbnail System (required for auto-screenshot feature)
+        thumbnail_js_path = templates_path / "thumbnail-system.js"
+        if not thumbnail_js_path.exists():
+            raise FileNotFoundError(f"Thumbnail system required for auto-screenshot feature not found at: {thumbnail_js_path}")
+        
+        with open(thumbnail_js_path, 'r', encoding='utf-8') as f:
+            thumbnail_js_content = f.read()
+        template = template.replace('// PLACEHOLDER_THUMBNAIL_SYSTEM_JS', thumbnail_js_content)
         
         # Parse M3U to schedule
         schedule = self.parse_m3u_to_schedule(m3u_content, channel_name)
@@ -639,12 +649,17 @@ class WebIPTVGenerator:
         if (self.template_dir / "js" / "app.js").exists():
             shutil.copy(self.template_dir / "js" / "app.js", js_dir / "app.js")
         
-        # Copy JS libraries (HLS.js, etc) for offline use
+        # Copy JS libraries (HLS.js, DASH.js, Feather, Thumbnail System, etc) for offline use
         libs_dir = js_dir / "libs"
         libs_dir.mkdir(exist_ok=True)
         if (self.template_dir / "js" / "libs").exists():
             for lib_file in (self.template_dir / "js" / "libs").glob("*.js"):
                 shutil.copy(lib_file, libs_dir / lib_file.name)
+        
+        # Copy thumbnail-system.js from templates root
+        thumbnail_system_src = Path(__file__).resolve().parent.parent / "templates" / "thumbnail-system.js"
+        if thumbnail_system_src.exists():
+            shutil.copy(thumbnail_system_src, libs_dir / "thumbnail-system.js")
         
         # Copy icons if they exist
         icons_dir = page_dir / "icons"
@@ -869,12 +884,17 @@ class SimplePlayerGenerator:
         if (self.template_dir / "js" / "app.js").exists():
             shutil.copy(self.template_dir / "js" / "app.js", js_dir / "app.js")
         
-        # Copy JS libraries (HLS.js, etc) for offline use
+        # Copy JS libraries (HLS.js, DASH.js, Feather, Thumbnail System, etc) for offline use
         libs_dir = js_dir / "libs"
         libs_dir.mkdir(exist_ok=True)
         if (self.template_dir / "js" / "libs").exists():
             for lib_file in (self.template_dir / "js" / "libs").glob("*.js"):
                 shutil.copy(lib_file, libs_dir / lib_file.name)
+        
+        # Copy thumbnail-system.js from templates root
+        thumbnail_system_src = Path(__file__).resolve().parent.parent / "templates" / "thumbnail-system.js"
+        if thumbnail_system_src.exists():
+            shutil.copy(thumbnail_system_src, libs_dir / "thumbnail-system.js")
         
         # Read template
         template_file = self.template_dir / "player.html"

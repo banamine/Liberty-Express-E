@@ -11,6 +11,7 @@ let retryTimer = null;
 let playbackMode = 'sequential';
 let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 let hlsInstance = null;
+let thumbnailManager = null;
 
 // DOM Elements
 const video = document.getElementById('video');
@@ -31,15 +32,45 @@ const shuffleBtn = document.getElementById('shuffle-btn');
 // Initialize on load
 document.addEventListener('DOMContentLoaded', init);
 
-function init() {
+async function init() {
   parsePlaylistData();
   setupEventListeners();
   initPlaylistModal();
+  
+  // Initialize thumbnail system
+  await initThumbnailSystem();
   
   if (playlist.length > 0) {
     loadVideo(playbackMode === 'shuffle' ? getRandomIndex() : 0);
   } else {
     showError('No channels found in playlist');
+  }
+}
+
+async function initThumbnailSystem() {
+  try {
+    if (typeof ThumbnailManager !== 'undefined') {
+      thumbnailManager = new ThumbnailManager('SIMPLE_PLAYER_THUMBNAILS');
+      await thumbnailManager.init();
+      console.log('✅ Thumbnail system initialized');
+    }
+  } catch (error) {
+    console.error('Failed to initialize thumbnail system:', error);
+  }
+}
+
+function setupThumbnailCapture(channelName) {
+  if (!thumbnailManager || !video.src) return;
+  
+  const handleMetadata = () => {
+    thumbnailManager.setupAutoCapture(video, video.src, channelName);
+    video.removeEventListener('loadedmetadata', handleMetadata);
+  };
+  
+  if (video.readyState >= 1) {
+    thumbnailManager.setupAutoCapture(video, video.src, channelName);
+  } else {
+    video.addEventListener('loadedmetadata', handleMetadata);
   }
 }
 
@@ -201,6 +232,8 @@ function loadVideo(index) {
   } else {
     video.src = url;
     video.load();
+    // Setup thumbnail auto-capture
+    setupThumbnailCapture(item.name || item.title || `Channel ${index + 1}`);
   }
   
   retryTimer = setTimeout(() => {
@@ -218,6 +251,9 @@ function loadVideo(index) {
 }
 
 function loadHLS(url) {
+  const item = playlist[currentIndex];
+  const channelName = item.name || item.title || `Channel ${currentIndex + 1}`;
+  
   if (typeof Hls !== 'undefined' && Hls.isSupported()) {
     hlsInstance = new Hls({
       enableWorker: true,
@@ -231,6 +267,10 @@ function loadHLS(url) {
       if (retryTimer) clearTimeout(retryTimer);
       triggerPlay();
     });
+    // Setup thumbnail auto-capture after media is attached
+    hlsInstance.on(Hls.Events.MEDIA_ATTACHED, () => {
+      setupThumbnailCapture(channelName);
+    });
     hlsInstance.on(Hls.Events.ERROR, (event, data) => {
       if (data.fatal) {
         console.error('HLS fatal error:', data);
@@ -240,6 +280,8 @@ function loadHLS(url) {
   } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
     video.src = url;
     video.load();
+    // Setup thumbnail auto-capture
+    setupThumbnailCapture(channelName);
   } else {
     showError('HLS not supported');
   }

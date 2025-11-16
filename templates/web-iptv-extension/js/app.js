@@ -5,6 +5,7 @@ let channels = [];
 let currentChannelIndex = -1;
 let hlsInstance = null;
 let dashInstance = null;
+let thumbnailManager = null;
 
 // DOM Elements
 const player = document.getElementById('player');
@@ -22,11 +23,14 @@ const tabs = document.querySelectorAll('.tab');
 const tabContents = document.querySelectorAll('.tab-content');
 
 // Initialize
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     initializePlayer();
     setupEventListeners();
     updateLocalTime();
     setInterval(updateLocalTime, 1000);
+    
+    // Initialize thumbnail system
+    await initThumbnailSystem();
     
     // Load embedded channel data if available
     loadEmbeddedChannels();
@@ -39,6 +43,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function initializePlayer() {
     player.volume = 0.5;
+}
+
+async function initThumbnailSystem() {
+    try {
+        if (typeof ThumbnailManager !== 'undefined') {
+            thumbnailManager = new ThumbnailManager('WEB_IPTV_THUMBNAILS');
+            await thumbnailManager.init();
+            console.log('✅ Thumbnail system initialized');
+        }
+    } catch (error) {
+        console.error('Failed to initialize thumbnail system:', error);
+    }
+}
+
+function setupThumbnailCapture(channelName) {
+    if (!thumbnailManager || !player.src) {
+        if (!player.src) {
+            console.warn('setupThumbnailCapture: No video src available, skipping capture');
+        }
+        return;
+    }
+    
+    const handleMetadata = () => {
+        thumbnailManager.setupAutoCapture(player, player.src, channelName);
+        player.removeEventListener('loadedmetadata', handleMetadata);
+    };
+    
+    if (player.readyState >= 1) {
+        thumbnailManager.setupAutoCapture(player, player.src, channelName);
+    } else {
+        player.addEventListener('loadedmetadata', handleMetadata);
+    }
 }
 
 function setupEventListeners() {
@@ -221,6 +257,8 @@ function playChannel(index) {
         // Direct playback
         player.src = url;
         player.play().catch(e => console.error('Playback error:', e));
+        // Setup thumbnail auto-capture for direct playback
+        setupThumbnailCapture(channel.name);
     }
     
     renderChannels();
@@ -230,6 +268,8 @@ function playChannel(index) {
 }
 
 function playHLS(url) {
+    const channelName = channels[currentChannelIndex]?.name || 'HLS Stream';
+    
     if (typeof Hls !== 'undefined' && Hls.isSupported()) {
         hlsInstance = new Hls();
         hlsInstance.loadSource(url);
@@ -237,9 +277,14 @@ function playHLS(url) {
         hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
             player.play().catch(e => console.error('HLS playback error:', e));
         });
+        // Setup thumbnail auto-capture after media is attached
+        hlsInstance.on(Hls.Events.MEDIA_ATTACHED, () => {
+            setupThumbnailCapture(channelName);
+        });
     } else if (player.canPlayType('application/vnd.apple.mpegurl')) {
         player.src = url;
         player.play().catch(e => console.error('Native HLS playback error:', e));
+        setupThumbnailCapture(channelName);
     }
 }
 
@@ -247,6 +292,24 @@ function playDASH(url) {
     if (typeof dashjs !== 'undefined') {
         dashInstance = dashjs.MediaPlayer().create();
         dashInstance.initialize(player, url, true);
+        
+        const channelName = channels[currentChannelIndex]?.name || 'DASH Stream';
+        // DASH.js uses MediaSource, not player.src, so wait for metadata to be loaded
+        dashInstance.on(dashjs.MediaPlayer.events.PLAYBACK_METADATA_LOADED, () => {
+            // For DASH, use player.currentSrc instead of player.src
+            if (thumbnailManager && player.currentSrc) {
+                const handleMetadata = () => {
+                    thumbnailManager.setupAutoCapture(player, player.currentSrc, channelName);
+                    player.removeEventListener('loadedmetadata', handleMetadata);
+                };
+                
+                if (player.readyState >= 1) {
+                    thumbnailManager.setupAutoCapture(player, player.currentSrc, channelName);
+                } else {
+                    player.addEventListener('loadedmetadata', handleMetadata);
+                }
+            }
+        });
     }
 }
 
