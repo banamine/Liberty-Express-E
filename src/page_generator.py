@@ -1014,6 +1014,216 @@ class SimplePlayerGenerator:
         
         return selector_path
 
+class RumbleChannelGenerator:
+    """Generate standalone Rumble Channel player pages from playlists with Rumble videos"""
+    
+    def __init__(self, template_path=None):
+        if template_path is None:
+            template_path = Path(__file__).resolve().parent.parent / "templates" / "rumble_channel_template.html"
+        self.template_path = Path(template_path)
+        self.output_dir = Path("generated_pages")
+        self.output_dir.mkdir(exist_ok=True)
+    
+    def generate_page(self, channels, page_name="rumble_channel"):
+        """
+        Generate Rumble Channel player page from playlist
+        
+        Args:
+            channels: List of channel dicts with Rumble video info
+            page_name: Name for the generated page folder
+            
+        Returns:
+            Path to generated HTML file
+        """
+        if not self.template_path.exists():
+            raise FileNotFoundError(f"Template not found: {self.template_path}")
+        
+        # Filter only Rumble channels
+        rumble_channels = []
+        for ch in channels:
+            custom_tags = ch.get('custom_tags', {})
+            if custom_tags.get('PROVIDER') == 'RUMBLE':
+                rumble_channels.append(ch)
+        
+        if not rumble_channels:
+            raise ValueError("No Rumble videos found in playlist")
+        
+        # Create page folder
+        page_folder = self.output_dir / page_name
+        page_folder.mkdir(exist_ok=True, parents=True)
+        
+        # Build playlist JSON for template
+        playlist_data = []
+        for idx, ch in enumerate(rumble_channels):
+            custom_tags = ch.get('custom_tags', {})
+            
+            video_entry = {
+                'title': ch.get('name', f'Rumble Video {idx + 1}'),
+                'embed_url': custom_tags.get('EMBED_URL', ch.get('url', '')),
+                'thumbnail': ch.get('logo', ''),
+                'video_id': custom_tags.get('VIDEO_ID', ''),
+                'pub_code': custom_tags.get('PUB_CODE', ''),
+                'width': custom_tags.get('WIDTH', '640'),
+                'height': custom_tags.get('HEIGHT', '360')
+            }
+            
+            # Ensure embed_url is valid
+            if not video_entry['embed_url']:
+                video_id = video_entry['video_id']
+                pub_code = video_entry['pub_code']
+                if video_id and pub_code:
+                    video_entry['embed_url'] = f"https://rumble.com/embed/{video_id}/?pub={pub_code}"
+                elif video_id:
+                    video_entry['embed_url'] = f"https://rumble.com/embed/{video_id}/"
+            
+            playlist_data.append(video_entry)
+        
+        # Read template
+        with open(self.template_path, 'r', encoding='utf-8') as f:
+            template = f.read()
+        
+        # Replace placeholders with proper escaping
+        # Escape HTML in page title
+        safe_title = page_name.replace('_', ' ').title().replace('<', '&lt;').replace('>', '&gt;')
+        html_content = template.replace('{PAGE_TITLE}', safe_title)
+        html_content = html_content.replace('{TOTAL_VIDEOS}', str(len(playlist_data)))
+        
+        # Safely embed JSON - escape </script> to prevent script breakout
+        playlist_json = json.dumps(playlist_data, indent=2).replace('</script>', '<\\/script>')
+        html_content = html_content.replace('{PLAYLIST_JSON}', playlist_json)
+        
+        # Write HTML file
+        html_path = page_folder / f"{page_name}.html"
+        with open(html_path, 'w', encoding='utf-8') as f:
+            f.write(html_content)
+        
+        # Create README
+        readme_path = page_folder / "README.txt"
+        with open(readme_path, 'w', encoding='utf-8') as f:
+            f.write(f"""Rumble Channel Player: {page_name}
+Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+This is a standalone Rumble video player page.
+
+Videos: {len(playlist_data)}
+
+Features:
+• Sequential playback with next/previous controls
+• Playlist sidebar with thumbnails
+• Keyboard navigation (← → arrows)
+• Responsive design for mobile and desktop
+• 100% offline (metadata embedded)
+
+To use:
+1. Open {page_name}.html in any modern web browser
+2. Click any video in the playlist to start
+3. Use keyboard arrows or on-screen buttons to navigate
+4. Videos will play in embedded Rumble iframes
+
+Note: Videos require internet connection to stream from Rumble.
+All metadata is embedded offline, but video content streams from Rumble.com
+""")
+        
+        return html_path
+    
+    def generate_selector(self, generated_pages):
+        """Generate a selector/index page for multiple Rumble Channel pages"""
+        selector_html = f'''<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rumble Channel Selector</title>
+    <style>
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        body {{ 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff; 
+            padding: 40px 20px;
+            min-height: 100vh;
+        }}
+        .container {{ max-width: 1200px; margin: 0 auto; }}
+        h1 {{ 
+            text-align: center; 
+            margin-bottom: 40px; 
+            font-size: 2.5em; 
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }}
+        .grid {{ 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+            gap: 30px; 
+        }}
+        .card {{ 
+            background: rgba(0, 0, 0, 0.4); 
+            padding: 30px; 
+            border-radius: 15px; 
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }}
+        .card:hover {{ 
+            transform: translateY(-5px); 
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+            border-color: #fff;
+        }}
+        .card h2 {{ margin-bottom: 15px; font-size: 1.5em; }}
+        .card p {{ color: rgba(255, 255, 255, 0.8); margin-bottom: 20px; }}
+        .btn {{ 
+            display: inline-block;
+            background: #667eea; 
+            color: #fff; 
+            padding: 12px 30px; 
+            text-decoration: none; 
+            border-radius: 8px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }}
+        .btn:hover {{ 
+            background: #5568d3; 
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📺 Rumble Channels</h1>
+        <div class="grid" id="grid"></div>
+    </div>
+    <script>
+        const channels = ''' + json.dumps([
+            {
+                'name': page['name'],
+                'file': page['file'],
+                'videos': page.get('videos', 0)
+            } for page in generated_pages
+        ], indent=12) + ''';
+        
+        const grid = document.getElementById('grid');
+        channels.forEach(channel => {{
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+                <h2>${{channel.name}}</h2>
+                <p>${{channel.videos}} videos available</p>
+                <a href="${{channel.file}}" class="btn">▶ Watch Now</a>
+            `;
+            grid.appendChild(card);
+        }});
+    </script>
+</body>
+</html>'''
+        
+        selector_path = self.output_dir / "rumble_index.html"
+        with open(selector_path, 'w', encoding='utf-8') as f:
+            f.write(selector_html)
+        
+        return selector_path
+
+
 if __name__ == "__main__":
     # Example usage
     generator = NexusTVPageGenerator()
