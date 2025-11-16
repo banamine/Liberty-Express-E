@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="theme-color" content="#000000">
+  <title>__PLAYLIST_NAME__ - Simple Player</title>
+  
+  <!-- HLS.js for HLS stream support -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.6.13"></script>
+  
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div id="player-container">
+  <div class="player-header">
+    <div class="player-title" id="title">Loading...</div>
+    <div class="player-controls">
+      <button id="prev-btn" title="Previous Channel">◀ Prev</button>
+      <button id="playlist-btn" title="Show Playlist">☰ Playlist</button>
+      <button id="next-btn" title="Next Channel">Next ▶</button>
+    </div>
+  </div>
+  
+  <div class="video-wrapper">
+    <video id="video" controls autoplay muted playsinline></video>
+    <div class="touch-overlay" id="touch-overlay"></div>
+    <div id="loading" class="show">Connecting...</div>
+  </div>
+  
+  <div class="player-footer">
+    <div class="playlist-info" id="playlist-info">0/0</div>
+    <div class="playback-mode">
+      <span style="font-size: 0.85em;">Mode:</span>
+      <button id="sequential-btn" class="active" title="Play in order">Sequential</button>
+      <button id="shuffle-btn" title="Random playback">Shuffle</button>
+    </div>
+  </div>
+  
+  <button id="fake-click" tabindex="-1"></button>
+  
+  <!-- Playlist Modal -->
+  <div class="playlist-modal" id="playlist-modal">
+    <div class="playlist-header">
+      <h2>__PLAYLIST_NAME__</h2>
+      <button class="playlist-close" id="playlist-close">✕ Close</button>
+    </div>
+    <div class="playlist-content" id="playlist-content">
+      <!-- Playlist will be populated by JavaScript -->
+    </div>
+  </div>
+</div>
+
+<script>
+// Embedded playlist data will be injected here by the generator
+window.PLAYLIST_DATA = '__PLAYLIST_JSON__';
+</script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
