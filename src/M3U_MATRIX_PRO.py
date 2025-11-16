@@ -2601,7 +2601,7 @@ Services included:
         # Template selection dialog
         template_dialog = tk.Toplevel(self.root)
         template_dialog.title("Choose Template")
-        template_dialog.geometry("500x300")
+        template_dialog.geometry("520x400")
         template_dialog.configure(bg="#1e1e1e")
         template_dialog.resizable(False, False)
         template_dialog.transient(self.root)
