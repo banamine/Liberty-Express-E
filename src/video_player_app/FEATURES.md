@@ -14,11 +14,13 @@
 - **Right Panel**: Video player controls and information display
 
 #### Playlist Management
-- **Advanced Import (Load Button)**: Import M3U playlists, TXT files with URLs, video/audio files, and folders
+- **Universal Import (LOAD Button)**: Blue button, top-left position, ACCEPTS ANY FILE TYPE
+  - **ANY FILE ACCEPTANCE**: Give it any file and it will extract URLs from it
   - **M3U/M3U8 Support**: Full playlist parsing with metadata
-  - **URL Extraction**: Automatically extracts URLs from TXT files (HTTP, HTTPS, RTMP, RTSP, file://)
+  - **URL Extraction**: Automatically extracts URLs from ANY file type (TXT, HTML, XML, JSON, LOG, CFG, etc.)
+  - **Media File Import**: Direct import of video/audio files with FFmpeg metadata
   - **Folder Scanning**: Recursive scanning for all media files and playlists
-  - **Multi-Format**: Supports playlists, videos, audio, and text files with links
+  - **Multi-Protocol**: Supports HTTP, HTTPS, RTMP, RTSP, file:// URLs
 - **Add Videos**: Individual file selection or batch import
 - **Folder Scanning**: Recursive folder scanning for all video files
 - **Supported Formats**: MP4, AVI, MKV, MOV, WMV, FLV, WebM, M4V, MP3, AAC, WAV, FLAC, OGG

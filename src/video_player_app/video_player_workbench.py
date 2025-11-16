@@ -751,65 +751,62 @@ File Path: {video['filepath']}
                 pass
     
     def import_files(self):
-        """Import files with support for M3U, TXT, videos, audio, and folders"""
+        """Import ANY file type - extracts URLs from any file"""
         choice = messagebox.askquestion(
-            "Import",
-            "Import FILES (Yes) or FOLDER (No)?",
+            "Select Import Type",
+            "Do you want to load individual files?\n\nYes = Select Files\nNo = Select Folder (scans subfolders)\nCancel = Abort",
             icon='question'
         )
         
         if choice == 'yes':
             files = filedialog.askopenfilenames(
-                title="Select Files to Import",
+                title="Select ANY Files to Import - URLs will be extracted",
                 filetypes=[
-                    ("All Supported", "*.m3u *.m3u8 *.txt *.mp4 *.mkv *.avi *.mov *.wmv *.flv *.webm *.m4v *.mp3 *.aac *.wav *.flac *.ogg"),
-                    ("Playlists", "*.m3u *.m3u8"),
-                    ("Text Files", "*.txt"),
-                    ("Video Files", "*.mp4 *.mkv *.avi *.mov *.wmv *.flv *.webm *.m4v"),
-                    ("Audio Files", "*.mp3 *.aac *.wav *.flac *.ogg *.m4a"),
                     ("All Files", "*.*")
                 ]
             )
             
             if files:
                 threading.Thread(target=self.process_import_files, args=(list(files),), daemon=True).start()
-        else:
+        elif choice == 'no':
             folder = filedialog.askdirectory(title="Select Folder to Import")
             if folder:
                 threading.Thread(target=self.process_import_folder, args=(folder,), daemon=True).start()
     
     def process_import_files(self, files):
-        """Process imported files"""
+        """Process ANY file type - extracts URLs from all files"""
         all_videos = []
         
         for file_path in files:
             try:
                 ext = os.path.splitext(file_path)[1].lower()
                 
+                # Try M3U parsing first
                 if ext in {'.m3u', '.m3u8'}:
                     videos = self.parse_m3u_file(file_path)
                     all_videos.extend(videos)
-                elif ext == '.txt':
-                    videos = self.parse_txt_file(file_path)
-                    all_videos.extend(videos)
+                # Try media file detection
                 elif self.is_media_file(file_path):
                     metadata = self.extract_video_metadata(file_path)
                     if metadata:
                         all_videos.append(metadata)
+                # For ANY other file, try to extract URLs from it
+                else:
+                    videos = self.extract_urls_from_any_file(file_path)
+                    all_videos.extend(videos)
             except Exception as e:
                 print(f"Error processing {file_path}: {e}")
         
         if not all_videos:
             self.after(0, lambda: messagebox.showwarning(
                 "No Content Found",
-                "No channels or media files were found in the selected files/folder.\n\n"
-                "Supported file types:\n"
-                "• M3U Playlists (.m3u, .m3u8)\n"
-                "• Text Files with URLs (.txt)\n"
-                "• Video Files (.mp4, .mkv, .avi, .mov, .wmv, etc.)\n"
-                "• Audio Files (.mp3, .aac, .wav, .flac, .ogg, etc.)\n"
-                "• Folders (scans all subfolders for media and playlists)\n\n"
-                "Text files should contain URLs (one per line) or M3U format."
+                "No URLs, media files, or playlists were found.\n\n"
+                "The Load button accepts ANY file type:\n"
+                "• M3U/M3U8 Playlists\n"
+                "• Text files (TXT, HTML, XML, JSON, etc.)\n"
+                "• Video/Audio files (MP4, MKV, AVI, MP3, etc.)\n"
+                "• Any file containing URLs\n\n"
+                "URLs will be automatically extracted from any file type."
             ))
             return
         
@@ -818,7 +815,7 @@ File Path: {video['filepath']}
         self.after(0, self.save_playlist_to_disk)
         self.after(0, lambda: messagebox.showinfo(
             "Import Complete",
-            f"Loaded {len(all_videos)} videos from {len(files)} file(s)"
+            f"Loaded {len(all_videos)} item(s) from {len(files)} file(s)"
         ))
     
     def process_import_folder(self, folder):
@@ -901,21 +898,29 @@ File Path: {video['filepath']}
         
         return videos
     
-    def parse_txt_file(self, file_path):
-        """Parse TXT file containing URLs (one per line) or extract links"""
+    def extract_urls_from_any_file(self, file_path):
+        """Extract URLs from ANY file type - accepts everything"""
         videos = []
         
         try:
+            # Try UTF-8 first
             with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
                 content = f.read()
         except:
             try:
-                with open(file_path, 'r', encoding='latin-1') as f:
+                # Fallback to latin-1
+                with open(file_path, 'r', encoding='latin-1', errors='ignore') as f:
                     content = f.read()
-            except Exception as e:
-                print(f"Cannot read TXT file {file_path}: {e}")
-                return []
+            except:
+                try:
+                    # Last resort: binary read and decode
+                    with open(file_path, 'rb') as f:
+                        content = f.read().decode('utf-8', errors='ignore')
+                except Exception as e:
+                    print(f"Cannot read file {file_path}: {e}")
+                    return []
         
+        # Extract ALL possible URLs
         url_pattern = r'https?://[^\s<>"\']+|rtmp://[^\s<>"\']+|rtsp://[^\s<>"\']+|file://[^\s<>"\']+|/[^\s<>"\']+\.[a-zA-Z0-9]+'
         urls = re.findall(url_pattern, content)
         
@@ -924,6 +929,7 @@ File Path: {video['filepath']}
             if not url:
                 continue
             
+            # Extract name from URL
             name = url.split('/')[-1]
             if '?' in name:
                 name = name.split('?')[0]
@@ -944,10 +950,13 @@ File Path: {video['filepath']}
         
         return videos
     
+    def parse_txt_file(self, file_path):
+        """Parse TXT file - wrapper for extract_urls_from_any_file"""
+        return self.extract_urls_from_any_file(file_path)
+    
     def scan_folder_for_media(self, folder_path):
-        """Recursively scan folder for media files and playlists"""
+        """Recursively scan folder for ANY files with URLs or media"""
         all_videos = []
-        supported_playlist_exts = {'.m3u', '.m3u8', '.txt'}
         
         try:
             for root, dirs, files in os.walk(folder_path):
@@ -956,16 +965,19 @@ File Path: {video['filepath']}
                     ext = os.path.splitext(filename)[1].lower()
                     
                     try:
-                        if ext in supported_playlist_exts:
-                            if ext == '.txt':
-                                videos = self.parse_txt_file(file_path)
-                            else:
-                                videos = self.parse_m3u_file(file_path)
+                        # M3U playlists
+                        if ext in {'.m3u', '.m3u8'}:
+                            videos = self.parse_m3u_file(file_path)
                             all_videos.extend(videos)
+                        # Media files
                         elif self.is_media_file(file_path):
                             metadata = self.extract_video_metadata(file_path)
                             if metadata:
                                 all_videos.append(metadata)
+                        # Any other text-based file - try to extract URLs
+                        elif ext in {'.txt', '.html', '.xml', '.json', '.log', '.ini', '.cfg', '.conf'}:
+                            videos = self.extract_urls_from_any_file(file_path)
+                            all_videos.extend(videos)
                     except Exception as e:
                         print(f"Error processing {filename}: {e}")
                         continue
