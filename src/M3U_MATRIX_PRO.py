@@ -1126,6 +1126,290 @@ Success Rate: {results['working']/results['total']*100:.1f}%
         
         return all_channels
 
+    # ========== SMART SCHEDULER FOR TV PROGRAMMING ==========
+    def create_smart_schedule(self, channels, show_duration=30, num_days=7, max_consecutive=3):
+        """
+        Create a 7-day, 24-hour TV schedule with global randomization
+        
+        Args:
+            channels: List of channel dictionaries
+            show_duration: Default duration in minutes for shows without duration metadata
+            num_days: Number of days to schedule (default 7)
+            max_consecutive: Maximum consecutive episodes from same show
+        
+        Returns:
+            List of scheduled items with start times
+        """
+        import random
+        from datetime import datetime, timedelta
+        
+        # Make a copy and globally randomize
+        shuffled_channels = channels.copy()
+        random.shuffle(shuffled_channels)
+        
+        schedule = []
+        current_time = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        end_time = current_time + timedelta(days=num_days)
+        
+        # Track what played each day to prevent daily repeats
+        daily_played = {day: set() for day in range(num_days)}
+        
+        channel_index = 0
+        consecutive_count = 0
+        last_show_name = None
+        
+        while current_time < end_time:
+            # Get current day
+            day_num = (current_time - datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)).days
+            
+            # Try to find next channel that hasn't played today
+            attempts = 0
+            selected_channel = None
+            
+            while attempts < len(shuffled_channels):
+                candidate = shuffled_channels[channel_index % len(shuffled_channels)]
+                channel_id = candidate.get('uuid', candidate.get('url', ''))
+                
+                # Check if this channel played today
+                if channel_id not in daily_played[day_num]:
+                    # Check consecutive limit
+                    current_show_name = self.extract_show_name(candidate.get('name', ''))
+                    if current_show_name != last_show_name:
+                        consecutive_count = 0
+                    
+                    if consecutive_count < max_consecutive:
+                        selected_channel = candidate
+                        break
+                
+                channel_index += 1
+                attempts += 1
+            
+            # If we couldn't find one (all played today), just pick next in rotation
+            if not selected_channel:
+                selected_channel = shuffled_channels[channel_index % len(shuffled_channels)]
+                channel_index += 1
+            
+            # Get duration (use metadata or default)
+            duration_minutes = show_duration
+            if 'duration' in selected_channel:
+                try:
+                    duration_minutes = int(selected_channel['duration'])
+                except:
+                    pass
+            
+            # Add to schedule
+            schedule_item = {
+                **selected_channel,
+                'scheduled_start': current_time.isoformat(),
+                'scheduled_duration': duration_minutes
+            }
+            schedule.append(schedule_item)
+            
+            # Mark as played today
+            channel_id = selected_channel.get('uuid', selected_channel.get('url', ''))
+            daily_played[day_num].add(channel_id)
+            
+            # Update tracking
+            current_show_name = self.extract_show_name(selected_channel.get('name', ''))
+            if current_show_name == last_show_name:
+                consecutive_count += 1
+            else:
+                consecutive_count = 1
+                last_show_name = current_show_name
+            
+            # Move to next time slot
+            current_time += timedelta(minutes=duration_minutes)
+            channel_index += 1
+        
+        return schedule
+    
+    def extract_show_name(self, channel_name):
+        """Extract show name from channel name (removes episode info)"""
+        import re
+        # Remove common episode patterns
+        patterns = [
+            r'[Ss]\d+[Ee]\d+',  # S01E01
+            r'Season\s+\d+',     # Season 1
+            r'Episode\s+\d+',    # Episode 1
+            r'\d+x\d+',          # 1x01
+            r'\(\d{4}\)',        # (2020)
+        ]
+        
+        name = channel_name
+        for pattern in patterns:
+            name = re.sub(pattern, '', name)
+        
+        # Clean up extra spaces and special chars
+        name = re.sub(r'\s+', ' ', name).strip()
+        name = re.sub(r'[_\-\.]+$', '', name).strip()
+        
+        return name
+    
+    def show_scheduler_dialog(self, callback):
+        """Show scheduler configuration dialog before NEXUS TV generation"""
+        scheduler_dialog = tk.Toplevel(self.root)
+        scheduler_dialog.title("Smart TV Scheduler")
+        scheduler_dialog.geometry("500x400")
+        scheduler_dialog.configure(bg="#1a1a2e")
+        scheduler_dialog.transient(self.root)
+        scheduler_dialog.grab_set()
+        
+        # Title
+        tk.Label(
+            scheduler_dialog,
+            text="📺 Smart TV Scheduler",
+            font=("Segoe UI", 18, "bold"),
+            bg="#1a1a2e",
+            fg="#00ff88"
+        ).pack(pady=20)
+        
+        tk.Label(
+            scheduler_dialog,
+            text="Create a 7-day TV schedule with randomized programming",
+            font=("Segoe UI", 10),
+            bg="#1a1a2e",
+            fg="#aaaaaa"
+        ).pack(pady=(0, 30))
+        
+        # Settings frame
+        settings_frame = tk.Frame(scheduler_dialog, bg="#1a1a2e")
+        settings_frame.pack(pady=20, padx=40, fill=tk.X)
+        
+        # Show Duration
+        duration_frame = tk.Frame(settings_frame, bg="#1a1a2e")
+        duration_frame.pack(fill=tk.X, pady=10)
+        
+        tk.Label(
+            duration_frame,
+            text="Show Duration (minutes):",
+            font=("Segoe UI", 11),
+            bg="#1a1a2e",
+            fg="#ffffff"
+        ).pack(side=tk.LEFT)
+        
+        duration_var = tk.IntVar(value=30)
+        duration_spin = tk.Spinbox(
+            duration_frame,
+            from_=5,
+            to=180,
+            textvariable=duration_var,
+            width=10,
+            font=("Segoe UI", 11),
+            bg="#2a2a2a",
+            fg="#ffffff",
+            buttonbackground="#00ff88"
+        )
+        duration_spin.pack(side=tk.RIGHT)
+        
+        # Number of Days
+        days_frame = tk.Frame(settings_frame, bg="#1a1a2e")
+        days_frame.pack(fill=tk.X, pady=10)
+        
+        tk.Label(
+            days_frame,
+            text="Number of Days:",
+            font=("Segoe UI", 11),
+            bg="#1a1a2e",
+            fg="#ffffff"
+        ).pack(side=tk.LEFT)
+        
+        days_var = tk.IntVar(value=7)
+        days_spin = tk.Spinbox(
+            days_frame,
+            from_=1,
+            to=30,
+            textvariable=days_var,
+            width=10,
+            font=("Segoe UI", 11),
+            bg="#2a2a2a",
+            fg="#ffffff",
+            buttonbackground="#00ff88"
+        )
+        days_spin.pack(side=tk.RIGHT)
+        
+        # Max Consecutive Shows
+        consecutive_frame = tk.Frame(settings_frame, bg="#1a1a2e")
+        consecutive_frame.pack(fill=tk.X, pady=10)
+        
+        tk.Label(
+            consecutive_frame,
+            text="Max Consecutive Shows:",
+            font=("Segoe UI", 11),
+            bg="#1a1a2e",
+            fg="#ffffff"
+        ).pack(side=tk.LEFT)
+        
+        consecutive_var = tk.IntVar(value=3)
+        consecutive_spin = tk.Spinbox(
+            consecutive_frame,
+            from_=1,
+            to=10,
+            textvariable=consecutive_var,
+            width=10,
+            font=("Segoe UI", 11),
+            bg="#2a2a2a",
+            fg="#ffffff",
+            buttonbackground="#00ff88"
+        )
+        consecutive_spin.pack(side=tk.RIGHT)
+        
+        # Info text
+        info_text = (
+            "This will create a randomized TV schedule with:\n"
+            "• Global shuffling of all content\n"
+            "• No repeats within the same day\n"
+            "• Sequential playback with set durations\n"
+            "• Limit on consecutive episodes"
+        )
+        
+        tk.Label(
+            scheduler_dialog,
+            text=info_text,
+            font=("Segoe UI", 9),
+            bg="#1a1a2e",
+            fg="#888888",
+            justify=tk.LEFT
+        ).pack(pady=20, padx=40)
+        
+        # Buttons frame
+        buttons_frame = tk.Frame(scheduler_dialog, bg="#1a1a2e")
+        buttons_frame.pack(pady=20)
+        
+        def on_create_schedule():
+            params = {
+                'show_duration': duration_var.get(),
+                'num_days': days_var.get(),
+                'max_consecutive': consecutive_var.get()
+            }
+            scheduler_dialog.destroy()
+            callback(params)
+        
+        def on_skip():
+            scheduler_dialog.destroy()
+            callback(None)  # None means skip scheduling
+        
+        tk.Button(
+            buttons_frame,
+            text="CREATE SCHEDULE",
+            bg="#00ff88",
+            fg="#000000",
+            font=("Segoe UI", 11, "bold"),
+            command=on_create_schedule,
+            cursor="hand2",
+            width=18
+        ).pack(side=tk.LEFT, padx=5)
+        
+        tk.Button(
+            buttons_frame,
+            text="SKIP",
+            bg="#555555",
+            fg="#ffffff",
+            font=("Segoe UI", 11),
+            command=on_skip,
+            cursor="hand2",
+            width=10
+        ).pack(side=tk.LEFT, padx=5)
+
     # ========== ADVANCED ORGANIZE ROUTINE ==========
     def organize_channels(self):
         """Normalize groups, remove duplicates, and auto-increment channel numbers"""
@@ -2843,6 +3127,24 @@ Services included:
 
     def _continue_generation(self, template_type):
         """Continue page generation with selected template"""
+        
+        # For NEXUS TV, show scheduler dialog first
+        if template_type == "nexus":
+            def on_scheduler_callback(scheduler_params):
+                if scheduler_params:
+                    # User wants to create a schedule
+                    self._generate_with_scheduler(template_type, scheduler_params)
+                else:
+                    # User skipped scheduling, proceed normally
+                    self._generate_normally(template_type)
+            
+            self.show_scheduler_dialog(on_scheduler_callback)
+        else:
+            # For other templates, generate normally
+            self._generate_normally(template_type)
+    
+    def _generate_normally(self, template_type):
+        """Generate pages without scheduling"""
         # Ask how to generate pages
         choice = messagebox.askquestion(
             "Generate Pages",
@@ -2983,6 +3285,85 @@ Services included:
                 self.root.after(
                     0, lambda: self.stat.config(text="Generation failed"))
 
+        threading.Thread(target=generation_thread, daemon=True).start()
+    
+    def _generate_with_scheduler(self, template_type, scheduler_params):
+        """Generate NEXUS TV page with smart scheduling"""
+        def generation_thread():
+            try:
+                self.root.after(0, lambda: self.stat.config(text="Creating smart schedule..."))
+                
+                # Create the smart schedule
+                scheduled_channels = self.create_smart_schedule(
+                    self.channels,
+                    show_duration=scheduler_params['show_duration'],
+                    num_days=scheduler_params['num_days'],
+                    max_consecutive=scheduler_params['max_consecutive']
+                )
+                
+                self.root.after(0, lambda: self.stat.config(
+                    text=f"Scheduled {len(scheduled_channels)} time slots over {scheduler_params['num_days']} days..."))
+                
+                # Build M3U content from scheduled channels
+                m3u_content = "#EXTM3U\n"
+                for item in scheduled_channels:
+                    extinf = f'#EXTINF:{item["scheduled_duration"]} tvg-id="{item.get("tvg_id", "")}" '
+                    extinf += f'tvg-name="{item.get("name", "")}" tvg-logo="{item.get("logo", "")}" '
+                    extinf += f'group-title="{item.get("group", "Other")}" '
+                    extinf += f'scheduled-start="{item["scheduled_start"]}",{item.get("name", "")}\n'
+                    m3u_content += extinf + item.get("url", "") + "\n"
+                
+                # Check for NEXUS TV template file
+                template_path = Path("../templates/nexus_tv_template.html")
+                if not template_path.exists():
+                    template_path = Path("templates/nexus_tv_template.html")
+                if not template_path.exists():
+                    self.root.after(0, lambda: messagebox.showerror(
+                        "Template Not Found",
+                        "NEXUS TV template file missing!"))
+                    return
+                
+                generator = NexusTVPageGenerator(template_path=str(template_path))
+                
+                # Generate the page
+                self.root.after(0, lambda: self.stat.config(text="Generating NEXUS TV page..."))
+                output_path = generator.generate_page(m3u_content, "Smart Schedule")
+                
+                generated = [{
+                    'name': f"Smart Schedule ({scheduler_params['num_days']} days)",
+                    'file': output_path.name,
+                    'programs': len(scheduled_channels)
+                }]
+                
+                # Generate channel selector
+                selector_path = generator.generate_channel_selector(generated)
+                
+                # Show success message
+                abs_selector = selector_path.absolute()
+                abs_dir = Path('generated_pages').absolute()
+                
+                self.root.after(
+                    0, lambda: messagebox.showinfo(
+                        "✅ Smart Schedule Created!",
+                        f"Created {scheduler_params['num_days']}-day TV schedule\n"
+                        f"Total time slots: {len(scheduled_channels)}\n\n"
+                        f"📁 Location:\n{abs_dir}\n\n"
+                        f"🌐 Open: http://localhost:5000/generated_pages/\n\n"
+                        f"✨ Features:\n"
+                        f"• Globally randomized content\n"
+                        f"• No daily repeats\n"
+                        f"• Max {scheduler_params['max_consecutive']} consecutive episodes\n"
+                        f"• {scheduler_params['show_duration']} minute default duration"))
+                
+                self.root.after(0, lambda: self.stat.config(
+                    text=f"✅ SCHEDULED: {len(scheduled_channels)} time slots"))
+                
+            except Exception as e:
+                import traceback
+                error_msg = f"{str(e)}\n\n{traceback.format_exc()}"
+                self.root.after(0, lambda: messagebox.showerror("Scheduling Error", error_msg))
+                self.root.after(0, lambda: self.stat.config(text="Scheduling failed"))
+        
         threading.Thread(target=generation_thread, daemon=True).start()
 
     def build_group_m3u(self, channels):
