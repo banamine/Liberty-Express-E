@@ -39,6 +39,8 @@ class VideoPlayerWorkbench(tk.Toplevel):
         self.schedule_data = []
         self.is_playing = False
         self.current_process = None
+        self.sort_column = None
+        self.sort_reverse = False
         
         # VLC player setup
         self.vlc_instance = None
@@ -148,10 +150,11 @@ class VideoPlayerWorkbench(tk.Toplevel):
         self.playlist_tree.pack(fill=tk.BOTH, expand=True)
         scrollbar.config(command=self.playlist_tree.yview)
         
+        # Column headings with sort functionality
         self.playlist_tree.heading('#0', text='#')
-        self.playlist_tree.heading('title', text='Title')
-        self.playlist_tree.heading('duration', text='Duration')
-        self.playlist_tree.heading('type', text='Type')
+        self.playlist_tree.heading('title', text='Title', command=lambda: self.sort_playlist('title'))
+        self.playlist_tree.heading('duration', text='Duration', command=lambda: self.sort_playlist('duration'))
+        self.playlist_tree.heading('type', text='Type', command=lambda: self.sort_playlist('type'))
         
         self.playlist_tree.column('#0', width=40, minwidth=40)
         self.playlist_tree.column('title', width=180)
@@ -480,6 +483,51 @@ class VideoPlayerWorkbench(tk.Toplevel):
             first_item = self.playlist_tree.get_children()[0]
             self.playlist_tree.selection_set(first_item)
             self.current_index = 0
+    
+    def sort_playlist(self, column):
+        """Sort playlist by column (Title, Duration, Type)"""
+        if not self.playlist:
+            return
+        
+        # Toggle sort direction if clicking same column
+        if self.sort_column == column:
+            self.sort_reverse = not self.sort_reverse
+        else:
+            self.sort_column = column
+            self.sort_reverse = False
+        
+        # Save current selection
+        selection = self.playlist_tree.selection()
+        selected_video = None
+        if selection and self.current_index >= 0 and self.current_index < len(self.playlist):
+            selected_video = self.playlist[self.current_index]
+        
+        # Sort playlist
+        if column == 'title':
+            self.playlist.sort(key=lambda x: x['title'].lower(), reverse=self.sort_reverse)
+        elif column == 'duration':
+            self.playlist.sort(key=lambda x: x.get('duration', 0), reverse=self.sort_reverse)
+        elif column == 'type':
+            self.playlist.sort(key=lambda x: x['type'], reverse=self.sort_reverse)
+        
+        # Update UI
+        self.update_playlist_ui()
+        
+        # Restore selection
+        if selected_video:
+            for idx, video in enumerate(self.playlist):
+                if video == selected_video:
+                    self.current_index = idx
+                    item = self.playlist_tree.get_children()[idx]
+                    self.playlist_tree.selection_set(item)
+                    self.playlist_tree.see(item)
+                    break
+        
+        # Update column heading to show sort direction
+        arrow = ' ▼' if self.sort_reverse else ' ▲'
+        self.playlist_tree.heading('title', text='Title' + (arrow if column == 'title' else ''))
+        self.playlist_tree.heading('duration', text='Duration' + (arrow if column == 'duration' else ''))
+        self.playlist_tree.heading('type', text='Type' + (arrow if column == 'type' else ''))
     
     def on_playlist_select(self, event):
         """Update current_index when playlist selection changes"""
