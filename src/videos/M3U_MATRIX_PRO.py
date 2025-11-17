@@ -1348,7 +1348,7 @@ Success Rate: {results['working']/results['total']*100:.1f}%
         """Show scheduler configuration dialog before NEXUS TV generation"""
         scheduler_dialog = tk.Toplevel(self.root)
         scheduler_dialog.title("Smart TV Scheduler")
-        scheduler_dialog.geometry("500x400")
+        scheduler_dialog.geometry("500x500")
         scheduler_dialog.configure(bg="#1a1a2e")
         scheduler_dialog.transient(self.root)
         scheduler_dialog.grab_set()
