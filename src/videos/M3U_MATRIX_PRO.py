@@ -451,7 +451,8 @@ class M3UMatrix:
                 ("EXPORT JSON", "#16a085", self.export_json),
                 ("NEW", "#34495e", self.new_project),
                 ("THUMBS", "#ff9500", self.open_thumbnails_folder),
-                ("VIDEO", "#00d4ff", self.launch_video_player)]
+                ("VIDEO", "#00d4ff", self.launch_video_player),
+                ("NAV HUB", "#FFD700", self.open_navigation_hub)]
         for txt, col, cmd in row1:
             self.create_styled_button(tb1, txt, cmd, bg_color=col, width=14).pack(side=tk.LEFT, padx=4)
         
@@ -2673,6 +2674,43 @@ Success Rate: {results['working']/results['total']*100:.1f}%
             self.stat.config(text=f"Launched Video Player Pro from {os.path.dirname(video_player_path)}")
         except Exception as e:
             self.show_error_dialog("Launch Failed", "Could not launch Video Player Pro", e)
+    
+    def open_navigation_hub(self):
+        """Open the Navigation Hub page in default browser"""
+        try:
+            # Get the directory containing this script
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            
+            # Try multiple possible locations for generated_pages/index.html
+            possible_paths = [
+                # Same directory as script (for deployment)
+                os.path.join(script_dir, "generated_pages", "index.html"),
+                # Parent directory (if in src/videos/)
+                os.path.join(script_dir, "..", "generated_pages", "index.html"),
+                # Root of project (if in nested structure)
+                os.path.join(script_dir, "..", "..", "generated_pages", "index.html"),
+            ]
+            
+            hub_path = None
+            for path in possible_paths:
+                normalized_path = os.path.normpath(path)
+                if os.path.exists(normalized_path):
+                    hub_path = normalized_path
+                    break
+            
+            if not hub_path:
+                messagebox.showerror(
+                    "Navigation Hub Not Found",
+                    "Navigation Hub not found!\n\n"
+                    "The hub page will be created automatically when you generate your first player page."
+                )
+                return
+            
+            # Open in default browser
+            webbrowser.open(f"file://{hub_path}")
+            self.stat.config(text="Navigation Hub opened in browser")
+        except Exception as e:
+            self.show_error_dialog("Failed to Open Hub", "Could not open Navigation Hub", e)
 
     def on_double(self, e):
         col = self.tv.identify_column(e.x)
