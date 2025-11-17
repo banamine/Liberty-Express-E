@@ -4081,6 +4081,50 @@ Services included:
         scroll_x.pack(fill=tk.X, padx=20)
         text.config(xscrollcommand=scroll_x.set)
         
+        # Right-click context menu for text operations
+        def show_text_context_menu(event):
+            context_menu = tk.Menu(text, tearoff=0, bg="#2a2a2a", fg="#fff")
+            
+            context_menu.add_command(
+                label="✂ Cut",
+                command=lambda: text.event_generate("<<Cut>>"),
+                accelerator="Ctrl+X"
+            )
+            context_menu.add_command(
+                label="📋 Copy",
+                command=lambda: text.event_generate("<<Copy>>"),
+                accelerator="Ctrl+C"
+            )
+            context_menu.add_command(
+                label="📄 Paste",
+                command=lambda: text.event_generate("<<Paste>>"),
+                accelerator="Ctrl+V"
+            )
+            context_menu.add_separator()
+            context_menu.add_command(
+                label="🔄 Select All",
+                command=lambda: text.tag_add(tk.SEL, "1.0", tk.END),
+                accelerator="Ctrl+A"
+            )
+            context_menu.add_separator()
+            context_menu.add_command(
+                label="↶ Undo",
+                command=lambda: text.event_generate("<<Undo>>"),
+                accelerator="Ctrl+Z"
+            )
+            context_menu.add_command(
+                label="↷ Redo",
+                command=lambda: text.event_generate("<<Redo>>"),
+                accelerator="Ctrl+Y"
+            )
+            
+            try:
+                context_menu.tk_popup(event.x_root, event.y_root)
+            finally:
+                context_menu.grab_release()
+        
+        text.bind("<Button-3>", show_text_context_menu)
+        
         # Enable drag-and-drop for files
         def handle_file_drop(event):
             """Handle files dropped onto the workbench"""
