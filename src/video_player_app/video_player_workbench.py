@@ -56,10 +56,21 @@ class VideoPlayerWorkbench(tk.Toplevel):
                 self.vlc_available = False
                 print(f"VLC initialization failed: {e}")
         
-        self.screenshots_dir = Path(__file__).parent / "screenshots"
         self.data_dir = Path(__file__).parent / "data"
-        self.screenshots_dir.mkdir(exist_ok=True)
         self.data_dir.mkdir(exist_ok=True)
+        
+        # Load settings (includes custom folder paths)
+        self.settings = self.load_settings()
+        
+        # Apply folder paths from settings
+        self.screenshots_dir = Path(self.settings.get('screenshot_folder', str(Path(__file__).parent / "screenshots")))
+        self.metadata_dir = Path(self.settings.get('metadata_folder', str(self.screenshots_dir)))
+        self.thumbnail_dir = Path(self.settings.get('thumbnail_folder', str(self.screenshots_dir)))
+        
+        # Create directories
+        self.screenshots_dir.mkdir(exist_ok=True)
+        self.metadata_dir.mkdir(exist_ok=True)
+        self.thumbnail_dir.mkdir(exist_ok=True)
         
         self.create_menu()
         self.create_layout()
@@ -104,6 +115,12 @@ class VideoPlayerWorkbench(tk.Toplevel):
         schedule_menu.add_command(label="Generate Schedule", command=self.generate_schedule)
         schedule_menu.add_command(label="Export Schedule", command=self.export_schedule)
         schedule_menu.add_command(label="View Schedule", command=self.view_schedule)
+        
+        tools_menu = tk.Menu(menubar, tearoff=0, bg='#1a1a2e', fg='white')
+        menubar.add_cascade(label="Tools", menu=tools_menu)
+        tools_menu.add_command(label="📺 Export to TV Guide", command=self.export_to_tv_guide)
+        tools_menu.add_separator()
+        tools_menu.add_command(label="⚙️ Settings", command=self.show_settings)
         
         self.bind_all("<Control-o>", lambda e: self.open_videos())
         self.bind_all("<Control-c>", lambda e: self.copy_selected())
@@ -782,6 +799,7 @@ class VideoPlayerWorkbench(tk.Toplevel):
                 'filepath': video['filepath'],
                 'timestamp': timestamp,
                 'screenshot': screenshot_filename,
+                'screenshot_folder': str(self.screenshots_dir),
                 'resolution': video.get('resolution', 'Unknown'),
                 'duration': video.get('duration_str', '00:00:00'),
                 'capture_time': datetime.now().isoformat(),
@@ -789,12 +807,13 @@ class VideoPlayerWorkbench(tk.Toplevel):
                 'playback_position': f"{position:.2%}" if position else "N/A"
             }
             
-            metadata_path = self.screenshots_dir / f"screenshot_{timestamp}.json"
+            # Save metadata to user-selected folder
+            metadata_path = self.metadata_dir / f"screenshot_{timestamp}.json"
             with open(metadata_path, 'w') as f:
                 json.dump(metadata, f, indent=2)
             
-            # Create thumbnail
-            thumbnail_path = self.screenshots_dir / f"thumb_{timestamp}.jpg"
+            # Create thumbnail in user-selected folder
+            thumbnail_path = self.thumbnail_dir / f"thumb_{timestamp}.jpg"
             img = Image.open(screenshot_path)
             img.thumbnail((320, 180))
             img.save(thumbnail_path, "JPEG", quality=85)
@@ -802,8 +821,10 @@ class VideoPlayerWorkbench(tk.Toplevel):
             messagebox.showinfo(
                 "Screenshot Captured",
                 f"Screenshot saved:\n{screenshot_filename}\n\n"
-                f"Playback Time: {self.format_duration(current_time)}\n"
-                f"Metadata and thumbnail created."
+                f"Screenshot: {self.screenshots_dir}\n"
+                f"Metadata JSON: {self.metadata_dir}\n"
+                f"Thumbnail: {self.thumbnail_dir}\n\n"
+                f"Playback Time: {self.format_duration(current_time)}"
             )
         except Exception as e:
             messagebox.showerror("Screenshot Error", f"Failed to finalize screenshot:\n{str(e)}")
@@ -1394,3 +1415,329 @@ File Path: {video['filepath']}
             print(f"Error scanning folder {folder_path}: {e}")
         
         return all_videos
+    
+    # ========== SETTINGS SYSTEM ==========
+    
+    def load_settings(self):
+        """Load settings from data/settings.json"""
+        settings_file = self.data_dir / "settings.json"
+        default_settings = {
+            'screenshot_folder': str(Path(__file__).parent / "screenshots"),
+            'metadata_folder': str(Path(__file__).parent / "screenshots"),
+            'thumbnail_folder': str(Path(__file__).parent / "screenshots"),
+            'last_export_folder': str(Path.home())
+        }
+        
+        if settings_file.exists():
+            try:
+                with open(settings_file, 'r') as f:
+                    loaded_settings = json.load(f)
+                    # Merge with defaults (in case new settings are added)
+                    default_settings.update(loaded_settings)
+                    return default_settings
+            except Exception as e:
+                print(f"Error loading settings: {e}")
+                return default_settings
+        else:
+            # Save default settings
+            self.save_settings(default_settings)
+            return default_settings
+    
+    def save_settings(self, settings=None):
+        """Save settings to data/settings.json"""
+        if settings is None:
+            settings = self.settings
+        
+        settings_file = self.data_dir / "settings.json"
+        try:
+            with open(settings_file, 'w') as f:
+                json.dump(settings, f, indent=2)
+            return True
+        except Exception as e:
+            messagebox.showerror("Settings Error", f"Failed to save settings:\n{e}")
+            return False
+    
+    def show_settings(self):
+        """Show settings dialog for folder configuration"""
+        settings_dialog = tk.Toplevel(self)
+        settings_dialog.title("Settings - Folder Configuration")
+        settings_dialog.geometry("700x400")
+        settings_dialog.configure(bg='#1a1a2e')
+        settings_dialog.transient(self)
+        settings_dialog.grab_set()
+        
+        tk.Label(
+            settings_dialog,
+            text="⚙️ SETTINGS",
+            font=('Arial', 18, 'bold'),
+            fg='#00ff88',
+            bg='#1a1a2e'
+        ).pack(pady=20)
+        
+        tk.Label(
+            settings_dialog,
+            text="Configure save locations for screenshots, metadata, and thumbnails",
+            font=('Arial', 10),
+            fg='#aaaaaa',
+            bg='#1a1a2e'
+        ).pack(pady=(0, 20))
+        
+        # Frame for folder settings
+        folders_frame = tk.Frame(settings_dialog, bg='#1a1a2e')
+        folders_frame.pack(fill=tk.BOTH, expand=True, padx=40, pady=10)
+        
+        # Screenshot folder
+        tk.Label(
+            folders_frame,
+            text="Screenshot Folder:",
+            font=('Arial', 11, 'bold'),
+            fg='#ffffff',
+            bg='#1a1a2e',
+            anchor='w'
+        ).grid(row=0, column=0, sticky='w', pady=10)
+        
+        screenshot_var = tk.StringVar(value=str(self.screenshots_dir))
+        screenshot_entry = tk.Entry(
+            folders_frame,
+            textvariable=screenshot_var,
+            font=('Arial', 10),
+            bg='#2a2a2a',
+            fg='#ffffff',
+            width=40
+        )
+        screenshot_entry.grid(row=0, column=1, padx=10, pady=10)
+        
+        def browse_screenshot():
+            folder = filedialog.askdirectory(title="Select Screenshot Folder", initialdir=screenshot_var.get())
+            if folder:
+                screenshot_var.set(folder)
+        
+        tk.Button(
+            folders_frame,
+            text="Browse...",
+            command=browse_screenshot,
+            bg='#4444ff',
+            fg='white',
+            font=('Arial', 9),
+            cursor='hand2',
+            padx=15
+        ).grid(row=0, column=2)
+        
+        # Metadata folder
+        tk.Label(
+            folders_frame,
+            text="Metadata JSON Folder:",
+            font=('Arial', 11, 'bold'),
+            fg='#ffffff',
+            bg='#1a1a2e',
+            anchor='w'
+        ).grid(row=1, column=0, sticky='w', pady=10)
+        
+        metadata_var = tk.StringVar(value=str(self.metadata_dir))
+        metadata_entry = tk.Entry(
+            folders_frame,
+            textvariable=metadata_var,
+            font=('Arial', 10),
+            bg='#2a2a2a',
+            fg='#ffffff',
+            width=40
+        )
+        metadata_entry.grid(row=1, column=1, padx=10, pady=10)
+        
+        def browse_metadata():
+            folder = filedialog.askdirectory(title="Select Metadata Folder", initialdir=metadata_var.get())
+            if folder:
+                metadata_var.set(folder)
+        
+        tk.Button(
+            folders_frame,
+            text="Browse...",
+            command=browse_metadata,
+            bg='#4444ff',
+            fg='white',
+            font=('Arial', 9),
+            cursor='hand2',
+            padx=15
+        ).grid(row=1, column=2)
+        
+        # Thumbnail folder
+        tk.Label(
+            folders_frame,
+            text="Thumbnail Folder:",
+            font=('Arial', 11, 'bold'),
+            fg='#ffffff',
+            bg='#1a1a2e',
+            anchor='w'
+        ).grid(row=2, column=0, sticky='w', pady=10)
+        
+        thumbnail_var = tk.StringVar(value=str(self.thumbnail_dir))
+        thumbnail_entry = tk.Entry(
+            folders_frame,
+            textvariable=thumbnail_var,
+            font=('Arial', 10),
+            bg='#2a2a2a',
+            fg='#ffffff',
+            width=40
+        )
+        thumbnail_entry.grid(row=2, column=1, padx=10, pady=10)
+        
+        def browse_thumbnail():
+            folder = filedialog.askdirectory(title="Select Thumbnail Folder", initialdir=thumbnail_var.get())
+            if folder:
+                thumbnail_var.set(folder)
+        
+        tk.Button(
+            folders_frame,
+            text="Browse...",
+            command=browse_thumbnail,
+            bg='#4444ff',
+            fg='white',
+            font=('Arial', 9),
+            cursor='hand2',
+            padx=15
+        ).grid(row=2, column=2)
+        
+        # Buttons
+        buttons_frame = tk.Frame(settings_dialog, bg='#1a1a2e')
+        buttons_frame.pack(pady=20)
+        
+        def save_and_close():
+            # Update settings
+            self.settings['screenshot_folder'] = screenshot_var.get()
+            self.settings['metadata_folder'] = metadata_var.get()
+            self.settings['thumbnail_folder'] = thumbnail_var.get()
+            
+            # Update current paths
+            self.screenshots_dir = Path(screenshot_var.get())
+            self.metadata_dir = Path(metadata_var.get())
+            self.thumbnail_dir = Path(thumbnail_var.get())
+            
+            # Create directories if they don't exist
+            self.screenshots_dir.mkdir(parents=True, exist_ok=True)
+            self.metadata_dir.mkdir(parents=True, exist_ok=True)
+            self.thumbnail_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Save settings to disk
+            if self.save_settings():
+                messagebox.showinfo(
+                    "Settings Saved",
+                    "Folder locations have been updated and will be remembered for next time!"
+                )
+                settings_dialog.destroy()
+        
+        tk.Button(
+            buttons_frame,
+            text="SAVE",
+            command=save_and_close,
+            bg='#00ff88',
+            fg='#1a1a2e',
+            font=('Arial', 11, 'bold'),
+            cursor='hand2',
+            padx=30,
+            pady=5
+        ).pack(side=tk.LEFT, padx=5)
+        
+        tk.Button(
+            buttons_frame,
+            text="CANCEL",
+            command=settings_dialog.destroy,
+            bg='#555555',
+            fg='white',
+            font=('Arial', 11),
+            cursor='hand2',
+            padx=30,
+            pady=5
+        ).pack(side=tk.LEFT, padx=5)
+    
+    def export_to_tv_guide(self):
+        """Export playlist metadata to M3U Matrix TV Guide compatible JSON format"""
+        if not self.playlist:
+            messagebox.showinfo("Empty Playlist", "Please add videos to the playlist before exporting.")
+            return
+        
+        # Calculate total duration
+        total_duration_minutes = sum(v['duration'] for v in self.playlist) / 60
+        
+        # Create TV Guide format matching M3U Matrix Pro structure
+        tv_guide = {
+            "config": {
+                "channel_name": "Video Player Pro Export",
+                "generated_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "total_days": 1,
+                "show_duration_minutes": int(total_duration_minutes / len(self.playlist)) if self.playlist else 30,
+                "total_shows": len(self.playlist),
+                "buffer_enabled": False,
+                "cache_enabled": False,
+                "export_source": "Video Player Pro Workbench"
+            },
+            "days": []
+        }
+        
+        # Create single-day schedule with all videos
+        current_day = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        day_schedule = {
+            "date": current_day.strftime("%Y-%m-%d"),
+            "day_name": current_day.strftime("%A"),
+            "shows": []
+        }
+        
+        current_time = current_day
+        for idx, video in enumerate(self.playlist, 1):
+            duration_minutes = int(video['duration'] / 60) if video['duration'] > 0 else 30
+            
+            show_entry = {
+                "show_number": idx,
+                "show_title": video['title'],
+                "start_time": current_time.strftime("%H:%M:%S"),
+                "duration_minutes": duration_minutes,
+                "url": video['filepath'],
+                "logo": "",
+                "group": video.get('type', 'Unknown'),
+                "channel_number": idx,
+                "resolution": video['resolution'],
+                "codec": video['codec'],
+                "filesize": video.get('filesize', 0),
+                "cache_file": "",
+                "buffer_file": ""
+            }
+            
+            end_time = current_time + timedelta(minutes=duration_minutes)
+            show_entry["end_time"] = end_time.strftime("%H:%M:%S")
+            current_time = end_time
+            
+            day_schedule["shows"].append(show_entry)
+        
+        tv_guide["days"].append(day_schedule)
+        
+        # Save dialog
+        initial_dir = self.settings.get('last_export_folder', str(Path.home()))
+        file_path = filedialog.asksaveasfilename(
+            title="Export to TV Guide (M3U Matrix Compatible)",
+            defaultextension=".json",
+            initialdir=initial_dir,
+            filetypes=[
+                ("TV Guide JSON", "*.json"),
+                ("All files", "*.*")
+            ],
+            initialfile=f"tv_guide_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        )
+        
+        if file_path:
+            try:
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    json.dump(tv_guide, f, indent=2)
+                
+                # Remember export folder
+                self.settings['last_export_folder'] = str(Path(file_path).parent)
+                self.save_settings()
+                
+                messagebox.showinfo(
+                    "Export Successful",
+                    f"TV Guide exported successfully!\n\n"
+                    f"File: {Path(file_path).name}\n"
+                    f"Total Shows: {tv_guide['config']['total_shows']}\n"
+                    f"Format: M3U Matrix Pro Compatible\n\n"
+                    f"This file can be imported into M3U Matrix Pro."
+                )
+            except Exception as e:
+                messagebox.showerror("Export Failed", f"Could not export TV Guide:\n{e}")
