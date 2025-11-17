@@ -35,7 +35,7 @@ The platform includes M3U MATRIX PRO, a desktop application for playlist managem
 - **Video Player Pro:** A standalone Python desktop application using Tkinter, FFmpeg, and VLC. Key features include advanced import (M3U/M3U8, TXT, video/audio files, folder scanning), file management, FFmpeg-based metadata extraction, a screenshot system with JSON metadata, smart scheduling, playlist persistence (JSON), and cross-platform compatibility. An embedded VLC player supports in-app video playback, live screenshot capture, and real-time video info. NEW: Persistent settings system with user-selectable save folders (screenshots, metadata JSON, thumbnails) that remember selections across sessions, and TV Guide export functionality that creates M3U Matrix Pro-compatible JSON files for seamless integration between Video Player Pro and M3U Matrix Pro.
 
 ### Feature Specifications
-- **M3U MATRIX PRO:** Core functionalities include M3U parsing, channel validation, EPG fetching, settings management, error handling, security (XSS prevention, URL validation), and Rumble URL detection with oEmbed API integration.
+- **M3U MATRIX PRO:** Core functionalities include M3U parsing, channel validation, EPG fetching, settings management, error handling, security (XSS prevention, URL validation), and Rumble URL detection with oEmbed API integration. Navigation Hub integration with "NAV HUB" button (gold #FFD700) in toolbar Row 1 opens the central hub page for managing all generated player pages.
 - **NEXUS TV:** Provides dynamic content scheduling, a responsive UI, automatic midnight schedule refresh, channel analysis, favorites export as M3U, and auto-thumbnail generation with IndexedDB.
 - **Rumble Channel:** Specialized player for Rumble videos with automatic URL normalization, metadata fetching, secure iframe embedding, and standalone page generation.
 - **Multi-Channel Viewer:** Advanced multi-viewing player with grid layout selector (1, 2, 3, 4, or 6 channels), smart audio management system, configurable rotation scheduler with visual timer, focus mode controls, play all/pause all/mute all functions. GUI accessible via "MULTI-CHANNEL" button (blue) in M3U Matrix Pro toolbar with configuration dialog for page name and default channel count.
@@ -45,6 +45,14 @@ The platform includes M3U MATRIX PRO, a desktop application for playlist managem
 ### System Design Choices
 - **Dual-Component Architecture:** Separates playlist management (desktop app) from content consumption (web player).
 - **Static Web Server:** All player templates run as static file servers.
+- **Navigation Hub System:** Central hub page (`generated_pages/index.html`) serves as a splash screen and navigation center for all generated pages. Features include:
+  - **Organized Folder Structure:** Pages organized by template type (`nexus_tv/`, `buffer_tv/`, `multi_channel/`, `web_iptv/`, `simple_player/`, `rumble_channel/`)
+  - **Back to Hub Button:** All generated pages include a floating "🏠 Hub" button (top-left) linking back to the navigation hub
+  - **Sample Channels Library:** 10 free demo video channels (Big Buck Bunny, Sintel, etc.) for quick testing
+  - **Bookmarks Export:** Generate browser-compatible HTML bookmarks file organized by template type
+  - **Auto-Cleanup:** Configurable retention system to delete pages older than N days
+  - **Statistics Dashboard:** Shows total pages, recent activity, and page counts per template
+  - **Quick Access:** "NAV HUB" button (gold #FFD700) in M3U Matrix Pro toolbar Row 1 opens hub in browser
 - **Local Persistence:** M3U Matrix Pro persists settings and data locally in JSON files and dedicated directories.
 - **Automated Deployments:** Configured for Replit Autoscale deployment for the web player.
 - **Standalone Page Generation:** All generated pages are self-contained with embedded playlist data and bundled dependencies, requiring no external CDNs.
