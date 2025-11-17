@@ -53,8 +53,8 @@ class NexusTVPageGenerator:
         if template_path is None:
             template_path = Path(__file__).resolve().parent.parent / "templates" / "nexus_tv_template.html"
         self.template_path = Path(template_path)
-        self.output_dir = Path("generated_pages")
-        self.output_dir.mkdir(exist_ok=True)
+        self.output_dir = Path("generated_pages") / "nexus_tv"
+        self.output_dir.mkdir(exist_ok=True, parents=True)
         self.ffprobe_available = shutil.which('ffprobe') is not None
     
     def extract_video_duration(self, video_url):
@@ -578,8 +578,8 @@ class WebIPTVGenerator:
         if template_path is None:
             template_path = Path(__file__).resolve().parent.parent / "templates" / "web-iptv-extension"
         self.template_dir = Path(template_path)
-        self.output_dir = Path("generated_pages")
-        self.output_dir.mkdir(exist_ok=True)
+        self.output_dir = Path("generated_pages") / "web_iptv"
+        self.output_dir.mkdir(exist_ok=True, parents=True)
     
     def parse_m3u_to_channels(self, m3u_content):
         """Parse M3U content and extract channel information"""
@@ -819,8 +819,8 @@ class SimplePlayerGenerator:
         if template_path is None:
             template_path = Path(__file__).resolve().parent.parent / "templates" / "simple-player"
         self.template_dir = Path(template_path)
-        self.output_dir = Path("generated_pages")
-        self.output_dir.mkdir(exist_ok=True)
+        self.output_dir = Path("generated_pages") / "simple_player"
+        self.output_dir.mkdir(exist_ok=True, parents=True)
     
     def parse_m3u_to_channels(self, m3u_content):
         """Parse M3U content and extract channel information with group support"""
@@ -1021,8 +1021,8 @@ class RumbleChannelGenerator:
         if template_path is None:
             template_path = Path(__file__).resolve().parent.parent / "templates" / "rumble_channel_template.html"
         self.template_path = Path(template_path)
-        self.output_dir = Path("generated_pages")
-        self.output_dir.mkdir(exist_ok=True)
+        self.output_dir = Path("generated_pages") / "rumble_channel"
+        self.output_dir.mkdir(exist_ok=True, parents=True)
     
     def generate_page(self, channels, page_name="rumble_channel"):
         """
@@ -1231,8 +1231,8 @@ class MultiChannelGenerator:
         if template_path is None:
             template_path = Path(__file__).resolve().parent.parent / "templates" / "multi_channel_template.html"
         self.template_path = Path(template_path)
-        self.output_dir = Path("generated_pages")
-        self.output_dir.mkdir(exist_ok=True)
+        self.output_dir = Path("generated_pages") / "multi_channel"
+        self.output_dir.mkdir(exist_ok=True, parents=True)
     
     def generate_page(self, channels, page_name="multi_channel", default_channel_count=1):
         """
@@ -1454,8 +1454,8 @@ class BufferTVGenerator:
         if template_path is None:
             template_path = Path(__file__).resolve().parent.parent / "templates" / "buffer_tv_template.html"
         self.template_path = Path(template_path)
-        self.output_dir = Path("generated_pages")
-        self.output_dir.mkdir(exist_ok=True)
+        self.output_dir = Path("generated_pages") / "buffer_tv"
+        self.output_dir.mkdir(exist_ok=True, parents=True)
     
     def parse_m3u_to_channels(self, m3u_content):
         """Parse M3U content and extract channel information"""
