@@ -19,7 +19,7 @@ if script_dir not in sys.path:
 
 # Optional imports - only needed for advanced features
 try:
-    from page_generator import NexusTVPageGenerator, WebIPTVGenerator, SimplePlayerGenerator, RumbleChannelGenerator, MultiChannelGenerator
+    from page_generator import NexusTVPageGenerator, WebIPTVGenerator, SimplePlayerGenerator, RumbleChannelGenerator, MultiChannelGenerator, BufferTVGenerator
     PAGE_GENERATOR_AVAILABLE = True
 except ImportError as e:
     PAGE_GENERATOR_AVAILABLE = False
@@ -463,6 +463,7 @@ class M3UMatrix:
                 ("GENERATE PAGES", "#e91e63", self.generate_pages),
                 ("MULTI-CHANNEL", "#1e90ff", self.generate_multi_channel),
                 ("RUMBLE CHANNEL", "#FF4500", self.generate_rumble_channel),
+                ("BUFFER TV", "#DC143C", self.generate_buffer_tv),
                 ("SMART SCHEDULE", "#9b59b6", self.smart_scheduler),
                 ("JSON GUIDE", "#95e1d3", self.export_tv_guide_json)]
         for txt, col, cmd in row2:
@@ -4554,6 +4555,132 @@ Services included:
                 
         except Exception as e:
             self.show_error_dialog("Export Failed", "Could not export TV Guide JSON", e)
+    
+    def generate_buffer_tv(self):
+        """Generate Buffer TV player page with buffering controls and numeric keypad"""
+        if not PAGE_GENERATOR_AVAILABLE:
+            messagebox.showwarning("Feature Unavailable", 
+                "Page generator not available.\n\n"
+                "Download the full project from GitHub to use this feature.")
+            return
+            
+        if not self.channels:
+            messagebox.showwarning("No Channels", "Load channels first!")
+            return
+        
+        # Show configuration dialog
+        config_dialog = tk.Toplevel(self.root)
+        config_dialog.title("Buffer TV Configuration")
+        config_dialog.geometry("500x300")
+        config_dialog.configure(bg="#1a1a2e")
+        config_dialog.transient(self.root)
+        config_dialog.grab_set()
+        
+        # Title
+        tk.Label(
+            config_dialog,
+            text="📺 Buffer TV Player",
+            font=("Segoe UI", 18, "bold"),
+            bg="#1a1a2e",
+            fg="#DC143C"
+        ).pack(pady=20)
+        
+        # Description
+        tk.Label(
+            config_dialog,
+            text=f"Found {len(self.channels)} channels in your playlist.\n\n"
+                 "Create a TV player with buffering controls,\n"
+                 "numeric keypad, and advanced stream management.",
+            font=("Segoe UI", 10),
+            bg="#1a1a2e",
+            fg="#fff",
+            justify=tk.CENTER
+        ).pack(pady=10)
+        
+        # Page name
+        name_frame = tk.Frame(config_dialog, bg="#1a1a2e")
+        name_frame.pack(pady=15, padx=30, fill=tk.X)
+        
+        tk.Label(name_frame, text="Page Name:", bg="#1a1a2e", fg="#fff",
+                font=("Arial", 10, "bold")).pack(anchor=tk.W)
+        page_name_var = tk.StringVar(value="Buffer TV")
+        tk.Entry(name_frame, textvariable=page_name_var, width=40,
+                bg="#2c3e50", fg="#fff", font=("Arial", 10)).pack(fill=tk.X, pady=5)
+        
+        # Buttons
+        btn_frame = tk.Frame(config_dialog, bg="#1a1a2e")
+        btn_frame.pack(pady=20)
+        
+        def generate():
+            page_name = page_name_var.get().strip()
+            if not page_name:
+                messagebox.showwarning("Invalid Name", "Please enter a page name.")
+                return
+            
+            config_dialog.destroy()
+            self._generate_buffer_tv_page(page_name)
+        
+        self.create_styled_button(btn_frame, "✨ GENERATE", generate,
+                                  bg_color="#DC143C", width=15, font_size=12).pack(side=tk.LEFT, padx=10)
+        self.create_styled_button(btn_frame, "Cancel", config_dialog.destroy,
+                                  bg_color="#e74c3c", width=12, font_size=10).pack(side=tk.LEFT, padx=10)
+    
+    def _generate_buffer_tv_page(self, page_name):
+        """Internal method to generate Buffer TV page"""
+        safe_name = "".join(c if c.isalnum() or c in (' ', '_', '-') else '_' for c in page_name)
+        safe_name = safe_name.replace(' ', '_').lower()
+        
+        def generation_thread():
+            try:
+                self.root.after(0, lambda: self.stat.config(text="Generating Buffer TV..."))
+                
+                # Generate M3U content from current channels
+                m3u_content = "#EXTM3U\n"
+                for ch in self.channels:
+                    m3u_content += f"#EXTINF:-1 "
+                    if ch.get('tvg_name'):
+                        m3u_content += f'tvg-name="{ch["tvg_name"]}" '
+                    if ch.get('tvg_logo'):
+                        m3u_content += f'tvg-logo="{ch["tvg_logo"]}" '
+                    if ch.get('group'):
+                        m3u_content += f'group-title="{ch["group"]}" '
+                    m3u_content += f',{ch.get("name", "Unknown")}\n'
+                    m3u_content += f'{ch.get("url", "")}\n'
+                
+                # Generate page
+                generator = BufferTVGenerator()
+                output_path = generator.generate_page(m3u_content, safe_name)
+                
+                abs_path = output_path.absolute()
+                abs_dir = Path('generated_pages').absolute()
+                
+                self.root.after(0, lambda: messagebox.showinfo(
+                    "Success!",
+                    f"✅ Buffer TV Generated!\n\n"
+                    f"Page: {page_name}\n"
+                    f"Channels: {len(self.channels)}\n\n"
+                    f"📂 Open this file:\n{abs_path}\n\n"
+                    f"💡 Features:\n"
+                    f"• Numeric keypad for channel selection\n"
+                    f"• Buffering controls (timeout, retry delay)\n"
+                    f"• TV Guide overlay\n"
+                    f"• Quick category buttons\n\n"
+                    f"All files saved to:\n{abs_dir / safe_name}"
+                ))
+                
+                self.root.after(0, lambda: self.stat.config(
+                    text=f"✅ Buffer TV: {len(self.channels)} channels"))
+                
+            except Exception as e:
+                import traceback
+                error_details = traceback.format_exc()
+                self.root.after(0, lambda: messagebox.showerror(
+                    "Generation Error",
+                    f"Failed to generate Buffer TV:\n\n{str(e)}\n\n{error_details}"
+                ))
+                self.root.after(0, lambda: self.stat.config(text="Generation failed"))
+        
+        threading.Thread(target=generation_thread, daemon=True).start()
     
     def smart_scheduler(self):
         """Intelligent playlist scheduler with rotation algorithms and random modes"""
