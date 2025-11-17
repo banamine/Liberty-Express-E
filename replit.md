@@ -3,7 +3,7 @@
 ## Overview
 This project delivers a comprehensive IPTV solution, integrating a professional M3U playlist manager (Python desktop application) with multiple futuristic streaming TV players (web interfaces). The platform aims to provide robust tools for managing, organizing, and playing streaming content, catering to users who demand advanced control over their IPTV experience. The vision is to offer a seamless and engaging content consumption experience through efficient playlist management and an immersive streaming environment.
 
-The platform includes M3U MATRIX PRO, a desktop application for playlist management, and several web player templates: NEXUS TV (24-hour scheduled player), Web IPTV (sequential channel player), Simple Player (clean video-focused player), and Rumble Channel (dedicated Rumble video player). Additionally, it features Video Player Pro, a standalone vanilla Python video player application with advanced scheduling, screenshot capture, and metadata extraction capabilities.
+The platform includes M3U MATRIX PRO, a desktop application for playlist management, and several web player templates: NEXUS TV (24-hour scheduled player), Web IPTV (sequential channel player), Simple Player (clean video-focused player), Multi-Channel Viewer (1-6 simultaneous channels with smart audio management), and Rumble Channel (dedicated Rumble video player). Additionally, it features Video Player Pro, a standalone vanilla Python video player application with advanced scheduling, screenshot capture, and metadata extraction capabilities.
 
 ## User Preferences
 - **Communication Style:** Please use clear, simple language and avoid overly technical jargon where possible.
@@ -21,6 +21,7 @@ The platform includes M3U MATRIX PRO, a desktop application for playlist managem
 - **NEXUS TV:** Features a neon cyberpunk aesthetic with animations for an immersive 24-hour streaming experience, including a thumbnail carousel, fullscreen player, world timezone clocks, and a theme toggle.
 - **Simple Player:** Offers a clean, responsive, and minimalist UI focused solely on video content, with sequential and shuffle playback.
 - **Rumble Channel:** Dedicated player for Rumble videos with a purple gradient design, sequential iframe playback, a playlist sidebar with thumbnails, and keyboard navigation.
+- **Multi-Channel Viewer:** Revolutionary grid-based player supporting 1-6 simultaneous video channels with responsive CSS Grid layout, smart audio management (only one channel plays audio at a time with visual indicator), time-based rotation scheduler, focus mode for fullscreen expansion, and comprehensive keyboard controls. Features blue gradient design with channel-specific controls.
 - **Video Player Pro:** Features a minimalist launcher GUI and an advanced dual-panel workbench for video management.
 
 ### Technical Implementations
@@ -28,12 +29,14 @@ The platform includes M3U MATRIX PRO, a desktop application for playlist managem
 - **NEXUS TV:** Developed using HTML5, CSS3, and Vanilla JavaScript with the native HTML5 video element. It features a 24-hour auto-scheduled playback system, PWA configuration, HLS.js and DASH.js integration, a favorites system, history tracking, channel search, URL encryption/sharing, and uses FFmpeg for local file analysis.
 - **Simple Player:** A clean, responsive HTML5 video player using vanilla JavaScript and HLS.js for .m3u8 streams. It supports sequential and shuffle playback, group-based playlist organization, auto-advance, and is mobile-optimized.
 - **Rumble Channel:** A dedicated Rumble video player using iframe embedding for sequential playback. It features automatic Rumble URL detection, oEmbed API integration for metadata, playlist sidebar with thumbnails, keyboard navigation, and auto-advance. Security features include XSS prevention via DOM methods, URL validation for rumble.com/embed URLs, and JSON escaping. It stores metadata offline, with videos streaming from Rumble.com.
+- **Multi-Channel Viewer:** Developed using HTML5, CSS3 Grid, and Vanilla JavaScript. Supports flexible grid layouts (1-6 channels) with dynamic channel addition/removal. Features smart audio controller (single active audio source), time-based rotation system (5-60 min intervals), focus mode for fullscreen expansion, HLS.js and DASH.js integration for multi-format streams, keyboard shortcuts (1-6 for audio switching, SPACE for play/pause all, ESC to exit focus), and mobile-responsive design with touch controls. Includes configuration dialog for default channel count selection.
 - **Video Player Pro:** A standalone Python desktop application using Tkinter and FFmpeg. Key features include advanced import (M3U/M3U8, TXT, video/audio files, folder scanning), file management, FFmpeg-based metadata extraction, a screenshot system with JSON metadata, smart scheduling, playlist persistence (JSON), and cross-platform compatibility. An embedded VLC player supports in-app video playback, live screenshot capture, and real-time video info.
 
 ### Feature Specifications
 - **M3U MATRIX PRO:** Core functionalities include M3U parsing, channel validation, EPG fetching, settings management, error handling, security (XSS prevention, URL validation), and Rumble URL detection with oEmbed API integration.
 - **NEXUS TV:** Provides dynamic content scheduling, a responsive UI, automatic midnight schedule refresh, channel analysis, favorites export as M3U, and auto-thumbnail generation with IndexedDB.
 - **Rumble Channel:** Specialized player for Rumble videos with automatic URL normalization, metadata fetching, secure iframe embedding, and standalone page generation.
+- **Multi-Channel Viewer:** Advanced multi-viewing player with grid layout selector (1, 2, 3, 4, or 6 channels), smart audio management system, configurable rotation scheduler with visual timer, focus mode controls, play all/pause all/mute all functions. GUI accessible via "MULTI-CHANNEL" button (blue) in M3U Matrix Pro toolbar with configuration dialog for page name and default channel count.
 - **Auto-Thumbnail System:** Built-in across all player templates, capturing two screenshots per video (25% and 75% playtime) automatically during playback. Thumbnails are stored in IndexedDB (browser storage) with separate databases per page and support HLS, DASH, and direct stream formats.
 
 ### System Design Choices

@@ -1224,6 +1224,227 @@ All metadata is embedded offline, but video content streams from Rumble.com
         return selector_path
 
 
+class MultiChannelGenerator:
+    """Generate standalone Multi-Channel Viewer pages with 1-6 simultaneous video channels"""
+    
+    def __init__(self, template_path=None):
+        if template_path is None:
+            template_path = Path(__file__).resolve().parent.parent / "templates" / "multi_channel_template.html"
+        self.template_path = Path(template_path)
+        self.output_dir = Path("generated_pages")
+        self.output_dir.mkdir(exist_ok=True)
+    
+    def generate_page(self, channels, page_name="multi_channel", default_channel_count=1):
+        """
+        Generate Multi-Channel Viewer page from playlist
+        
+        Args:
+            channels: List of channel dicts with video info
+            page_name: Name for the generated page folder
+            default_channel_count: Default number of channels to show (1-6)
+            
+        Returns:
+            Path to generated HTML file
+        """
+        if not self.template_path.exists():
+            raise FileNotFoundError(f"Template not found: {self.template_path}")
+        
+        if not channels:
+            raise ValueError("No channels provided")
+        
+        # Validate default channel count
+        if default_channel_count not in [1, 2, 3, 4, 6]:
+            default_channel_count = 1
+        
+        # Create page folder
+        page_folder = self.output_dir / page_name
+        page_folder.mkdir(exist_ok=True, parents=True)
+        
+        # Build playlist JSON for template
+        playlist_data = []
+        for idx, ch in enumerate(channels):
+            video_entry = {
+                'title': ch.get('name', f'Channel {idx + 1}'),
+                'url': ch.get('url', ''),
+                'logo': ch.get('logo', ''),
+                'group': ch.get('group', 'Other'),
+                'duration': ch.get('duration', 0)
+            }
+            playlist_data.append(video_entry)
+        
+        # Read template
+        with open(self.template_path, 'r', encoding='utf-8') as f:
+            template = f.read()
+        
+        # Replace placeholders with proper escaping
+        safe_title = page_name.replace('_', ' ').title().replace('<', '&lt;').replace('>', '&gt;')
+        html_content = template.replace('{PAGE_TITLE}', safe_title)
+        html_content = html_content.replace('{TOTAL_CHANNELS}', str(len(playlist_data)))
+        
+        # Safely embed JSON - escape </script> to prevent script breakout
+        playlist_json = json.dumps(playlist_data, indent=2).replace('</script>', '<\\/script>')
+        html_content = html_content.replace('{PLAYLIST_JSON}', playlist_json)
+        
+        # Set default channel count
+        html_content = html_content.replace('value="1">1 Channel</option>', 
+                                           f'value="1"{"selected" if default_channel_count==1 else ""}>1 Channel</option>')
+        html_content = html_content.replace('value="2">2 Channels</option>', 
+                                           f'value="2"{"selected" if default_channel_count==2 else ""}>2 Channels</option>')
+        html_content = html_content.replace('value="3">3 Channels</option>', 
+                                           f'value="3"{"selected" if default_channel_count==3 else ""}>3 Channels</option>')
+        html_content = html_content.replace('value="4">4 Channels</option>', 
+                                           f'value="4"{"selected" if default_channel_count==4 else ""}>4 Channels</option>')
+        html_content = html_content.replace('value="6">6 Channels</option>', 
+                                           f'value="6"{"selected" if default_channel_count==6 else ""}>6 Channels</option>')
+        
+        # Write HTML file
+        html_path = page_folder / f"{page_name}.html"
+        with open(html_path, 'w', encoding='utf-8') as f:
+            f.write(html_content)
+        
+        # Create README
+        readme_path = page_folder / "README.txt"
+        with open(readme_path, 'w', encoding='utf-8') as f:
+            f.write(f"""Multi-Channel Viewer: {page_name}
+Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+This is a standalone multi-channel video player page.
+
+Channels Available: {len(playlist_data)}
+Default Layout: {default_channel_count} channel(s)
+
+Features:
+• Support for 1 to 6 simultaneous video channels
+• Responsive CSS Grid layout that adapts to screen size
+• Smart audio management (only one channel plays audio at a time)
+• Click any channel to make it the active audio source
+• Time-based rotation with configurable intervals (5-60 minutes)
+• Focus mode: Click ⛶ to expand any channel to fullscreen
+• Keyboard shortcuts:
+  - Press 1-6 to switch active audio to that channel
+  - Press SPACE to play/pause all channels
+  - Press ESC to exit focus mode
+• HLS and DASH stream support
+• Mobile-responsive design
+
+Controls:
+• Channel Count Selector: Choose 1, 2, 3, 4, or 6 channels
+• Rotation Controls: Start/stop automatic channel switching
+• Interval Selector: Set rotation time (5-60 min)
+• Play All / Pause All: Control all channels at once
+• Mute All: Silence all channels
+
+To use:
+1. Open {page_name}.html in any modern web browser
+2. Select the number of channels you want to view
+3. Optionally enable rotation for automatic channel switching
+4. Click any channel to make it the active audio source
+5. Use ⛶ button to focus/expand any channel to fullscreen
+
+Note: Only one channel plays audio at a time (indicated by 🔊 AUDIO indicator).
+The active channel has a green border and glowing effect.
+""")
+        
+        return html_path
+    
+    def generate_selector(self, generated_pages):
+        """Generate a selector/index page for multiple Multi-Channel pages"""
+        selector_html = f'''<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Channel Viewer Selector</title>
+    <style>
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        body {{ 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #fff; 
+            padding: 40px 20px;
+            min-height: 100vh;
+        }}
+        .container {{ max-width: 1200px; margin: 0 auto; }}
+        h1 {{ 
+            text-align: center; 
+            margin-bottom: 40px; 
+            font-size: 2.5em; 
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }}
+        .grid {{ 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+            gap: 30px; 
+        }}
+        .card {{ 
+            background: rgba(0, 0, 0, 0.4); 
+            padding: 30px; 
+            border-radius: 15px; 
+            border: 2px solid rgba(74, 144, 226, 0.5);
+            transition: all 0.3s;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }}
+        .card:hover {{ 
+            transform: translateY(-5px); 
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+            border-color: #4a90e2;
+        }}
+        .card h2 {{ margin-bottom: 15px; font-size: 1.5em; }}
+        .card p {{ color: rgba(255, 255, 255, 0.8); margin-bottom: 20px; }}
+        .btn {{ 
+            display: inline-block;
+            background: #4a90e2; 
+            color: #fff; 
+            padding: 12px 30px; 
+            text-decoration: none; 
+            border-radius: 8px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }}
+        .btn:hover {{ 
+            background: #357abd; 
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 144, 226, 0.4);
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📺 Multi-Channel Viewers</h1>
+        <div class="grid" id="grid"></div>
+    </div>
+    <script>
+        const pages = ''' + json.dumps([
+            {
+                'name': page['name'],
+                'file': page['file'],
+                'channels': page.get('channels', 0)
+            } for page in generated_pages
+        ], indent=12) + ''';
+        
+        const grid = document.getElementById('grid');
+        pages.forEach(page => {{
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+                <h2>${{page.name}}</h2>
+                <p>${{page.channels}} channels available</p>
+                <a href="${{page.file}}" class="btn">▶ Open Viewer</a>
+            `;
+            grid.appendChild(card);
+        }});
+    </script>
+</body>
+</html>'''
+        
+        selector_path = self.output_dir / "multichannel_index.html"
+        with open(selector_path, 'w', encoding='utf-8') as f:
+            f.write(selector_html)
+        
+        return selector_path
+
+
 if __name__ == "__main__":
     # Example usage
     generator = NexusTVPageGenerator()

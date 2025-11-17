@@ -19,7 +19,7 @@ if script_dir not in sys.path:
 
 # Optional imports - only needed for advanced features
 try:
-    from page_generator import NexusTVPageGenerator, WebIPTVGenerator, SimplePlayerGenerator, RumbleChannelGenerator
+    from page_generator import NexusTVPageGenerator, WebIPTVGenerator, SimplePlayerGenerator, RumbleChannelGenerator, MultiChannelGenerator
     PAGE_GENERATOR_AVAILABLE = True
 except ImportError as e:
     PAGE_GENERATOR_AVAILABLE = False
@@ -369,6 +369,7 @@ class M3UMatrix:
         row2 = [("ORGANIZE", "#27ae60", self.organize_channels),
                 ("CHECK", "#e67e22", self.start_check),
                 ("GENERATE PAGES", "#e91e63", self.generate_pages),
+                ("MULTI-CHANNEL", "#1e90ff", self.generate_multi_channel),
                 ("RUMBLE CHANNEL", "#FF4500", self.generate_rumble_channel),
                 ("SMART SCHEDULE", "#9b59b6", self.smart_scheduler),
                 ("JSON GUIDE", "#95e1d3", self.export_tv_guide_json)]
@@ -3280,6 +3281,177 @@ Services included:
                 self.root.after(0, lambda: messagebox.showerror(
                     "Generation Error",
                     f"Failed to generate Rumble Channel:\n\n{str(e)}\n\n{error_details}"
+                ))
+                self.root.after(0, lambda: self.stat.config(text="Generation failed"))
+        
+        threading.Thread(target=generation_thread, daemon=True).start()
+
+    def generate_multi_channel(self):
+        """Generate Multi-Channel Viewer page (1-6 simultaneous channels)"""
+        if not PAGE_GENERATOR_AVAILABLE:
+            messagebox.showwarning("Feature Unavailable", 
+                "Page generator not available.\n\n"
+                "Download the full project from GitHub to use this feature.")
+            return
+            
+        if not self.channels:
+            messagebox.showwarning("No Channels", "Load channels first!")
+            return
+        
+        # Show configuration dialog
+        config_dialog = tk.Toplevel(self.root)
+        config_dialog.title("Multi-Channel Viewer Configuration")
+        config_dialog.geometry("500x400")
+        config_dialog.configure(bg="#1a1a2e")
+        config_dialog.transient(self.root)
+        config_dialog.grab_set()
+        
+        # Title
+        tk.Label(
+            config_dialog,
+            text="📺 Multi-Channel Viewer",
+            font=("Segoe UI", 18, "bold"),
+            bg="#1a1a2e",
+            fg="#4a90e2"
+        ).pack(pady=20)
+        
+        # Description
+        tk.Label(
+            config_dialog,
+            text=f"Found {len(self.channels)} channels in your playlist.\n\n"
+                 "Create a viewer that displays 1 to 6 channels simultaneously\n"
+                 "with smart audio management and time-based rotation.",
+            font=("Segoe UI", 10),
+            bg="#1a1a2e",
+            fg="#fff",
+            justify=tk.CENTER
+        ).pack(pady=10)
+        
+        # Page name
+        name_frame = tk.Frame(config_dialog, bg="#1a1a2e")
+        name_frame.pack(pady=15, padx=30, fill=tk.X)
+        
+        tk.Label(name_frame, text="Page Name:", bg="#1a1a2e", fg="#fff",
+                font=("Arial", 10, "bold")).pack(anchor=tk.W)
+        page_name_var = tk.StringVar(value="Multi Channel Viewer")
+        tk.Entry(name_frame, textvariable=page_name_var, width=40,
+                bg="#2c3e50", fg="#fff", font=("Arial", 10)).pack(fill=tk.X, pady=5)
+        
+        # Channel count
+        count_frame = tk.Frame(config_dialog, bg="#1a1a2e")
+        count_frame.pack(pady=15, padx=30, fill=tk.X)
+        
+        tk.Label(count_frame, text="Default Number of Channels to Display:", 
+                bg="#1a1a2e", fg="#fff", font=("Arial", 10, "bold")).pack(anchor=tk.W)
+        channel_count_var = tk.IntVar(value=1)
+        
+        count_options = tk.Frame(count_frame, bg="#1a1a2e")
+        count_options.pack(pady=5)
+        
+        for count in [1, 2, 3, 4, 6]:
+            tk.Radiobutton(
+                count_options,
+                text=f"{count} Channel{'s' if count > 1 else ''}",
+                variable=channel_count_var,
+                value=count,
+                bg="#1a1a2e",
+                fg="#fff",
+                selectcolor="#2c3e50",
+                font=("Arial", 9)
+            ).pack(side=tk.LEFT, padx=10)
+        
+        # Info text
+        info_text = tk.Label(
+            config_dialog,
+            text="💡 Users can change the channel count when viewing.\n"
+                 "This just sets the initial default layout.",
+            font=("Arial", 8),
+            bg="#1a1a2e",
+            fg="#aaa",
+            justify=tk.CENTER
+        )
+        info_text.pack(pady=10)
+        
+        # Buttons
+        btn_frame = tk.Frame(config_dialog, bg="#1a1a2e")
+        btn_frame.pack(pady=20)
+        
+        def generate():
+            page_name = page_name_var.get().strip()
+            if not page_name:
+                messagebox.showwarning("Invalid Name", "Please enter a page name.")
+                return
+            
+            channel_count = channel_count_var.get()
+            config_dialog.destroy()
+            self._generate_multi_channel_page(page_name, channel_count)
+        
+        tk.Button(btn_frame, text="✨ GENERATE", command=generate,
+                 bg="#4a90e2", fg="#fff", font=("Arial", 12, "bold"),
+                 width=15, height=2).pack(side=tk.LEFT, padx=10)
+        tk.Button(btn_frame, text="Cancel", command=config_dialog.destroy,
+                 bg="#e74c3c", fg="#fff", font=("Arial", 10),
+                 width=12, height=2).pack(side=tk.LEFT, padx=10)
+    
+    def _generate_multi_channel_page(self, page_name, channel_count):
+        """Internal method to generate multi-channel page"""
+        safe_name = "".join(c if c.isalnum() or c in (' ', '_', '-') else '_' for c in page_name)
+        safe_name = safe_name.replace(' ', '_').lower()
+        
+        def generation_thread():
+            try:
+                self.root.after(0, lambda: self.stat.config(text="Generating Multi-Channel Viewer..."))
+                
+                # Check for template
+                template_path = Path("../templates/multi_channel_template.html")
+                if not template_path.exists():
+                    template_path = Path("templates/multi_channel_template.html")
+                if not template_path.exists():
+                    self.root.after(0, lambda: messagebox.showerror(
+                        "Template Not Found",
+                        "Multi-Channel template file missing!\n\n"
+                        "Ensure this file exists:\n"
+                        "- templates/multi_channel_template.html"
+                    ))
+                    self.root.after(0, lambda: self.stat.config(text="Template missing"))
+                    return
+                
+                # Generate page
+                generator = MultiChannelGenerator(template_path=str(template_path))
+                output_path = generator.generate_page(
+                    self.channels, 
+                    safe_name,
+                    default_channel_count=channel_count
+                )
+                
+                # Show success message
+                abs_path = output_path.absolute()
+                abs_dir = Path('generated_pages').absolute()
+                
+                self.root.after(0, lambda: messagebox.showinfo(
+                    "Success!",
+                    f"✅ Multi-Channel Viewer Generated!\n\n"
+                    f"Page: {page_name}\n"
+                    f"Channels: {len(self.channels)}\n"
+                    f"Default Layout: {channel_count} channel(s)\n\n"
+                    f"📂 Open this file:\n{abs_path}\n\n"
+                    f"💡 Features:\n"
+                    f"• Display 1-6 channels simultaneously\n"
+                    f"• Smart audio (only one plays at a time)\n"
+                    f"• Time-based rotation\n"
+                    f"• Focus mode for fullscreen\n"
+                    f"• Keyboard shortcuts (1-6, SPACE, ESC)"
+                ))
+                
+                self.root.after(0, lambda: self.stat.config(
+                    text=f"✅ Multi-Channel Viewer: {len(self.channels)} channels"))
+                
+            except Exception as e:
+                import traceback
+                error_details = traceback.format_exc()
+                self.root.after(0, lambda: messagebox.showerror(
+                    "Generation Error",
+                    f"Failed to generate Multi-Channel Viewer:\n\n{str(e)}\n\n{error_details}"
                 ))
                 self.root.after(0, lambda: self.stat.config(text="Generation failed"))
         
