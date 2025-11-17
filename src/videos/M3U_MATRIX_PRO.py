@@ -19,7 +19,7 @@ if script_dir not in sys.path:
 
 # Optional imports - only needed for advanced features
 try:
-    from page_generator import NexusTVPageGenerator, WebIPTVGenerator, SimplePlayerGenerator
+    from page_generator import NexusTVPageGenerator, WebIPTVGenerator, SimplePlayerGenerator, RumbleChannelGenerator
     PAGE_GENERATOR_AVAILABLE = True
 except ImportError as e:
     PAGE_GENERATOR_AVAILABLE = False
@@ -369,6 +369,7 @@ class M3UMatrix:
         row2 = [("ORGANIZE", "#27ae60", self.organize_channels),
                 ("CHECK", "#e67e22", self.start_check),
                 ("GENERATE PAGES", "#e91e63", self.generate_pages),
+                ("RUMBLE CHANNEL", "#FF4500", self.generate_rumble_channel),
                 ("SMART SCHEDULE", "#9b59b6", self.smart_scheduler),
                 ("JSON GUIDE", "#95e1d3", self.export_tv_guide_json)]
         for txt, col, cmd in row2:
@@ -3186,6 +3187,103 @@ Services included:
             self._generate_all_three_pages(scheduler_params)
         
         self.show_scheduler_dialog(on_scheduler_callback)
+
+    def generate_rumble_channel(self):
+        """Generate Rumble Channel player page (for Rumble videos only)"""
+        if not PAGE_GENERATOR_AVAILABLE:
+            messagebox.showwarning("Feature Unavailable", 
+                "Page generator not available.\n\n"
+                "Download the full project from GitHub to use this feature.")
+            return
+            
+        if not self.channels:
+            messagebox.showwarning("No Channels", "Load channels first!")
+            return
+        
+        # Check for Rumble channels
+        rumble_channels = []
+        for ch in self.channels:
+            custom_tags = ch.get('custom_tags', {})
+            if custom_tags.get('PROVIDER') == 'RUMBLE':
+                rumble_channels.append(ch)
+        
+        if not rumble_channels:
+            messagebox.showinfo(
+                "No Rumble Videos",
+                "No Rumble videos found in your playlist!\n\n"
+                "To use Rumble Channel:\n"
+                "1. Import an M3U with Rumble URLs\n"
+                "2. Rumble URLs are auto-detected during import\n\n"
+                "Supported formats:\n"
+                "• https://rumble.com/embed/v123/?pub=abc\n"
+                "• https://rumble.com/watch/v123\n"
+                "• https://rumble.com/v123-title.html"
+            )
+            return
+        
+        # Ask for page name
+        page_name = tk.simpledialog.askstring(
+            "Rumble Channel Name",
+            f"Found {len(rumble_channels)} Rumble video(s)!\n\n"
+            "Enter a name for your Rumble Channel:",
+            initialvalue="My Rumble Channel"
+        )
+        
+        if not page_name:
+            return
+        
+        # Sanitize page name for filename
+        safe_name = "".join(c if c.isalnum() or c in (' ', '_', '-') else '_' for c in page_name)
+        safe_name = safe_name.replace(' ', '_').lower()
+        
+        def generation_thread():
+            try:
+                self.root.after(0, lambda: self.stat.config(text="Generating Rumble Channel..."))
+                
+                # Check for template
+                template_path = Path("../templates/rumble_channel_template.html")
+                if not template_path.exists():
+                    template_path = Path("templates/rumble_channel_template.html")
+                if not template_path.exists():
+                    self.root.after(0, lambda: messagebox.showerror(
+                        "Template Not Found",
+                        "Rumble Channel template file missing!\n\n"
+                        "Ensure this file exists:\n"
+                        "- templates/rumble_channel_template.html"
+                    ))
+                    self.root.after(0, lambda: self.stat.config(text="Template missing"))
+                    return
+                
+                # Generate page
+                generator = RumbleChannelGenerator(template_path=str(template_path))
+                output_path = generator.generate_page(rumble_channels, safe_name)
+                
+                # Show success message
+                abs_path = output_path.absolute()
+                abs_dir = Path('generated_pages').absolute()
+                
+                self.root.after(0, lambda: messagebox.showinfo(
+                    "Success!",
+                    f"✅ Rumble Channel Generated!\n\n"
+                    f"Page: {page_name}\n"
+                    f"Videos: {len(rumble_channels)}\n\n"
+                    f"📂 Open this file:\n{abs_path}\n\n"
+                    f"💡 All files saved to:\n{abs_dir / safe_name}"
+                ))
+                
+                self.root.after(0, lambda: self.stat.config(
+                    text=f"✅ Rumble Channel: {len(rumble_channels)} videos"))
+                
+            except Exception as e:
+                import traceback
+                error_details = traceback.format_exc()
+                self.root.after(0, lambda: messagebox.showerror(
+                    "Generation Error",
+                    f"Failed to generate Rumble Channel:\n\n{str(e)}\n\n{error_details}"
+                ))
+                self.root.after(0, lambda: self.stat.config(text="Generation failed"))
+        
+        threading.Thread(target=generation_thread, daemon=True).start()
 
     def _generate_all_three_pages(self, scheduler_params):
         """Generate all 3 player pages (NEXUS TV, Web IPTV, Simple Player)"""
