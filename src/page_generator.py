@@ -1445,6 +1445,133 @@ The active channel has a green border and glowing effect.
         return selector_path
 
 
+class BufferTVGenerator:
+    """
+    Buffer TV Generator
+    Generates TV player pages with buffering controls and numeric keypad
+    """
+    def __init__(self, template_path=None):
+        if template_path is None:
+            template_path = Path(__file__).resolve().parent.parent / "templates" / "buffer_tv_template.html"
+        self.template_path = Path(template_path)
+        self.output_dir = Path("generated_pages")
+        self.output_dir.mkdir(exist_ok=True)
+    
+    def parse_m3u_to_channels(self, m3u_content):
+        """Parse M3U content and extract channel information"""
+        channels = []
+        lines = m3u_content.strip().split('\n')
+        current_channel = {}
+        channel_number = 1
+        
+        for line in lines:
+            line = line.strip()
+            
+            if line.startswith('#EXTINF'):
+                name_match = re.search(r'tvg-name="([^"]*)"', line)
+                logo_match = re.search(r'tvg-logo="([^"]*)"', line)
+                group_match = re.search(r'group-title="([^"]*)"', line)
+                title_match = re.search(r',(.+)$', line)
+                
+                raw_name = name_match.group(1) if name_match else (title_match.group(1) if title_match else 'Unknown')
+                current_channel = {
+                    'number': channel_number,
+                    'name': clean_title(raw_name),
+                    'category': group_match.group(1) if group_match else 'General',
+                    'urls': []
+                }
+            elif line and not line.startswith('#') and current_channel.get('name'):
+                current_channel['urls'].append(line)
+                channels.append({**current_channel})
+                current_channel = {}
+                channel_number += 1
+        
+        return channels
+    
+    def generate_page(self, m3u_content, page_name="buffer_tv"):
+        """
+        Generate Buffer TV player page from M3U content
+        
+        Args:
+            m3u_content: M3U playlist content as string
+            page_name: Name for the generated page folder
+            
+        Returns:
+            Path to generated HTML file
+        """
+        channels = self.parse_m3u_to_channels(m3u_content)
+        
+        if not channels:
+            raise ValueError("No valid channels found in M3U content")
+        
+        # Create page folder
+        page_folder = self.output_dir / page_name
+        page_folder.mkdir(exist_ok=True)
+        
+        # Read template
+        with open(self.template_path, 'r', encoding='utf-8') as f:
+            template = f.read()
+        
+        # Replace title placeholder
+        safe_title = page_name.replace('_', ' ').title().replace('<', '&lt;').replace('>', '&gt;')
+        html_content = template.replace('<title>TV Player with Improved Buffering</title>', 
+                                       f'<title>{safe_title}</title>')
+        
+        # Safely embed JSON - escape </script> to prevent script breakout
+        channels_json = json.dumps(channels, indent=16).replace('</script>', '<\\/script>')
+        html_content = html_content.replace('const channels = [];', 
+                                           f'const channels = {channels_json};')
+        
+        # Write HTML file
+        html_path = page_folder / f"{page_name}.html"
+        with open(html_path, 'w', encoding='utf-8') as f:
+            f.write(html_content)
+        
+        # Create README
+        readme_path = page_folder / "README.txt"
+        with open(readme_path, 'w', encoding='utf-8') as f:
+            f.write(f"""Buffer TV: {page_name}
+Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+This is a standalone TV player page with buffering controls.
+
+Channels Available: {len(channels)}
+
+Features:
+• HLS.js integration for m3u8 streams
+• Numeric keypad for channel selection (0-9, +10, +20)
+• Advanced buffering controls:
+  - Load timeout adjustment (5-30 seconds)
+  - Retry delay configuration (1-10 seconds)
+  - Real-time buffering indicator
+• TV Guide overlay with all channels
+• Quick channel categories (Movies, Entertainment, Documentary, Music)
+• Full video controls (play/pause, volume, seek, fullscreen)
+• Progress bar with time display
+• Previous/Next channel navigation
+• CORS proxy support for remote streams
+• Blue to red gradient design (#003366 to #990000)
+
+Controls:
+• Click TV Guide button to see all channels
+• Click Keypad button for numeric channel entry
+• Use +10 and +20 buttons to jump channels quickly
+• Adjust buffer settings in the control panel
+• Use Previous/Next buttons to surf channels
+
+To use:
+1. Open {page_name}.html in any modern web browser
+2. Use the TV Guide or keypad to select a channel
+3. Adjust buffer settings if streams are slow to load
+4. Use quick category buttons for instant channel access
+
+Note: Buffering controls help optimize streaming for your connection speed.
+The player automatically retries failed streams and moves to the next channel.
+""")
+        
+        return html_path
+
+
 if __name__ == "__main__":
     # Example usage
     generator = NexusTVPageGenerator()
