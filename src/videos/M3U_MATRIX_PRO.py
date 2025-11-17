@@ -169,6 +169,99 @@ class M3UMatrix:
                 f"An unexpected error occurred: {exc_value}")
 
         sys.excepthook = handle_exception
+    
+    # ========== SMART BUTTON COLOR SYSTEM ==========
+    
+    @staticmethod
+    def get_contrasting_text_color(bg_color):
+        """Calculate if text should be dark or light based on background brightness
+        
+        Args:
+            bg_color: Hex color string (e.g., '#F2E1C1')
+            
+        Returns:
+            '#000000' for dark text or '#FFFFFF' for light text
+        """
+        # Handle common color names
+        color_map = {
+            'red': '#FF0000',
+            'green': '#00FF00',
+            'blue': '#0000FF',
+            'yellow': '#FFFF00',
+            'purple': '#800080',
+            'orange': '#FFA500',
+            'pink': '#FFC0CB',
+            'brown': '#A52A2A',
+            'gray': '#808080',
+            'black': '#000000',
+            'white': '#FFFFFF'
+        }
+        
+        if bg_color.lower() in color_map:
+            bg_color = color_map[bg_color.lower()]
+        
+        # Convert hex to RGB
+        if bg_color.startswith('#'):
+            try:
+                r = int(bg_color[1:3], 16)
+                g = int(bg_color[3:5], 16)
+                b = int(bg_color[5:7], 16)
+            except (ValueError, IndexError):
+                return "#000000"  # Default to black on error
+        else:
+            return "#000000"  # Default to black for invalid input
+        
+        # Calculate luminance (perceived brightness)
+        # Using ITU-R BT.709 coefficients for better accuracy
+        luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255
+        
+        # Return dark text for bright backgrounds, light text for dark backgrounds
+        return "#000000" if luminance > 0.5 else "#FFFFFF"
+    
+    def create_styled_button(self, parent, text, command, bg_color="#F2E1C1", width=15, 
+                            font_size=10, font_weight="bold"):
+        """Create a button with smart text color and consistent styling
+        
+        Args:
+            parent: Parent widget
+            text: Button text
+            command: Button command/callback
+            bg_color: Background color (hex or name)
+            width: Button width
+            font_size: Font size
+            font_weight: Font weight (normal/bold)
+            
+        Returns:
+            tk.Button with smart styling
+        """
+        fg_color = self.get_contrasting_text_color(bg_color)
+        
+        button = tk.Button(
+            parent,
+            text=text,
+            command=command,
+            bg=bg_color,
+            fg=fg_color,
+            font=("Arial", font_size, font_weight),
+            width=width,
+            relief=tk.RAISED,
+            bd=2,
+            cursor="hand2",
+            activebackground=bg_color,
+            activeforeground=fg_color
+        )
+        
+        # Add hover effect (slightly darker on hover)
+        def on_enter(e):
+            button.configure(relief=tk.RAISED, bd=3)
+        
+        def on_leave(e):
+            button.configure(relief=tk.RAISED, bd=2)
+        
+        button.bind("<Enter>", on_enter)
+        button.bind("<Leave>", on_leave)
+        
+        return button
 
     def show_error_dialog(self, title, message, exception=None):
         """Show user-friendly error dialog with helpful suggestions"""
@@ -360,8 +453,7 @@ class M3UMatrix:
                 ("THUMBS", "#ff9500", self.open_thumbnails_folder),
                 ("VIDEO", "#00d4ff", self.launch_video_player)]
         for txt, col, cmd in row1:
-            tk.Button(tb1, text=txt, bg=col, fg="white", width=14,
-                      command=cmd).pack(side=tk.LEFT, padx=4)
+            self.create_styled_button(tb1, txt, cmd, bg_color=col, width=14).pack(side=tk.LEFT, padx=4)
         
         # ROW 2: Processing & Generation
         tb2 = tk.Frame(toolbar_container, bg="#1e1e1e")
@@ -374,8 +466,7 @@ class M3UMatrix:
                 ("SMART SCHEDULE", "#9b59b6", self.smart_scheduler),
                 ("JSON GUIDE", "#95e1d3", self.export_tv_guide_json)]
         for txt, col, cmd in row2:
-            tk.Button(tb2, text=txt, bg=col, fg="white", width=14,
-                      command=cmd).pack(side=tk.LEFT, padx=4)
+            self.create_styled_button(tb2, txt, cmd, bg_color=col, width=14).pack(side=tk.LEFT, padx=4)
         
         # ROW 3: Import & Advanced
         tb3 = tk.Frame(toolbar_container, bg="#1e1e1e")
@@ -387,8 +478,7 @@ class M3UMatrix:
                 ("TV GUIDE", "#9b59b6", self.open_guide),
                 ("LAUNCH REDIS", "#FF5733", self.launch_redis_services)]
         for txt, col, cmd in row3:
-            tk.Button(tb3, text=txt, bg=col, fg="white", width=14,
-                      command=cmd).pack(side=tk.LEFT, padx=4)
+            self.create_styled_button(tb3, txt, cmd, bg_color=col, width=14).pack(side=tk.LEFT, padx=4)
 
         # === SEARCH + TOOLS + SETTINGS ===
         tools = tk.Frame(self.root, bg="#1e1e1e")
@@ -404,22 +494,19 @@ class M3UMatrix:
                  fg="#fff",
                  insertbackground="#fff").pack(side=tk.LEFT, padx=8)
         
-        # Settings menu
-        tk.Button(tools, text="⚙️ Export Settings", command=self.export_settings,
-                 bg="#34495e", fg="#fff", font=("Arial", 9)).pack(side=tk.RIGHT, padx=5)
-        tk.Button(tools, text="⚙️ Import Settings", command=self.import_settings,
-                 bg="#34495e", fg="#fff", font=("Arial", 9)).pack(side=tk.RIGHT, padx=5)
+        # Settings menu with smart colors
+        self.create_styled_button(tools, "⚙️ Export Settings", self.export_settings,
+                                  bg_color="#34495e", width=15, font_size=9).pack(side=tk.RIGHT, padx=5)
+        self.create_styled_button(tools, "⚙️ Import Settings", self.import_settings,
+                                  bg_color="#34495e", width=15, font_size=9).pack(side=tk.RIGHT, padx=5)
+        
+        # Edit buttons with smart colors
         for txt, col, cmd in [("CUT", "#e74c3c", self.cut),
                               ("COPY", "#3498db", self.copy),
                               ("PASTE", "#2ecc71", self.paste),
                               ("UNDO", "#f39c12", self.undo),
                               ("REDO", "#9b59b6", self.redo)]:
-            tk.Button(tools,
-                      text=txt,
-                      bg=col,
-                      fg="white",
-                      width=10,
-                      command=cmd).pack(side=tk.LEFT, padx=4)
+            self.create_styled_button(tools, txt, cmd, bg_color=col, width=10).pack(side=tk.LEFT, padx=4)
 
         # === MAIN PANEL ===
         main = tk.Frame(self.root)
