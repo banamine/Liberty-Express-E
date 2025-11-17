@@ -1,0 +1,74 @@
+{
+  "sample_channels": [
+    {
+      "number": 1,
+      "name": "Big Buck Bunny",
+      "category": "Movies",
+      "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Big_buck_bunny_poster_big.jpg/220px-Big_buck_bunny_poster_big.jpg",
+      "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+    },
+    {
+      "number": 2,
+      "name": "Sintel",
+      "category": "Movies",
+      "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Sintel_poster.jpg/220px-Sintel_poster.jpg",
+      "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4"
+    },
+    {
+      "number": 3,
+      "name": "Elephant Dream",
+      "category": "Entertainment",
+      "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Elephants_Dream_s5_both.jpg/220px-Elephants_Dream_s5_both.jpg",
+      "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"
+    },
+    {
+      "number": 4,
+      "name": "For Bigger Blazes",
+      "category": "Entertainment",
+      "logo": "https://via.placeholder.com/220x330/4169E1/FFFFFF?text=Blazes",
+      "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
+    },
+    {
+      "number": 5,
+      "name": "For Bigger Escape",
+      "category": "Documentary",
+      "logo": "https://via.placeholder.com/220x330/228B22/FFFFFF?text=Escape",
+      "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4"
+    },
+    {
+      "number": 6,
+      "name": "For Bigger Fun",
+      "category": "Music",
+      "logo": "https://via.placeholder.com/220x330/FF1493/FFFFFF?text=Fun",
+      "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4"
+    },
+    {
+      "number": 7,
+      "name": "For Bigger Joyrides",
+      "category": "Entertainment",
+      "logo": "https://via.placeholder.com/220x330/FF8C00/FFFFFF?text=Joyrides",
+      "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4"
+    },
+    {
+      "number": 8,
+      "name": "For Bigger Meltdowns",
+      "category": "Documentary",
+      "logo": "https://via.placeholder.com/220x330/8B0000/FFFFFF?text=Meltdowns",
+      "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4"
+    },
+    {
+      "number": 9,
+      "name": "Subaru Outback",
+      "category": "Entertainment",
+      "logo": "https://via.placeholder.com/220x330/483D8B/FFFFFF?text=Subaru",
+      "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4"
+    },
+    {
+      "number": 10,
+      "name": "Tears of Steel",
+      "category": "Movies",
+      "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Tears_of_Steel_poster.jpg/220px-Tears_of_Steel_poster.jpg",
+      "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4"
+    }
+  ]
+}

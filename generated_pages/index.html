@@ -3,247 +3,609 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEXUS TV - Channel Selector</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <title>M3U MATRIX - Navigation Hub</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Orbitron', sans-serif;
-            background: linear-gradient(135deg, #0a0a0f 0%, #1a0a2e 50%, #0a0a0f 100%);
-            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%);
+            color: #ffffff;
             min-height: 100vh;
+            padding: 20px;
             overflow-x: hidden;
         }
-        
-        .animated-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                radial-gradient(circle at 20% 50%, rgba(0, 243, 255, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(255, 0, 255, 0.1) 0%, transparent 50%);
-            animation: bgPulse 10s ease-in-out infinite;
-            z-index: 0;
-        }
-        
-        @keyframes bgPulse {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 1; }
-        }
-        
-        .container {
-            position: relative;
-            z-index: 1;
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 40px 20px;
-        }
-        
-        header {
+
+        .header {
             text-align: center;
-            margin-bottom: 60px;
-            padding: 30px;
-            background: rgba(0, 0, 0, 0.5);
-            border: 2px solid #00f3ff;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #00d4ff 0%, #0066ff 100%);
             border-radius: 20px;
-            box-shadow: 0 0 40px rgba(0, 243, 255, 0.3);
+            margin-bottom: 40px;
+            box-shadow: 0 10px 40px rgba(0, 212, 255, 0.3);
+            animation: glow 3s ease-in-out infinite;
         }
-        
-        h1 {
-            font-size: 4em;
-            font-weight: 900;
-            background: linear-gradient(90deg, #00f3ff, #ff00ff, #00f3ff);
-            background-size: 200% auto;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: gradient 3s linear infinite;
-            text-shadow: 0 0 30px rgba(0, 243, 255, 0.5);
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 10px 40px rgba(0, 212, 255, 0.3); }
+            50% { box-shadow: 0 10px 60px rgba(0, 212, 255, 0.6); }
+        }
+
+        .header h1 {
+            font-size: 3em;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.8);
             margin-bottom: 10px;
         }
-        
-        @keyframes gradient {
-            0% { background-position: 0% center; }
-            100% { background-position: 200% center; }
-        }
-        
-        .subtitle {
+
+        .header p {
             font-size: 1.2em;
-            color: #00f3ff;
-            text-transform: uppercase;
-            letter-spacing: 3px;
+            opacity: 0.9;
         }
-        
-        .channels-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 30px;
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 40px;
             padding: 20px;
-        }
-        
-        .channel-card {
-            background: rgba(0, 0, 0, 0.6);
-            border: 2px solid #00f3ff;
+            background: rgba(255, 255, 255, 0.05);
             border-radius: 15px;
-            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-item {
             text-align: center;
-            transition: all 0.3s ease;
+            padding: 15px;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+
+        .templates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .template-card {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(0, 102, 255, 0.1) 100%);
+            border: 2px solid #00d4ff;
+            border-radius: 20px;
+            padding: 30px;
             cursor: pointer;
+            transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
         }
-        
-        .channel-card::before {
+
+        .template-card::before {
             content: '';
             position: absolute;
             top: -50%;
             left: -50%;
             width: 200%;
             height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(0, 243, 255, 0.1), transparent);
-            transform: rotate(45deg);
-            transition: all 0.5s;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
-        
-        .channel-card:hover {
+
+        .template-card:hover::before {
+            opacity: 1;
+        }
+
+        .template-card:hover {
             transform: translateY(-10px);
-            border-color: #ff00ff;
-            box-shadow: 0 0 40px rgba(255, 0, 255, 0.5);
+            box-shadow: 0 20px 60px rgba(0, 212, 255, 0.4);
+            border-color: #00ffff;
         }
-        
-        .channel-card:hover::before {
-            left: 100%;
-        }
-        
-        .channel-icon {
+
+        .template-icon {
             font-size: 3em;
             margin-bottom: 20px;
-            background: linear-gradient(90deg, #00f3ff, #ff00ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            text-align: center;
         }
-        
-        .channel-name {
-            font-size: 1.5em;
-            font-weight: 700;
+
+        .template-name {
+            font-size: 1.8em;
+            font-weight: bold;
             margin-bottom: 10px;
-            color: #fff;
+            text-align: center;
+            color: #00d4ff;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
         }
-        
-        .channel-info {
+
+        .template-desc {
+            text-align: center;
+            opacity: 0.8;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .template-count {
+            text-align: center;
             font-size: 0.9em;
-            color: #888;
+            color: #00ff88;
             margin-bottom: 15px;
         }
-        
-        .watch-btn {
-            display: inline-block;
-            background: linear-gradient(90deg, #00f3ff, #ff00ff);
-            color: #fff;
+
+        .btn {
             padding: 12px 30px;
-            border-radius: 25px;
-            text-decoration: none;
-            font-weight: 700;
-            transition: all 0.3s;
             border: none;
+            border-radius: 25px;
+            font-size: 1em;
+            font-weight: bold;
             cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 10px;
         }
-        
-        .watch-btn:hover {
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00d4ff 0%, #0066ff 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
             transform: scale(1.05);
-            box-shadow: 0 0 20px rgba(0, 243, 255, 0.8);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.5);
         }
-        
-        .stats {
-            text-align: center;
-            margin-top: 50px;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.5);
-            border-radius: 15px;
-            border: 1px solid #00f3ff;
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
-        
-        .stats h3 {
-            color: #00f3ff;
-            font-size: 1.3em;
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .action-bar {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+        }
+
+        .action-btn {
+            padding: 15px 40px;
+            border: 2px solid #00d4ff;
+            border-radius: 30px;
+            background: rgba(0, 212, 255, 0.1);
+            color: #00d4ff;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            background: #00d4ff;
+            color: #000;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.4);
+        }
+
+        .pages-list {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .pages-list h2 {
+            color: #00d4ff;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        .page-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 4px solid #00d4ff;
+            padding: 15px 20px;
             margin-bottom: 10px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
         }
-        
-        .stats p {
-            color: #888;
+
+        .page-item:hover {
+            background: rgba(0, 212, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .page-info {
+            flex: 1;
+        }
+
+        .page-name {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #00ffff;
+            margin-bottom: 5px;
+        }
+
+        .page-meta {
+            font-size: 0.9em;
+            opacity: 0.7;
+        }
+
+        .page-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .icon-btn {
+            padding: 8px 15px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        .sample-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .sample-section h2 {
+            color: #00d4ff;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        .sample-note {
+            background: rgba(0, 212, 255, 0.1);
+            border-left: 4px solid #00d4ff;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .templates-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .action-bar {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="animated-bg"></div>
-    
-    <div class="container">
-        <header>
-            <h1>📺 NEXUS TV</h1>
-            <p class="subtitle">Choose Your Channel</p>
-        </header>
-        
-        <div class="channels-grid" id="channelsGrid">
-            <!-- Channels will be inserted here -->
+    <div class="header">
+        <h1>🎬 M3U MATRIX</h1>
+        <p>Navigation Hub - Choose Your Player Template</p>
+    </div>
+
+    <div class="stats-bar" id="statsBar">
+        <div class="stat-item">
+            <div class="stat-number" id="totalPages">0</div>
+            <div class="stat-label">Total Pages</div>
         </div>
-        
-        <div class="stats">
-            <h3><i class="fas fa-broadcast-tower"></i> Network Status</h3>
-            <p><span id="channelCount">0</span> channels available • 24/7 streaming</p>
+        <div class="stat-item">
+            <div class="stat-number">6</div>
+            <div class="stat-label">Templates</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number" id="recentPages">0</div>
+            <div class="stat-label">Recent (7 days)</div>
         </div>
     </div>
-    
+
+    <div class="action-bar">
+        <button class="action-btn" onclick="exportBookmarks()">📚 Export Bookmarks</button>
+        <button class="action-btn" onclick="cleanupOldPages()">🧹 Cleanup Old Pages</button>
+        <button class="action-btn" onclick="scanPages()">🔄 Refresh List</button>
+    </div>
+
+    <div class="templates-grid" id="templatesGrid"></div>
+
+    <div class="sample-section">
+        <h2>📺 Sample Channels</h2>
+        <div class="sample-note">
+            <strong>🎯 Quick Start:</strong> Use these 10 free demo channels to test any template! They're ready to use with all player types.
+        </div>
+        <div id="sampleChannels"></div>
+    </div>
+
+    <div class="pages-list">
+        <h2>📄 All Generated Pages</h2>
+        <div id="pagesList"></div>
+    </div>
+
     <script>
-        const channels = [
+        const templates = [
             {
-                        "name": "Aliein 3",
-                        "file": "aliein_3.html",
-                        "programs": 53
+                id: 'nexus_tv',
+                name: 'NEXUS TV',
+                icon: '🎬',
+                description: '24-hour auto-scheduled player with cyberpunk theme, carousel, and world clocks',
+                color: '#00d4ff',
+                folder: 'nexus_tv'
             },
             {
-                        "name": "Ancient Aliens 1-18",
-                        "file": "ancient_aliens_1_18.html",
-                        "programs": 208
+                id: 'buffer_tv',
+                name: 'BUFFER TV',
+                icon: '📺',
+                description: 'Numeric keypad channel selector with advanced buffering controls and TV Guide',
+                color: '#DC143C',
+                folder: 'buffer_tv'
             },
             {
-                        "name": "Ancient Aliens 20-21",
-                        "file": "ancient_aliens_20_21.html",
-                        "programs": 18
+                id: 'multi_channel',
+                name: 'MULTI-CHANNEL',
+                icon: '🎞️',
+                description: 'Watch 1-6 channels simultaneously with smart audio management and rotation',
+                color: '#0066ff',
+                folder: 'multi_channel'
             },
             {
-                        "name": "Flux",
-                        "file": "flux.html",
-                        "programs": 670
+                id: 'web_iptv',
+                name: 'WEB IPTV',
+                icon: '📡',
+                description: 'Sequential channel player with clean interface and group organization',
+                color: '#00ff88',
+                folder: 'web_iptv'
             },
             {
-                        "name": "Add To Infowars",
-                        "file": "add_to_infowars.html",
-                        "programs": 23
+                id: 'simple_player',
+                name: 'SIMPLE PLAYER',
+                icon: '▶️',
+                description: 'Minimalist video player with shuffle, sequential playback, and auto-advance',
+                color: '#ff6b6b',
+                folder: 'simple_player'
+            },
+            {
+                id: 'rumble_channel',
+                name: 'RUMBLE CHANNEL',
+                icon: '🎥',
+                description: 'Dedicated Rumble video player with thumbnails and keyboard navigation',
+                color: '#8b00ff',
+                folder: 'rumble_channel'
             }
-];
-        
-        const grid = document.getElementById('channelsGrid');
-        const channelCount = document.getElementById('channelCount');
-        
-        channels.forEach((channel, index) => {
-            const card = document.createElement('div');
-            card.className = 'channel-card';
-            card.innerHTML = `
-                <div class="channel-icon"><i class="fas fa-tv"></i></div>
-                <div class="channel-name">${channel.name}</div>
-                <div class="channel-info">${channel.programs} programs available</div>
-                <a href="${channel.file}" class="watch-btn">
-                    <i class="fas fa-play"></i> Watch Now
-                </a>
+        ];
+
+        let sampleChannels = [];
+        let allPages = {};
+
+        // Load sample channels
+        fetch('sample_channels.json')
+            .then(response => response.json())
+            .then(data => {
+                sampleChannels = data.sample_channels;
+                displaySampleChannels();
+            })
+            .catch(error => {
+                console.log('Sample channels not found, using defaults');
+                displaySampleChannels();
+            });
+
+        function displaySampleChannels() {
+            const container = document.getElementById('sampleChannels');
+            if (sampleChannels.length === 0) {
+                container.innerHTML = '<p>No sample channels available. Generate some in M3U Matrix Pro!</p>';
+                return;
+            }
+
+            container.innerHTML = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
+                    ${sampleChannels.map(ch => `
+                        <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; text-align: center;">
+                            <div style="font-size: 1.5em; margin-bottom: 10px;">${ch.number}</div>
+                            <div style="font-weight: bold; color: #00d4ff; margin-bottom: 5px;">${escapeHtml(ch.name)}</div>
+                            <div style="font-size: 0.9em; opacity: 0.7;">${escapeHtml(ch.category)}</div>
+                        </div>
+                    `).join('')}
+                </div>
             `;
-            grid.appendChild(card);
-        });
-        
-        channelCount.textContent = channels.length;
+        }
+
+        function renderTemplates() {
+            const grid = document.getElementById('templatesGrid');
+            grid.innerHTML = templates.map(template => {
+                const pageCount = allPages[template.folder] ? allPages[template.folder].length : 0;
+                return `
+                    <div class="template-card" style="border-color: ${template.color};">
+                        <div class="template-icon">${template.icon}</div>
+                        <div class="template-name" style="color: ${template.color};">${template.name}</div>
+                        <div class="template-desc">${template.description}</div>
+                        <div class="template-count">${pageCount} page(s) generated</div>
+                        <button class="btn btn-primary" onclick="viewTemplatePages('${template.folder}', '${template.name}')">
+                            View Pages
+                        </button>
+                        ${pageCount > 0 ? `
+                            <button class="btn btn-secondary" onclick="openLatestPage('${template.folder}')">
+                                Open Latest
+                            </button>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function scanPages() {
+            // In a real implementation, this would scan the folders
+            // For now, simulate with localStorage
+            const stored = localStorage.getItem('m3u_matrix_pages');
+            if (stored) {
+                allPages = JSON.parse(stored);
+            }
+            
+            updateStats();
+            renderTemplates();
+            renderPagesList();
+        }
+
+        function updateStats() {
+            let total = 0;
+            let recent = 0;
+            const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+
+            Object.values(allPages).forEach(pages => {
+                total += pages.length;
+                pages.forEach(page => {
+                    if (page.timestamp > sevenDaysAgo) recent++;
+                });
+            });
+
+            document.getElementById('totalPages').textContent = total;
+            document.getElementById('recentPages').textContent = recent;
+        }
+
+        function renderPagesList() {
+            const container = document.getElementById('pagesList');
+            let html = '';
+
+            templates.forEach(template => {
+                const pages = allPages[template.folder] || [];
+                if (pages.length > 0) {
+                    html += `<h3 style="color: ${template.color}; margin-top: 20px;">${template.icon} ${template.name}</h3>`;
+                    pages.forEach(page => {
+                        const date = new Date(page.timestamp).toLocaleString();
+                        html += `
+                            <div class="page-item">
+                                <div class="page-info">
+                                    <div class="page-name">${escapeHtml(page.name)}</div>
+                                    <div class="page-meta">Created: ${date}</div>
+                                </div>
+                                <div class="page-actions">
+                                    <button class="icon-btn" onclick="openPage('${template.folder}', '${page.filename}')">🚀 Open</button>
+                                    <button class="icon-btn" onclick="deletePage('${template.folder}', '${page.filename}')">🗑️ Delete</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+            });
+
+            if (html === '') {
+                html = '<p style="text-align: center; opacity: 0.7;">No pages generated yet. Create some in M3U Matrix Pro!</p>';
+            }
+
+            container.innerHTML = html;
+        }
+
+        function viewTemplatePages(folder, name) {
+            alert(`Viewing all ${name} pages. This would show a filtered view of pages for this template.`);
+            // In full implementation, filter the pages list
+        }
+
+        function openLatestPage(folder) {
+            const pages = allPages[folder] || [];
+            if (pages.length > 0) {
+                const latest = pages[pages.length - 1];
+                window.open(`${folder}/${latest.filename}`, '_blank');
+            }
+        }
+
+        function openPage(folder, filename) {
+            window.open(`${folder}/${filename}`, '_blank');
+        }
+
+        function deletePage(folder, filename) {
+            if (confirm(`Delete this page?\n${filename}`)) {
+                allPages[folder] = allPages[folder].filter(p => p.filename !== filename);
+                localStorage.setItem('m3u_matrix_pages', JSON.stringify(allPages));
+                scanPages();
+                alert('Page deleted!');
+            }
+        }
+
+        function exportBookmarks() {
+            let html = '<!DOCTYPE NETSCAPE-Bookmark-file-1>\n';
+            html += '<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">\n';
+            html += '<TITLE>M3U Matrix Bookmarks</TITLE>\n';
+            html += '<H1>M3U Matrix Bookmarks</H1>\n';
+            html += '<DL><p>\n';
+            html += '    <DT><H3>M3U Matrix Players</H3>\n';
+            html += '    <DL><p>\n';
+
+            templates.forEach(template => {
+                const pages = allPages[template.folder] || [];
+                if (pages.length > 0) {
+                    html += `        <DT><H3>${template.name}</H3>\n`;
+                    html += '        <DL><p>\n';
+                    pages.forEach(page => {
+                        html += `            <DT><A HREF="${template.folder}/${page.filename}">${escapeHtml(page.name)}</A>\n`;
+                    });
+                    html += '        </DL><p>\n';
+                }
+            });
+
+            html += '    </DL><p>\n';
+            html += '</DL><p>\n';
+
+            const blob = new Blob([html], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'M3U_Matrix_Bookmarks.html';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function cleanupOldPages() {
+            const days = prompt('Delete pages older than how many days?', '30');
+            if (days === null) return;
+
+            const threshold = Date.now() - (parseInt(days) * 24 * 60 * 60 * 1000);
+            let deletedCount = 0;
+
+            Object.keys(allPages).forEach(folder => {
+                const before = allPages[folder].length;
+                allPages[folder] = allPages[folder].filter(page => page.timestamp > threshold);
+                deletedCount += before - allPages[folder].length;
+            });
+
+            localStorage.setItem('m3u_matrix_pages', JSON.stringify(allPages));
+            scanPages();
+            alert(`Deleted ${deletedCount} old page(s)!`);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Initialize
+        scanPages();
     </script>
 </body>
 </html>
