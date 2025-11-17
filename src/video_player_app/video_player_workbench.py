@@ -165,6 +165,8 @@ class VideoPlayerWorkbench(tk.Toplevel):
         self.playlist_tree.bind('<<TreeviewSelect>>', self.on_playlist_select)
         # Bind double-click to play video
         self.playlist_tree.bind('<Double-Button-1>', self.on_playlist_double_click)
+        # Bind right-click for context menu
+        self.playlist_tree.bind('<Button-3>', self.show_playlist_context_menu)
         
         btn_frame = tk.Frame(parent, bg='#1a1a2e')
         btn_frame.pack(pady=10)
@@ -882,6 +884,47 @@ File Path: {video['filepath']}
             self.update_playlist_ui()
             self.save_playlist_to_disk()
             messagebox.showinfo("Pasted", f"{len(self.clipboard_videos)} video(s) pasted.")
+    
+    def show_playlist_context_menu(self, event):
+        """Show right-click context menu on playlist"""
+        context_menu = tk.Menu(self.playlist_tree, tearoff=0, bg="#2a2a2a", fg="#fff")
+        
+        selection = self.playlist_tree.selection()
+        
+        if selection:
+            context_menu.add_command(
+                label="▶ Play Selected",
+                command=lambda: self.play_video(self.playlist_tree.index(selection[0])),
+                font=('Arial', 9, 'bold')
+            )
+            context_menu.add_separator()
+            context_menu.add_command(
+                label="📋 Copy Selected (Ctrl+C)",
+                command=self.copy_selected
+            )
+            context_menu.add_command(
+                label="📄 Paste (Ctrl+V)",
+                command=self.paste_videos
+            )
+            context_menu.add_separator()
+            context_menu.add_command(
+                label="🗑️ Remove Selected",
+                command=self.delete_selected
+            )
+        else:
+            context_menu.add_command(
+                label="📄 Paste (Ctrl+V)",
+                command=self.paste_videos
+            )
+            context_menu.add_command(
+                label="🗑️ Clear All",
+                command=self.clear_all
+            )
+        
+        try:
+            context_menu.tk_popup(event.x_root, event.y_root)
+        finally:
+            context_menu.grab_release()
     
     def delete_selected(self):
         selection = self.playlist_tree.selection()
