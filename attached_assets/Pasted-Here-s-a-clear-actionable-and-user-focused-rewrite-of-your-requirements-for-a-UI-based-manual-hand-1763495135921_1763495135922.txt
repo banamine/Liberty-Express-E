@@ -1,0 +1,135 @@
+Here’s a clear, actionable, and user-focused rewrite of your requirements for a UI-based manual handle mapping system with drag-and-drop, customizable workbenches, and guided help. This version is structured for both developers and end-users, with explicit directions and use cases.
+
+UI Design Specifications: Manual Handle Mapping & Customizable Workbench
+Overview
+This UI allows users to manually map handles (e.g., Rumble channels) and customize their workbench with drag-and-drop panels, notepad integration, and guided setup. It includes a demo mode for quick testing and a help system for step-by-step guidance.
+
+Core Features
+1. Manual Handle Mapping UI
+Purpose: Enable users to add or edit handles (e.g., Rumble channels) manually.
+Key Requirements:
+
+One-time setup: Users can add new handles via a simple form.
+Database integration: Pre-loaded with 30 existing channels; new additions are saved to the database.
+Search & filter: Quickly find handles by name, ID, or status.
+
+UI Elements:
+
+Add Handle Button: Opens a modal form for entering handle details (name, URL, category, etc.).
+Edit/Delete Buttons: Inline actions for each handle in the list.
+Bulk Import: Option to upload a CSV or JSON file for multiple handles.
+
+
+2. Customizable Workbench
+Purpose: Provide a flexible workspace with closable, draggable panels and notepad functionality.
+Key Requirements:
+
+Drag-and-Drop Panels: All panels (e.g., handle list, notepad, demo templates) can be rearranged or closed.
+Notepad Integration: Every workbench includes a built-in notepad for notes, code snippets, or to-do lists.
+Save/Load Layouts: Users can save their panel arrangements and reload them later.
+
+UI Elements:
+
+Panel Header:
+
+Close Button (X): Closes the panel.
+Drag Handle (⠿): Allows repositioning.
+Minimize/Maximize: Toggles panel size.
+
+
+Notepad Panel:
+
+Rich text support.
+Save/export notes as .txt or .md.
+
+
+
+
+3. Help System with Guided Setup
+Purpose: Assist users in setting up pages perfectly with minimal effort.
+Key Requirements:
+
+Interactive Help Menu: Accessible via a Help Button (always visible).
+Checkbox-Driven Setup: Users select options (e.g., "Add Notepad," "Enable Demo Mode") to semi-automate page creation.
+Suggestion Bubbles: Contextual tips appear as users interact with the UI (e.g., "Drag panels here to customize your layout").
+
+UI Elements:
+
+Help Button: Opens a sidebar or modal with:
+
+Step-by-Step Guides: Visual walkthroughs for common tasks.
+Checkbox Options:
+
+"Enable Notepad"
+"Load Demo Templates"
+"Auto-arrange Panels"
+"Show Advanced Options"
+
+
+Searchable FAQ: Quick answers to common questions.
+
+
+Suggestion Bubbles: Pop-up tips that appear when hovering over buttons or panels.
+
+
+4. Demo Mode
+Purpose: Let users test the UI with pre-loaded content.
+Key Requirements:
+
+Demo Button: Instantly loads 6 demo templates (e.g., "Big Buck Bunny," "Sample Rumble Videos").
+Demo Output Folder: All demo-generated files are saved to a dedicated folder (/demo_output/).
+Reset Option: Clears demo content and restores the default layout.
+
+UI Elements:
+
+Demo Button: Located in the top toolbar.
+Template Selector: Dropdown to choose from 6 demo options.
+Output Preview: Shows a thumbnail grid of demo videos/pages.
+
+
+UI Layout Rules
+
+Visibility:
+
+All buttons and critical actions must be visible without scrolling.
+Use collapsible sections for advanced options.
+
+
+Panel Management:
+
+Panels can be dragged to any position on the screen.
+Closed panels can be reopened from a "Panel Library" in the help menu.
+
+
+Responsive Design:
+
+Works on screens as small as 1280x720.
+Panels resize dynamically when the window is adjusted.
+
+
+
+
+Example Workflow
+
+User opens the UI → Sees a default layout with the handle list and a notepad.
+Clicks "Help" → Sidebar opens with checkboxes for customization.
+Selects "Load Demo Templates" → 6 demo videos appear in a grid.
+Drags the "Demo Output" panel → Moves it to the right side of the screen.
+Clicks "Add Handle" → Fills out the form and saves a new Rumble channel.
+Uses the notepad → Jots down notes about the new handle.
+
+
+Technical Notes for Developers
+
+Frontend: Use a framework like React or Vue for drag-and-drop (e.g., react-dnd or vue-draggable).
+Backend: Store handle data in a lightweight database (e.g., SQLite or Firebase).
+Demo Content: Host sample videos locally or use placeholder URLs.
+Help System: Implement a state machine to track user progress and trigger suggestion bubbles.
+
+
+Next Steps
+
+Design Mockups: Create wireframes for the workbench, help menu, and demo mode.
+Prototype: Build a minimal version with drag-and-drop panels and the help system.
+User Testing: Gather feedback on the demo mode and checkbox-driven setup.
+
