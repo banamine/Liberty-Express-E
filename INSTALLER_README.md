@@ -85,7 +85,7 @@ Inno Setup creates a Windows installer from the PyInstaller output:
 - ✅ Directory selection dialog
 - ✅ Desktop shortcut option (unchecked by default)
 - ✅ Start Menu shortcuts (always created)
-- ✅ Taskbar pin attempt (best-effort)
+- ⚠️ Taskbar pin attempt (Windows 11 requires manual confirmation)
 - ✅ Uninstaller included
 
 **Configurations:**
@@ -154,7 +154,7 @@ M3U Matrix Pro/
 1. **Install Prompt:** User selects installation directory
 2. **Desktop Shortcut:** Optional checkbox (unchecked by default)
 3. **Start Menu:** Always creates Start Menu shortcuts
-4. **Taskbar Pin:** Attempts to pin to taskbar (may require user confirmation on Win11)
+4. **Taskbar Pin:** Attempts to pin to taskbar (Windows 11 blocks automatic pinning - users must manually pin from Start Menu)
 5. **Launch Option:** "Launch M3U Matrix Pro" checkbox after install
 
 ### What Users Get
