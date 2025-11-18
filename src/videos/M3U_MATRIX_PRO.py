@@ -27,11 +27,43 @@ DATA_DIR = SRC_DIR / "data"
 
 # Optional imports - only needed for advanced features
 try:
-    from page_generator import NexusTVPageGenerator, WebIPTVGenerator, SimplePlayerGenerator, RumbleChannelGenerator, MultiChannelGenerator, BufferTVGenerator
-    PAGE_GENERATOR_AVAILABLE = True
+    # Try to fix paths for packaged executable FIRST
+    if getattr(sys, 'frozen', False):
+        # Running as packaged executable - use fixed paths
+        from page_generator_fix import fix_page_generator_paths, get_output_directory
+        fixed_module = fix_page_generator_paths()
+        if fixed_module:
+            NexusTVPageGenerator = fixed_module.NexusTVPageGenerator
+            WebIPTVGenerator = fixed_module.WebIPTVGenerator
+            SimplePlayerGenerator = fixed_module.SimplePlayerGenerator
+            RumbleChannelGenerator = fixed_module.RumbleChannelGenerator
+            MultiChannelGenerator = fixed_module.MultiChannelGenerator
+            BufferTVGenerator = fixed_module.BufferTVGenerator
+            PAGE_GENERATOR_AVAILABLE = True
+            print("Page generators loaded with executable path fixes")
+        else:
+            raise ImportError("Could not apply path fixes")
+    else:
+        # Running as Python script - normal import
+        from page_generator import NexusTVPageGenerator, WebIPTVGenerator, SimplePlayerGenerator, RumbleChannelGenerator, MultiChannelGenerator, BufferTVGenerator
+        PAGE_GENERATOR_AVAILABLE = True
+        print("Page generators loaded (development mode)")
+        
+        # Create helper function for development
+        def get_output_directory(subfolder=""):
+            output_dir = Path("generated_pages")
+            if subfolder:
+                output_dir = output_dir / subfolder
+            output_dir.mkdir(exist_ok=True, parents=True)
+            return output_dir
+            
 except ImportError as e:
     PAGE_GENERATOR_AVAILABLE = False
     logging.warning(f"Page generator not available: {e}")
+    
+    # Fallback helper
+    def get_output_directory(subfolder=""):
+        return Path("generated_pages")
 
 try:
     from utils import (sanitize_filename, validate_url, validate_file_path, 
@@ -3506,7 +3538,12 @@ Services included:
                 
                 # Show success message
                 abs_path = output_path.absolute()
-                abs_dir = Path('generated_pages').absolute()
+                # Use the fixed path for executables
+                if getattr(sys, 'frozen', False):
+                    from page_generator_fix import get_output_directory
+                    abs_dir = get_output_directory().absolute()
+                else:
+                    abs_dir = Path('generated_pages').absolute()
                 
                 self.root.after(0, lambda: messagebox.showinfo(
                     "Success!",
@@ -3669,7 +3706,12 @@ Services included:
                 
                 # Show success message
                 abs_path = output_path.absolute()
-                abs_dir = Path('generated_pages').absolute()
+                # Use the fixed path for executables
+                if getattr(sys, 'frozen', False):
+                    from page_generator_fix import get_output_directory
+                    abs_dir = get_output_directory().absolute()
+                else:
+                    abs_dir = Path('generated_pages').absolute()
                 
                 self.root.after(0, lambda: messagebox.showinfo(
                     "Success!",
