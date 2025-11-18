@@ -15,6 +15,9 @@ from .validation import (
     get_cached_thumbnail_stats
 )
 
+# Import dependency checker
+from . import dependency_checker
+
 __all__ = [
     'sanitize_filename',
     'validate_url',
