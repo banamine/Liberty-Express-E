@@ -1023,6 +1023,14 @@ class RumbleChannelGenerator:
         self.template_path = Path(template_path)
         self.output_dir = Path("generated_pages") / "rumble_channel"
         self.output_dir.mkdir(exist_ok=True, parents=True)
+        
+        # Initialize Rumble Helper for URL normalization and metadata enrichment
+        try:
+            from services.rumble_helper import RumbleHelper
+            self.rumble_helper = RumbleHelper()
+        except Exception as e:
+            print(f"Warning: Could not load RumbleHelper: {e}")
+            self.rumble_helper = None
     
     def generate_page(self, channels, page_name="rumble_channel"):
         """
@@ -1056,25 +1064,54 @@ class RumbleChannelGenerator:
         playlist_data = []
         for idx, ch in enumerate(rumble_channels):
             custom_tags = ch.get('custom_tags', {})
+            url = ch.get('url', '')
             
-            video_entry = {
-                'title': ch.get('name', f'Rumble Video {idx + 1}'),
-                'embed_url': custom_tags.get('EMBED_URL', ch.get('url', '')),
-                'thumbnail': ch.get('logo', ''),
-                'video_id': custom_tags.get('VIDEO_ID', ''),
-                'pub_code': custom_tags.get('PUB_CODE', ''),
-                'width': custom_tags.get('WIDTH', '640'),
-                'height': custom_tags.get('HEIGHT', '360')
-            }
+            # Try to use RumbleHelper for automatic URL normalization and metadata enrichment
+            if self.rumble_helper and url:
+                try:
+                    # Enrich channel data with helper (normalizes URL, fetches metadata, looks up pub codes)
+                    enriched = self.rumble_helper.enrich_channel_data(url, ch.get('name'))
+                    
+                    video_entry = {
+                        'title': enriched.get('title', ch.get('name', f'Rumble Video {idx + 1}')),
+                        'embed_url': enriched.get('embed_url', url),
+                        'thumbnail': enriched.get('metadata', {}).get('thumbnail_url', ch.get('logo', '')),
+                        'video_id': enriched.get('metadata', {}).get('video_id', custom_tags.get('VIDEO_ID', '')),
+                        'pub_code': enriched.get('metadata', {}).get('pub_code', custom_tags.get('PUB_CODE', '')),
+                        'width': enriched.get('metadata', {}).get('width', custom_tags.get('WIDTH', 640)),
+                        'height': enriched.get('metadata', {}).get('height', custom_tags.get('HEIGHT', 360))
+                    }
+                except Exception as e:
+                    print(f"Warning: RumbleHelper enrichment failed for {url}: {e}")
+                    # Fallback to custom_tags
+                    video_entry = {
+                        'title': ch.get('name', f'Rumble Video {idx + 1}'),
+                        'embed_url': custom_tags.get('EMBED_URL', url),
+                        'thumbnail': ch.get('logo', ''),
+                        'video_id': custom_tags.get('VIDEO_ID', ''),
+                        'pub_code': custom_tags.get('PUB_CODE', ''),
+                        'width': custom_tags.get('WIDTH', 640),
+                        'height': custom_tags.get('HEIGHT', 360)
+                    }
+            else:
+                # Fallback: use custom_tags if RumbleHelper not available
+                video_entry = {
+                    'title': ch.get('name', f'Rumble Video {idx + 1}'),
+                    'embed_url': custom_tags.get('EMBED_URL', url),
+                    'thumbnail': ch.get('logo', ''),
+                    'video_id': custom_tags.get('VIDEO_ID', ''),
+                    'pub_code': custom_tags.get('PUB_CODE', ''),
+                    'width': custom_tags.get('WIDTH', 640),
+                    'height': custom_tags.get('HEIGHT', 360)
+                }
             
-            # Ensure embed_url is valid
-            if not video_entry['embed_url']:
-                video_id = video_entry['video_id']
-                pub_code = video_entry['pub_code']
-                if video_id and pub_code:
-                    video_entry['embed_url'] = f"https://rumble.com/embed/{video_id}/?pub={pub_code}"
-                elif video_id:
-                    video_entry['embed_url'] = f"https://rumble.com/embed/{video_id}/"
+            # Final embed URL validation
+            if not video_entry['embed_url'] and video_entry['video_id']:
+                # Fallback: construct embed URL from video_id and pub_code
+                if video_entry['pub_code']:
+                    video_entry['embed_url'] = f"https://rumble.com/embed/{video_entry['video_id']}/?pub={video_entry['pub_code']}"
+                else:
+                    video_entry['embed_url'] = f"https://rumble.com/embed/{video_entry['video_id']}/"
             
             playlist_data.append(video_entry)
         
