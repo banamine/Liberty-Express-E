@@ -16,6 +16,7 @@ import re
 import urllib.parse
 from PIL import Image, ImageTk
 import threading
+import requests
 
 # VLC player import with graceful degradation
 try:
@@ -99,6 +100,9 @@ class VideoPlayerWorkbench(tk.Toplevel):
         file_menu.add_separator()
         file_menu.add_command(label="Save Playlist", command=self.save_playlist)
         file_menu.add_command(label="Load Playlist", command=self.load_playlist)
+        file_menu.add_separator()
+        file_menu.add_command(label="📝 Export to M3U", command=self.export_to_m3u)
+        file_menu.add_command(label="✓ Validate All URLs", command=self.validate_all_urls)
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=self.quit)
         
@@ -531,6 +535,310 @@ class VideoPlayerWorkbench(tk.Toplevel):
         minutes = int((seconds % 3600) // 60)
         secs = int(seconds % 60)
         return f"{hours:02d}:{minutes:02d}:{secs:02d}"
+    
+    # ========== AUTOMATION FEATURES (Tasks 6-10) ==========
+    
+    def parse_episode_info(self, filename):
+        """
+        Smart parser for episode information from filename.
+        Detects both XYY (101 = S01E01) and S01E01 formats.
+        
+        Returns: dict with season, episode, and formatted string or None
+        """
+        # Remove file extension
+        name = Path(filename).stem
+        
+        # Pattern 1: S01E01 format (standard)
+        pattern_std = r'[Ss](\d+)[Ee](\d+)'
+        match_std = re.search(pattern_std, name)
+        if match_std:
+            season = int(match_std.group(1))
+            episode = int(match_std.group(2))
+            return {
+                'season': season,
+                'episode': episode,
+                'formatted': f"S{season:02d}E{episode:02d}",
+                'format': 'standard'
+            }
+        
+        # Pattern 2: XYY format (e.g., 101 = S01E01, 523 = S05E23)
+        pattern_xyy = r'[^\d](\d)(\d{2})[^\d]'
+        match_xyy = re.search(pattern_xyy, name)
+        if match_xyy:
+            season = int(match_xyy.group(1))
+            episode = int(match_xyy.group(2))
+            return {
+                'season': season,
+                'episode': episode,
+                'formatted': f"S{season:02d}E{episode:02d}",
+                'format': 'XYY'
+            }
+        
+        # Pattern 3: XYY at word boundary (e.g., "Show 101" or "Video-523")
+        pattern_xyy_boundary = r'(?:^|\D)([1-9])(\d{2})(?:\D|$)'
+        match_xyy_boundary = re.search(pattern_xyy_boundary, name)
+        if match_xyy_boundary:
+            season = int(match_xyy_boundary.group(1))
+            episode = int(match_xyy_boundary.group(2))
+            return {
+                'season': season,
+                'episode': episode,
+                'formatted': f"S{season:02d}E{episode:02d}",
+                'format': 'XYY_boundary'
+            }
+        
+        return None
+    
+    def encode_url_safe(self, filepath):
+        """
+        Encode file path for URL use (handle spaces and special characters).
+        Local files: Use Path.as_uri() for proper file:// URI encoding
+        URLs: Return as-is
+        
+        Properly handles:
+        - Windows paths with drive letters (C:\...)
+        - UNC paths (\\\\server\\share)
+        - Unix absolute paths (/home/...)
+        - Spaces and special characters
+        """
+        # Check if it's already a URL
+        if any(filepath.startswith(proto) for proto in ['http://', 'https://', 'rtmp://', 'rtsp://', 'file://']):
+            return filepath
+        
+        # For local files, use Path.as_uri() for proper RFC 8089 file URI encoding
+        try:
+            path_obj = Path(filepath)
+            # as_uri() handles Windows drive letters, UNC paths, and percent-encoding correctly
+            return path_obj.as_uri()
+        except Exception as e:
+            # Fallback: if Path.as_uri() fails, return original path
+            # This handles edge cases like invalid paths
+            print(f"Warning: Could not encode path {filepath}: {e}")
+            return filepath
+    
+    def validate_url_with_retry(self, url, timeout=5, retries=3):
+        """
+        Validate URL by sending HEAD request.
+        Returns: dict with 'valid' (bool), 'status_code' (int), and 'error' (str) keys
+        """
+        if not url:
+            return {'valid': False, 'status_code': 0, 'error': 'Empty URL'}
+        
+        # Local files don't need HTTP validation
+        if url.startswith('file://') or os.path.exists(url):
+            return {'valid': os.path.exists(url.replace('file://', '')), 'status_code': 200, 'error': None}
+        
+        # Skip validation for non-HTTP protocols
+        if not any(url.startswith(proto) for proto in ['http://', 'https://']):
+            return {'valid': True, 'status_code': 0, 'error': 'Non-HTTP protocol, skipping validation'}
+        
+        for attempt in range(retries):
+            try:
+                response = requests.head(url, timeout=timeout, allow_redirects=True)
+                # Accept 200 OK, 206 Partial Content, or 403 Forbidden (stream exists but needs auth)
+                if response.status_code in (200, 206, 403):
+                    return {'valid': True, 'status_code': response.status_code, 'error': None}
+                else:
+                    return {'valid': False, 'status_code': response.status_code, 'error': f'HTTP {response.status_code}'}
+            except requests.exceptions.Timeout:
+                if attempt == retries - 1:
+                    return {'valid': False, 'status_code': 0, 'error': 'Timeout'}
+            except requests.exceptions.RequestException as e:
+                if attempt == retries - 1:
+                    return {'valid': False, 'status_code': 0, 'error': str(e)}
+        
+        return {'valid': False, 'status_code': 0, 'error': 'Unknown error'}
+    
+    def export_to_m3u(self):
+        """
+        Export playlist to M3U file with EXTINF metadata.
+        Includes duration, episode info, resolution, and codec.
+        """
+        if not self.playlist:
+            messagebox.showinfo("Empty Playlist", "Please add videos to the playlist before exporting.")
+            return
+        
+        # File dialog
+        initial_dir = self.settings.get('last_export_folder', str(Path.home()))
+        file_path = filedialog.asksaveasfilename(
+            title="Export Playlist to M3U",
+            defaultextension=".m3u",
+            initialdir=initial_dir,
+            filetypes=[
+                ("M3U Playlist", "*.m3u"),
+                ("M3U8 Playlist", "*.m3u8"),
+                ("All files", "*.*")
+            ],
+            initialfile=f"playlist_{datetime.now().strftime('%Y%m%d_%H%M%S')}.m3u"
+        )
+        
+        if not file_path:
+            return
+        
+        try:
+            with open(file_path, 'w', encoding='utf-8') as f:
+                # Write M3U header
+                f.write("#EXTM3U\n")
+                f.write(f"# Generated by Video Player Pro Workbench\n")
+                f.write(f"# Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                f.write(f"# Total Items: {len(self.playlist)}\n\n")
+                
+                # Write each video with EXTINF metadata
+                for idx, video in enumerate(self.playlist, 1):
+                    duration = int(video.get('duration', 0))
+                    title = video.get('title', 'Unknown')
+                    filepath = video.get('filepath', '')
+                    resolution = video.get('resolution', 'Unknown')
+                    codec = video.get('codec', 'unknown')
+                    video_type = video.get('type', 'FILE')
+                    
+                    # Parse episode info if available
+                    episode_info = self.parse_episode_info(title)
+                    if episode_info:
+                        title = f"{title} [{episode_info['formatted']}]"
+                    
+                    # Encode URL-safe path for local files
+                    encoded_url = self.encode_url_safe(filepath)
+                    
+                    # Build EXTINF line with extended metadata
+                    extinf = f"#EXTINF:{duration if duration > 0 else -1}"
+                    
+                    # Add tvg attributes
+                    extinf += f' tvg-name="{title}"'
+                    extinf += f' group-title="{video_type}"'
+                    
+                    # Add custom attributes
+                    if resolution != "Unknown":
+                        extinf += f' resolution="{resolution}"'
+                    if codec != "unknown":
+                        extinf += f' codec="{codec}"'
+                    if episode_info:
+                        extinf += f' season="{episode_info["season"]}" episode="{episode_info["episode"]}"'
+                    
+                    extinf += f",{title}\n"
+                    
+                    f.write(extinf)
+                    f.write(f"{encoded_url}\n\n")
+            
+            # Remember export folder
+            self.settings['last_export_folder'] = str(Path(file_path).parent)
+            self.save_settings()
+            
+            messagebox.showinfo(
+                "Export Successful",
+                f"M3U playlist exported successfully!\n\n"
+                f"File: {Path(file_path).name}\n"
+                f"Total Items: {len(self.playlist)}\n"
+                f"Features:\n"
+                f"✓ Automatic URL encoding\n"
+                f"✓ Episode parsing (XYY & S01E01)\n"
+                f"✓ Extended metadata (resolution, codec)\n"
+                f"✓ Duration information"
+            )
+            
+            self.status_label.config(text=f"✓ Exported {len(self.playlist)} items to M3U")
+            
+        except Exception as e:
+            messagebox.showerror("Export Failed", f"Could not export M3U playlist:\n{e}")
+    
+    def validate_all_urls(self):
+        """
+        Validate all URLs in the playlist and show results.
+        Useful for checking if remote streams are accessible.
+        """
+        if not self.playlist:
+            messagebox.showinfo("Empty Playlist", "No items to validate.")
+            return
+        
+        # Create progress dialog
+        progress_dialog = tk.Toplevel(self)
+        progress_dialog.title("Validating URLs...")
+        progress_dialog.geometry("500x300")
+        progress_dialog.configure(bg='#1a1a2e')
+        progress_dialog.transient(self)
+        progress_dialog.grab_set()
+        
+        tk.Label(
+            progress_dialog,
+            text="Validating URLs...",
+            font=('Arial', 12, 'bold'),
+            fg='white',
+            bg='#1a1a2e'
+        ).pack(pady=10)
+        
+        progress_text = tk.Text(
+            progress_dialog,
+            height=15,
+            bg='#0f0f1e',
+            fg='#00ff88',
+            font=('Courier', 9)
+        )
+        progress_text.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        
+        def update_progress(message, tag=None):
+            """Thread-safe UI update using after()"""
+            def ui_update():
+                progress_text.insert(tk.END, message, tag)
+                if tag:
+                    if tag == 'valid':
+                        progress_text.tag_config('valid', foreground='#00ff88')
+                    elif tag == 'invalid':
+                        progress_text.tag_config('invalid', foreground='#ff4444')
+                progress_text.see(tk.END)
+            
+            self.after(0, ui_update)
+        
+        def show_close_button():
+            """Thread-safe button creation"""
+            def ui_update():
+                tk.Button(
+                    progress_dialog,
+                    text="CLOSE",
+                    command=progress_dialog.destroy,
+                    bg='#00ff88',
+                    fg='#1a1a2e',
+                    font=('Arial', 10, 'bold'),
+                    padx=20,
+                    pady=5
+                ).pack(pady=10)
+            
+            self.after(0, ui_update)
+        
+        def validate_thread():
+            """Worker thread - NO direct Tkinter widget manipulation"""
+            valid_count = 0
+            invalid_count = 0
+            
+            for idx, video in enumerate(self.playlist, 1):
+                url = video.get('filepath', '')
+                title = video.get('title', 'Unknown')[:40]
+                
+                # Thread-safe progress update
+                update_progress(f"\n[{idx}/{len(self.playlist)}] Checking: {title}...\n")
+                
+                # Network validation (thread-safe)
+                result = self.validate_url_with_retry(url)
+                
+                if result['valid']:
+                    update_progress(f"✓ VALID (HTTP {result['status_code']})\n", 'valid')
+                    valid_count += 1
+                else:
+                    update_progress(f"✗ INVALID: {result['error']}\n", 'invalid')
+                    invalid_count += 1
+            
+            # Thread-safe summary update
+            update_progress(f"\n{'='*50}\n")
+            update_progress(f"SUMMARY:\n")
+            update_progress(f"✓ Valid: {valid_count}\n", 'valid')
+            update_progress(f"✗ Invalid: {invalid_count}\n", 'invalid')
+            update_progress(f"Total: {len(self.playlist)}\n")
+            
+            # Thread-safe button creation
+            show_close_button()
+        
+        threading.Thread(target=validate_thread, daemon=True).start()
+    
+    # ========== END AUTOMATION FEATURES ==========
     
     def update_playlist_ui(self):
         """Update playlist display and auto-select first item"""
