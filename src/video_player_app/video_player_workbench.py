@@ -410,7 +410,7 @@ class VideoPlayerWorkbench(tk.Toplevel):
         self.after(0, lambda: self.status_label.config(text=f"✓ Loaded {total} items"))
     
     def extract_video_metadata(self, filepath):
-        """Extract metadata from video file or URL"""
+        """Extract metadata from video file or URL - ALWAYS returns valid metadata"""
         try:
             # Check if it's a remote URL (HTTP/HTTPS/RTMP/RTSP)
             is_url = any(filepath.lower().startswith(proto) for proto in ['http://', 'https://', 'rtmp://', 'rtsp://'])
@@ -439,43 +439,90 @@ class VideoPlayerWorkbench(tk.Toplevel):
                     'is_youtube': is_youtube
                 }
             
-            # Local file - use ffprobe
-            cmd = [
-                'ffprobe',
-                '-v', 'quiet',
-                '-print_format', 'json',
-                '-show_format',
-                '-show_streams',
-                filepath
-            ]
+            # Local file - try ffprobe first, then fallback to basic metadata
+            try:
+                cmd = [
+                    'ffprobe',
+                    '-v', 'quiet',
+                    '-print_format', 'json',
+                    '-show_format',
+                    '-show_streams',
+                    filepath
+                ]
+                
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+                
+                if result.returncode == 0 and result.stdout:
+                    data = json.loads(result.stdout)
+                    
+                    duration = float(data.get('format', {}).get('duration', 0))
+                    
+                    video_stream = next((s for s in data.get('streams', []) if s['codec_type'] == 'video'), {})
+                    width = video_stream.get('width', 0)
+                    height = video_stream.get('height', 0)
+                    codec = video_stream.get('codec_name', 'unknown')
+                    
+                    title = Path(filepath).stem
+                    
+                    return {
+                        'filepath': filepath,
+                        'title': title,
+                        'duration': duration,
+                        'duration_str': self.format_duration(duration),
+                        'resolution': f"{width}x{height}" if width and height else "Unknown",
+                        'type': Path(filepath).suffix.upper()[1:],
+                        'codec': codec,
+                        'filesize': os.path.getsize(filepath) if os.path.exists(filepath) else 0,
+                        'is_url': False,
+                        'is_youtube': False
+                    }
+            except Exception as ffprobe_error:
+                print(f"FFprobe failed for {filepath}: {ffprobe_error}")
             
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
-            data = json.loads(result.stdout)
-            
-            duration = float(data.get('format', {}).get('duration', 0))
-            
-            video_stream = next((s for s in data.get('streams', []) if s['codec_type'] == 'video'), {})
-            width = video_stream.get('width', 0)
-            height = video_stream.get('height', 0)
-            codec = video_stream.get('codec_name', 'unknown')
-            
+            # FALLBACK: If ffprobe fails, create basic metadata from file properties
+            # This ensures files are ALWAYS imported even without FFmpeg
             title = Path(filepath).stem
+            filesize = 0
+            try:
+                filesize = os.path.getsize(filepath) if os.path.exists(filepath) else 0
+            except:
+                pass
             
             return {
                 'filepath': filepath,
                 'title': title,
-                'duration': duration,
-                'duration_str': self.format_duration(duration),
-                'resolution': f"{width}x{height}" if width and height else "Unknown",
-                'type': Path(filepath).suffix.upper()[1:],
-                'codec': codec,
-                'filesize': os.path.getsize(filepath),
+                'duration': 0,
+                'duration_str': "Unknown",
+                'resolution': "Unknown",
+                'type': Path(filepath).suffix.upper()[1:] or 'FILE',
+                'codec': 'unknown',
+                'filesize': filesize,
                 'is_url': False,
                 'is_youtube': False
             }
+            
         except Exception as e:
+            # ABSOLUTE FALLBACK: Even if everything fails, return basic metadata
+            # This ensures NO file is ever rejected
             print(f"Error extracting metadata from {filepath}: {e}")
-            return None
+            
+            try:
+                title = Path(filepath).stem if not is_url else filepath.split('/')[-1]
+            except:
+                title = str(filepath)
+            
+            return {
+                'filepath': filepath,
+                'title': title,
+                'duration': 0,
+                'duration_str': "Unknown",
+                'resolution': "Unknown",
+                'type': 'FILE',
+                'codec': 'unknown',
+                'filesize': 0,
+                'is_url': any(filepath.lower().startswith(proto) for proto in ['http://', 'https://', 'rtmp://', 'rtsp://']),
+                'is_youtube': 'youtube.com' in filepath.lower() or 'youtu.be' in filepath.lower()
+            }
     
     def format_duration(self, seconds):
         if seconds <= 0:
