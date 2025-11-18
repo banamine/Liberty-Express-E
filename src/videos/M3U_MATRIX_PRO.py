@@ -12,13 +12,18 @@ import logging
 from pathlib import Path
 import uuid
 
-# Add script directory AND parent directory to sys.path for local imports
-script_dir = str(Path(__file__).parent.resolve())
-parent_dir = str(Path(__file__).parent.parent.resolve())
-if script_dir not in sys.path:
-    sys.path.insert(0, script_dir)
-if parent_dir not in sys.path:
-    sys.path.insert(0, parent_dir)
+# Calculate project root and add to sys.path
+# M3U_MATRIX_PRO.py is in src/videos/, so go up 2 levels to project root
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+SRC_DIR = PROJECT_ROOT / "src"
+
+# Add src directory to sys.path for imports
+if str(SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(SRC_DIR))
+
+# Define resource paths
+TEMPLATES_DIR = PROJECT_ROOT / "templates"
+DATA_DIR = SRC_DIR / "data"
 
 # Optional imports - only needed for advanced features
 try:
@@ -3483,10 +3488,8 @@ Services included:
             try:
                 self.root.after(0, lambda: self.stat.config(text="Generating Rumble Channel..."))
                 
-                # Check for template
-                template_path = Path("../templates/rumble_channel_template.html")
-                if not template_path.exists():
-                    template_path = Path("templates/rumble_channel_template.html")
+                # Check for template using absolute path
+                template_path = TEMPLATES_DIR / "rumble_channel_template.html"
                 if not template_path.exists():
                     self.root.after(0, lambda: messagebox.showerror(
                         "Template Not Found",
@@ -3644,10 +3647,8 @@ Services included:
             try:
                 self.root.after(0, lambda: self.stat.config(text="Generating Multi-Channel Viewer..."))
                 
-                # Check for template
-                template_path = Path("../templates/multi_channel_template.html")
-                if not template_path.exists():
-                    template_path = Path("templates/multi_channel_template.html")
+                # Check for template using absolute path
+                template_path = TEMPLATES_DIR / "multi_channel_template.html"
                 if not template_path.exists():
                     self.root.after(0, lambda: messagebox.showerror(
                         "Template Not Found",
@@ -3734,9 +3735,7 @@ Services included:
                 
                 # Generate NEXUS TV
                 self.root.after(0, lambda: self.stat.config(text="Generating NEXUS TV..."))
-                nexus_path = Path("../templates/nexus_tv_template.html")
-                if not nexus_path.exists():
-                    nexus_path = Path("templates/nexus_tv_template.html")
+                nexus_path = TEMPLATES_DIR / "nexus_tv_template.html"
                 if nexus_path.exists():
                     from page_generator import NexusTVPageGenerator
                     nexus_gen = NexusTVPageGenerator(template_path=str(nexus_path))
@@ -3749,9 +3748,7 @@ Services included:
                 
                 # Generate Web IPTV
                 self.root.after(0, lambda: self.stat.config(text="Generating Web IPTV..."))
-                webiptv_path = Path("../templates/web-iptv-extension")
-                if not webiptv_path.exists():
-                    webiptv_path = Path("templates/web-iptv-extension")
+                webiptv_path = TEMPLATES_DIR / "web-iptv-extension"
                 if webiptv_path.exists():
                     from page_generator import WebIPTVPageGenerator
                     webiptv_gen = WebIPTVPageGenerator(template_path=str(webiptv_path))
@@ -3764,9 +3761,7 @@ Services included:
                 
                 # Generate Simple Player
                 self.root.after(0, lambda: self.stat.config(text="Generating Simple Player..."))
-                simple_path = Path("../templates/simple-player")
-                if not simple_path.exists():
-                    simple_path = Path("templates/simple-player")
+                simple_path = TEMPLATES_DIR / "simple-player"
                 if simple_path.exists():
                     from page_generator import SimplePlayerPageGenerator
                     simple_gen = SimplePlayerPageGenerator(template_path=str(simple_path))
@@ -3846,9 +3841,7 @@ Services included:
                 # Initialize the correct generator
                 if template_type == "nexus":
                     # Check for NEXUS TV template file
-                    template_path = Path("../templates/nexus_tv_template.html")
-                    if not template_path.exists():
-                        template_path = Path("templates/nexus_tv_template.html")
+                    template_path = TEMPLATES_DIR / "nexus_tv_template.html"
                     if not template_path.exists():
                         self.root.after(0, lambda: messagebox.showerror(
                             "Template Not Found",
@@ -3863,9 +3856,7 @@ Services included:
                     generator = NexusTVPageGenerator(template_path=str(template_path))
                 elif template_type == "webiptv":
                     # Check for Web IPTV template
-                    template_path = Path("../templates/web-iptv-extension")
-                    if not template_path.exists():
-                        template_path = Path("templates/web-iptv-extension")
+                    template_path = TEMPLATES_DIR / "web-iptv-extension"
                     if not template_path.exists() or not (template_path / "player.html").exists():
                         self.root.after(0, lambda: messagebox.showerror(
                             "Template Not Found",
@@ -3879,9 +3870,7 @@ Services included:
                     generator = WebIPTVGenerator(template_path=str(template_path))
                 else:  # simple
                     # Check for Simple Player template
-                    template_path = Path("../templates/simple-player")
-                    if not template_path.exists():
-                        template_path = Path("templates/simple-player")
+                    template_path = TEMPLATES_DIR / "simple-player"
                     if not template_path.exists() or not (template_path / "player.html").exists():
                         self.root.after(0, lambda: messagebox.showerror(
                             "Template Not Found",
