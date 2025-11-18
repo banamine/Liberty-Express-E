@@ -466,6 +466,7 @@ class M3UMatrix:
                 ("CHECK", "#e67e22", self.start_check),
                 ("GENERATE PAGES", "#e91e63", self.generate_pages),
                 ("MULTI-CHANNEL", "#1e90ff", self.generate_multi_channel),
+                ("RUMBLE BROWSER", "#FF6347", self.open_rumble_browser),
                 ("RUMBLE CHANNEL", "#FF4500", self.generate_rumble_channel),
                 ("BUFFER TV", "#DC143C", self.generate_buffer_tv),
                 ("SMART SCHEDULE", "#9b59b6", self.smart_scheduler),
@@ -3335,6 +3336,100 @@ Services included:
             self._generate_all_three_pages(scheduler_params)
         
         self.show_scheduler_dialog(on_scheduler_callback)
+
+    def open_rumble_browser(self):
+        """Open the Rumble Category Browser for discovering and importing channels"""
+        try:
+            # Import RumbleCategory Browser
+            import sys
+            sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+            from ui.rumble_category_browser import RumbleCategoryBrowser
+            
+            # Create browser with import callback
+            def on_import(channel):
+                self._import_rumble_channel_from_browser(channel)
+            
+            browser = RumbleCategoryBrowser(self.root, on_channel_import=on_import)
+            
+        except Exception as e:
+            messagebox.showerror(
+                "Error Opening Rumble Browser",
+                f"Failed to open Rumble Browser:\n{str(e)}\n\n"
+                "Please check that the browser component is installed correctly."
+            )
+            self.logger.error(f"Error opening Rumble Browser: {e}", exc_info=True)
+    
+    def _import_rumble_channel_from_browser(self, channel):
+        """
+        Import a Rumble channel reference from the browser into the playlist
+        
+        NOTE: This imports CHANNEL pages (e.g., rumble.com/c/RedPill78), not individual videos.
+        These are reference links to browse the channel's content on Rumble.
+        For individual video imports, use the regular M3U import with video URLs.
+        
+        Args:
+            channel: Channel dict from rumble_channels.json
+            
+        Returns:
+            bool: True if import successful, False otherwise
+        """
+        try:
+            # Build channel URL from database
+            handle = channel.get('handle', '')
+            channel_url = channel.get('channel_url', f"https://rumble.com/c/{handle}")
+            
+            # Store channel metadata from database
+            # Note: These are channel page URLs, not playable video URLs
+            # RumbleHelper enrichment doesn't apply to channel references
+            enriched_data = {
+                'PROVIDER': 'RUMBLE',
+                'TYPE': 'CHANNEL_REF',  # Channel reference for browsing, not playable video
+                'HANDLE': handle,
+                'PUB_CODE': channel.get('pub_code', ''),
+                'CHANNEL_ID': channel.get('channel_id', ''),
+                'DESCRIPTION': channel.get('description', ''),
+                'CATEGORY': channel.get('category', '')
+            }
+            
+            # Create channel entry for playlist
+            new_channel = {
+                'num': len(self.channels) + 1,
+                'name': channel.get('name', 'Unknown Channel'),
+                'group': channel.get('category', 'Rumble'),
+                'url': channel_url,
+                'logo': '',
+                'backups': [],
+                'uuid': str(uuid.uuid4()),
+                'custom_tags': enriched_data
+            }
+            
+            # Add to channels list
+            self.channels.append(new_channel)
+            
+            # Mark as dirty for autosave
+            self.dirty = True
+            self.autosave_counter += 1
+            
+            # Rebuild M3U and refresh UI
+            self.build_m3u()
+            self.fill()
+            
+            # Update status
+            self.stat.config(
+                text=f"✓ Imported Rumble channel: {new_channel['name']}"
+            )
+            
+            self.logger.info(f"Imported Rumble channel from browser: {new_channel['name']}")
+            
+            return True
+            
+        except Exception as e:
+            messagebox.showerror(
+                "Import Error",
+                f"Failed to import channel:\n{str(e)}"
+            )
+            self.logger.error(f"Error importing Rumble channel: {e}", exc_info=True)
+            return False
 
     def generate_rumble_channel(self):
         """Generate Rumble Channel player page (for Rumble videos only)"""
