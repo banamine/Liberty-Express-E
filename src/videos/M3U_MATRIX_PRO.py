@@ -12,10 +12,13 @@ import logging
 from pathlib import Path
 import uuid
 
-# Add script directory to sys.path for local imports
+# Add script directory AND parent directory to sys.path for local imports
 script_dir = str(Path(__file__).parent.resolve())
+parent_dir = str(Path(__file__).parent.parent.resolve())
 if script_dir not in sys.path:
     sys.path.insert(0, script_dir)
+if parent_dir not in sys.path:
+    sys.path.insert(0, parent_dir)
 
 # Optional imports - only needed for advanced features
 try:
@@ -599,6 +602,11 @@ class M3UMatrix:
         self.tv.bind("<ButtonRelease-1>", self.drag_stop)
         self.tv.bind("<Double-1>", self.on_double)
         self.tv.bind("<Button-3>", self.row_menu)
+        
+        # KEYBOARD SHORTCUTS for Copy/Paste
+        self.tv.bind("<Control-c>", lambda e: self.copy())
+        self.tv.bind("<Control-v>", lambda e: self.paste())
+        self.tv.bind("<Control-x>", lambda e: self.cut())
 
         # STATUS
         self.stat = tk.Label(self.root,
@@ -717,7 +725,7 @@ class M3UMatrix:
         self.stat.config(text="REDO")
 
     def paste(self):
-        """Paste clipboard channels"""
+        """Paste clipboard channels at current selection"""
         if not self.clipboard:
             messagebox.showwarning("Empty Clipboard",
                                    "Cut or copy channels first!")
@@ -726,20 +734,33 @@ class M3UMatrix:
         self.save_state(f"Paste {len(self.clipboard['channels'])} channels")
         self.mark_changed()
 
+        # Determine insertion index from current selection
+        selection = self.tv.selection()
+        if selection:
+            # Insert after the last selected item
+            last_selected_index = max(self.tv.index(iid) for iid in selection)
+            insert_index = last_selected_index + 1
+        else:
+            # No selection, append to end
+            insert_index = len(self.channels)
+
         if self.clipboard["operation"] == "cut":
             # Remove original channels when pasting a cut
             for channel in self.clipboard["channels"]:
                 self.channels = [
                     c for c in self.channels if c["num"] != channel["num"]
                 ]
+            # Adjust insert index if we removed items before it
+            if selection:
+                insert_index = min(insert_index, len(self.channels))
 
-        # Add clipboard channels to current list
-        for channel in self.clipboard["channels"]:
+        # Insert clipboard channels at the determined position
+        for i, channel in enumerate(self.clipboard["channels"]):
             new_channel = channel.copy()
             if self.clipboard["operation"] == "copy":
                 new_channel["num"] = max([c["num"] for c in self.channels],
-                                         default=0) + 1
-            self.channels.append(new_channel)
+                                         default=0) + i + 1
+            self.channels.insert(insert_index + i, new_channel)
 
         self.auto_increment_channels()
         self.fill()
