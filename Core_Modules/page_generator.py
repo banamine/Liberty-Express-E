@@ -3,15 +3,102 @@
 NEXUS TV Page Generator
 Generates individual NEXUS TV channel pages from M3U playlists
 With FFmpeg timestamp extraction support for accurate show timing
+Includes PyInstaller compatibility for executable distribution
 """
 
 import re
 import json
 import subprocess
 import shutil
+import sys
+import os
 from pathlib import Path
 from datetime import datetime, timedelta
 from urllib.parse import unquote, urlparse
+
+
+# ========== PyInstaller Compatibility Functions ==========
+def get_application_path():
+    """
+    Get the correct application path whether running as script or PyInstaller executable
+    
+    When running as PyInstaller executable:
+    - sys._MEIPASS contains the temporary extraction path
+    - sys.argv[0] or __file__ points to the executable location
+    
+    When running as script:
+    - Use the normal file path
+    """
+    if getattr(sys, 'frozen', False):
+        # Running as PyInstaller executable
+        # Get the directory where the executable is located
+        if hasattr(sys, '_MEIPASS'):
+            # For onefile builds, we want the exe's directory, not the temp extraction
+            exe_dir = Path(sys.executable).parent
+        else:
+            # For onedir builds
+            exe_dir = Path(sys.argv[0]).parent
+        
+        # Create generated_pages next to the executable
+        base_path = exe_dir
+    else:
+        # Running as Python script (development mode)
+        # Use project root
+        base_path = Path(__file__).resolve().parent.parent
+    
+    return base_path
+
+def get_template_path(template_name):
+    """
+    Get the correct template path whether running as script or executable
+    
+    Args:
+        template_name: Name of the template file
+    
+    Returns:
+        Path object pointing to the template
+    """
+    if getattr(sys, 'frozen', False):
+        # Running as PyInstaller executable
+        # Templates are bundled in the executable
+        if hasattr(sys, '_MEIPASS'):
+            # For onefile builds, templates are extracted to temp dir
+            template_base = Path(sys._MEIPASS) / "Web_Players"
+        else:
+            # For onedir builds, templates are in the dist folder
+            template_base = Path(sys.argv[0]).parent / "Web_Players"
+    else:
+        # Running as Python script
+        template_base = Path(__file__).resolve().parent.parent / "Web_Players"
+    
+    return template_base / template_name
+
+def get_output_directory_for_pyinstaller(subfolder=""):
+    """
+    Get the correct output directory for generated pages when running as PyInstaller
+    
+    Args:
+        subfolder: Optional subfolder within generated_pages (e.g., "nexus_tv")
+    
+    Returns:
+        Path object pointing to the correct output directory
+    """
+    if getattr(sys, 'frozen', False):
+        # Running as executable - create output next to exe
+        base = Path(sys.executable).parent
+        output_dir = base / "M3U_Matrix_Output" / "generated_pages"
+    else:
+        # Running as script - use project structure
+        base = Path(__file__).resolve().parent.parent
+        output_dir = base / "M3U_Matrix_Output" / "generated_pages"
+    
+    if subfolder:
+        output_dir = output_dir / subfolder
+    
+    # Create directory if it doesn't exist
+    output_dir.mkdir(exist_ok=True, parents=True)
+    
+    return output_dir
 
 
 def clean_title(raw_title):
@@ -105,7 +192,8 @@ def sanitize_directory_name(name):
 class NexusTVPageGenerator:
     def __init__(self, template_path=None):
         if template_path is None:
-            template_path = Path(__file__).resolve().parent.parent / "Web_Players" / "nexus_tv.html"
+            # Use PyInstaller-compatible template path
+            template_path = get_template_path("nexus_tv.html")
         self.template_path = Path(template_path)
         
         # Use OutputManager for organized directory structure
@@ -114,11 +202,14 @@ class NexusTVPageGenerator:
             manager = get_output_manager()
             self.output_dir = manager.get_page_output_dir('nexus_tv')
         except ImportError:
-            # Fallback if OutputManager not available
-            self.output_dir = Path("M3U_Matrix_Output") / "generated_pages" / "nexus_tv"
-            self.output_dir.mkdir(exist_ok=True, parents=True)
+            # Fallback with PyInstaller support
+            self.output_dir = get_output_directory_for_pyinstaller("nexus_tv")
         
-        self.ffprobe_available = shutil.which('ffprobe') is not None
+        # Disable ffprobe when running as executable
+        if getattr(sys, 'frozen', False):
+            self.ffprobe_available = False
+        else:
+            self.ffprobe_available = shutil.which('ffprobe') is not None
     
     def extract_video_duration(self, video_url):
         """
