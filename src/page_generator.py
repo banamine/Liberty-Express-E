@@ -572,7 +572,18 @@ class NexusTVPageGenerator:
 </body>
 </html>'''
         
-        selector_path = self.output_dir / "index.html"
+        # Save hub to root of pages_dir, not in subdirectory
+        try:
+            from output_manager import get_output_manager
+            manager = get_output_manager()
+            selector_path = manager.pages_dir / "index.html"
+        except ImportError:
+            # Fallback to root of generated_pages
+            selector_path = self.output_dir.parent / "index.html"
+        
+        # Ensure the directory exists
+        selector_path.parent.mkdir(exist_ok=True, parents=True)
+        
         with open(selector_path, 'w', encoding='utf-8') as f:
             f.write(selector_html)
         
