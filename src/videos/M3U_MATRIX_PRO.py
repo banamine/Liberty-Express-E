@@ -469,6 +469,119 @@ class M3UMatrix:
                                         "The selected file doesn't contain valid settings.")
         except Exception as e:
             self.show_error_dialog("Import Failed", "Could not import settings", e)
+    
+    def configure_output_folder(self):
+        """Configure the base output folder for all exports"""
+        try:
+            from output_manager import get_output_manager
+            manager = get_output_manager()
+            
+            # Create dialog window
+            dialog = tk.Toplevel(self.root)
+            dialog.title("Configure Output Folder")
+            dialog.geometry("600x300")
+            dialog.configure(bg="#1e1e1e")
+            dialog.transient(self.root)
+            dialog.grab_set()
+            
+            # Center the dialog
+            dialog.update_idletasks()
+            x = (dialog.winfo_screenwidth() // 2) - (dialog.winfo_width() // 2)
+            y = (dialog.winfo_screenheight() // 2) - (dialog.winfo_height() // 2)
+            dialog.geometry(f"+{x}+{y}")
+            
+            # Title label
+            tk.Label(dialog, text="Configure Output Directory", 
+                    font=("Arial", 14, "bold"),
+                    bg="#1e1e1e", fg="gold").pack(pady=10)
+            
+            # Current location label
+            current_label = tk.Label(dialog, 
+                                   text=f"Current Location: {manager.base_path}",
+                                   font=("Arial", 10),
+                                   bg="#1e1e1e", fg="white", wraplength=550)
+            current_label.pack(pady=10)
+            
+            # Folder structure info
+            info_frame = tk.Frame(dialog, bg="#2e2e2e")
+            info_frame.pack(padx=20, pady=10, fill=tk.BOTH, expand=True)
+            
+            info_text = tk.Text(info_frame, height=8, width=70,
+                              bg="#2e2e2e", fg="#aaa",
+                              font=("Consolas", 9))
+            info_text.pack(padx=10, pady=10)
+            
+            # Show folder structure
+            folder_info = """📁 M3U_Matrix_Output/
+  ├── 📁 generated_pages/    # HTML player pages
+  ├── 📁 playlists/          # M3U playlist files
+  ├── 📁 json_data/          # JSON exports & metadata
+  ├── 📁 thumbnails/         # Channel & video thumbnails
+  ├── 📁 screenshots/        # Video screenshots
+  ├── 📁 saves/              # Application save states
+  └── 📁 backups/            # Automatic backups"""
+            
+            info_text.insert("1.0", folder_info)
+            info_text.config(state=tk.DISABLED)
+            
+            # Button frame
+            btn_frame = tk.Frame(dialog, bg="#1e1e1e")
+            btn_frame.pack(pady=10)
+            
+            def change_location():
+                new_dir = filedialog.askdirectory(
+                    title="Select Base Output Directory",
+                    initialdir=str(Path.home())
+                )
+                if new_dir:
+                    # Update settings
+                    self.settings['output_base_dir'] = new_dir
+                    self.save_settings()
+                    
+                    # Update OutputManager
+                    manager.base_path = Path(new_dir)
+                    manager._create_directories()
+                    
+                    current_label.config(text=f"Current Location: {new_dir}")
+                    messagebox.showinfo("Success", 
+                                      f"Output folder changed to:\n{new_dir}\n\n" +
+                                      "New files will be saved to this location.")
+            
+            def reset_default():
+                # Reset to default
+                if 'output_base_dir' in self.settings:
+                    del self.settings['output_base_dir']
+                    self.save_settings()
+                
+                # Reset OutputManager to default
+                manager.base_path = Path("M3U_Matrix_Output")
+                manager._create_directories()
+                
+                current_label.config(text=f"Current Location: {manager.base_path}")
+                messagebox.showinfo("Reset", 
+                                  "Output folder reset to default:\nM3U_Matrix_Output")
+            
+            tk.Button(btn_frame, text="📂 Change Location",
+                     command=change_location,
+                     bg="#2980b9", fg="white",
+                     font=("Arial", 10, "bold"),
+                     width=20).pack(side=tk.LEFT, padx=5)
+            
+            tk.Button(btn_frame, text="↺ Reset to Default",
+                     command=reset_default,
+                     bg="#e67e22", fg="white",
+                     font=("Arial", 10, "bold"),
+                     width=20).pack(side=tk.LEFT, padx=5)
+            
+            tk.Button(btn_frame, text="✓ Close",
+                     command=dialog.destroy,
+                     bg="#27ae60", fg="white",
+                     font=("Arial", 10, "bold"),
+                     width=15).pack(side=tk.LEFT, padx=5)
+            
+        except Exception as e:
+            self.show_error_dialog("Configuration Error", 
+                                 "Could not configure output folder", e)
 
     def build_ui(self):
         style = ttk.Style()
@@ -564,6 +677,8 @@ class M3UMatrix:
                  insertbackground="#fff").pack(side=tk.LEFT, padx=8)
         
         # Settings menu with smart colors
+        self.create_styled_button(tools, "📁 Output Folder", self.configure_output_folder,
+                                  bg_color="#8b4789", width=15, font_size=9).pack(side=tk.RIGHT, padx=5)
         self.create_styled_button(tools, "⚙️ Export Settings", self.export_settings,
                                   bg_color="#34495e", width=15, font_size=9).pack(side=tk.RIGHT, padx=5)
         self.create_styled_button(tools, "⚙️ Import Settings", self.import_settings,

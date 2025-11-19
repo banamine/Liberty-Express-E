@@ -43,6 +43,18 @@ class OutputManager:
     
     def _load_config(self) -> Dict[str, Any]:
         """Load output configuration from settings file"""
+        # First check M3U Matrix Pro settings file
+        m3u_settings = Path.home() / ".m3u_matrix_pro_settings.json"
+        if m3u_settings.exists():
+            try:
+                with open(m3u_settings, 'r') as f:
+                    settings = json.load(f)
+                    if 'output_base_dir' in settings:
+                        return {'output_base_path': settings['output_base_dir']}
+            except:
+                pass
+        
+        # Fallback to local output config
         config_file = Path.cwd() / "output_config.json"
         if config_file.exists():
             try:
