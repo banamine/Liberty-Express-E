@@ -46,7 +46,7 @@ try:
             raise ImportError("Could not apply path fixes")
     else:
         # Running as Python script - normal import
-        from page_generator import NexusTVPageGenerator, WebIPTVGenerator, SimplePlayerGenerator, RumbleChannelGenerator, MultiChannelGenerator, BufferTVGenerator
+        from page_generator import NexusTVPageGenerator, WebIPTVGenerator, SimplePlayerGenerator, RumbleChannelGenerator, MultiChannelGenerator, BufferTVGenerator, ClassicTVGenerator
         PAGE_GENERATOR_AVAILABLE = True
         print("Page generators loaded (development mode)")
         
@@ -668,6 +668,7 @@ class M3UMatrix:
                 ("RUMBLE BROWSER", "#FF6347", self.open_rumble_browser),
                 ("RUMBLE CHANNEL", "#FF4500", self.generate_rumble_channel),
                 ("BUFFER TV", "#DC143C", self.generate_buffer_tv),
+                ("🎬 CLASSIC TV", "#FF0000", self.generate_classic_tv),
                 ("STREAM HUB", "#00d4ff", self.generate_stream_hub),
                 ("STANDALONE", "#9400D3", self.generate_standalone_secure),
                 ("SMART SCHEDULE", "#9b59b6", self.smart_scheduler),
@@ -5143,6 +5144,104 @@ Services included:
                 
         except Exception as e:
             self.show_error_dialog("Export Failed", "Could not export TV Guide JSON", e)
+    
+    def generate_classic_tv(self):
+        """Generate Classic TV player page with edge-to-edge video and gold theme"""
+        if not PAGE_GENERATOR_AVAILABLE:
+            messagebox.showwarning("Feature Unavailable", 
+                                   "Classic TV Generator is not available.\nPlease ensure all dependencies are installed.")
+            return
+        
+        # Create configuration dialog
+        config_dialog = tk.Toplevel(self.root)
+        config_dialog.title("Generate Classic TV Player")
+        config_dialog.geometry("450x200")
+        config_dialog.configure(bg="#2b2b2b")
+        
+        # Title
+        tk.Label(config_dialog, text="🎬 Classic TV Player Configuration",
+                 font=("Arial", 14, "bold"), bg="#2b2b2b", fg="#ffcc00").pack(pady=15)
+        
+        # Page name input
+        tk.Label(config_dialog, text="Page Name:",
+                 font=("Arial", 11), bg="#2b2b2b", fg="#ddd").pack(pady=5)
+        page_name_var = tk.StringVar(value="classic_tv_player")
+        entry = tk.Entry(config_dialog, textvariable=page_name_var,
+                         font=("Arial", 11), bg="#444", fg="#fff", insertbackground="#fff")
+        entry.pack(pady=5, padx=20, fill=tk.X)
+        
+        # Playlist title input  
+        tk.Label(config_dialog, text="Playlist Title:",
+                 font=("Arial", 11), bg="#2b2b2b", fg="#ddd").pack(pady=5)
+        title_var = tk.StringVar(value="Classic TV")
+        tk.Entry(config_dialog, textvariable=title_var,
+                font=("Arial", 11), bg="#444", fg="#fff", insertbackground="#fff").pack(pady=5, padx=20, fill=tk.X)
+        
+        # Buttons
+        btn_frame = tk.Frame(config_dialog, bg="#2b2b2b")
+        btn_frame.pack(pady=20)
+        
+        def generate():
+            page_name = page_name_var.get().strip()
+            playlist_title = title_var.get().strip()
+            
+            if not page_name:
+                messagebox.showwarning("Invalid Input", "Please enter a page name.")
+                return
+            
+            config_dialog.destroy()
+            self._generate_classic_tv_page(page_name, playlist_title)
+        
+        self.create_styled_button(btn_frame, "🎬 GENERATE", generate,
+                                  bg_color="#FF0000", width=15, font_size=12).pack(side=tk.LEFT, padx=10)
+        self.create_styled_button(btn_frame, "Cancel", config_dialog.destroy,
+                                  bg_color="#e74c3c", width=12, font_size=10).pack(side=tk.LEFT, padx=10)
+    
+    def _generate_classic_tv_page(self, page_name, playlist_title="Classic TV"):
+        """Internal method to generate Classic TV page"""
+        safe_name = "".join(c if c.isalnum() or c in (' ', '_', '-') else '_' for c in page_name)
+        safe_name = safe_name.replace(' ', '_').lower()
+        
+        try:
+            if not self.channels:
+                messagebox.showwarning("No Channels", 
+                    "Please import a playlist first.\n\nUse File → Import M3U or drag & drop an M3U file.")
+                return
+            
+            # Create M3U content from current channels
+            m3u_content = "#EXTM3U\n"
+            for ch in self.channels:
+                m3u_content += f'#EXTINF:-1 '
+                if ch.get("tvg_id"):
+                    m3u_content += f'tvg-id="{ch["tvg_id"]}" '
+                if ch.get("logo"):
+                    m3u_content += f'tvg-logo="{ch["logo"]}" '
+                if ch.get("group"):
+                    m3u_content += f'group-title="{ch["group"]}" '
+                m3u_content += f',{ch.get("name", "Unknown")}\n'
+                m3u_content += f'{ch.get("url", "")}\n'
+            
+            # Generate page
+            generator = ClassicTVGenerator()
+            output_path, channel_count = generator.generate_page(m3u_content, safe_name, playlist_title)
+            
+            # Open in browser
+            abs_path = Path(output_path).absolute()
+            url = abs_path.as_uri()
+            
+            # Ask to open
+            if messagebox.askyesno("Classic TV Player Generated",
+                f"✓ Successfully generated Classic TV player!\n\n"
+                f"• Page: {safe_name}\n"
+                f"• Channels: {channel_count}\n"
+                f"• Location: {abs_path}\n\n"
+                f"Open in browser now?"):
+                webbrowser.open(url)
+                
+        except Exception as e:
+            self.show_error_dialog("Generation Failed",
+                f"Failed to generate Classic TV page: {page_name}",
+                e)
     
     def generate_buffer_tv(self):
         """Generate Buffer TV player page with buffering controls and numeric keypad"""

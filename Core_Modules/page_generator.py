@@ -1733,6 +1733,161 @@ The player automatically retries failed streams and moves to the next channel.
         return html_path
 
 
+class ClassicTVGenerator:
+    """
+    Classic TV Player Generator
+    Generates edge-to-edge video player with gold theme and sliding sidebars
+    """
+    def __init__(self, template_path=None):
+        if template_path is None:
+            template_path = Path(__file__).resolve().parent.parent / "Web_Players" / "classic_tv.html"
+        self.template_path = Path(template_path)
+        
+        # Use OutputManager for organized directory structure
+        try:
+            from output_manager import get_output_manager
+            manager = get_output_manager()
+            self.output_dir = manager.get_page_output_dir('classic_tv')
+        except ImportError:
+            # Fallback if OutputManager not available
+            self.output_dir = Path("M3U_Matrix_Output") / "generated_pages" / "classic_tv"
+            self.output_dir.mkdir(exist_ok=True, parents=True)
+    
+    def parse_m3u_to_channels(self, m3u_content):
+        """Parse M3U content and extract channel data"""
+        channels = []
+        lines = m3u_content.strip().split('\n')
+        
+        i = 0
+        while i < len(lines):
+            line = lines[i].strip()
+            
+            if line.startswith('#EXTINF'):
+                # Extract channel info
+                channel = {}
+                
+                # Get channel name
+                name_match = re.search(r',(.+)$', line)
+                channel['name'] = clean_title(name_match.group(1)) if name_match else 'Unknown Channel'
+                
+                # Get logo from tvg-logo attribute
+                logo_match = re.search(r'tvg-logo="([^"]*)"', line)
+                channel['logo'] = logo_match.group(1) if logo_match else ''
+                
+                # Get next line as URL
+                if i + 1 < len(lines) and not lines[i + 1].startswith('#'):
+                    url = lines[i + 1].strip()
+                    channel['url'] = url
+                    
+                    # Determine stream type
+                    if '.m3u8' in url or 'hls' in url.lower():
+                        channel['type'] = 'hls'
+                    elif '.mpd' in url:
+                        channel['type'] = 'dash'
+                    else:
+                        channel['type'] = 'mp4'
+                    
+                    channels.append(channel)
+                    i += 1
+            
+            i += 1
+        
+        return channels
+    
+    def generate_page(self, m3u_content, page_name="classic_tv_player", playlist_title="Classic TV"):
+        """Generate Classic TV player page from M3U content"""
+        
+        # Parse M3U to get channels
+        channels = self.parse_m3u_to_channels(m3u_content)
+        
+        if not channels:
+            raise ValueError("No valid channels found in M3U content")
+        
+        # Create page folder
+        safe_dir_name = sanitize_directory_name(page_name)
+        page_folder = self.output_dir / safe_dir_name
+        page_folder.mkdir(exist_ok=True)
+        
+        # Read template
+        with open(self.template_path, 'r', encoding='utf-8') as f:
+            template = f.read()
+        
+        # Get HLS.js and DASH.js libraries
+        hls_js = ""
+        dash_js = ""
+        
+        hls_path = Path(__file__).resolve().parent.parent / "Web_Players" / "libs" / "hls.min.js"
+        if hls_path.exists():
+            with open(hls_path, 'r', encoding='utf-8') as f:
+                hls_js = f.read()
+        
+        dash_path = Path(__file__).resolve().parent.parent / "Web_Players" / "libs" / "dash.all.min.js"
+        if dash_path.exists():
+            with open(dash_path, 'r', encoding='utf-8') as f:
+                dash_js = f.read()
+        
+        # Build playlist data
+        playlist_data = []
+        for ch in channels:
+            playlist_data.append({
+                'name': ch['name'],
+                'logo': ch.get('logo', ''),
+                'url': ch['url'],
+                'type': ch.get('type', 'mp4')
+            })
+        
+        # Get hub link
+        try:
+            from output_manager import get_output_manager
+            manager = get_output_manager()
+            hub_path = Path("../index.html")
+            hub_link = str(hub_path)
+        except:
+            hub_link = "../index.html"
+        
+        # Replace placeholders
+        html = template.replace('{{PLAYLIST_TITLE}}', playlist_title)
+        html = html.replace('{{HUB_LINK}}', hub_link)
+        html = html.replace('{{HLS_JS}}', hls_js)
+        html = html.replace('{{DASH_JS}}', dash_js)
+        html = html.replace('{{PLAYLIST_DATA}}', json.dumps(playlist_data, indent=2))
+        
+        # Write the HTML file
+        output_file = page_folder / "index.html"
+        with open(output_file, 'w', encoding='utf-8') as f:
+            f.write(html)
+        
+        print(f"""
+✓ Classic TV Player Generated Successfully!
+
+• Location: {output_file}
+• Channels: {len(channels)}
+• Page Name: {page_name}
+
+Features:
+• Edge-to-edge fullscreen video display
+• Gold-themed UI with sliding sidebars
+• Playlist sidebar with channel thumbnails
+• Settings sidebar with volume control
+• Bottom control bar (previous/next/play/mute/fullscreen)
+• Keyboard shortcuts (Space=play/pause, Arrow=navigate, M=mute, F=fullscreen)
+• Auto-play next video on end
+• HLS and DASH streaming support
+
+To use:
+1. Open index.html in any modern web browser
+2. Click menu button (☰) to show playlist
+3. Click settings button (⚙) to adjust volume
+4. Use keyboard shortcuts for quick control
+5. Hover to show bottom controls
+
+Note: Videos play edge-to-edge for cinematic viewing experience.
+Gold theme provides elegant, professional appearance.
+""")
+        
+        return str(output_file), len(channels)
+
+
 class StreamHubGenerator:
     """
     Stream Hub Generator
