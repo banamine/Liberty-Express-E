@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="theme-color" content="#000000">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src * data: blob:; media-src *; connect-src *;">
-  <title>__PLAYLIST_NAME__ - Simple Player</title>
+  <title>Test XSS Simple - Simple Player</title>
   
   <!-- HLS.js for HLS stream support (local copy for offline use) -->
   <script src="js/libs/hls.min.js"></script>
@@ -49,7 +49,7 @@
   <!-- Playlist Modal -->
   <div class="playlist-modal" id="playlist-modal">
     <div class="playlist-header">
-      <h2>__PLAYLIST_NAME__</h2>
+      <h2>Test XSS Simple</h2>
       <button class="playlist-close" id="playlist-close">✕ Close</button>
     </div>
     <div class="playlist-content" id="playlist-content">
@@ -60,7 +60,7 @@
 
 <script>
 // Embedded playlist data will be injected here by the generator
-window.PLAYLIST_DATA = '__PLAYLIST_JSON__';
+window.PLAYLIST_DATA = {"channels": [{"name": "<script>alert('XSS')</script>", "logo": "http://example.com/logo.png", "group": "Test Group", "url": "http://example.com/stream1.m3u8"}, {"name": "Test & Channel 2", "logo": "", "group": "Movies", "url": "http://example.com/stream2.m3u8"}, {"name": "Channel with <b>HTML</b>", "logo": "http://example.com/logo3.png", "group": "Uncategorized", "url": "http://example.com/stream3.m3u8"}]};
 </script>
 <script src="js/app.js"></script>
 

@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; media-src *; img-src * data: blob:; connect-src *">
+<title>Classic TV Player</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+  html, body { height:100%; overflow:hidden; background:#000; font-family:system-ui, sans-serif; }
+  
+  /* Full edge-to-edge centered video */
+  #player-wrapper {
+    position:fixed;
+    inset:0;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#000;
+  }
+  #videoPlayer {
+    position:absolute;
+    top:50%; left:50%;
+    transform:translate(-50%, -50%);
+    min-width:100vw;
+    min-height:100vh;
+    width:auto;
+    height:auto;
+    object-fit:cover;
+    transition:opacity .4s ease;
+  }
+
+  /* Dim overlay */
+  #dim-overlay {
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.65);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .3s ease;
+    z-index:10;
+  }
+  #dim-overlay.active { opacity:1; pointer-events:all; }
+
+  /* Sidebars – slide OVER the video */
+  .sidebar {
+    position:fixed;
+    top:0; bottom:0;
+    width:340px;
+    max-width:90vw;
+    background:#111;
+    color:#fff;
+    z-index:20;
+    padding:20px;
+    overflow-y:auto;
+    box-shadow:0 0 40px rgba(0,0,0,0.9);
+    transition:transform .35s cubic-bezier(0.4,0,0.2,1);
+  }
+  #playlist-sidebar {
+    left:0;
+    transform:translateX(-100%);
+  }
+  #playlist-sidebar.open { transform:translateX(0); }
+
+  #settings-sidebar {
+    right:0;
+    transform:translateX(100%);
+  }
+  #settings-sidebar.open { transform:translateX(0); }
+
+  .sidebar h2 {
+    margin-bottom:20px;
+    text-align:center;
+    color:#ffcc00;
+    font-size:1.5em;
+  }
+
+  .playlist-item {
+    display:flex;
+    align-items:center;
+    padding:12px;
+    margin:8px 0;
+    background:#222;
+    border-radius:8px;
+    cursor:pointer;
+    transition:.25s;
+  }
+  .playlist-item:hover { background:#333; transform:translateX(4px); }
+  .playlist-item.active { background:#ffcc00; color:#000; font-weight:bold; }
+  .playlist-item img {
+    width:80px; height:45px; object-fit:cover; border-radius:4px; margin-right:12px; background:#000;
+  }
+  .playlist-item span { flex:1; font-size:0.95em; }
+
+  /* Toggle buttons */
+  .toggle-btn {
+    position:fixed;
+    top:20px;
+    width:48px; height:48px;
+    background:rgba(0,0,0,0.7);
+    border:none;
+    border-radius:50%;
+    color:#fff;
+    font-size:24px;
+    cursor:pointer;
+    z-index:30;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:.3s;
+    backdrop-filter:blur(4px);
+  }
+  .toggle-btn:hover { background:#ffcc00; color:#000; }
+  #toggle-playlist { left:20px; }
+  #toggle-settings { right:20px; }
+
+  /* Gold info bar */
+  #info-overlay {
+    position:fixed;
+    top:20px; left:50%;
+    transform:translateX(-50%);
+    background:rgba(0,0,0,0.85);
+    color:#ffcc00;
+    padding:12px 32px;
+    border-radius:12px;
+    font-size:1.4em;
+    font-weight:bold;
+    z-index:25;
+    opacity:0;
+    transition:opacity .4s;
+    pointer-events:none;
+    white-space:nowrap;
+  }
+  #info-overlay.show { opacity:1; }
+
+  /* Bottom controls */
+  #controls-bar {
+    position:fixed;
+    bottom:0; left:0; right:0;
+    height:70px;
+    background:linear-gradient(180deg, transparent, rgba(0,0,0,0.9));
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:30px;
+    z-index:15;
+    opacity:0;
+    transition:opacity .3s;
+  }
+  body:hover #controls-bar { opacity:1; }
+
+  .ctrl-btn {
+    background:none;
+    border:none;
+    color:#ffcc00;
+    font-size:30px;
+    cursor:pointer;
+    padding:10px;
+    border-radius:8px;
+    transition:.2s;
+  }
+  .ctrl-btn:hover { background:rgba(255,204,0,0.2); }
+  
+  /* Hub button */
+  .hub-button {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 204, 0, 0.9);
+    color: #000;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 40;
+    transition: all 0.3s;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .hub-button:hover {
+    background: #ffcc00;
+    transform: translateX(-50%) scale(1.1);
+  }
+</style>
+</head>
+<body>
+
+<!-- Hub Button -->
+<a href="../index.html" class="hub-button">🏠 Hub</a>
+
+<div id="player-wrapper">
+  <video id="videoPlayer" playsinline autoplay muted></video>
+</div>
+
+<div id="dim-overlay"></div>
+
+<!-- Left Playlist -->
+<div id="playlist-sidebar" class="sidebar">
+  <h2>Test Classic TV</h2>
+  <div id="playlist-container"></div>
+</div>
+
+<!-- Right Settings -->
+<div id="settings-sidebar" class="sidebar">
+  <h2>Settings</h2>
+  <p><strong>Volume</strong></p>
+  <input type="range" id="volume" min="0" max="1" step="0.01" value="0.8" style="width:100%;">
+  <p style="margin-top:20px;"><small>Quality auto-selected • Favorites saved locally</small></p>
+</div>
+
+<button id="toggle-playlist" class="toggle-btn" title="Playlist">☰</button>
+<button id="toggle-settings" class="toggle-btn" title="Settings">⚙</button>
+
+<div id="info-overlay">Loading…</div>
+
+<div id="controls-bar">
+  <button class="ctrl-btn" id="prevBtn" title="Previous">⏮</button>
+  <button class="ctrl-btn" id="playPauseBtn" title="Play/Pause">▶</button>
+  <button class="ctrl-btn" id="nextBtn" title="Next">⏭</button>
+  <button class="ctrl-btn" id="muteBtn" title="Mute">🔊</button>
+  <button class="ctrl-btn" id="fsBtn" title="Fullscreen">⛶</button>
+</div>
+
+<script>
+// HLS.js library (bundled for offline use)
+
+
+// DASH.js library (bundled for offline use)
+
+
+// Playlist data will be embedded here
+const playlist = [
+  {
+    "name": "Test Channel 1",
+    "logo": "https://example.com/logo1.png",
+    "url": "https://example.com/stream1.m3u8",
+    "type": "hls"
+  },
+  {
+    "name": "Test Channel 2",
+    "logo": "https://example.com/logo2.png",
+    "url": "https://example.com/stream2.m3u8",
+    "type": "hls"
+  },
+  {
+    "name": "Test Channel 3",
+    "logo": "https://example.com/logo3.png",
+    "url": "https://example.com/stream3.mp4",
+    "type": "mp4"
+  },
+  {
+    "name": "Test Channel 4 (No Logo)",
+    "logo": "",
+    "url": "https://example.com/stream4.m3u8",
+    "type": "hls"
+  },
+  {
+    "name": "Test Channel 5",
+    "logo": "",
+    "url": "https://example.com/stream5.mpd",
+    "type": "dash"
+  }
+];
+
+let currentIndex = 0;
+const player = document.getElementById('videoPlayer');
+let hls = null, dash = null;
+
+function loadChannel(idx) {
+  if (idx < 0 || idx >= playlist.length) return;
+  currentIndex = idx;
+  const ch = playlist[idx];
+
+  if (hls) { hls.destroy(); hls = null; }
+  if (dash) { dash.reset(); dash = null; }
+
+  player.pause();
+  player.src = '';
+
+  if (ch.type === 'hls' && typeof Hls !== 'undefined' && Hls.isSupported()) {
+    hls = new Hls();
+    hls.loadSource(ch.url);
+    hls.attachMedia(player);
+  } else if (ch.type === 'dash' && typeof dashjs !== 'undefined') {
+    dash = dashjs.MediaPlayer().create();
+    dash.initialize(player, ch.url, true);
+  } else {
+    player.src = ch.url;
+  }
+  player.play().catch(() => {});
+
+  document.getElementById('info-overlay').textContent = ch.name;
+  document.getElementById('info-overlay').classList.add('show');
+  setTimeout(() => document.getElementById('info-overlay').classList.remove('show'), 4000);
+
+  updateActiveItem();
+}
+
+function buildPlaylist() {
+  const container = document.getElementById('playlist-container');
+  // Clear existing content
+  while (container.firstChild) {
+    container.removeChild(container.firstChild);
+  }
+  
+  playlist.forEach((ch, i) => {
+    const div = document.createElement('div');
+    div.className = 'playlist-item';
+    
+    // Create image element
+    const img = document.createElement('img');
+    let imgSrc = ch.logo || '';
+    if (!imgSrc || imgSrc.length < 5) {
+      // Use first two letters of name as fallback
+      const initials = ch.name ? ch.name.substring(0, 2).toUpperCase() : 'TV';
+      imgSrc = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='45'%3E%3Crect width='80' height='45' fill='%23222'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23fff' font-size='16' font-family='sans-serif'%3E${encodeURIComponent(initials)}%3C/text%3E%3C/svg%3E`;
+    }
+    img.src = imgSrc;
+    
+    // Add error handler for image
+    img.addEventListener('error', function() {
+      this.src = 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2780%27 height=%2745%27%3E%3Crect width=%2780%27 height=%2745%27 fill=%27%23222%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 text-anchor=%27middle%27 dy=%27.3em%27 fill=%27%23fff%27 font-size=%2716%27 font-family=%27sans-serif%27%3ETV%3C/text%3E%3C/svg%3E';
+    });
+    
+    // Create span for channel name
+    const span = document.createElement('span');
+    span.textContent = ch.name;
+    
+    // Add click handler
+    div.addEventListener('click', () => loadChannel(i));
+    
+    // Append elements
+    div.appendChild(img);
+    div.appendChild(span);
+    container.appendChild(div);
+  });
+  updateActiveItem();
+}
+
+function updateActiveItem() {
+  document.querySelectorAll('.playlist-item').forEach((el,i) => {
+    el.classList.toggle('active', i === currentIndex);
+  });
+}
+
+/* Sidebar toggles */
+document.getElementById('toggle-playlist').addEventListener('click', () => {
+  document.getElementById('playlist-sidebar').classList.toggle('open');
+  updateDim();
+});
+
+document.getElementById('toggle-settings').addEventListener('click', () => {
+  document.getElementById('settings-sidebar').classList.toggle('open');
+  updateDim();
+});
+
+document.getElementById('dim-overlay').addEventListener('click', () => {
+  document.getElementById('playlist-sidebar').classList.remove('open');
+  document.getElementById('settings-sidebar').classList.remove('open');
+  updateDim();
+});
+
+function updateDim() {
+  const open = document.getElementById('playlist-sidebar').classList.contains('open') ||
+               document.getElementById('settings-sidebar').classList.contains('open');
+  document.getElementById('dim-overlay').classList.toggle('active', open);
+}
+
+/* Bottom controls */
+document.getElementById('prevBtn').addEventListener('click', () => 
+  loadChannel((currentIndex - 1 + playlist.length) % playlist.length)
+);
+
+document.getElementById('nextBtn').addEventListener('click', () => 
+  loadChannel((currentIndex + 1) % playlist.length)
+);
+
+document.getElementById('playPauseBtn').addEventListener('click', () => {
+  if (player.paused) {
+    player.play();
+  } else {
+    player.pause();
+  }
+});
+
+document.getElementById('muteBtn').addEventListener('click', () => { 
+  player.muted = !player.muted;
+  document.getElementById('muteBtn').textContent = player.muted ? '🔇' : '🔊';
+});
+
+document.getElementById('fsBtn').addEventListener('click', () => {
+  if (player.requestFullscreen) {
+    player.requestFullscreen();
+  } else if (player.webkitRequestFullscreen) {
+    player.webkitRequestFullscreen();
+  } else if (player.msRequestFullscreen) {
+    player.msRequestFullscreen();
+  }
+});
+
+document.getElementById('volume').addEventListener('input', e => {
+  player.volume = e.target.value;
+});
+
+player.addEventListener('play', () => {
+  document.getElementById('playPauseBtn').textContent = '⏸';
+});
+
+player.addEventListener('pause', () => {
+  document.getElementById('playPauseBtn').textContent = '▶';
+});
+
+/* Prevent sidebar scroll from bubbling to page */
+document.querySelectorAll('.sidebar').forEach(sb => {
+  sb.addEventListener('wheel', e => e.stopPropagation(), {passive:true});
+  sb.addEventListener('touchmove', e => e.stopPropagation(), {passive:true});
+});
+
+/* Keyboard shortcuts */
+document.addEventListener('keydown', (e) => {
+  switch(e.key) {
+    case ' ':
+      e.preventDefault();
+      document.getElementById('playPauseBtn').click();
+      break;
+    case 'ArrowLeft':
+      e.preventDefault();
+      document.getElementById('prevBtn').click();
+      break;
+    case 'ArrowRight':
+      e.preventDefault();
+      document.getElementById('nextBtn').click();
+      break;
+    case 'm':
+    case 'M':
+      document.getElementById('muteBtn').click();
+      break;
+    case 'f':
+    case 'F':
+      document.getElementById('fsBtn').click();
+      break;
+    case 'Escape':
+      document.getElementById('playlist-sidebar').classList.remove('open');
+      document.getElementById('settings-sidebar').classList.remove('open');
+      updateDim();
+      break;
+  }
+});
+
+/* Auto-play next on ended */
+player.addEventListener('ended', () => {
+  loadChannel((currentIndex + 1) % playlist.length);
+});
+
+/* Init */
+buildPlaylist();
+if (playlist.length > 0) {
+  loadChannel(0);
+}
+</script>
+</body>
+</html>

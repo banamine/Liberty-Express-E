@@ -3,1355 +3,258 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>M3U Matrix Control Hub - Interactive Command Center</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src * data: blob:; media-src *; connect-src *;">
+    <title>NEXUS TV - Channel Selector</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: linear-gradient(135deg, #0a0e27 0%, #151932 50%, #1a0b2e 100%);
+            font-family: 'Segoe UI', 'Arial Black', 'Impact', sans-serif;
+            font-weight: 700;
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a0a2e 50%, #0a0a0f 100%);
+            color: #fff;
             min-height: 100vh;
-            color: #e0e5ff;
             overflow-x: hidden;
-            position: relative;
         }
-
-        /* Animated Background */
-        .bg-animation {
+        
+        .animated-bg {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(0, 243, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 0, 255, 0.1) 0%, transparent 50%);
+            animation: bgPulse 10s ease-in-out infinite;
             z-index: 0;
-            opacity: 0.3;
-            pointer-events: none;
         }
-
-        .bg-animation::before {
+        
+        @keyframes bgPulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+        
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+            padding: 30px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #00f3ff;
+            border-radius: 20px;
+            box-shadow: 0 0 40px rgba(0, 243, 255, 0.3);
+        }
+        
+        h1 {
+            font-size: 4em;
+            font-weight: 900;
+            background: linear-gradient(90deg, #00f3ff, #ff00ff, #00f3ff);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradient 3s linear infinite;
+            text-shadow: 0 0 30px rgba(0, 243, 255, 0.5);
+            margin-bottom: 10px;
+        }
+        
+        @keyframes gradient {
+            0% { background-position: 0% center; }
+            100% { background-position: 200% center; }
+        }
+        
+        .subtitle {
+            font-size: 1.2em;
+            color: #00f3ff;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+        
+        .channels-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+            padding: 20px;
+        }
+        
+        .channel-card {
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid #00f3ff;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .channel-card::before {
             content: '';
             position: absolute;
             top: -50%;
             left: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle, rgba(0, 255, 255, 0.1) 1px, transparent 1px);
-            background-size: 50px 50px;
-            animation: grid-move 20s linear infinite;
+            background: linear-gradient(45deg, transparent, rgba(0, 243, 255, 0.1), transparent);
+            transform: rotate(45deg);
+            transition: all 0.5s;
         }
-
-        @keyframes grid-move {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(50px, 50px); }
+        
+        .channel-card:hover {
+            transform: translateY(-10px);
+            border-color: #ff00ff;
+            box-shadow: 0 0 40px rgba(255, 0, 255, 0.5);
         }
-
-        /* Main Container */
-        .control-hub {
-            position: relative;
-            z-index: 1;
-            padding: 20px;
-            max-width: 1600px;
-            margin: 0 auto;
+        
+        .channel-card:hover::before {
+            left: 100%;
         }
-
-        /* Header */
-        .hub-header {
-            text-align: center;
-            margin-bottom: 40px;
-            position: relative;
-        }
-
-        .hub-title {
-            font-size: 48px;
-            font-weight: bold;
-            background: linear-gradient(135deg, #00ffff, #ff00ff);
+        
+        .channel-icon {
+            font-size: 3em;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #00f3ff, #ff00ff);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+        }
+        
+        .channel-name {
+            font-size: 1.5em;
+            font-weight: 700;
             margin-bottom: 10px;
-            animation: pulse-glow 2s ease-in-out infinite;
+            color: #fff;
         }
-
-        @keyframes pulse-glow {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
-        }
-
-        .hub-subtitle {
-            font-size: 18px;
-            color: #8892b0;
-            letter-spacing: 2px;
-        }
-
-        /* Floating Bubble Navigation */
-        .bubble-nav {
-            position: fixed;
-            right: 30px;
-            top: 50%;
-            transform: translateY(-50%);
-            z-index: 100;
-        }
-
-        .bubble {
-            width: 80px;
-            height: 80px;
-            margin: 15px 0;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            position: relative;
-            transition: all 0.3s ease;
-            animation: float 3s ease-in-out infinite;
-            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
-        }
-
-        .bubble:nth-child(1) { animation-delay: 0s; background: linear-gradient(135deg, #667eea, #764ba2); }
-        .bubble:nth-child(2) { animation-delay: 0.5s; background: linear-gradient(135deg, #f093fb, #f5576c); }
-        .bubble:nth-child(3) { animation-delay: 1s; background: linear-gradient(135deg, #4facfe, #00f2fe); }
-        .bubble:nth-child(4) { animation-delay: 1.5s; background: linear-gradient(135deg, #43e97b, #38f9d7); }
-        .bubble:nth-child(5) { animation-delay: 2s; background: linear-gradient(135deg, #fa709a, #fee140); }
-        .bubble:nth-child(6) { animation-delay: 2.5s; background: linear-gradient(135deg, #30cfd0, #330867); }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-        }
-
-        .bubble:hover {
-            transform: scale(1.2);
-            box-shadow: 0 0 40px rgba(0, 255, 255, 0.8);
-        }
-
-        .bubble-icon {
-            font-size: 32px;
-        }
-
-        .bubble-label {
-            position: absolute;
-            right: 100px;
-            background: rgba(20, 25, 50, 0.95);
-            padding: 8px 15px;
-            border-radius: 8px;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-            border: 1px solid rgba(0, 255, 255, 0.3);
-        }
-
-        .bubble:hover .bubble-label {
-            opacity: 1;
-        }
-
-        /* Main Dashboard Grid */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 25px;
-            margin-bottom: 40px;
-        }
-
-        .dashboard-card {
-            background: linear-gradient(135deg, rgba(20, 25, 50, 0.9), rgba(30, 35, 60, 0.9));
-            border-radius: 20px;
-            padding: 25px;
-            border: 1px solid rgba(0, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-        }
-
-        .dashboard-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 40px rgba(0, 255, 255, 0.3);
-            border-color: rgba(0, 255, 255, 0.5);
-        }
-
-        .card-title {
-            font-size: 20px;
-            color: #00ffff;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .card-icon {
-            width: 30px;
-            height: 30px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* Calendar Widget */
-        .calendar-widget {
-            grid-column: span 2;
-        }
-
-        .calendar-container {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
-            margin-top: 15px;
-        }
-
-        .calendar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        
+        .channel-info {
+            font-size: 0.9em;
+            color: #888;
             margin-bottom: 15px;
         }
-
-        .calendar-month {
-            font-size: 24px;
-            color: #00ffff;
-        }
-
-        .calendar-nav {
-            display: flex;
-            gap: 10px;
-        }
-
-        .calendar-btn {
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            background: rgba(0, 255, 255, 0.1);
-            border: 1px solid rgba(0, 255, 255, 0.3);
-            color: #00ffff;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-
-        .calendar-btn:hover {
-            background: rgba(0, 255, 255, 0.2);
-            transform: scale(1.1);
-        }
-
-        .calendar-day-header {
-            text-align: center;
-            color: #8892b0;
-            font-size: 12px;
-            padding: 5px;
-        }
-
-        .calendar-day {
-            aspect-ratio: 1;
-            background: rgba(30, 35, 60, 0.5);
-            border: 1px solid rgba(0, 255, 255, 0.1);
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .calendar-day:hover {
-            background: rgba(0, 255, 255, 0.1);
-            border-color: rgba(0, 255, 255, 0.5);
-        }
-
-        .calendar-day.today {
-            background: linear-gradient(135deg, rgba(0, 255, 255, 0.2), rgba(255, 0, 255, 0.2));
-            border-color: #00ffff;
-        }
-
-        .calendar-day.scheduled {
-            background: linear-gradient(135deg, rgba(67, 233, 123, 0.2), rgba(56, 249, 215, 0.2));
-            border-color: rgba(67, 233, 123, 0.5);
-        }
-
-        .calendar-day-number {
-            font-size: 16px;
-            color: #e0e5ff;
-        }
-
-        .calendar-day-events {
-            font-size: 10px;
-            color: #00ffff;
-            margin-top: 2px;
-        }
-
-        /* Live Status Dashboard */
-        .status-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: 15px;
-        }
-
-        .status-item {
-            background: rgba(0, 255, 255, 0.05);
-            padding: 15px;
-            border-radius: 12px;
-            border: 1px solid rgba(0, 255, 255, 0.2);
-        }
-
-        .status-label {
-            font-size: 12px;
-            color: #8892b0;
-            margin-bottom: 5px;
-        }
-
-        .status-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: #00ffff;
-        }
-
-        .status-indicator {
+        
+        .watch-btn {
             display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            margin-right: 5px;
-            animation: pulse 2s infinite;
-        }
-
-        .status-indicator.active {
-            background: #43e97b;
-        }
-
-        .status-indicator.idle {
-            background: #fee140;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        /* Quick Actions Panel */
-        .quick-actions-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .quick-action-btn {
-            background: linear-gradient(135deg, rgba(0, 255, 255, 0.1), rgba(255, 0, 255, 0.1));
-            border: 1px solid rgba(0, 255, 255, 0.3);
-            border-radius: 12px;
-            padding: 15px;
-            color: #e0e5ff;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-            font-size: 14px;
-        }
-
-        .quick-action-btn:hover {
-            background: linear-gradient(135deg, rgba(0, 255, 255, 0.2), rgba(255, 0, 255, 0.2));
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(0, 255, 255, 0.3);
-        }
-
-        .quick-action-icon {
-            font-size: 24px;
-            margin-bottom: 5px;
-        }
-
-        /* Generated Pages Section */
-        .pages-section {
-            margin-top: 40px;
-        }
-
-        .pages-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-        }
-
-        .pages-title {
-            font-size: 28px;
-            color: #00ffff;
-        }
-
-        .search-bar {
-            position: relative;
-            width: 300px;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 12px 40px 12px 15px;
-            background: rgba(30, 35, 60, 0.5);
-            border: 1px solid rgba(0, 255, 255, 0.3);
+            background: linear-gradient(90deg, #00f3ff, #ff00ff);
+            color: #fff;
+            padding: 12px 30px;
             border-radius: 25px;
-            color: #e0e5ff;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: #00ffff;
-            background: rgba(30, 35, 60, 0.8);
-        }
-
-        .search-icon {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #00ffff;
-        }
-
-        /* Filter Tabs */
-        .filter-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-        }
-
-        .filter-tab {
-            padding: 8px 20px;
-            background: rgba(30, 35, 60, 0.5);
-            border: 1px solid rgba(0, 255, 255, 0.2);
-            border-radius: 20px;
-            color: #8892b0;
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.3s;
+            border: none;
             cursor: pointer;
-            transition: all 0.3s ease;
         }
-
-        .filter-tab:hover {
-            border-color: rgba(0, 255, 255, 0.5);
-            color: #00ffff;
+        
+        .watch-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.8);
         }
-
-        .filter-tab.active {
-            background: linear-gradient(135deg, rgba(0, 255, 255, 0.2), rgba(255, 0, 255, 0.2));
-            border-color: #00ffff;
-            color: #00ffff;
-        }
-
-        /* Pages Grid */
-        .pages-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-        }
-
-        .page-card {
-            background: linear-gradient(135deg, rgba(20, 25, 50, 0.9), rgba(30, 35, 60, 0.9));
+        
+        .stats {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.5);
             border-radius: 15px;
-            overflow: hidden;
-            border: 1px solid rgba(0, 255, 255, 0.2);
-            transition: all 0.3s ease;
-            cursor: pointer;
+            border: 1px solid #00f3ff;
         }
-
-        .page-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.3);
-            border-color: rgba(0, 255, 255, 0.5);
-        }
-
-        .page-thumbnail {
-            width: 100%;
-            height: 160px;
-            background: linear-gradient(135deg, rgba(0, 255, 255, 0.1), rgba(255, 0, 255, 0.1));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 48px;
-            color: rgba(0, 255, 255, 0.5);
-        }
-
-        .page-info {
-            padding: 15px;
-        }
-
-        .page-name {
-            font-size: 16px;
-            font-weight: bold;
-            color: #e0e5ff;
-            margin-bottom: 5px;
-        }
-
-        .page-type {
-            font-size: 12px;
-            color: #8892b0;
+        
+        .stats h3 {
+            color: #00f3ff;
+            font-size: 1.3em;
             margin-bottom: 10px;
         }
-
-        .page-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .page-action-btn {
-            flex: 1;
-            padding: 6px 12px;
-            background: rgba(0, 255, 255, 0.1);
-            border: 1px solid rgba(0, 255, 255, 0.3);
-            border-radius: 8px;
-            color: #00ffff;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-        }
-
-        .page-action-btn:hover {
-            background: rgba(0, 255, 255, 0.2);
-        }
-
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: linear-gradient(135deg, #1a1e3a, #2a2e4a);
-            border-radius: 20px;
-            padding: 30px;
-            max-width: 500px;
-            width: 90%;
-            border: 2px solid rgba(0, 255, 255, 0.3);
-            position: relative;
-        }
-
-        .modal-close {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            width: 30px;
-            height: 30px;
-            background: rgba(255, 0, 0, 0.2);
-            border: 1px solid rgba(255, 0, 0, 0.5);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: #ff5555;
-            transition: all 0.3s ease;
-        }
-
-        .modal-close:hover {
-            background: rgba(255, 0, 0, 0.3);
-            transform: rotate(90deg);
-        }
-
-        .modal-title {
-            font-size: 24px;
-            color: #00ffff;
-            margin-bottom: 20px;
-        }
-
-        .modal-form {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .form-label {
-            font-size: 14px;
-            color: #8892b0;
-        }
-
-        .form-input,
-        .form-select {
-            padding: 10px 15px;
-            background: rgba(30, 35, 60, 0.5);
-            border: 1px solid rgba(0, 255, 255, 0.3);
-            border-radius: 10px;
-            color: #e0e5ff;
-            font-size: 14px;
-        }
-
-        .form-input:focus,
-        .form-select:focus {
-            outline: none;
-            border-color: #00ffff;
-        }
-
-        .form-submit {
-            padding: 12px 24px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border: none;
-            border-radius: 10px;
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 10px;
-        }
-
-        .form-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.5);
-        }
-
-        /* Toast Notifications */
-        .toast-container {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            z-index: 2000;
-        }
-
-        .toast {
-            background: linear-gradient(135deg, rgba(20, 25, 50, 0.95), rgba(30, 35, 60, 0.95));
-            border: 1px solid rgba(0, 255, 255, 0.5);
-            border-radius: 12px;
-            padding: 15px 20px;
-            margin-top: 10px;
-            color: #e0e5ff;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            animation: slide-in 0.3s ease;
-            max-width: 300px;
-        }
-
-        @keyframes slide-in {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        .toast.success {
-            border-color: #43e97b;
-        }
-
-        .toast.error {
-            border-color: #ff5555;
-        }
-
-        .toast.info {
-            border-color: #00ffff;
-        }
-
-        /* Responsive Design */
-        @media (max-width: 1200px) {
-            .dashboard-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .calendar-widget {
-                grid-column: span 1;
-            }
-
-            .quick-actions-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 768px) {
-            .bubble-nav {
-                display: none;
-            }
-
-            .hub-title {
-                font-size: 32px;
-            }
-
-            .search-bar {
-                width: 100%;
-            }
-
-            .pages-header {
-                flex-direction: column;
-                gap: 15px;
-                align-items: stretch;
-            }
-
-            .quick-actions-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .pages-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* Loading Animation */
-        .loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid rgba(0, 255, 255, 0.3);
-            border-top-color: #00ffff;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        
+        .stats p {
+            color: #888;
         }
     </style>
 </head>
 <body>
-    <!-- Animated Background -->
-    <div class="bg-animation"></div>
-
-    <!-- Floating Bubble Navigation -->
-    <div class="bubble-nav">
-        <div class="bubble" onclick="showModal('playlist')">
-            <span class="bubble-icon">📋</span>
-            <span class="bubble-label">Import Playlist</span>
+    <div class="animated-bg"></div>
+    
+    <div class="container">
+        <header>
+            <h1>📺 NEXUS TV</h1>
+            <p class="subtitle">Choose Your Channel</p>
+        </header>
+        
+        <div class="channels-grid" id="channelsGrid">
+            <!-- Channels will be inserted here -->
         </div>
-        <div class="bubble" onclick="showModal('generate')">
-            <span class="bubble-icon">🎬</span>
-            <span class="bubble-label">Generate Player</span>
-        </div>
-        <div class="bubble" onclick="showModal('schedule')">
-            <span class="bubble-icon">📅</span>
-            <span class="bubble-label">Schedule Content</span>
-        </div>
-        <div class="bubble" onclick="showModal('export')">
-            <span class="bubble-icon">📤</span>
-            <span class="bubble-label">Export Data</span>
-        </div>
-        <div class="bubble" onclick="showModal('settings')">
-            <span class="bubble-icon">⚙️</span>
-            <span class="bubble-label">Settings</span>
-        </div>
-        <div class="bubble" onclick="showHelp()">
-            <span class="bubble-icon">❓</span>
-            <span class="bubble-label">Help</span>
+        
+        <div class="stats">
+            <h3><i class="fas fa-broadcast-tower"></i> Network Status</h3>
+            <p><span id="channelCount">0</span> channels available • 24/7 streaming</p>
         </div>
     </div>
-
-    <!-- Main Control Hub -->
-    <div class="control-hub">
-        <!-- Header -->
-        <div class="hub-header">
-            <h1 class="hub-title">M3U MATRIX CONTROL HUB</h1>
-            <p class="hub-subtitle">INTERACTIVE COMMAND CENTER</p>
-        </div>
-
-        <!-- Dashboard Grid -->
-        <div class="dashboard-grid">
-            <!-- Calendar Widget -->
-            <div class="dashboard-card calendar-widget">
-                <div class="card-title">
-                    <div class="card-icon">📅</div>
-                    Schedule Calendar
-                </div>
-                <div class="calendar-header">
-                    <div class="calendar-month" id="currentMonth">November 2024</div>
-                    <div class="calendar-nav">
-                        <button class="calendar-btn" onclick="changeMonth(-1)">◀</button>
-                        <button class="calendar-btn" onclick="showToday()">📍</button>
-                        <button class="calendar-btn" onclick="changeMonth(1)">▶</button>
-                    </div>
-                </div>
-                <div class="calendar-container" id="calendarGrid">
-                    <!-- Calendar will be generated here -->
-                </div>
-            </div>
-
-            <!-- Live Status -->
-            <div class="dashboard-card">
-                <div class="card-title">
-                    <div class="card-icon">📊</div>
-                    Live Status
-                </div>
-                <div class="status-grid">
-                    <div class="status-item">
-                        <div class="status-label">Active Players</div>
-                        <div class="status-value">
-                            <span class="status-indicator active"></span>
-                            <span id="activeCount">0</span>
-                        </div>
-                    </div>
-                    <div class="status-item">
-                        <div class="status-label">Total Pages</div>
-                        <div class="status-value" id="totalPages">0</div>
-                    </div>
-                    <div class="status-item">
-                        <div class="status-label">Scheduled</div>
-                        <div class="status-value" id="scheduledCount">0</div>
-                    </div>
-                    <div class="status-item">
-                        <div class="status-label">System Status</div>
-                        <div class="status-value">
-                            <span class="status-indicator active"></span>
-                            Online
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Quick Actions -->
-            <div class="dashboard-card">
-                <div class="card-title">
-                    <div class="card-icon">⚡</div>
-                    Quick Actions
-                </div>
-                <div class="quick-actions-grid">
-                    <div class="quick-action-btn" onclick="quickAction('nexus')">
-                        <div class="quick-action-icon">🎭</div>
-                        <div>Nexus TV</div>
-                    </div>
-                    <div class="quick-action-btn" onclick="quickAction('buffer')">
-                        <div class="quick-action-icon">📺</div>
-                        <div>Buffer TV</div>
-                    </div>
-                    <div class="quick-action-btn" onclick="quickAction('multi')">
-                        <div class="quick-action-icon">🎯</div>
-                        <div>Multi-View</div>
-                    </div>
-                    <div class="quick-action-btn" onclick="quickAction('classic')">
-                        <div class="quick-action-icon">📻</div>
-                        <div>Classic TV</div>
-                    </div>
-                    <div class="quick-action-btn" onclick="quickAction('simple')">
-                        <div class="quick-action-icon">▶️</div>
-                        <div>Simple Player</div>
-                    </div>
-                    <div class="quick-action-btn" onclick="quickAction('rumble')">
-                        <div class="quick-action-icon">🟣</div>
-                        <div>Rumble</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Recent Activity -->
-            <div class="dashboard-card">
-                <div class="card-title">
-                    <div class="card-icon">🕐</div>
-                    Recent Activity
-                </div>
-                <div id="recentActivity" style="max-height: 200px; overflow-y: auto;">
-                    <!-- Activity will be loaded here -->
-                </div>
-            </div>
-
-            <!-- System Info -->
-            <div class="dashboard-card">
-                <div class="card-title">
-                    <div class="card-icon">ℹ️</div>
-                    System Information
-                </div>
-                <div style="font-size: 14px; line-height: 1.8;">
-                    <div>Version: <span style="color: #00ffff;">2.0.0</span></div>
-                    <div>Platform: <span style="color: #00ffff;">Web</span></div>
-                    <div>Storage: <span id="storageInfo" style="color: #00ffff;">0 MB</span></div>
-                    <div>Last Update: <span id="lastUpdate" style="color: #00ffff;">Now</span></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Generated Pages Section -->
-        <div class="pages-section">
-            <div class="pages-header">
-                <h2 class="pages-title">Generated Pages</h2>
-                <div class="search-bar">
-                    <input type="text" class="search-input" id="searchInput" placeholder="Search pages...">
-                    <span class="search-icon">🔍</span>
-                </div>
-            </div>
-
-            <!-- Filter Tabs -->
-            <div class="filter-tabs">
-                <div class="filter-tab active" onclick="filterPages('all')">All Pages</div>
-                <div class="filter-tab" onclick="filterPages('nexus_tv')">Nexus TV</div>
-                <div class="filter-tab" onclick="filterPages('buffer_tv')">Buffer TV</div>
-                <div class="filter-tab" onclick="filterPages('multi_channel')">Multi-Channel</div>
-                <div class="filter-tab" onclick="filterPages('classic_tv')">Classic TV</div>
-                <div class="filter-tab" onclick="filterPages('simple_player')">Simple Player</div>
-                <div class="filter-tab" onclick="filterPages('rumble_channel')">Rumble</div>
-            </div>
-
-            <!-- Pages Grid -->
-            <div class="pages-grid" id="pagesGrid">
-                <!-- Page cards will be loaded here -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal -->
-    <div class="modal" id="modal">
-        <div class="modal-content">
-            <div class="modal-close" onclick="closeModal()">×</div>
-            <h3 class="modal-title" id="modalTitle">Modal Title</h3>
-            <div id="modalBody">
-                <!-- Modal content will be loaded here -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Toast Container -->
-    <div class="toast-container" id="toastContainer"></div>
-
+    
     <script>
-        // Initialize
-        let currentDate = new Date();
-        let pages = [];
-        let currentFilter = 'all';
-        let scheduledEvents = {};
-
-        // Sample data (will be replaced with actual data from file system)
-        const samplePages = [
-            { name: 'Live Stream 1', type: 'nexus_tv', created: new Date(2024, 10, 15), channels: 50 },
-            { name: 'Sports Channel', type: 'buffer_tv', created: new Date(2024, 10, 18), channels: 30 },
-            { name: 'Multi View Setup', type: 'multi_channel', created: new Date(2024, 10, 19), channels: 6 },
-            { name: 'Classic Experience', type: 'classic_tv', created: new Date(2024, 10, 19), channels: 20 }
-        ];
-
-        // Calendar Functions
-        function generateCalendar() {
-            const year = currentDate.getFullYear();
-            const month = currentDate.getMonth();
-            const firstDay = new Date(year, month, 1).getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const today = new Date();
-            
-            document.getElementById('currentMonth').textContent = 
-                currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-            
-            let calendarHTML = '';
-            
-            // Day headers
-            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            dayNames.forEach(day => {
-                calendarHTML += `<div class="calendar-day-header">${day}</div>`;
-            });
-            
-            // Empty cells for start of month
-            for (let i = 0; i < firstDay; i++) {
-                calendarHTML += '<div></div>';
+        const channels = [
+            {
+                        "name": "Test <script>alert(\"XSS\")</script> Channel",
+                        "file": "test1.html",
+                        "programs": 10
+            },
+            {
+                        "name": "Safe & Normal Channel",
+                        "file": "test2.html",
+                        "programs": 20
             }
+];
+        
+        const grid = document.getElementById('channelsGrid');
+        const channelCount = document.getElementById('channelCount');
+        
+        channels.forEach((channel, index) => {
+            const card = document.createElement('div');
+            card.className = 'channel-card';
             
-            // Days of month
-            for (let day = 1; day <= daysInMonth; day++) {
-                const isToday = today.getDate() === day && 
-                               today.getMonth() === month && 
-                               today.getFullYear() === year;
-                const dateKey = `${year}-${month}-${day}`;
-                const hasEvents = scheduledEvents[dateKey];
-                
-                calendarHTML += `
-                    <div class="calendar-day ${isToday ? 'today' : ''} ${hasEvents ? 'scheduled' : ''}" 
-                         onclick="showDaySchedule(${day})">
-                        <div class="calendar-day-number">${day}</div>
-                        ${hasEvents ? `<div class="calendar-day-events">${hasEvents} events</div>` : ''}
-                    </div>
-                `;
-            }
+            // Create channel icon
+            const iconDiv = document.createElement('div');
+            iconDiv.className = 'channel-icon';
+            const icon = document.createElement('i');
+            icon.className = 'fas fa-tv';
+            iconDiv.appendChild(icon);
             
-            document.getElementById('calendarGrid').innerHTML = calendarHTML;
-        }
-
-        function changeMonth(direction) {
-            currentDate.setMonth(currentDate.getMonth() + direction);
-            generateCalendar();
-        }
-
-        function showToday() {
-            currentDate = new Date();
-            generateCalendar();
-        }
-
-        function showDaySchedule(day) {
-            const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-            showToast(`Schedule for ${date.toLocaleDateString()}`, 'info');
-            // TODO: Show schedule modal for selected day
-        }
-
-        // Page Management
-        function loadPages() {
-            // TODO: Load actual pages from file system
-            pages = samplePages;
-            updateStats();
-            displayPages();
-        }
-
-        function displayPages() {
-            const grid = document.getElementById('pagesGrid');
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            // Create channel name
+            const nameDiv = document.createElement('div');
+            nameDiv.className = 'channel-name';
+            nameDiv.textContent = channel.name;
             
-            let filteredPages = pages.filter(page => {
-                const matchesFilter = currentFilter === 'all' || page.type === currentFilter;
-                const matchesSearch = page.name.toLowerCase().includes(searchTerm);
-                return matchesFilter && matchesSearch;
-            });
+            // Create channel info
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'channel-info';
+            infoDiv.textContent = channel.programs + ' programs available';
             
-            grid.innerHTML = filteredPages.map(page => `
-                <div class="page-card" onclick="openPage('${page.name}')">
-                    <div class="page-thumbnail">
-                        ${getTypeIcon(page.type)}
-                    </div>
-                    <div class="page-info">
-                        <div class="page-name">${page.name}</div>
-                        <div class="page-type">${formatType(page.type)} • ${page.channels} channels</div>
-                        <div class="page-actions">
-                            <div class="page-action-btn" onclick="event.stopPropagation(); editPage('${page.name}')">Edit</div>
-                            <div class="page-action-btn" onclick="event.stopPropagation(); deletePage('${page.name}')">Delete</div>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function getTypeIcon(type) {
-            const icons = {
-                'nexus_tv': '🎭',
-                'buffer_tv': '📺',
-                'multi_channel': '🎯',
-                'classic_tv': '📻',
-                'simple_player': '▶️',
-                'rumble_channel': '🟣'
-            };
-            return icons[type] || '📄';
-        }
-
-        function formatType(type) {
-            return type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-        }
-
-        function filterPages(filter) {
-            currentFilter = filter;
+            // Create watch button
+            const watchBtn = document.createElement('a');
+            watchBtn.href = channel.file;
+            watchBtn.className = 'watch-btn';
+            const playIcon = document.createElement('i');
+            playIcon.className = 'fas fa-play';
+            watchBtn.appendChild(playIcon);
+            const btnText = document.createTextNode(' Watch Now');
+            watchBtn.appendChild(btnText);
             
-            // Update active tab
-            document.querySelectorAll('.filter-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            event.target.classList.add('active');
+            // Append all elements to card
+            card.appendChild(iconDiv);
+            card.appendChild(nameDiv);
+            card.appendChild(infoDiv);
+            card.appendChild(watchBtn);
             
-            displayPages();
-        }
-
-        function updateStats() {
-            document.getElementById('totalPages').textContent = pages.length;
-            document.getElementById('activeCount').textContent = Math.floor(pages.length * 0.3);
-            document.getElementById('scheduledCount').textContent = Object.keys(scheduledEvents).length;
-            
-            // Update recent activity
-            const activityHTML = pages.slice(0, 5).map(page => `
-                <div style="padding: 8px; border-bottom: 1px solid rgba(0,255,255,0.1);">
-                    <div style="color: #00ffff; font-size: 14px;">${page.name}</div>
-                    <div style="color: #8892b0; font-size: 12px;">
-                        Created ${page.created.toLocaleDateString()}
-                    </div>
-                </div>
-            `).join('');
-            
-            document.getElementById('recentActivity').innerHTML = activityHTML || 
-                '<div style="color: #8892b0; text-align: center; padding: 20px;">No recent activity</div>';
-        }
-
-        // Modal Functions
-        function showModal(type) {
-            const modal = document.getElementById('modal');
-            const title = document.getElementById('modalTitle');
-            const body = document.getElementById('modalBody');
-            
-            switch(type) {
-                case 'playlist':
-                    title.textContent = 'Import Playlist';
-                    body.innerHTML = `
-                        <form class="modal-form" onsubmit="event.preventDefault(); importPlaylist();">
-                            <div class="form-group">
-                                <label class="form-label">Playlist File or URL</label>
-                                <input type="text" class="form-input" placeholder="Enter file path or URL...">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Playlist Name</label>
-                                <input type="text" class="form-input" placeholder="My Playlist">
-                            </div>
-                            <button type="submit" class="form-submit">Import Playlist</button>
-                        </form>
-                    `;
-                    break;
-                    
-                case 'generate':
-                    title.textContent = 'Generate Player';
-                    body.innerHTML = `
-                        <form class="modal-form" onsubmit="event.preventDefault(); generatePlayer();">
-                            <div class="form-group">
-                                <label class="form-label">Player Type</label>
-                                <select class="form-select">
-                                    <option value="nexus_tv">Nexus TV - 24hr Scheduled</option>
-                                    <option value="buffer_tv">Buffer TV - With Controls</option>
-                                    <option value="multi_channel">Multi-Channel View</option>
-                                    <option value="classic_tv">Classic TV</option>
-                                    <option value="simple_player">Simple Player</option>
-                                    <option value="rumble_channel">Rumble Channel</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Page Name</label>
-                                <input type="text" class="form-input" placeholder="My Player">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Select Playlist</label>
-                                <select class="form-select">
-                                    <option>Current Playlist</option>
-                                    <option>Playlist 1</option>
-                                    <option>Playlist 2</option>
-                                </select>
-                            </div>
-                            <button type="submit" class="form-submit">Generate Player</button>
-                        </form>
-                    `;
-                    break;
-                    
-                case 'schedule':
-                    title.textContent = 'Schedule Content';
-                    body.innerHTML = `
-                        <form class="modal-form" onsubmit="event.preventDefault(); scheduleContent();">
-                            <div class="form-group">
-                                <label class="form-label">Select Date</label>
-                                <input type="date" class="form-input">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Start Time</label>
-                                <input type="time" class="form-input">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Select Content</label>
-                                <select class="form-select">
-                                    <option>Channel 1</option>
-                                    <option>Channel 2</option>
-                                    <option>Playlist 1</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Repeat</label>
-                                <select class="form-select">
-                                    <option>Never</option>
-                                    <option>Daily</option>
-                                    <option>Weekly</option>
-                                    <option>Monthly</option>
-                                </select>
-                            </div>
-                            <button type="submit" class="form-submit">Schedule</button>
-                        </form>
-                    `;
-                    break;
-                    
-                case 'export':
-                    title.textContent = 'Export Data';
-                    body.innerHTML = `
-                        <form class="modal-form" onsubmit="event.preventDefault(); exportData();">
-                            <div class="form-group">
-                                <label class="form-label">Export Format</label>
-                                <select class="form-select">
-                                    <option>M3U Playlist</option>
-                                    <option>JSON</option>
-                                    <option>CSV</option>
-                                    <option>HTML Bookmarks</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Include</label>
-                                <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
-                                    <label style="display: flex; align-items: center; gap: 10px;">
-                                        <input type="checkbox" checked> Playlists
-                                    </label>
-                                    <label style="display: flex; align-items: center; gap: 10px;">
-                                        <input type="checkbox" checked> Generated Pages
-                                    </label>
-                                    <label style="display: flex; align-items: center; gap: 10px;">
-                                        <input type="checkbox"> Thumbnails
-                                    </label>
-                                    <label style="display: flex; align-items: center; gap: 10px;">
-                                        <input type="checkbox"> Settings
-                                    </label>
-                                </div>
-                            </div>
-                            <button type="submit" class="form-submit">Export</button>
-                        </form>
-                    `;
-                    break;
-                    
-                case 'settings':
-                    title.textContent = 'Settings';
-                    body.innerHTML = `
-                        <form class="modal-form" onsubmit="event.preventDefault(); saveSettings();">
-                            <div class="form-group">
-                                <label class="form-label">Theme</label>
-                                <select class="form-select">
-                                    <option>Dark (Neon)</option>
-                                    <option>Light</option>
-                                    <option>Classic</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Auto-Save</label>
-                                <select class="form-select">
-                                    <option>Enabled</option>
-                                    <option>Disabled</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Page Retention (Days)</label>
-                                <input type="number" class="form-input" value="30" min="1" max="365">
-                            </div>
-                            <button type="submit" class="form-submit">Save Settings</button>
-                        </form>
-                    `;
-                    break;
-            }
-            
-            modal.classList.add('active');
-        }
-
-        function closeModal() {
-            document.getElementById('modal').classList.remove('active');
-        }
-
-        function showHelp() {
-            showToast('Help documentation coming soon!', 'info');
-        }
-
-        // Quick Actions
-        function quickAction(type) {
-            showToast(`Launching ${formatType(type)}...`, 'success');
-            // TODO: Actually launch the player type
-        }
-
-        // Action Functions
-        function importPlaylist() {
-            closeModal();
-            showToast('Playlist imported successfully!', 'success');
-            // TODO: Actual import logic
-        }
-
-        function generatePlayer() {
-            closeModal();
-            showToast('Player generated successfully!', 'success');
-            // TODO: Actual generation logic
-            
-            // Add new page to list
-            const newPage = {
-                name: 'New Player ' + (pages.length + 1),
-                type: 'nexus_tv',
-                created: new Date(),
-                channels: Math.floor(Math.random() * 100) + 10
-            };
-            pages.unshift(newPage);
-            updateStats();
-            displayPages();
-        }
-
-        function scheduleContent() {
-            closeModal();
-            showToast('Content scheduled successfully!', 'success');
-            // TODO: Actual scheduling logic
-        }
-
-        function exportData() {
-            closeModal();
-            showToast('Data exported successfully!', 'success');
-            // TODO: Actual export logic
-        }
-
-        function saveSettings() {
-            closeModal();
-            showToast('Settings saved successfully!', 'success');
-            // TODO: Actual settings save
-        }
-
-        function openPage(name) {
-            showToast(`Opening ${name}...`, 'info');
-            // TODO: Actually open the page
-        }
-
-        function editPage(name) {
-            showToast(`Editing ${name}...`, 'info');
-            // TODO: Open edit modal
-        }
-
-        function deletePage(name) {
-            if (confirm(`Are you sure you want to delete "${name}"?`)) {
-                pages = pages.filter(p => p.name !== name);
-                updateStats();
-                displayPages();
-                showToast(`${name} deleted successfully!`, 'success');
-            }
-        }
-
-        // Toast Notifications
-        function showToast(message, type = 'info') {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            
-            const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
-            toast.innerHTML = `<span>${icon}</span><span>${message}</span>`;
-            
-            container.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.style.animation = 'slide-in 0.3s ease reverse';
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-
-        // Search functionality
-        document.getElementById('searchInput').addEventListener('input', displayPages);
-
-        // Initialize on load
-        window.addEventListener('load', () => {
-            generateCalendar();
-            loadPages();
-            
-            // Update time
-            setInterval(() => {
-                document.getElementById('lastUpdate').textContent = 
-                    new Date().toLocaleTimeString();
-            }, 1000);
-            
-            // Simulate storage info
-            const storage = Math.floor(Math.random() * 500) + 100;
-            document.getElementById('storageInfo').textContent = `${storage} MB`;
-            
-            showToast('Control Hub loaded successfully!', 'success');
+            grid.appendChild(card);
         });
-
-        // Close modal on outside click
-        document.getElementById('modal').addEventListener('click', (e) => {
-            if (e.target.id === 'modal') {
-                closeModal();
-            }
-        });
+        
+        channelCount.textContent = channels.length;
     </script>
 </body>
 </html>

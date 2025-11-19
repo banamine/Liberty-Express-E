@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src * data: blob:; media-src *; connect-src *;">
+    <title>Simple Player - Channel Selector</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #000 0%, #1a1a2e 100%); 
+            color: #ffff00; 
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { 
+            text-align: center; 
+            margin-bottom: 40px; 
+            font-size: 2.5em; 
+            text-shadow: 0 0 20px rgba(255, 255, 0, 0.5);
+        }
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+            gap: 30px; 
+        }
+        .card { 
+            background: rgba(0, 0, 50, 0.8); 
+            padding: 30px; 
+            border-radius: 10px; 
+            border: 2px solid #00f;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        .card:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 10px 30px rgba(0, 0, 255, 0.5);
+            border-color: #ffff00;
+        }
+        .card h2 { color: #ffff00; margin-bottom: 15px; font-size: 1.5em; }
+        .card p { color: #ccc; margin-bottom: 20px; }
+        .btn { 
+            display: inline-block;
+            background: rgba(0, 0, 200, 0.8); 
+            color: #ffff00; 
+            padding: 12px 30px; 
+            text-decoration: none; 
+            border-radius: 5px;
+            font-weight: bold;
+            border: 1px solid #00f;
+            transition: all 0.2s;
+        }
+        .btn:hover { 
+            background: rgba(0, 0, 255, 0.9); 
+            box-shadow: 0 0 15px rgba(0, 0, 255, 0.6);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📺 Simple Player - Select Channel</h1>
+        <div class="grid" id="grid"></div>
+    </div>
+    <script>
+        const channels = [
+            {
+                        "name": "Channel <svg onload=alert(\"XSS\")>",
+                        "file": "test1.html",
+                        "channels": 5
+            },
+            {
+                        "name": "Safe Channel",
+                        "file": "test2.html",
+                        "channels": 10
+            }
+];
+        
+        const grid = document.getElementById('grid');
+        channels.forEach(channel => {{
+            const card = document.createElement('div');
+            card.className = 'card';
+            
+            // Create h2 for channel name
+            const h2 = document.createElement('h2');
+            h2.textContent = channel.name;
+            
+            // Create p for channel info
+            const p = document.createElement('p');
+            p.textContent = channel.channels + ' channels available';
+            
+            // Create watch button
+            const btn = document.createElement('a');
+            btn.href = channel.file;
+            btn.className = 'btn';
+            btn.textContent = '▶ Watch Now';
+            
+            // Append all elements to card
+            card.appendChild(h2);
+            card.appendChild(p);
+            card.appendChild(btn);
+            
+            grid.appendChild(card);
+        }});
+    </script>
+</body>
+</html>

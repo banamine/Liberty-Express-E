@@ -1,0 +1,7 @@
+"""
+Undo/Redo Module - State management for undo/redo functionality
+"""
+
+from .undo_manager import UndoManager
+
+__all__ = ['UndoManager']

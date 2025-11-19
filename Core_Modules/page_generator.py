@@ -498,6 +498,7 @@ class NexusTVPageGenerator:
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src * data: blob:; media-src *; connect-src *;">
     <title>NEXUS TV - Channel Selector</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -706,14 +707,40 @@ class NexusTVPageGenerator:
         channels.forEach((channel, index) => {
             const card = document.createElement('div');
             card.className = 'channel-card';
-            card.innerHTML = `
-                <div class="channel-icon"><i class="fas fa-tv"></i></div>
-                <div class="channel-name">${channel.name}</div>
-                <div class="channel-info">${channel.programs} programs available</div>
-                <a href="${channel.file}" class="watch-btn">
-                    <i class="fas fa-play"></i> Watch Now
-                </a>
-            `;
+            
+            // Create channel icon
+            const iconDiv = document.createElement('div');
+            iconDiv.className = 'channel-icon';
+            const icon = document.createElement('i');
+            icon.className = 'fas fa-tv';
+            iconDiv.appendChild(icon);
+            
+            // Create channel name
+            const nameDiv = document.createElement('div');
+            nameDiv.className = 'channel-name';
+            nameDiv.textContent = channel.name;
+            
+            // Create channel info
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'channel-info';
+            infoDiv.textContent = channel.programs + ' programs available';
+            
+            // Create watch button
+            const watchBtn = document.createElement('a');
+            watchBtn.href = channel.file;
+            watchBtn.className = 'watch-btn';
+            const playIcon = document.createElement('i');
+            playIcon.className = 'fas fa-play';
+            watchBtn.appendChild(playIcon);
+            const btnText = document.createTextNode(' Watch Now');
+            watchBtn.appendChild(btnText);
+            
+            // Append all elements to card
+            card.appendChild(iconDiv);
+            card.appendChild(nameDiv);
+            card.appendChild(infoDiv);
+            card.appendChild(watchBtn);
+            
             grid.appendChild(card);
         });
         
@@ -898,6 +925,7 @@ class WebIPTVGenerator:
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src * data: blob:; media-src *; connect-src *;">
     <title>Web IPTV Player - Channel Selector</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -972,11 +1000,26 @@ class WebIPTVGenerator:
         channels.forEach(channel => {
             const card = document.createElement('div');
             card.className = 'card';
-            card.innerHTML = `
-                <h2>${channel.name}</h2>
-                <p>${channel.channels} channels available</p>
-                <a href="${channel.file}" class="btn">Watch Now</a>
-            `;
+            
+            // Create h2 for channel name
+            const h2 = document.createElement('h2');
+            h2.textContent = channel.name;
+            
+            // Create p for channel info
+            const p = document.createElement('p');
+            p.textContent = channel.channels + ' channels available';
+            
+            // Create watch button
+            const btn = document.createElement('a');
+            btn.href = channel.file;
+            btn.className = 'btn';
+            btn.textContent = 'Watch Now';
+            
+            // Append all elements to card
+            card.appendChild(h2);
+            card.appendChild(p);
+            card.appendChild(btn);
+            
             grid.appendChild(card);
         });
     </script>
@@ -1113,6 +1156,7 @@ class SimplePlayerGenerator:
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src * data: blob:; media-src *; connect-src *;">
     <title>Simple Player - Channel Selector</title>
     <style>
         * {{ margin: 0; padding: 0; box-sizing: border-box; }}
@@ -1185,11 +1229,26 @@ class SimplePlayerGenerator:
         channels.forEach(channel => {{
             const card = document.createElement('div');
             card.className = 'card';
-            card.innerHTML = `
-                <h2>${{channel.name}}</h2>
-                <p>${{channel.channels}} channels available</p>
-                <a href="${{channel.file}}" class="btn">▶ Watch Now</a>
-            `;
+            
+            // Create h2 for channel name
+            const h2 = document.createElement('h2');
+            h2.textContent = channel.name;
+            
+            // Create p for channel info
+            const p = document.createElement('p');
+            p.textContent = channel.channels + ' channels available';
+            
+            // Create watch button
+            const btn = document.createElement('a');
+            btn.href = channel.file;
+            btn.className = 'btn';
+            btn.textContent = '▶ Watch Now';
+            
+            // Append all elements to card
+            card.appendChild(h2);
+            card.appendChild(p);
+            card.appendChild(btn);
+            
             grid.appendChild(card);
         }});
     </script>
@@ -1367,6 +1426,7 @@ All metadata is embedded offline, but video content streams from Rumble.com
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src * data: blob:; media-src *; connect-src *;">
     <title>Rumble Channel Selector</title>
     <style>
         * {{ margin: 0; padding: 0; box-sizing: border-box; }}
@@ -1440,11 +1500,26 @@ All metadata is embedded offline, but video content streams from Rumble.com
         channels.forEach(channel => {{
             const card = document.createElement('div');
             card.className = 'card';
-            card.innerHTML = `
-                <h2>${{channel.name}}</h2>
-                <p>${{channel.videos}} videos available</p>
-                <a href="${{channel.file}}" class="btn">▶ Watch Now</a>
-            `;
+            
+            // Create h2 for channel name
+            const h2 = document.createElement('h2');
+            h2.textContent = channel.name;
+            
+            // Create p for video info
+            const p = document.createElement('p');
+            p.textContent = channel.videos + ' videos available';
+            
+            // Create watch button
+            const btn = document.createElement('a');
+            btn.href = channel.file;
+            btn.className = 'btn';
+            btn.textContent = '▶ Watch Now';
+            
+            // Append all elements to card
+            card.appendChild(h2);
+            card.appendChild(p);
+            card.appendChild(btn);
+            
             grid.appendChild(card);
         }});
     </script>
@@ -1597,6 +1672,7 @@ The active channel has a green border and glowing effect.
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src * data: blob:; media-src *; connect-src *;">
     <title>Multi-Channel Viewer Selector</title>
     <style>
         * {{ margin: 0; padding: 0; box-sizing: border-box; }}
@@ -1670,11 +1746,26 @@ The active channel has a green border and glowing effect.
         pages.forEach(page => {{
             const card = document.createElement('div');
             card.className = 'card';
-            card.innerHTML = `
-                <h2>${{page.name}}</h2>
-                <p>${{page.channels}} channels available</p>
-                <a href="${{page.file}}" class="btn">▶ Open Viewer</a>
-            `;
+            
+            // Create h2 for page name
+            const h2 = document.createElement('h2');
+            h2.textContent = page.name;
+            
+            // Create p for channel info
+            const p = document.createElement('p');
+            p.textContent = page.channels + ' channels available';
+            
+            // Create open button
+            const btn = document.createElement('a');
+            btn.href = page.file;
+            btn.className = 'btn';
+            btn.textContent = '▶ Open Viewer';
+            
+            // Append all elements to card
+            card.appendChild(h2);
+            card.appendChild(p);
+            card.appendChild(btn);
+            
             grid.appendChild(card);
         }});
     </script>
@@ -2353,6 +2444,233 @@ Simply upload new HTML files to update your players. Changes go live in 1-2 minu
             f.write(readme_content)
         
         print(f"📝 Created GitHub Pages deployment guide: {readme_path}")
+
+
+class WebIPTVGenerator:
+    """
+    Web IPTV Generator
+    Generates an IPTV player page with inline channel data for offline support
+    """
+    def __init__(self, template_path=None):
+        if template_path is None:
+            # Use PyInstaller-compatible template path
+            template_path = get_template_path("web_iptv.html")
+        self.template_path = Path(template_path)
+        
+        # Use OutputManager for organized directory structure
+        try:
+            from output_manager import get_output_manager
+            manager = get_output_manager()
+            self.output_dir = manager.get_page_output_dir('web_iptv')
+        except ImportError:
+            # Fallback with PyInstaller support
+            self.output_dir = get_output_directory_for_pyinstaller("web_iptv")
+    
+    def parse_m3u_to_channels(self, m3u_content):
+        """Parse M3U content and extract channel information"""
+        channels = []
+        lines = m3u_content.strip().split('\n')
+        current_channel = {}
+        
+        for line in lines:
+            line = line.strip()
+            
+            if line.startswith('#EXTINF'):
+                # Parse channel info
+                logo_match = re.search(r'tvg-logo="([^"]*)"', line)
+                name_match = re.search(r',(.+)$', line)
+                group_match = re.search(r'group-title="([^"]*)"', line)
+                
+                raw_title = name_match.group(1).strip() if name_match else 'Unknown'
+                current_channel = {
+                    'name': clean_title(raw_title),
+                    'logo': logo_match.group(1) if logo_match else '',
+                    'group': group_match.group(1) if group_match else 'General',
+                    'url': ''
+                }
+                
+            elif line and not line.startswith('#'):
+                # This is the video URL
+                if current_channel:
+                    current_channel['url'] = line
+                    channels.append(current_channel)
+                    current_channel = {}
+        
+        return channels
+    
+    def generate_page(self, m3u_content, channel_name, output_filename=None):
+        """Generate a Web IPTV page from M3U content with inline data"""
+        if not self.template_path.exists():
+            raise FileNotFoundError(f"Template not found: {self.template_path}")
+        
+        # Parse channels
+        channels = self.parse_m3u_to_channels(m3u_content)
+        
+        if not channels:
+            raise ValueError("No valid channels found in M3U content")
+        
+        output_name = output_filename if output_filename else channel_name
+        safe_name = re.sub(r'[^a-z0-9]+', '_', output_name.lower())
+        page_dir = self.output_dir / safe_name
+        page_dir.mkdir(exist_ok=True)
+        
+        # Copy CSS
+        css_dir = page_dir / "css"
+        css_dir.mkdir(exist_ok=True)
+        css_src = self.template_path.parent.parent / "templates" / "web-iptv-extension" / "css" / "styles.css"
+        if css_src.exists():
+            shutil.copy(css_src, css_dir / "styles.css")
+        
+        # Copy JS
+        js_dir = page_dir / "js"
+        js_dir.mkdir(exist_ok=True)
+        js_src = self.template_path.parent.parent / "templates" / "web-iptv-extension" / "js" / "app.js"
+        if js_src.exists():
+            shutil.copy(js_src, js_dir / "app.js")
+        
+        # Copy JS libs for offline support (HLS, DASH, Feather icons, Thumbnail System)
+        libs_dir = js_dir / "libs"
+        libs_dir.mkdir(exist_ok=True)
+        libs_src = self.template_path.parent.parent / "templates" / "web-iptv-extension" / "js" / "libs"
+        if libs_src.exists():
+            for lib in libs_src.glob("*"):
+                if lib.is_file():
+                    shutil.copy(lib, libs_dir / lib.name)
+        
+        # Copy thumbnail system from templates root
+        thumbnail_system_src = Path(__file__).resolve().parent.parent / "templates" / "thumbnail-system.js"
+        if thumbnail_system_src.exists():
+            shutil.copy(thumbnail_system_src, libs_dir / "thumbnail-system.js")
+        
+        # Read template
+        with open(self.template_path, 'r', encoding='utf-8') as f:
+            template = f.read()
+        
+        # Replace title
+        html_content = template.replace(
+            '<title>Web IPTV Player</title>',
+            f'<title>{channel_name} - Web IPTV Player</title>'
+        )
+        
+        # CRITICAL: Inline channel data directly into HTML instead of separate JSON file
+        channels_json = json.dumps({'channels': channels}, indent=2, ensure_ascii=False)
+        channels_json = channels_json.replace('</script>', '<\\/script>')  # Escape for safety
+        
+        # Replace the __CHANNEL_DATA__ placeholder with actual data
+        html_content = html_content.replace('__CHANNEL_DATA__', channels_json)
+        
+        # Write output
+        output_path = page_dir / "player.html"
+        with open(output_path, 'w', encoding='utf-8') as f:
+            f.write(html_content)
+        
+        return output_path
+
+
+class BufferTVGenerator:
+    """
+    Buffer TV Generator
+    Generates TV player with improved buffering and inline channel data
+    """
+    def __init__(self, template_path=None):
+        if template_path is None:
+            template_path = get_template_path("buffer_tv.html")
+        self.template_path = Path(template_path)
+        
+        # Use OutputManager for organized directory structure
+        try:
+            from output_manager import get_output_manager
+            manager = get_output_manager()
+            self.output_dir = manager.get_page_output_dir('buffer_tv')
+        except ImportError:
+            # Fallback with PyInstaller support
+            self.output_dir = get_output_directory_for_pyinstaller("buffer_tv")
+    
+    def parse_m3u_to_channels(self, m3u_content):
+        """Parse M3U content and extract channel information"""
+        channels = []
+        lines = m3u_content.strip().split('\n')
+        current_channel = {}
+        
+        for line in lines:
+            line = line.strip()
+            
+            if line.startswith('#EXTINF'):
+                # Parse channel info
+                logo_match = re.search(r'tvg-logo="([^"]*)"', line)
+                name_match = re.search(r',(.+)$', line)
+                
+                raw_title = name_match.group(1).strip() if name_match else 'Unknown'
+                current_channel = {
+                    'name': clean_title(raw_title),
+                    'logo': logo_match.group(1) if logo_match else '',
+                    'url': ''
+                }
+                
+            elif line and not line.startswith('#'):
+                # This is the video URL
+                if current_channel:
+                    current_channel['url'] = line
+                    channels.append(current_channel)
+                    current_channel = {}
+        
+        return channels
+    
+    def generate_page(self, m3u_content, channel_name, output_filename=None):
+        """Generate Buffer TV page with inline channel data"""
+        if not self.template_path.exists():
+            raise FileNotFoundError(f"Template not found: {self.template_path}")
+        
+        # Parse channels
+        channels = self.parse_m3u_to_channels(m3u_content)
+        
+        if not channels:
+            raise ValueError("No valid channels found in M3U content")
+        
+        output_name = output_filename if output_filename else channel_name
+        safe_name = re.sub(r'[^a-z0-9]+', '_', output_name.lower())
+        page_dir = self.output_dir / safe_name
+        page_dir.mkdir(exist_ok=True)
+        
+        # Read template
+        with open(self.template_path, 'r', encoding='utf-8') as f:
+            template = f.read()
+        
+        # CRITICAL: Inline channels data directly into the JavaScript
+        channels_json = json.dumps(channels, indent=12, ensure_ascii=False)
+        channels_json = channels_json.replace('</script>', '<\\/script>')  # Escape for safety
+        
+        # Find and replace the empty channels array
+        # The template has: let channels = [];
+        template = template.replace(
+            'let channels = [];',
+            f'let channels = {channels_json};'
+        )
+        
+        # Update title
+        template = template.replace(
+            '<title>TV Player with Improved Buffering</title>',
+            f'<title>{channel_name} - Buffer TV</title>'
+        )
+        
+        # Remove CDN dependencies and embed them inline for offline support
+        # Read HLS.js library
+        hls_path = Path(__file__).resolve().parent.parent / "templates" / "web-iptv-extension" / "js" / "libs" / "hls.min.js"
+        if hls_path.exists():
+            with open(hls_path, 'r', encoding='utf-8') as f:
+                hls_js = f.read()
+            # Add HLS.js inline before the closing </head>
+            template = template.replace(
+                '</head>',
+                f'<script>\n{hls_js}\n</script>\n</head>'
+            )
+        
+        # Write output
+        output_path = page_dir / f"{safe_name}.html"
+        with open(output_path, 'w', encoding='utf-8') as f:
+            f.write(template)
+        
+        return output_path
 
 
 if __name__ == "__main__":
