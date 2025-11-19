@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M3U Matrix Pro - 3D Keyboard Menu Board</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            min-height: 100vh;
+            color: #e0e5ff;
+            overflow: hidden;
+            perspective: 1000px;
+        }
+
+        /* Main Keyboard Container */
+        .keyboard-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotateX(10deg);
+            width: 90%;
+            max-width: 1400px;
+            background: linear-gradient(135deg, rgba(20, 25, 50, 0.95), rgba(30, 35, 60, 0.95));
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), 0 0 100px rgba(0, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            transition: transform 0.3s ease;
+            cursor: move;
+            transform-style: preserve-3d;
+        }
+
+        .keyboard-container.dragging {
+            cursor: grabbing;
+            transform: translate(-50%, -50%) rotateX(5deg) scale(0.98);
+        }
+
+        /* Header with Title and Controls */
+        .keyboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(0, 255, 255, 0.3);
+        }
+
+        .keyboard-title {
+            font-size: 28px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .control-btn {
+            padding: 8px 15px;
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 10px;
+            color: #00ffff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .control-btn:hover {
+            background: rgba(0, 255, 255, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 255, 0.3);
+        }
+
+        /* Search Bar */
+        .search-container {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 45px 12px 20px;
+            background: rgba(30, 35, 60, 0.6);
+            border: 2px solid rgba(0, 255, 255, 0.2);
+            border-radius: 15px;
+            color: #e0e5ff;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #00ffff;
+            background: rgba(30, 35, 60, 0.8);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #00ffff;
+            font-size: 20px;
+        }
+
+        /* Category Tabs */
+        .category-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+
+        .category-tab {
+            padding: 10px 20px;
+            background: rgba(30, 35, 60, 0.5);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 10px;
+            color: #8892b0;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+            position: relative;
+            transform-style: preserve-3d;
+        }
+
+        .category-tab:hover {
+            transform: translateZ(10px) translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 255, 255, 0.3);
+        }
+
+        .category-tab.active {
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.3), rgba(255, 0, 255, 0.3));
+            border-color: #00ffff;
+            color: #00ffff;
+            transform: translateZ(15px);
+        }
+
+        /* 3D Keyboard Grid */
+        .keyboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+            transform-style: preserve-3d;
+        }
+
+        /* 3D Key Button */
+        .key-button {
+            position: relative;
+            height: 80px;
+            border-radius: 12px;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transform: translateZ(0);
+            transition: all 0.3s ease;
+        }
+
+        .key-button:hover {
+            transform: translateZ(20px) translateY(-5px) rotateX(-10deg);
+        }
+
+        .key-button.pressed {
+            transform: translateZ(-10px) scale(0.95);
+        }
+
+        .key-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transform: translateZ(10px);
+            transition: all 0.3s ease;
+        }
+
+        .key-shadow {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.5));
+            border-radius: 12px;
+            transform: translateZ(-10px);
+            filter: blur(10px);
+        }
+
+        /* Category Colors */
+        .key-button[data-category="file"] .key-face { 
+            background: linear-gradient(135deg, #2980b9, #3498db); 
+        }
+        .key-button[data-category="generate"] .key-face { 
+            background: linear-gradient(135deg, #e91e63, #f06292); 
+        }
+        .key-button[data-category="tools"] .key-face { 
+            background: linear-gradient(135deg, #27ae60, #2ecc71); 
+        }
+        .key-button[data-category="import"] .key-face { 
+            background: linear-gradient(135deg, #8e44ad, #9b59b6); 
+        }
+        .key-button[data-category="export"] .key-face { 
+            background: linear-gradient(135deg, #16a085, #1abc9c); 
+        }
+        .key-button[data-category="edit"] .key-face { 
+            background: linear-gradient(135deg, #e67e22, #f39c12); 
+        }
+        .key-button[data-category="special"] .key-face { 
+            background: linear-gradient(135deg, #e74c3c, #ff5555); 
+        }
+
+        .key-icon {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .key-label {
+            font-size: 11px;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .key-number {
+            position: absolute;
+            top: 5px;
+            right: 8px;
+            background: rgba(0, 0, 0, 0.5);
+            color: #00ffff;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        /* Numeric Keypad */
+        .numpad-container {
+            position: fixed;
+            right: 30px;
+            bottom: 30px;
+            background: linear-gradient(135deg, rgba(20, 25, 50, 0.95), rgba(30, 35, 60, 0.95));
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            transform-style: preserve-3d;
+        }
+
+        .numpad-title {
+            text-align: center;
+            color: #00ffff;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .numpad-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 50px);
+            gap: 10px;
+        }
+
+        .numpad-key {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.1), rgba(255, 0, 255, 0.1));
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 10px;
+            color: #00ffff;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: translateZ(0);
+        }
+
+        .numpad-key:hover {
+            transform: translateZ(10px) scale(1.1);
+            box-shadow: 0 5px 15px rgba(0, 255, 255, 0.5);
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.3), rgba(255, 0, 255, 0.3));
+        }
+
+        .numpad-key:active {
+            transform: translateZ(-5px) scale(0.95);
+        }
+
+        .numpad-key.zero {
+            grid-column: span 2;
+        }
+
+        /* Slide-out Information Drawer */
+        .info-drawer {
+            position: fixed;
+            right: -400px;
+            top: 0;
+            width: 400px;
+            height: 100vh;
+            background: linear-gradient(135deg, rgba(20, 25, 50, 0.98), rgba(30, 35, 60, 0.98));
+            box-shadow: -10px 0 40px rgba(0, 0, 0, 0.5);
+            transition: right 0.3s ease;
+            padding: 30px;
+            overflow-y: auto;
+            border-left: 2px solid rgba(0, 255, 255, 0.3);
+            z-index: 1000;
+        }
+
+        .info-drawer.open {
+            right: 0;
+        }
+
+        .drawer-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 30px;
+            height: 30px;
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid rgba(255, 0, 0, 0.5);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #ff5555;
+            transition: all 0.3s ease;
+        }
+
+        .drawer-close:hover {
+            background: rgba(255, 0, 0, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .drawer-title {
+            font-size: 24px;
+            color: #00ffff;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(0, 255, 255, 0.3);
+        }
+
+        .drawer-section {
+            margin-bottom: 20px;
+        }
+
+        .drawer-label {
+            font-size: 12px;
+            color: #8892b0;
+            margin-bottom: 5px;
+        }
+
+        .drawer-value {
+            font-size: 16px;
+            color: #e0e5ff;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(30, 35, 60, 0.5);
+            border-radius: 8px;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+        }
+
+        .shortcut-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.2), rgba(255, 0, 255, 0.2));
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 6px;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+            margin-right: 5px;
+        }
+
+        /* Settings Modal */
+        .settings-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .settings-modal.open {
+            display: flex;
+        }
+
+        .settings-content {
+            background: linear-gradient(135deg, #1a1e3a, #2a2e4a);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 2px solid rgba(0, 255, 255, 0.3);
+        }
+
+        .settings-title {
+            font-size: 24px;
+            color: #00ffff;
+            margin-bottom: 20px;
+        }
+
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .preset-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(30, 35, 60, 0.5);
+            border-radius: 10px;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+        }
+
+        .preset-number {
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.3), rgba(255, 0, 255, 0.3));
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        .preset-select {
+            flex: 1;
+            padding: 5px;
+            background: rgba(20, 25, 50, 0.5);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 6px;
+            color: #e0e5ff;
+        }
+
+        .settings-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(0, 255, 255, 0.2);
+        }
+
+        .settings-btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .settings-save {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+        }
+
+        .settings-cancel {
+            background: rgba(30, 35, 60, 0.5);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            color: #e0e5ff;
+        }
+
+        /* Print Mode Styles */
+        @media print {
+            body {
+                background: white;
+                color: black;
+            }
+
+            .keyboard-container {
+                position: static;
+                transform: none !important;
+                box-shadow: none;
+                border: 1px solid #ccc;
+                background: white;
+                width: 100%;
+                max-width: none;
+            }
+
+            .numpad-container,
+            .control-btn,
+            .search-container,
+            .info-drawer {
+                display: none !important;
+            }
+
+            .key-button {
+                transform: none !important;
+                page-break-inside: avoid;
+            }
+
+            .key-face {
+                background: white !important;
+                border: 1px solid black !important;
+                color: black !important;
+                transform: none !important;
+            }
+
+            .key-shadow {
+                display: none;
+            }
+
+            .keyboard-title {
+                background: none;
+                -webkit-text-fill-color: black;
+                text-shadow: none;
+            }
+        }
+
+        /* Loading Animation */
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 3px solid rgba(0, 255, 255, 0.3);
+            border-top-color: #00ffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(20, 25, 50, 0.95);
+            color: #00ffff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            font-size: 12px;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+        }
+
+        .key-button:hover .tooltip {
+            opacity: 1;
+        }
+
+        /* Scrollbar Styles */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(30, 35, 60, 0.5);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.5), rgba(255, 0, 255, 0.5));
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.7), rgba(255, 0, 255, 0.7));
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Spinner -->
+    <div class="loading active">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- Main Keyboard Container -->
+    <div class="keyboard-container" id="keyboardContainer">
+        <div class="keyboard-header">
+            <h1 class="keyboard-title">M3U MATRIX PRO - COMMAND CENTER</h1>
+            <div class="header-controls">
+                <button class="control-btn" onclick="toggleSettings()">⚙️ Presets</button>
+                <button class="control-btn" onclick="printCheatSheet()">🖨️ Print</button>
+                <button class="control-btn" onclick="resetPosition()">📍 Reset</button>
+                <button class="control-btn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+            </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="search-container">
+            <input type="text" class="search-input" id="searchInput" placeholder="Search for any command or function...">
+            <span class="search-icon">🔍</span>
+        </div>
+
+        <!-- Category Tabs -->
+        <div class="category-tabs" id="categoryTabs">
+            <div class="category-tab active" data-category="all">All Functions</div>
+            <div class="category-tab" data-category="file">📁 File Ops</div>
+            <div class="category-tab" data-category="generate">🎬 Generate</div>
+            <div class="category-tab" data-category="tools">🔧 Tools</div>
+            <div class="category-tab" data-category="import">📥 Import</div>
+            <div class="category-tab" data-category="export">📤 Export</div>
+            <div class="category-tab" data-category="edit">✏️ Edit</div>
+            <div class="category-tab" data-category="special">⭐ Special</div>
+        </div>
+
+        <!-- 3D Keyboard Grid -->
+        <div class="keyboard-grid" id="keyboardGrid">
+            <!-- Keys will be dynamically generated here -->
+        </div>
+    </div>
+
+    <!-- Numeric Keypad -->
+    <div class="numpad-container">
+        <div class="numpad-title">Quick Jump</div>
+        <div class="numpad-grid">
+            <div class="numpad-key" data-num="1">1</div>
+            <div class="numpad-key" data-num="2">2</div>
+            <div class="numpad-key" data-num="3">3</div>
+            <div class="numpad-key" data-num="4">4</div>
+            <div class="numpad-key" data-num="5">5</div>
+            <div class="numpad-key" data-num="6">6</div>
+            <div class="numpad-key" data-num="7">7</div>
+            <div class="numpad-key" data-num="8">8</div>
+            <div class="numpad-key" data-num="9">9</div>
+            <div class="numpad-key zero" data-num="0">0</div>
+            <div class="numpad-key" data-num="clear">C</div>
+        </div>
+    </div>
+
+    <!-- Information Drawer -->
+    <div class="info-drawer" id="infoDrawer">
+        <div class="drawer-close" onclick="closeDrawer()">×</div>
+        <h2 class="drawer-title" id="drawerTitle">Command Details</h2>
+        
+        <div class="drawer-section">
+            <div class="drawer-label">Function Name</div>
+            <div class="drawer-value" id="drawerFunction">-</div>
+        </div>
+
+        <div class="drawer-section">
+            <div class="drawer-label">Description</div>
+            <div class="drawer-value" id="drawerDescription">-</div>
+        </div>
+
+        <div class="drawer-section">
+            <div class="drawer-label">Category</div>
+            <div class="drawer-value" id="drawerCategory">-</div>
+        </div>
+
+        <div class="drawer-section">
+            <div class="drawer-label">Keyboard Shortcut</div>
+            <div class="drawer-value" id="drawerShortcut">-</div>
+        </div>
+
+        <div class="drawer-section">
+            <div class="drawer-label">Button Color</div>
+            <div class="drawer-value" id="drawerColor">-</div>
+        </div>
+
+        <div class="drawer-section">
+            <div class="drawer-label">Toolbar Position</div>
+            <div class="drawer-value" id="drawerPosition">-</div>
+        </div>
+
+        <div class="drawer-section">
+            <div class="drawer-label">Quick Access Number</div>
+            <div class="drawer-value" id="drawerNumber">-</div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="settings-modal" id="settingsModal">
+        <div class="settings-content">
+            <h2 class="settings-title">Configure Preset Numbers (0-9)</h2>
+            <p style="color: #8892b0; margin-bottom: 20px;">
+                Assign functions to number keys for instant access. Press any number on your keyboard or numpad to jump to that function.
+            </p>
+            <div class="preset-grid" id="presetGrid">
+                <!-- Preset options will be generated here -->
+            </div>
+            <div class="settings-footer">
+                <button class="settings-btn settings-cancel" onclick="closeSettings()">Cancel</button>
+                <button class="settings-btn settings-save" onclick="savePresets()">Save Presets</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Complete M3U Matrix Pro Function Database
+        const functions = [
+            // File Operations (Row 1)
+            { id: 'load', name: 'LOAD', icon: '📂', category: 'file', color: '#2980b9', 
+              description: 'Load M3U playlist files from disk', shortcut: null, toolbar: 'Row 1' },
+            { id: 'save', name: 'SAVE', icon: '💾', category: 'file', color: '#c0392b', 
+              description: 'Save current playlist to disk', shortcut: null, toolbar: 'Row 1' },
+            { id: 'm3u_output', name: 'M3U OUTPUT', icon: '📤', category: 'export', color: '#16a085', 
+              description: 'Export playlist as M3U file', shortcut: null, toolbar: 'Row 1' },
+            { id: 'export_json', name: 'EXPORT JSON', icon: '📋', category: 'export', color: '#16a085', 
+              description: 'Export playlist data as JSON', shortcut: null, toolbar: 'Row 1' },
+            { id: 'new', name: 'NEW', icon: '🆕', category: 'file', color: '#34495e', 
+              description: 'Create new project/playlist', shortcut: null, toolbar: 'Row 1' },
+            { id: 'thumbs', name: 'THUMBS', icon: '🖼️', category: 'file', color: '#ff9500', 
+              description: 'Open thumbnails folder', shortcut: null, toolbar: 'Row 1' },
+            { id: 'video', name: 'VIDEO', icon: '🎬', category: 'tools', color: '#00d4ff', 
+              description: 'Launch Video Player Pro', shortcut: null, toolbar: 'Row 1' },
+            { id: 'nav_hub', name: 'NAV HUB', icon: '🏠', category: 'special', color: '#FFD700', 
+              description: 'Open Navigation Hub', shortcut: null, toolbar: 'Row 1' },
+
+            // Processing & Generation (Row 2)
+            { id: 'organize', name: 'ORGANIZE', icon: '🔄', category: 'tools', color: '#27ae60', 
+              description: 'Organize and sort channels', shortcut: null, toolbar: 'Row 2' },
+            { id: 'check', name: 'CHECK', icon: '✅', category: 'tools', color: '#e67e22', 
+              description: 'Validate channel streams', shortcut: null, toolbar: 'Row 2' },
+            { id: 'generate_pages', name: 'GENERATE PAGES', icon: '📄', category: 'generate', color: '#e91e63', 
+              description: 'Generate player pages', shortcut: null, toolbar: 'Row 2' },
+            { id: 'multi_channel', name: 'MULTI-CHANNEL', icon: '🎯', category: 'generate', color: '#1e90ff', 
+              description: 'Generate multi-channel viewer', shortcut: null, toolbar: 'Row 2' },
+            { id: 'rumble_browser', name: 'RUMBLE BROWSER', icon: '🟣', category: 'special', color: '#FF6347', 
+              description: 'Browse Rumble channels', shortcut: null, toolbar: 'Row 2' },
+            { id: 'rumble_channel', name: 'RUMBLE CHANNEL', icon: '📺', category: 'generate', color: '#FF4500', 
+              description: 'Generate Rumble channel player', shortcut: null, toolbar: 'Row 2' },
+            { id: 'buffer_tv', name: 'BUFFER TV', icon: '📺', category: 'generate', color: '#DC143C', 
+              description: 'Generate Buffer TV player', shortcut: null, toolbar: 'Row 2' },
+            { id: 'classic_tv', name: 'CLASSIC TV', icon: '📻', category: 'generate', color: '#FF0000', 
+              description: 'Generate Classic TV player', shortcut: null, toolbar: 'Row 2' },
+            { id: 'stream_hub', name: 'STREAM HUB', icon: '🌐', category: 'generate', color: '#00d4ff', 
+              description: 'Generate Stream Hub player', shortcut: null, toolbar: 'Row 2' },
+            { id: 'standalone', name: 'STANDALONE', icon: '🔐', category: 'generate', color: '#9400D3', 
+              description: 'Generate secure standalone player', shortcut: null, toolbar: 'Row 2' },
+            { id: 'smart_schedule', name: 'SMART SCHEDULE', icon: '📅', category: 'tools', color: '#9b59b6', 
+              description: 'Smart content scheduler', shortcut: null, toolbar: 'Row 2' },
+            { id: 'json_guide', name: 'JSON GUIDE', icon: '📖', category: 'export', color: '#95e1d3', 
+              description: 'Export TV guide as JSON', shortcut: null, toolbar: 'Row 2' },
+            { id: 'ndi', name: 'NDI', icon: '🔴', category: 'special', color: '#FF0000', 
+              description: 'NDI broadcast output control', shortcut: null, toolbar: 'Row 2' },
+
+            // Import & Advanced (Row 3)
+            { id: 'url_import', name: 'URL IMPORT', icon: '🌐', category: 'import', color: '#4ecdc4', 
+              description: 'Import workbench for URLs', shortcut: null, toolbar: 'Row 3' },
+            { id: 'import_url', name: 'IMPORT URL', icon: '⬇️', category: 'import', color: '#8e44ad', 
+              description: 'Import M3U from URL', shortcut: null, toolbar: 'Row 3' },
+            { id: 'bulk_editor', name: 'BULK EDITOR', icon: '📝', category: 'edit', color: '#2ecc71', 
+              description: 'Bulk edit channels', shortcut: null, toolbar: 'Row 3' },
+            { id: 'version_ctrl', name: 'VERSION CTRL', icon: '🔀', category: 'tools', color: '#3498db', 
+              description: 'Version control system', shortcut: null, toolbar: 'Row 3' },
+            { id: 'timestamp_gen', name: 'TIMESTAMP GEN', icon: '⏰', category: 'tools', color: '#ff6b6b', 
+              description: 'Generate timestamps', shortcut: null, toolbar: 'Row 3' },
+            { id: 'fetch_epg', name: 'FETCH EPG', icon: '📡', category: 'import', color: '#d35400', 
+              description: 'Fetch electronic program guide', shortcut: null, toolbar: 'Row 3' },
+            { id: 'tv_guide', name: 'TV GUIDE', icon: '📺', category: 'tools', color: '#9b59b6', 
+              description: 'Open TV guide viewer', shortcut: null, toolbar: 'Row 3' },
+            { id: 'launch_redis', name: 'LAUNCH REDIS', icon: '🔥', category: 'special', color: '#FF5733', 
+              description: 'Launch Redis services', shortcut: null, toolbar: 'Row 3' },
+
+            // Edit Operations
+            { id: 'cut', name: 'CUT', icon: '✂️', category: 'edit', color: '#e74c3c', 
+              description: 'Cut selected channels', shortcut: 'Ctrl+X', toolbar: 'Edit Bar' },
+            { id: 'copy', name: 'COPY', icon: '📋', category: 'edit', color: '#3498db', 
+              description: 'Copy selected channels', shortcut: 'Ctrl+C', toolbar: 'Edit Bar' },
+            { id: 'paste', name: 'PASTE', icon: '📌', category: 'edit', color: '#2ecc71', 
+              description: 'Paste channels from clipboard', shortcut: 'Ctrl+V', toolbar: 'Edit Bar' },
+            { id: 'undo', name: 'UNDO', icon: '↩️', category: 'edit', color: '#f39c12', 
+              description: 'Undo last action', shortcut: 'Ctrl+Z', toolbar: 'Edit Bar' },
+            { id: 'redo', name: 'REDO', icon: '↪️', category: 'edit', color: '#9b59b6', 
+              description: 'Redo last undone action', shortcut: 'Ctrl+Y', toolbar: 'Edit Bar' },
+
+            // Additional Tools
+            { id: 'output_folder', name: 'OUTPUT FOLDER', icon: '📁', category: 'file', color: '#007bff', 
+              description: 'Configure output folder location', shortcut: null, toolbar: 'Tools Bar' },
+            { id: 'export_settings', name: 'EXPORT SETTINGS', icon: '⚙️', category: 'export', color: '#28a745', 
+              description: 'Export application settings', shortcut: null, toolbar: 'Tools Bar' },
+            { id: 'import_settings', name: 'IMPORT SETTINGS', icon: '⚙️', category: 'import', color: '#ffc107', 
+              description: 'Import application settings', shortcut: null, toolbar: 'Tools Bar' },
+
+            // Context Menu Actions
+            { id: 'play_vlc', name: 'PLAY IN VLC', icon: '▶️', category: 'tools', color: '#FF8C00', 
+              description: 'Play channel in VLC media player', shortcut: null, toolbar: 'Context Menu' },
+            { id: 'copy_url', name: 'COPY URL', icon: '🔗', category: 'edit', color: '#4169E1', 
+              description: 'Copy channel URL to clipboard', shortcut: null, toolbar: 'Context Menu' },
+            { id: 'schedule_show', name: 'SCHEDULE SHOW', icon: '📅', category: 'tools', color: '#9370DB', 
+              description: 'Schedule a show for this channel', shortcut: null, toolbar: 'Context Menu' },
+            { id: 'delete_channel', name: 'DELETE', icon: '🗑️', category: 'edit', color: '#DC143C', 
+              description: 'Delete selected channel', shortcut: 'Delete', toolbar: 'Context Menu' },
+
+            // File List Actions
+            { id: 'open_file', name: 'OPEN FILE', icon: '📂', category: 'file', color: '#4682B4', 
+              description: 'Open selected file', shortcut: 'Double-click', toolbar: 'File List' },
+            { id: 'copy_path', name: 'COPY PATH', icon: '📍', category: 'edit', color: '#20B2AA', 
+              description: 'Copy file path to clipboard', shortcut: null, toolbar: 'File List' },
+            { id: 'open_explorer', name: 'OPEN IN EXPLORER', icon: '📂', category: 'file', color: '#3CB371', 
+              description: 'Open file location in explorer', shortcut: null, toolbar: 'File List' },
+            { id: 'remove_file', name: 'REMOVE FILE', icon: '❌', category: 'file', color: '#CD5C5C', 
+              description: 'Remove file from list', shortcut: null, toolbar: 'File List' },
+
+            // Nexus TV Specific
+            { id: 'nexus_tv', name: 'NEXUS TV', icon: '🎭', category: 'generate', color: '#8B008B', 
+              description: '24-hour auto-scheduled player', shortcut: null, toolbar: 'Quick Generate' },
+            { id: 'simple_player', name: 'SIMPLE PLAYER', icon: '▶️', category: 'generate', color: '#FF69B4', 
+              description: 'Clean simple video player', shortcut: null, toolbar: 'Quick Generate' },
+            { id: 'web_iptv', name: 'WEB IPTV', icon: '🌍', category: 'generate', color: '#00CED1', 
+              description: 'Web-based IPTV player', shortcut: null, toolbar: 'Quick Generate' }
+        ];
+
+        // Initialize variables
+        let currentCategory = 'all';
+        let searchTerm = '';
+        let presets = {};
+        let isDragging = false;
+        let dragStartX = 0;
+        let dragStartY = 0;
+        let containerX = 0;
+        let containerY = 0;
+
+        // Load presets from localStorage
+        function loadPresets() {
+            const saved = localStorage.getItem('m3u_keyboard_presets');
+            if (saved) {
+                presets = JSON.parse(saved);
+            } else {
+                // Default presets
+                presets = {
+                    '1': 'load',
+                    '2': 'save',
+                    '3': 'generate_pages',
+                    '4': 'check',
+                    '5': 'organize',
+                    '6': 'multi_channel',
+                    '7': 'export_json',
+                    '8': 'nav_hub',
+                    '9': 'ndi',
+                    '0': 'video'
+                };
+            }
+        }
+
+        // Save presets to localStorage
+        function savePresetsToStorage() {
+            localStorage.setItem('m3u_keyboard_presets', JSON.stringify(presets));
+        }
+
+        // Generate keyboard keys
+        function generateKeyboard() {
+            const grid = document.getElementById('keyboardGrid');
+            grid.innerHTML = '';
+
+            let filteredFunctions = functions;
+
+            // Filter by category
+            if (currentCategory !== 'all') {
+                filteredFunctions = filteredFunctions.filter(f => f.category === currentCategory);
+            }
+
+            // Filter by search
+            if (searchTerm) {
+                filteredFunctions = filteredFunctions.filter(f => 
+                    f.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    f.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    (f.shortcut && f.shortcut.toLowerCase().includes(searchTerm.toLowerCase()))
+                );
+            }
+
+            // Create keys
+            filteredFunctions.forEach((func, index) => {
+                const key = document.createElement('div');
+                key.className = 'key-button';
+                key.dataset.category = func.category;
+                key.dataset.id = func.id;
+
+                // Find preset number
+                let presetNum = null;
+                for (let [num, id] of Object.entries(presets)) {
+                    if (id === func.id) {
+                        presetNum = num;
+                        break;
+                    }
+                }
+
+                key.innerHTML = `
+                    <div class="key-shadow"></div>
+                    <div class="key-face" style="background: ${func.color}">
+                        ${presetNum ? `<div class="key-number">${presetNum}</div>` : ''}
+                        <div class="key-icon">${func.icon}</div>
+                        <div class="key-label">${func.name}</div>
+                    </div>
+                    <div class="tooltip">${func.shortcut || 'Click for details'}</div>
+                `;
+
+                // Click handler
+                key.addEventListener('click', () => {
+                    showFunctionDetails(func);
+                    animateKeyPress(key);
+                });
+
+                // Double-click to assign preset
+                key.addEventListener('dblclick', () => {
+                    const num = prompt('Assign to number key (0-9):', '');
+                    if (num && num.match(/^[0-9]$/)) {
+                        presets[num] = func.id;
+                        savePresetsToStorage();
+                        generateKeyboard();
+                    }
+                });
+
+                grid.appendChild(key);
+            });
+
+            hideLoading();
+        }
+
+        // Animate key press
+        function animateKeyPress(key) {
+            key.classList.add('pressed');
+            setTimeout(() => key.classList.remove('pressed'), 200);
+        }
+
+        // Show function details in drawer
+        function showFunctionDetails(func) {
+            document.getElementById('drawerTitle').textContent = func.name;
+            document.getElementById('drawerFunction').textContent = func.name;
+            document.getElementById('drawerDescription').textContent = func.description;
+            document.getElementById('drawerCategory').textContent = func.category.toUpperCase();
+            document.getElementById('drawerShortcut').innerHTML = func.shortcut ? 
+                `<span class="shortcut-badge">${func.shortcut}</span>` : 'None';
+            document.getElementById('drawerColor').innerHTML = 
+                `<div style="display: inline-block; width: 20px; height: 20px; background: ${func.color}; border-radius: 4px; vertical-align: middle;"></div> ${func.color}`;
+            document.getElementById('drawerPosition').textContent = func.toolbar;
+            
+            // Find preset number
+            let presetNum = 'Not assigned';
+            for (let [num, id] of Object.entries(presets)) {
+                if (id === func.id) {
+                    presetNum = num;
+                    break;
+                }
+            }
+            document.getElementById('drawerNumber').textContent = presetNum;
+
+            document.getElementById('infoDrawer').classList.add('open');
+        }
+
+        // Close drawer
+        function closeDrawer() {
+            document.getElementById('infoDrawer').classList.remove('open');
+        }
+
+        // Category filter
+        document.addEventListener('DOMContentLoaded', () => {
+            loadPresets();
+            
+            // Setup category tabs
+            document.querySelectorAll('.category-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    currentCategory = tab.dataset.category;
+                    generateKeyboard();
+                });
+            });
+
+            // Setup search
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                searchTerm = e.target.value;
+                generateKeyboard();
+            });
+
+            // Setup numpad
+            document.querySelectorAll('.numpad-key').forEach(key => {
+                key.addEventListener('click', () => {
+                    const num = key.dataset.num;
+                    if (num === 'clear') {
+                        searchTerm = '';
+                        document.getElementById('searchInput').value = '';
+                        generateKeyboard();
+                    } else if (presets[num]) {
+                        // Jump to function
+                        const func = functions.find(f => f.id === presets[num]);
+                        if (func) {
+                            showFunctionDetails(func);
+                            // Highlight key
+                            const keyElement = document.querySelector(`[data-id="${func.id}"]`);
+                            if (keyElement) {
+                                keyElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                animateKeyPress(keyElement);
+                            }
+                        }
+                    }
+                });
+            });
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.target.tagName === 'INPUT') return;
+                
+                // Number keys
+                if (e.key >= '0' && e.key <= '9') {
+                    const num = e.key;
+                    if (presets[num]) {
+                        const func = functions.find(f => f.id === presets[num]);
+                        if (func) {
+                            showFunctionDetails(func);
+                            const keyElement = document.querySelector(`[data-id="${func.id}"]`);
+                            if (keyElement) {
+                                keyElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                animateKeyPress(keyElement);
+                            }
+                        }
+                    }
+                }
+                
+                // Escape to close drawer
+                if (e.key === 'Escape') {
+                    closeDrawer();
+                    closeSettings();
+                }
+            });
+
+            // Make container draggable
+            const container = document.getElementById('keyboardContainer');
+            
+            container.addEventListener('mousedown', (e) => {
+                if (e.target === container || e.target.classList.contains('keyboard-header')) {
+                    isDragging = true;
+                    container.classList.add('dragging');
+                    
+                    const rect = container.getBoundingClientRect();
+                    dragStartX = e.clientX;
+                    dragStartY = e.clientY;
+                    containerX = rect.left + rect.width / 2;
+                    containerY = rect.top + rect.height / 2;
+                }
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                
+                const deltaX = e.clientX - dragStartX;
+                const deltaY = e.clientY - dragStartY;
+                
+                container.style.left = `${containerX + deltaX}px`;
+                container.style.top = `${containerY + deltaY}px`;
+                container.style.transform = 'translate(-50%, -50%) rotateX(5deg) scale(0.98)';
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    container.classList.remove('dragging');
+                    container.style.transform = 'translate(-50%, -50%) rotateX(10deg)';
+                }
+            });
+
+            // Generate initial keyboard
+            generateKeyboard();
+        });
+
+        // Settings functions
+        function toggleSettings() {
+            const modal = document.getElementById('settingsModal');
+            if (modal.classList.contains('open')) {
+                closeSettings();
+            } else {
+                openSettings();
+            }
+        }
+
+        function openSettings() {
+            const modal = document.getElementById('settingsModal');
+            const grid = document.getElementById('presetGrid');
+            
+            // Generate preset options
+            grid.innerHTML = '';
+            for (let i = 0; i <= 9; i++) {
+                const item = document.createElement('div');
+                item.className = 'preset-item';
+                
+                const select = document.createElement('select');
+                select.className = 'preset-select';
+                select.id = `preset-${i}`;
+                
+                // Add empty option
+                select.innerHTML = '<option value="">Not assigned</option>';
+                
+                // Add all functions
+                functions.forEach(func => {
+                    const option = document.createElement('option');
+                    option.value = func.id;
+                    option.textContent = `${func.icon} ${func.name}`;
+                    if (presets[i] === func.id) {
+                        option.selected = true;
+                    }
+                    select.appendChild(option);
+                });
+                
+                item.innerHTML = `<div class="preset-number">${i}</div>`;
+                item.appendChild(select);
+                grid.appendChild(item);
+            }
+            
+            modal.classList.add('open');
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.remove('open');
+        }
+
+        function savePresets() {
+            // Save all preset selections
+            for (let i = 0; i <= 9; i++) {
+                const select = document.getElementById(`preset-${i}`);
+                if (select.value) {
+                    presets[i] = select.value;
+                } else {
+                    delete presets[i];
+                }
+            }
+            
+            savePresetsToStorage();
+            generateKeyboard();
+            closeSettings();
+        }
+
+        // Utility functions
+        function printCheatSheet() {
+            window.print();
+        }
+
+        function resetPosition() {
+            const container = document.getElementById('keyboardContainer');
+            container.style.left = '50%';
+            container.style.top = '50%';
+            container.style.transform = 'translate(-50%, -50%) rotateX(10deg)';
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        function hideLoading() {
+            document.querySelector('.loading').classList.remove('active');
+        }
+
+        function showLoading() {
+            document.querySelector('.loading').classList.add('active');
+        }
+    </script>
+</body>
+</html>
