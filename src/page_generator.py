@@ -53,8 +53,17 @@ class NexusTVPageGenerator:
         if template_path is None:
             template_path = Path(__file__).resolve().parent.parent / "templates" / "nexus_tv_template.html"
         self.template_path = Path(template_path)
-        self.output_dir = Path("generated_pages") / "nexus_tv"
-        self.output_dir.mkdir(exist_ok=True, parents=True)
+        
+        # Use OutputManager for organized directory structure
+        try:
+            from output_manager import get_output_manager
+            manager = get_output_manager()
+            self.output_dir = manager.get_page_output_dir('nexus_tv')
+        except ImportError:
+            # Fallback if OutputManager not available
+            self.output_dir = Path("M3U_Matrix_Output") / "generated_pages" / "nexus_tv"
+            self.output_dir.mkdir(exist_ok=True, parents=True)
+        
         self.ffprobe_available = shutil.which('ffprobe') is not None
     
     def extract_video_duration(self, video_url):
@@ -578,8 +587,16 @@ class WebIPTVGenerator:
         if template_path is None:
             template_path = Path(__file__).resolve().parent.parent / "templates" / "web-iptv-extension"
         self.template_dir = Path(template_path)
-        self.output_dir = Path("generated_pages") / "web_iptv"
-        self.output_dir.mkdir(exist_ok=True, parents=True)
+        
+        # Use OutputManager for organized directory structure
+        try:
+            from output_manager import get_output_manager
+            manager = get_output_manager()
+            self.output_dir = manager.get_page_output_dir('web_iptv')
+        except ImportError:
+            # Fallback if OutputManager not available
+            self.output_dir = Path("M3U_Matrix_Output") / "generated_pages" / "web_iptv"
+            self.output_dir.mkdir(exist_ok=True, parents=True)
     
     def parse_m3u_to_channels(self, m3u_content):
         """Parse M3U content and extract channel information"""
@@ -819,8 +836,16 @@ class SimplePlayerGenerator:
         if template_path is None:
             template_path = Path(__file__).resolve().parent.parent / "templates" / "simple-player"
         self.template_dir = Path(template_path)
-        self.output_dir = Path("generated_pages") / "simple_player"
-        self.output_dir.mkdir(exist_ok=True, parents=True)
+        
+        # Use OutputManager for organized directory structure
+        try:
+            from output_manager import get_output_manager
+            manager = get_output_manager()
+            self.output_dir = manager.get_page_output_dir('simple_player')
+        except ImportError:
+            # Fallback if OutputManager not available
+            self.output_dir = Path("M3U_Matrix_Output") / "generated_pages" / "simple_player"
+            self.output_dir.mkdir(exist_ok=True, parents=True)
     
     def parse_m3u_to_channels(self, m3u_content):
         """Parse M3U content and extract channel information with group support"""
@@ -1021,8 +1046,16 @@ class RumbleChannelGenerator:
         if template_path is None:
             template_path = Path(__file__).resolve().parent.parent / "templates" / "rumble_channel_template.html"
         self.template_path = Path(template_path)
-        self.output_dir = Path("generated_pages") / "rumble_channel"
-        self.output_dir.mkdir(exist_ok=True, parents=True)
+        
+        # Use OutputManager for organized directory structure
+        try:
+            from output_manager import get_output_manager
+            manager = get_output_manager()
+            self.output_dir = manager.get_page_output_dir('rumble_channel')
+        except ImportError:
+            # Fallback if OutputManager not available
+            self.output_dir = Path("M3U_Matrix_Output") / "generated_pages" / "rumble_channel"
+            self.output_dir.mkdir(exist_ok=True, parents=True)
         
         # Initialize Rumble Helper for URL normalization and metadata enrichment
         try:
@@ -1268,8 +1301,16 @@ class MultiChannelGenerator:
         if template_path is None:
             template_path = Path(__file__).resolve().parent.parent / "templates" / "multi_channel_template.html"
         self.template_path = Path(template_path)
-        self.output_dir = Path("generated_pages") / "multi_channel"
-        self.output_dir.mkdir(exist_ok=True, parents=True)
+        
+        # Use OutputManager for organized directory structure
+        try:
+            from output_manager import get_output_manager
+            manager = get_output_manager()
+            self.output_dir = manager.get_page_output_dir('multi_channel')
+        except ImportError:
+            # Fallback if OutputManager not available
+            self.output_dir = Path("M3U_Matrix_Output") / "generated_pages" / "multi_channel"
+            self.output_dir.mkdir(exist_ok=True, parents=True)
     
     def generate_page(self, channels, page_name="multi_channel", default_channel_count=1):
         """
@@ -1491,8 +1532,16 @@ class BufferTVGenerator:
         if template_path is None:
             template_path = Path(__file__).resolve().parent.parent / "templates" / "buffer_tv_template.html"
         self.template_path = Path(template_path)
-        self.output_dir = Path("generated_pages") / "buffer_tv"
-        self.output_dir.mkdir(exist_ok=True, parents=True)
+        
+        # Use OutputManager for organized directory structure
+        try:
+            from output_manager import get_output_manager
+            manager = get_output_manager()
+            self.output_dir = manager.get_page_output_dir('buffer_tv')
+        except ImportError:
+            # Fallback if OutputManager not available
+            self.output_dir = Path("M3U_Matrix_Output") / "generated_pages" / "buffer_tv"
+            self.output_dir.mkdir(exist_ok=True, parents=True)
     
     def parse_m3u_to_channels(self, m3u_content):
         """Parse M3U content and extract channel information"""
@@ -1618,8 +1667,16 @@ class StreamHubGenerator:
         if template_path is None:
             template_path = Path(__file__).resolve().parent.parent / "templates" / "stream_hub_template.html"
         self.template_path = Path(template_path)
-        self.output_dir = Path("generated_pages") / "stream_hub"
-        self.output_dir.mkdir(exist_ok=True, parents=True)
+        
+        # Use OutputManager for organized directory structure
+        try:
+            from output_manager import get_output_manager
+            manager = get_output_manager()
+            self.output_dir = manager.get_page_output_dir('stream_hub')
+        except ImportError:
+            # Fallback if OutputManager not available
+            self.output_dir = Path("M3U_Matrix_Output") / "generated_pages" / "stream_hub"
+            self.output_dir.mkdir(exist_ok=True, parents=True)
     
     def parse_m3u_to_channels(self, m3u_content):
         """Parse M3U content and extract channel information"""
@@ -1777,8 +1834,16 @@ class StandaloneSecurePageGenerator:
         if template_path is None:
             template_path = Path(__file__).resolve().parent.parent / "templates" / "standalone_secure_player.html"
         self.template_path = Path(template_path)
-        self.output_dir = Path("generated_pages") / "standalone"
-        self.output_dir.mkdir(exist_ok=True, parents=True)
+        
+        # Use OutputManager for organized directory structure
+        try:
+            from output_manager import get_output_manager
+            manager = get_output_manager()
+            self.output_dir = manager.get_page_output_dir('standalone')
+        except ImportError:
+            # Fallback if OutputManager not available
+            self.output_dir = Path("M3U_Matrix_Output") / "generated_pages" / "standalone"
+            self.output_dir.mkdir(exist_ok=True, parents=True)
         
         # Load HLS.js library for embedding
         self.hls_library = self._load_hls_library()
