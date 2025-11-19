@@ -312,6 +312,11 @@ class NexusTVPageGenerator:
             f'<title>NEXUS TV - {channel_name}</title>'
         )
         
+        # Replace HUB_LINK with correct relative path
+        # Since nexus_tv pages are in generated_pages/nexus_tv/[channel]/player.html
+        # They need to go back two levels to reach index.html
+        modified_html = modified_html.replace('{{HUB_LINK}}', '../../index.html')
+        
         # Create output directory structure
         output_name = output_filename if output_filename else channel_name
         safe_name = re.sub(r'[^a-z0-9]+', '_', output_name.lower())

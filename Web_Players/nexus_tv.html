@@ -56,13 +56,13 @@
             50% { opacity: 1; }
         }
         
-        /* Top Bar - Redesigned to use full width with dynamic resizing */
+        /* Top Bar - Fixed width, no auto-resizing */
         #top-bar {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
-            height: 140px;
+            height: 126px; /* 10% smaller than original 140px */
             padding: 10px 20px;
             z-index: 10;
             display: flex;
@@ -72,24 +72,103 @@
             backdrop-filter: blur(10px);
             border-bottom: 1px solid rgba(0, 243, 255, 0.3);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-            transition: all 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
         }
         
-        /* Compact mode - activated after 1 minute of playback */
-        #top-bar.compact-mode {
-            width: 50%;
+        /* Program Guide Strip - Below Top Bar */
+        #program-guide {
+            position: fixed;
+            top: 126px; /* Positioned right below top bar */
             left: 50%;
             transform: translateX(-50%);
-            border-radius: 0 0 15px 15px;
-            box-shadow: 0 8px 25px rgba(0, 243, 255, 0.4);
+            width: 90%; /* 10% narrower than full width */
+            height: 60px;
+            background: rgba(5, 5, 16, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            z-index: 9;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            gap: 10px;
+            transition: opacity 0.3s ease;
         }
         
-        /* Expand on hover in compact mode */
-        #top-bar.compact-mode:hover {
-            width: 100%;
-            left: 0;
-            transform: translateX(0);
-            border-radius: 0;
+        #program-guide::-webkit-scrollbar {
+            height: 6px;
+        }
+        
+        #program-guide::-webkit-scrollbar-track {
+            background: rgba(0, 243, 255, 0.1);
+            border-radius: 3px;
+        }
+        
+        #program-guide::-webkit-scrollbar-thumb {
+            background: var(--neon-blue);
+            border-radius: 3px;
+        }
+        
+        .program-item {
+            flex-shrink: 0;
+            padding: 8px 15px;
+            background: rgba(20, 20, 40, 0.8);
+            border-radius: 6px;
+            border: 2px solid rgba(0, 243, 255, 0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            min-width: 150px;
+        }
+        
+        .program-item.current {
+            border-color: var(--neon-green);
+            box-shadow: 0 0 15px var(--neon-green);
+            background: rgba(57, 255, 20, 0.1);
+        }
+        
+        .program-item.next {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 10px var(--neon-blue);
+        }
+        
+        .program-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 243, 255, 0.4);
+        }
+        
+        .program-time {
+            font-size: 0.75rem;
+            color: var(--neon-yellow);
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        
+        .program-title {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .program-label {
+            position: absolute;
+            top: -8px;
+            left: 10px;
+            padding: 2px 8px;
+            background: var(--neon-green);
+            color: var(--darker-bg);
+            font-size: 0.65rem;
+            font-weight: 800;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        
+        .program-item.next .program-label {
+            background: var(--neon-blue);
         }
         
         /* Left Section - Thumbnail Carousel - Expanded */
@@ -1695,7 +1774,7 @@
 </head>
 <body>
     <!-- Back to Hub Button -->
-    <a href="../index.html" style="position: fixed; top: 20px; left: 20px; z-index: 10000; background: linear-gradient(135deg, #00d4ff, #0066ff); color: white; padding: 12px 24px; border-radius: 25px; text-decoration: none; font-weight: bold; font-size: 14px; box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4); transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;" onmouseover="this.style.transform='scale(1.05) translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0, 212, 255, 0.6)';" onmouseout="this.style.transform='scale(1) translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0, 212, 255, 0.4)';">🏠 Hub</a>
+    <a href="{{HUB_LINK}}" style="position: fixed; top: 20px; left: 20px; z-index: 10000; background: linear-gradient(135deg, #00d4ff, #0066ff); color: white; padding: 12px 24px; border-radius: 25px; text-decoration: none; font-weight: bold; font-size: 14px; box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4); transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;" onmouseover="this.style.transform='scale(1.05) translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0, 212, 255, 0.6)';" onmouseout="this.style.transform='scale(1) translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0, 212, 255, 0.4)';">🏠 Hub</a>
     
     <!-- Animated Background -->
     <div id="bg-animation"></div>
@@ -1708,6 +1787,11 @@
     <div id="playOverlay" class="play-overlay">
         <div class="play-button"></div>
     </div>
+    </div>
+    
+    <!-- Program Guide Strip -->
+    <div id="program-guide" style="display: none;">
+        <!-- Populated by JavaScript -->
     </div>
     
     <!-- Top Bar - Redesigned to use full width -->
@@ -1825,6 +1909,9 @@
         <div class="control-group">
             <button class="control-btn mode-toggle-btn" id="mode-toggle-btn" title="Switch between Schedule Mode and Live Mode">
                 <i class="fas fa-exchange-alt"></i> <span id="mode-label">SCHEDULE</span>
+            </button>
+            <button class="control-btn" id="guide-btn" title="Toggle Program Guide (G)">
+                <i class="fas fa-tv"></i> GUIDE
             </button>
             <button class="control-btn" id="playlist-btn">
                 <i class="fas fa-list-music"></i> PLAYLIST
@@ -3907,8 +3994,6 @@
         }
         
         // Update video progress bar and time display
-        let compactModeActivated = false;
-        
         function updateVideoProgress() {
             const currentTime = videoPlayer.currentTime;
             const duration = videoPlayer.duration;
@@ -3925,24 +4010,6 @@
             
             const timeRemaining = duration - currentTime;
             document.getElementById('time-remaining').textContent = '(-' + formatTime(timeRemaining) + ')';
-            
-            // Activate compact mode after 60 seconds of playback
-            if (currentTime >= 60 && !compactModeActivated && currentMode === 'schedule') {
-                const topBar = document.getElementById('top-bar');
-                if (topBar) {
-                    topBar.classList.add('compact-mode');
-                    compactModeActivated = true;
-                }
-            }
-            
-            // Reset compact mode when video changes (new program starts)
-            if (currentTime < 5 && compactModeActivated) {
-                const topBar = document.getElementById('top-bar');
-                if (topBar) {
-                    topBar.classList.remove('compact-mode');
-                }
-                compactModeActivated = false;
-            }
         }
         
         // Format seconds to MM:SS
@@ -4038,6 +4105,7 @@
             document.getElementById('menu-timezone-btn').addEventListener('click', toggleTimezoneClocks);
             document.getElementById('playlist-btn').addEventListener('click', togglePlaylistManagement);
             document.getElementById('menu-playlist-btn').addEventListener('click', togglePlaylistManagement);
+            document.getElementById('guide-btn').addEventListener('click', toggleProgramGuide);
             document.getElementById('close-timezone-btn').addEventListener('click', toggleTimezoneClocks);
             document.getElementById('close-playlist-btn').addEventListener('click', togglePlaylistManagement);
             document.getElementById('load-playlist-btn').addEventListener('click', loadM3UPlaylist);
@@ -4088,12 +4156,16 @@
                     case 'KeyP':
                         togglePlaylistManagement();
                         break;
+                    case 'KeyG':
+                        toggleProgramGuide();
+                        break;
                     case 'Escape':
                         if (document.fullscreenElement) {
                             document.exitFullscreen();
                         }
                         document.getElementById('timezone-clocks').style.display = 'none';
                         document.getElementById('playlist-management').style.display = 'none';
+                        document.getElementById('program-guide').style.display = 'none';
                         dropdownMenu.style.display = 'none';
                         break;
                 }
@@ -4113,12 +4185,105 @@
             initializeAudioState();
             setupAudioControls();
             
+            // Initialize program guide
+            updateProgramGuide();
+            
             // Start intervals
             setInterval(updateUI, 1000);
             setInterval(updateClock, 1000);
+            setInterval(updateProgramGuide, 60000); // Update guide every minute
             
             // Set up event listeners
             setupEventListeners();
+        }
+        
+        // Update Program Guide
+        function updateProgramGuide() {
+            const guideContainer = document.getElementById('program-guide');
+            if (!guideContainer) return;
+            
+            const now = new Date();
+            const currentMinutes = now.getHours() * 60 + now.getMinutes();
+            
+            // Clear existing guide
+            guideContainer.innerHTML = '';
+            
+            // Find current and upcoming programs
+            let currentProgram = null;
+            let upcomingPrograms = [];
+            
+            for (let i = 0; i < schedule_data.length; i++) {
+                const program = schedule_data[i];
+                const [hours, minutes] = program.time.split(':').map(Number);
+                const programMinutes = hours * 60 + minutes;
+                
+                if (programMinutes <= currentMinutes) {
+                    currentProgram = { ...program, index: i };
+                } else if (upcomingPrograms.length < 6) {
+                    upcomingPrograms.push({ ...program, index: i });
+                }
+            }
+            
+            // Add programs from next day if needed
+            if (upcomingPrograms.length < 6) {
+                const remaining = 6 - upcomingPrograms.length;
+                for (let i = 0; i < Math.min(remaining, schedule_data.length); i++) {
+                    const program = { ...schedule_data[i], index: i };
+                    program.time = 'Tomorrow ' + program.time;
+                    upcomingPrograms.push(program);
+                }
+            }
+            
+            // Create current program element
+            if (currentProgram) {
+                const currentDiv = document.createElement('div');
+                currentDiv.className = 'program-item current';
+                currentDiv.style.position = 'relative';
+                currentDiv.innerHTML = `
+                    <span class="program-label">CURRENT</span>
+                    <div class="program-time">${currentProgram.time}</div>
+                    <div class="program-title">${currentProgram.title}</div>
+                `;
+                guideContainer.appendChild(currentDiv);
+            }
+            
+            // Create upcoming program elements
+            upcomingPrograms.forEach((program, index) => {
+                const programDiv = document.createElement('div');
+                programDiv.className = index === 0 ? 'program-item next' : 'program-item';
+                if (index === 0) {
+                    programDiv.style.position = 'relative';
+                    programDiv.innerHTML = `
+                        <span class="program-label">NEXT</span>
+                        <div class="program-time">${program.time}</div>
+                        <div class="program-title">${program.title}</div>
+                    `;
+                } else {
+                    programDiv.innerHTML = `
+                        <div class="program-time">${program.time}</div>
+                        <div class="program-title">${program.title}</div>
+                    `;
+                }
+                guideContainer.appendChild(programDiv);
+            });
+            
+            // Auto-scroll to keep current program in view
+            if (currentProgram) {
+                guideContainer.scrollLeft = 0;
+            }
+        }
+        
+        // Toggle Program Guide
+        function toggleProgramGuide() {
+            const guide = document.getElementById('program-guide');
+            if (guide) {
+                if (guide.style.display === 'none' || !guide.style.display) {
+                    guide.style.display = 'flex';
+                    updateProgramGuide();
+                } else {
+                    guide.style.display = 'none';
+                }
+            }
         }
 
         // Update date and time display
