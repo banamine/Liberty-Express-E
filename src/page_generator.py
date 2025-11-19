@@ -1609,6 +1609,160 @@ The player automatically retries failed streams and moves to the next channel.
         return html_path
 
 
+class StreamHubGenerator:
+    """
+    Stream Hub Generator
+    Generates broadcast-quality live TV player with glass-morphism UI
+    """
+    def __init__(self, template_path=None):
+        if template_path is None:
+            template_path = Path(__file__).resolve().parent.parent / "templates" / "stream_hub_template.html"
+        self.template_path = Path(template_path)
+        self.output_dir = Path("generated_pages") / "stream_hub"
+        self.output_dir.mkdir(exist_ok=True, parents=True)
+    
+    def parse_m3u_to_channels(self, m3u_content):
+        """Parse M3U content and extract channel information"""
+        channels = []
+        lines = m3u_content.strip().split('\n')
+        current_channel = {}
+        channel_number = 1
+        
+        for line in lines:
+            line = line.strip()
+            
+            if line.startswith('#EXTINF'):
+                name_match = re.search(r'tvg-name="([^"]*)"', line)
+                logo_match = re.search(r'tvg-logo="([^"]*)"', line)
+                group_match = re.search(r'group-title="([^"]*)"', line)
+                title_match = re.search(r',(.+)$', line)
+                
+                raw_name = name_match.group(1) if name_match else (title_match.group(1) if title_match else 'Unknown')
+                current_channel = {
+                    'number': channel_number,
+                    'name': clean_title(raw_name),
+                    'logo': logo_match.group(1) if logo_match else '',
+                    'group': group_match.group(1) if group_match else 'General'
+                }
+                channel_number += 1
+                
+            elif line and not line.startswith('#'):
+                if current_channel:
+                    current_channel['url'] = line
+                    channels.append(current_channel)
+                    current_channel = {}
+        
+        return channels
+    
+    def generate_page(self, m3u_content, page_name="Stream Hub Live"):
+        """Generate a complete Stream Hub page from M3U content"""
+        
+        # Parse channels from M3U
+        channels = self.parse_m3u_to_channels(m3u_content)
+        
+        if not channels:
+            raise ValueError("No valid channels found in M3U content")
+        
+        # Create page folder
+        safe_name = "".join(c if c.isalnum() or c in " -_" else "_" for c in page_name).strip()
+        safe_name = safe_name.replace(" ", "_")
+        page_folder = self.output_dir / safe_name
+        page_folder.mkdir(exist_ok=True)
+        
+        # Read template
+        if not self.template_path.exists():
+            raise FileNotFoundError(f"Template not found: {self.template_path}")
+        
+        with open(self.template_path, 'r', encoding='utf-8') as f:
+            html_content = f.read()
+        
+        # Replace placeholders
+        safe_title = page_name.replace("'", "\\'")
+        html_content = html_content.replace('{{page_name}}', safe_title)
+        html_content = html_content.replace('<title>{{page_name}} - Stream Hub Live TV</title>',
+                                           f'<title>{safe_title} - Stream Hub Live TV</title>')
+        
+        # Create playlist JSON
+        playlist_data = {
+            'name': page_name,
+            'channels': channels,
+            'generated': datetime.now().isoformat(),
+            'total': len(channels)
+        }
+        
+        # Safely embed JSON
+        playlist_json = json.dumps(playlist_data, indent=4).replace('</script>', '<\\/script>')
+        html_content = html_content.replace('{{playlist_json}}', playlist_json)
+        
+        # Write HTML file
+        html_path = page_folder / f"{safe_name}.html"
+        with open(html_path, 'w', encoding='utf-8') as f:
+            f.write(html_content)
+        
+        # Create README
+        readme_path = page_folder / "README.txt"
+        with open(readme_path, 'w', encoding='utf-8') as f:
+            f.write(f"""Stream Hub: {page_name}
+Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+This is a professional broadcast-quality IPTV player with glass-morphism design.
+
+Channels Available: {len(channels)}
+
+Features:
+• Glass-morphism UI with animated gradient backgrounds
+• HLS.js primary player for m3u8 streams
+• Automatic fallback: HLS → MP4 → Audio-only
+• Smart connection retry with exponential backoff
+• Live channel grid with real-time status
+• Auto-detected channel categories
+• Multi-timezone digital clock
+• Numeric keypad for direct channel entry
+• Search-as-you-type channel finder
+• Smooth channel transitions with animations
+• Audio visualizer for audio-only streams
+• Quality badges (HD, FHD, 4K, SD)
+
+Visual Design:
+• Animated gradient background (purple/blue spectrum)
+• Glass-morphism containers with blur effects
+• Pulsing LIVE indicators
+• Loading shimmer effects
+• Channel transition animations
+• Error state animations
+
+Controls:
+• Previous/Next channel buttons
+• Play/Pause toggle
+• Volume slider
+• Fullscreen mode
+• Numeric keypad (0-9 + OK)
+• Category filters
+• Real-time search
+
+Keyboard Shortcuts:
+• Space: Play/Pause
+• ← →: Previous/Next channel
+• 0-9: Direct channel number entry
+• F: Toggle fullscreen
+• ESC: Close dialogs
+
+To use:
+1. Open {safe_name}.html in any modern web browser
+2. Channels auto-load on startup
+3. Click any channel in the grid to play
+4. Use numeric keypad for direct access
+5. Filter by categories or search
+
+Note: The player includes intelligent fallback mechanisms.
+If HLS streaming fails, it automatically tries MP4 format.
+If video fails completely, it falls back to audio-only mode
+with a visual audio spectrum analyzer.
+""")
+        
+        return html_path
+
+
 if __name__ == "__main__":
     # Example usage
     generator = NexusTVPageGenerator()
