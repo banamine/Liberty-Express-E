@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; media-src *; img-src * data: blob:; connect-src *; frame-src *;">
     <title>{{page_name}} - Stream Hub Live TV</title>
     <style>
         * {
@@ -1017,7 +1018,10 @@
 
             renderChannelGrid() {
                 const container = document.getElementById('channelsContainer');
-                container.innerHTML = '';
+                // Clear container safely
+                while (container.firstChild) {
+                    container.removeChild(container.firstChild);
+                }
                 
                 const filteredChannels = this.activeCategory === 'all' ? 
                     this.channels : 

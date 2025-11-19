@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; media-src *; img-src * data: blob:; connect-src *; frame-src *;">
     <title>{PAGE_TITLE} - Multi-Channel Viewer</title>
     <style>
         * {
@@ -285,7 +286,7 @@
 </head>
 <body>
 <!-- Back to Hub Button -->
-    <a href="../index.html" style="position: fixed; top: 20px; left: 20px; z-index: 10000; background: linear-gradient(135deg, #00d4ff, #0066ff); color: white; padding: 12px 24px; border-radius: 25px; text-decoration: none; font-weight: bold; font-size: 14px; box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4); transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;" onmouseover="this.style.transform='scale(1.05) translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0, 212, 255, 0.6)';" onmouseout="this.style.transform='scale(1) translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0, 212, 255, 0.4)';">🏠 Hub</a>
+    <a href="../index.html" id="hubButton" style="position: fixed; top: 20px; left: 20px; z-index: 10000; background: linear-gradient(135deg, #00d4ff, #0066ff); color: white; padding: 12px 24px; border-radius: 25px; text-decoration: none; font-weight: bold; font-size: 14px; box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4); transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;">🏠 Hub</a>
     
 
     <!-- Header -->
@@ -307,7 +308,7 @@
             <option value="6">6 Channels</option>
         </select>
 
-        <button class="btn" onclick="toggleRotation()" id="rotationBtn">▶ Start Rotation</button>
+        <button class="btn" id="rotationBtn">▶ Start Rotation</button>
         
         <label>Interval:</label>
         <select id="rotationInterval">
@@ -320,9 +321,9 @@
 
         <div class="rotation-timer" id="rotationTimer">Next switch in: <span id="timerDisplay">--:--</span></div>
 
-        <button class="btn btn-success" onclick="playAll()">▶ Play All</button>
-        <button class="btn btn-danger" onclick="pauseAll()">⏸ Pause All</button>
-        <button class="btn" onclick="muteAll()">🔇 Mute All</button>
+        <button class="btn btn-success" id="playAllBtn">▶ Play All</button>
+        <button class="btn btn-danger" id="pauseAllBtn">⏸ Pause All</button>
+        <button class="btn" id="muteAllBtn">🔇 Mute All</button>
     </div>
 
     <!-- Focus Mode Overlay -->
@@ -355,6 +356,41 @@
         document.addEventListener('DOMContentLoaded', function() {
             initializeChannels();
             updateChannelCount();
+            
+            // Add event listeners for control buttons
+            const rotationBtn = document.getElementById('rotationBtn');
+            if (rotationBtn) {
+                rotationBtn.addEventListener('click', toggleRotation);
+            }
+            
+            const playAllBtn = document.getElementById('playAllBtn');
+            if (playAllBtn) {
+                playAllBtn.addEventListener('click', playAll);
+            }
+            
+            const pauseAllBtn = document.getElementById('pauseAllBtn');
+            if (pauseAllBtn) {
+                pauseAllBtn.addEventListener('click', pauseAll);
+            }
+            
+            const muteAllBtn = document.getElementById('muteAllBtn');
+            if (muteAllBtn) {
+                muteAllBtn.addEventListener('click', muteAll);
+            }
+            
+            // Add event listener for hub button
+            const hubButton = document.getElementById('hubButton');
+            if (hubButton) {
+                hubButton.addEventListener('mouseover', function() {
+                    this.style.transform = 'scale(1.05) translateY(-2px)';
+                    this.style.boxShadow = '0 6px 20px rgba(0, 212, 255, 0.6)';
+                });
+                
+                hubButton.addEventListener('mouseout', function() {
+                    this.style.transform = 'scale(1) translateY(0)';
+                    this.style.boxShadow = '0 4px 15px rgba(0, 212, 255, 0.4)';
+                });
+            }
         });
 
         function initializeChannels() {
@@ -384,29 +420,59 @@
             const playlistItem = PLAYLIST[channelPlaylists[index]];
             channelCreationCounter++;
 
-            channelDiv.innerHTML = `
-                <div class="channel-header">
-                    <div class="channel-title" id="title-${index}"></div>
-                    <div class="channel-controls">
-                        <button class="channel-btn" onclick="focusChannel(${index})">⛶</button>
-                        <button class="channel-btn" onclick="setActiveAudio(${index})">🔊</button>
-                    </div>
-                </div>
-                <div class="video-container">
-                    <div class="audio-indicator">🔊 AUDIO</div>
-                    <div class="loading">Loading...</div>
-                    <video id="video-${index}" 
-                           preload="metadata"
-                           onclick="setActiveAudio(${index})"
-                           loop>
-                    </video>
-                </div>
-            `;
+            // Create channel structure safely
+            const channelHeader = document.createElement('div');
+            channelHeader.className = 'channel-header';
+            
+            const channelTitle = document.createElement('div');
+            channelTitle.className = 'channel-title';
+            channelTitle.id = `title-${index}`;
+            
+            const channelControls = document.createElement('div');
+            channelControls.className = 'channel-controls';
+            
+            const focusBtn = document.createElement('button');
+            focusBtn.className = 'channel-btn';
+            focusBtn.textContent = '⛶';
+            focusBtn.addEventListener('click', () => focusChannel(index));
+            
+            const audioBtn = document.createElement('button');
+            audioBtn.className = 'channel-btn';
+            audioBtn.textContent = '🔊';
+            audioBtn.addEventListener('click', () => setActiveAudio(index));
+            
+            channelControls.appendChild(focusBtn);
+            channelControls.appendChild(audioBtn);
+            channelHeader.appendChild(channelTitle);
+            channelHeader.appendChild(channelControls);
+            
+            const videoContainer = document.createElement('div');
+            videoContainer.className = 'video-container';
+            
+            const audioIndicator = document.createElement('div');
+            audioIndicator.className = 'audio-indicator';
+            audioIndicator.textContent = '🔊 AUDIO';
+            
+            const loading = document.createElement('div');
+            loading.className = 'loading';
+            loading.textContent = 'Loading...';
+            
+            const video = document.createElement('video');
+            video.id = `video-${index}`;
+            video.preload = 'metadata';
+            video.loop = true;
+            video.addEventListener('click', () => setActiveAudio(index));
+            
+            videoContainer.appendChild(audioIndicator);
+            videoContainer.appendChild(loading);
+            videoContainer.appendChild(video);
+            
+            channelDiv.appendChild(channelHeader);
+            channelDiv.appendChild(videoContainer);
 
             document.getElementById('channelGrid').appendChild(channelDiv);
 
-            // Setup video
-            const video = document.getElementById(`video-${index}`);
+            // Setup video (already created above)
             const titleEl = document.getElementById(`title-${index}`);
             
             // Set title safely

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; media-src *; img-src * data: blob:; connect-src *; frame-src *;">
     <title>{{PAGE_TITLE}}</title>
     <style>
         * {
@@ -316,11 +317,11 @@
                     Select a channel to start playing
                 </div>
                 <div class="control-buttons">
-                    <button onclick="playPrevious()">⏮ Previous</button>
-                    <button onclick="togglePlay()" id="playPauseBtn">⏸ Pause</button>
-                    <button onclick="playNext()">⏭ Next</button>
-                    <button onclick="toggleMute()" id="muteBtn">🔇 Mute</button>
-                    <button onclick="toggleShuffle()" id="shuffleBtn">🔀 Shuffle: OFF</button>
+                    <button id="prevBtn">⏮ Previous</button>
+                    <button id="playPauseBtn">⏸ Pause</button>
+                    <button id="nextBtn">⏭ Next</button>
+                    <button id="muteBtn">🔇 Mute</button>
+                    <button id="shuffleBtn">🔀 Shuffle: OFF</button>
                 </div>
             </div>
         </div>
@@ -328,10 +329,10 @@
         <div class="playlist-section">
             <div class="playlist-header">
                 <h2>Playlist</h2>
-                <input type="text" class="search-box" placeholder="Search channels..." id="searchBox" oninput="searchChannels()">
+                <input type="text" class="search-box" placeholder="Search channels..." id="searchBox">
             </div>
             <div class="playlist-items" id="playlistItems"></div>
-            <button class="load-more" id="loadMoreBtn" onclick="loadMoreChannels()" style="display: none;">
+            <button class="load-more" id="loadMoreBtn" style="display: none;">
                 Load More Channels
             </button>
         </div>
@@ -438,13 +439,34 @@
             const container = document.getElementById('playlistItems');
             const channelsToRender = filteredChannels || displayedChannels;
             
-            container.innerHTML = channelsToRender.map((channel, index) => `
-                <div class="playlist-item ${currentIndex === displayedChannels.indexOf(channel) ? 'active' : ''}" 
-                     onclick="playChannel(${displayedChannels.indexOf(channel)})">
-                    <div class="channel-name">${channel.name}</div>
-                    <div class="channel-info">${channel.group}</div>
-                </div>
-            `).join('');
+            // Clear container safely
+            while (container.firstChild) {
+                container.removeChild(container.firstChild);
+            }
+            
+            // Create playlist items safely
+            channelsToRender.forEach((channel, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'playlist-item';
+                if (currentIndex === displayedChannels.indexOf(channel)) {
+                    itemDiv.classList.add('active');
+                }
+                
+                const channelIndex = displayedChannels.indexOf(channel);
+                itemDiv.addEventListener('click', () => playChannel(channelIndex));
+                
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'channel-name';
+                nameDiv.textContent = channel.name;
+                
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'channel-info';
+                infoDiv.textContent = channel.group;
+                
+                itemDiv.appendChild(nameDiv);
+                itemDiv.appendChild(infoDiv);
+                container.appendChild(itemDiv);
+            });
         }
 
         // Play channel
@@ -616,6 +638,42 @@
             parsePlaylist();
             updateTime();
             setInterval(updateTime, 1000);
+            
+            // Add event listeners for control buttons
+            const prevBtn = document.getElementById('prevBtn');
+            if (prevBtn) {
+                prevBtn.addEventListener('click', playPrevious);
+            }
+            
+            const playPauseBtn = document.getElementById('playPauseBtn');
+            if (playPauseBtn) {
+                playPauseBtn.addEventListener('click', togglePlay);
+            }
+            
+            const nextBtn = document.getElementById('nextBtn');
+            if (nextBtn) {
+                nextBtn.addEventListener('click', playNext);
+            }
+            
+            const muteBtn = document.getElementById('muteBtn');
+            if (muteBtn) {
+                muteBtn.addEventListener('click', toggleMute);
+            }
+            
+            const shuffleBtn = document.getElementById('shuffleBtn');
+            if (shuffleBtn) {
+                shuffleBtn.addEventListener('click', toggleShuffle);
+            }
+            
+            const searchBox = document.getElementById('searchBox');
+            if (searchBox) {
+                searchBox.addEventListener('input', searchChannels);
+            }
+            
+            const loadMoreBtn = document.getElementById('loadMoreBtn');
+            if (loadMoreBtn) {
+                loadMoreBtn.addEventListener('click', loadMoreChannels);
+            }
             
             // Try autoplay with first channel
             if (displayedChannels.length > 0) {

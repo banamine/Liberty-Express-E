@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; media-src *; img-src * data: blob:; connect-src *">
 <title>Classic TV Player</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
@@ -269,24 +270,40 @@ function loadChannel(idx) {
 
 function buildPlaylist() {
   const container = document.getElementById('playlist-container');
-  container.innerHTML = '';
+  // Clear existing content
+  while (container.firstChild) {
+    container.removeChild(container.firstChild);
+  }
+  
   playlist.forEach((ch, i) => {
     const div = document.createElement('div');
     div.className = 'playlist-item';
     
-    // Create image with fallback
+    // Create image element
+    const img = document.createElement('img');
     let imgSrc = ch.logo || '';
     if (!imgSrc || imgSrc.length < 5) {
       // Use first two letters of name as fallback
       const initials = ch.name ? ch.name.substring(0, 2).toUpperCase() : 'TV';
-      imgSrc = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='45'%3E%3Crect width='80' height='45' fill='%23222'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23fff' font-size='16' font-family='sans-serif'%3E${initials}%3C/text%3E%3C/svg%3E`;
+      imgSrc = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='45'%3E%3Crect width='80' height='45' fill='%23222'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23fff' font-size='16' font-family='sans-serif'%3E${encodeURIComponent(initials)}%3C/text%3E%3C/svg%3E`;
     }
+    img.src = imgSrc;
     
-    div.innerHTML = `
-      <img src="${imgSrc}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2780%27 height=%2745%27%3E%3Crect width=%2780%27 height=%2745%27 fill=%27%23222%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 text-anchor=%27middle%27 dy=%27.3em%27 fill=%27%23fff%27 font-size=%2716%27 font-family=%27sans-serif%27%3ETV%3C/text%3E%3C/svg%3E'">
-      <span>${ch.name}</span>
-    `;
-    div.onclick = () => loadChannel(i);
+    // Add error handler for image
+    img.addEventListener('error', function() {
+      this.src = 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2780%27 height=%2745%27%3E%3Crect width=%2780%27 height=%2745%27 fill=%27%23222%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 text-anchor=%27middle%27 dy=%27.3em%27 fill=%27%23fff%27 font-size=%2716%27 font-family=%27sans-serif%27%3ETV%3C/text%3E%3C/svg%3E';
+    });
+    
+    // Create span for channel name
+    const span = document.createElement('span');
+    span.textContent = ch.name;
+    
+    // Add click handler
+    div.addEventListener('click', () => loadChannel(i));
+    
+    // Append elements
+    div.appendChild(img);
+    div.appendChild(span);
     container.appendChild(div);
   });
   updateActiveItem();
@@ -299,19 +316,21 @@ function updateActiveItem() {
 }
 
 /* Sidebar toggles */
-document.getElementById('toggle-playlist').onclick = () => {
+document.getElementById('toggle-playlist').addEventListener('click', () => {
   document.getElementById('playlist-sidebar').classList.toggle('open');
   updateDim();
-};
-document.getElementById('toggle-settings').onclick = () => {
+});
+
+document.getElementById('toggle-settings').addEventListener('click', () => {
   document.getElementById('settings-sidebar').classList.toggle('open');
   updateDim();
-};
-document.getElementById('dim-overlay').onclick = () => {
+});
+
+document.getElementById('dim-overlay').addEventListener('click', () => {
   document.getElementById('playlist-sidebar').classList.remove('open');
   document.getElementById('settings-sidebar').classList.remove('open');
   updateDim();
-};
+});
 
 function updateDim() {
   const open = document.getElementById('playlist-sidebar').classList.contains('open') ||
@@ -320,20 +339,28 @@ function updateDim() {
 }
 
 /* Bottom controls */
-document.getElementById('prevBtn').onclick = () => loadChannel((currentIndex - 1 + playlist.length) % playlist.length);
-document.getElementById('nextBtn').onclick = () => loadChannel((currentIndex + 1) % playlist.length);
-document.getElementById('playPauseBtn').onclick = () => {
+document.getElementById('prevBtn').addEventListener('click', () => 
+  loadChannel((currentIndex - 1 + playlist.length) % playlist.length)
+);
+
+document.getElementById('nextBtn').addEventListener('click', () => 
+  loadChannel((currentIndex + 1) % playlist.length)
+);
+
+document.getElementById('playPauseBtn').addEventListener('click', () => {
   if (player.paused) {
     player.play();
   } else {
     player.pause();
   }
-};
-document.getElementById('muteBtn').onclick = () => { 
+});
+
+document.getElementById('muteBtn').addEventListener('click', () => { 
   player.muted = !player.muted;
   document.getElementById('muteBtn').textContent = player.muted ? '🔇' : '🔊';
-};
-document.getElementById('fsBtn').onclick = () => {
+});
+
+document.getElementById('fsBtn').addEventListener('click', () => {
   if (player.requestFullscreen) {
     player.requestFullscreen();
   } else if (player.webkitRequestFullscreen) {
@@ -341,11 +368,19 @@ document.getElementById('fsBtn').onclick = () => {
   } else if (player.msRequestFullscreen) {
     player.msRequestFullscreen();
   }
-};
-document.getElementById('volume').oninput = e => player.volume = e.target.value;
+});
 
-player.onplay = () => document.getElementById('playPauseBtn').textContent = '⏸';
-player.onpause = () => document.getElementById('playPauseBtn').textContent = '▶';
+document.getElementById('volume').addEventListener('input', e => {
+  player.volume = e.target.value;
+});
+
+player.addEventListener('play', () => {
+  document.getElementById('playPauseBtn').textContent = '⏸';
+});
+
+player.addEventListener('pause', () => {
+  document.getElementById('playPauseBtn').textContent = '▶';
+});
 
 /* Prevent sidebar scroll from bubbling to page */
 document.querySelectorAll('.sidebar').forEach(sb => {
@@ -385,9 +420,9 @@ document.addEventListener('keydown', (e) => {
 });
 
 /* Auto-play next on ended */
-player.onended = () => {
+player.addEventListener('ended', () => {
   loadChannel((currentIndex + 1) % playlist.length);
-};
+});
 
 /* Init */
 buildPlaylist();

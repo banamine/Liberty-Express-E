@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; media-src *; img-src * data: blob:; connect-src *; font-src 'self' https://cdnjs.cloudflare.com;">
     <title>TV Player with Improved Buffering</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -562,7 +563,7 @@
 </head>
 <body>
 <!-- Back to Hub Button -->
-    <a href="../index.html" style="position: fixed; top: 20px; left: 20px; z-index: 10000; background: linear-gradient(135deg, #00d4ff, #0066ff); color: white; padding: 12px 24px; border-radius: 25px; text-decoration: none; font-weight: bold; font-size: 14px; box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4); transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;" onmouseover="this.style.transform='scale(1.05) translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0, 212, 255, 0.6)';" onmouseout="this.style.transform='scale(1) translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0, 212, 255, 0.4)';">🏠 Hub</a>
+    <a href="../index.html" id="hubButton" style="position: fixed; top: 20px; left: 20px; z-index: 10000; background: linear-gradient(135deg, #00d4ff, #0066ff); color: white; padding: 12px 24px; border-radius: 25px; text-decoration: none; font-weight: bold; font-size: 14px; box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4); transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;">🏠 Hub</a>
     
 
     <div class="tv-container">
@@ -720,6 +721,20 @@
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Add event listeners for hub button
+            const hubButton = document.getElementById('hubButton');
+            if (hubButton) {
+                hubButton.addEventListener('mouseover', function() {
+                    this.style.transform = 'scale(1.05) translateY(-2px)';
+                    this.style.boxShadow = '0 6px 20px rgba(0, 212, 255, 0.6)';
+                });
+                
+                hubButton.addEventListener('mouseout', function() {
+                    this.style.transform = 'scale(1) translateY(0)';
+                    this.style.boxShadow = '0 4px 15px rgba(0, 212, 255, 0.4)';
+                });
+            }
+            
             // Elements
             const videoPlayer = document.getElementById('video-player');
             const loadingOverlay = document.getElementById('loading-overlay');
@@ -1240,41 +1255,76 @@ https://amg01796-amg01796c19-rakuten-gb-7486.playouts.now.amagi.tv/playlist/amg0
                 ];
                 
                 // Clear existing buttons
-                keypadContainer.innerHTML = '';
-                overlayKeypadContainer.innerHTML = '';
+                while (keypadContainer.firstChild) {
+                    keypadContainer.removeChild(keypadContainer.firstChild);
+                }
+                while (overlayKeypadContainer.firstChild) {
+                    overlayKeypadContainer.removeChild(overlayKeypadContainer.firstChild);
+                }
                 
                 // Create buttons for both keypads
                 keypadNumbers.forEach(item => {
+                    // Create button for main keypad
                     const button = document.createElement('button');
                     button.className = 'keypad-btn';
-                    button.innerHTML = `
-                        <span class="keypad-number">${item.number}</span>
-                        <span class="channel-name">${item.name}</span>
-                    `;
+                    
+                    const numberSpan = document.createElement('span');
+                    numberSpan.className = 'keypad-number';
+                    numberSpan.textContent = item.number;
+                    
+                    const nameSpan = document.createElement('span');
+                    nameSpan.className = 'channel-name';
+                    nameSpan.textContent = item.name;
+                    
+                    button.appendChild(numberSpan);
+                    button.appendChild(nameSpan);
                     
                     button.addEventListener('click', function() {
                         handleKeypadInput(item.number);
                     });
                     
-                    keypadContainer.appendChild(button.cloneNode(true));
-                    overlayKeypadContainer.appendChild(button);
+                    // Create button for overlay keypad
+                    const overlayButton = button.cloneNode(true);
+                    overlayButton.addEventListener('click', function() {
+                        handleKeypadInput(item.number);
+                    });
+                    
+                    keypadContainer.appendChild(button);
+                    overlayKeypadContainer.appendChild(overlayButton);
                 });
             }
             
             // Generate guide channels
             function generateGuideChannels() {
-                guideContainer.innerHTML = '';
+                // Clear existing channels
+                while (guideContainer.firstChild) {
+                    guideContainer.removeChild(guideContainer.firstChild);
+                }
                 
                 channels.forEach(channel => {
                     const channelElement = document.createElement('div');
                     channelElement.className = 'guide-channel';
-                    channelElement.innerHTML = `
-                        <div class="channel-number">${channel.number}</div>
-                        <div class="channel-info">
-                            <div class="channel-name">${channel.name}</div>
-                            <div class="channel-category">${channel.category}</div>
-                        </div>
-                    `;
+                    
+                    const numberDiv = document.createElement('div');
+                    numberDiv.className = 'channel-number';
+                    numberDiv.textContent = channel.number;
+                    
+                    const infoDiv = document.createElement('div');
+                    infoDiv.className = 'channel-info';
+                    
+                    const nameDiv = document.createElement('div');
+                    nameDiv.className = 'channel-name';
+                    nameDiv.textContent = channel.name;
+                    
+                    const categoryDiv = document.createElement('div');
+                    categoryDiv.className = 'channel-category';
+                    categoryDiv.textContent = channel.category;
+                    
+                    infoDiv.appendChild(nameDiv);
+                    infoDiv.appendChild(categoryDiv);
+                    
+                    channelElement.appendChild(numberDiv);
+                    channelElement.appendChild(infoDiv);
                     
                     channelElement.addEventListener('click', function() {
                         loadChannel(channels.indexOf(channel));

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; media-src *; img-src * data: blob:; connect-src *; font-src 'self' data:;">
     <title>NEXUS TV - Classic Movies Channel</title>
     <style>
         * {
@@ -1774,7 +1775,7 @@
 </head>
 <body>
     <!-- Back to Hub Button -->
-    <a href="{{HUB_LINK}}" style="position: fixed; top: 20px; left: 20px; z-index: 10000; background: linear-gradient(135deg, #00d4ff, #0066ff); color: white; padding: 12px 24px; border-radius: 25px; text-decoration: none; font-weight: bold; font-size: 14px; box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4); transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;" onmouseover="this.style.transform='scale(1.05) translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0, 212, 255, 0.6)';" onmouseout="this.style.transform='scale(1) translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0, 212, 255, 0.4)';">🏠 Hub</a>
+    <a href="{{HUB_LINK}}" id="hubButton" style="position: fixed; top: 20px; left: 20px; z-index: 10000; background: linear-gradient(135deg, #00d4ff, #0066ff); color: white; padding: 12px 24px; border-radius: 25px; text-decoration: none; font-weight: bold; font-size: 14px; box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4); transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;">🏠 Hub</a>
     
     <!-- Animated Background -->
     <div id="bg-animation"></div>
@@ -2047,7 +2048,7 @@
         <div class="dialog-content">
             <div class="dialog-header">
                 <h3>Load M3U Playlist</h3>
-                <button class="dialog-close-btn" onclick="closeLiveDialog('m3u-load-dialog')">
+                <button class="dialog-close-btn" id="close-m3u-dialog">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -2062,10 +2063,10 @@
                 </div>
             </div>
             <div class="dialog-footer">
-                <button class="dialog-btn dialog-btn-primary" onclick="loadM3UPlaylist()">
+                <button class="dialog-btn dialog-btn-primary" id="load-m3u-btn">
                     <i class="fas fa-check"></i> Load Playlist
                 </button>
-                <button class="dialog-btn" onclick="closeLiveDialog('m3u-load-dialog')">
+                <button class="dialog-btn" id="cancel-m3u-btn">
                     Cancel
                 </button>
             </div>
@@ -2083,7 +2084,7 @@
         <div class="dialog-content">
             <div class="dialog-header">
                 <h3>⭐ Favorite Channels</h3>
-                <button class="dialog-close-btn" onclick="closeLiveDialog('favorites-dialog')">
+                <button class="dialog-close-btn" id="close-favorites-dialog">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -2093,13 +2094,13 @@
                 </div>
             </div>
             <div class="dialog-footer">
-                <button class="dialog-btn dialog-btn-primary" onclick="exportFavoritesAsM3U()">
+                <button class="dialog-btn dialog-btn-primary" id="export-favorites-btn">
                     <i class="fas fa-download"></i> Export as M3U
                 </button>
-                <button class="dialog-btn" onclick="clearAllFavorites()">
+                <button class="dialog-btn" id="clear-favorites-btn">
                     <i class="fas fa-trash"></i> Clear All
                 </button>
-                <button class="dialog-btn" onclick="closeLiveDialog('favorites-dialog')">
+                <button class="dialog-btn" id="close-favorites-dialog-btn">
                     Close
                 </button>
             </div>
@@ -2111,7 +2112,7 @@
         <div class="dialog-content">
             <div class="dialog-header">
                 <h3>📜 Playlist History</h3>
-                <button class="dialog-close-btn" onclick="closeLiveDialog('history-dialog')">
+                <button class="dialog-close-btn" id="close-history-dialog">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -2121,10 +2122,10 @@
                 </div>
             </div>
             <div class="dialog-footer">
-                <button class="dialog-btn" onclick="clearAllHistory()">
+                <button class="dialog-btn" id="clear-history-btn">
                     <i class="fas fa-trash"></i> Clear All
                 </button>
-                <button class="dialog-btn" onclick="closeLiveDialog('history-dialog')">
+                <button class="dialog-btn" id="close-history-dialog-btn">
                     Close
                 </button>
             </div>
@@ -2136,7 +2137,7 @@
         <div class="dialog-content" style="max-width: 800px;">
             <div class="dialog-header">
                 <h3>📊 Channel Analysis</h3>
-                <button class="dialog-close-btn" onclick="closeLiveDialog('analysis-dialog')">
+                <button class="dialog-close-btn" id="close-analysis-dialog">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -2161,10 +2162,10 @@
                 </div>
             </div>
             <div class="dialog-footer">
-                <button class="dialog-btn dialog-btn-primary" onclick="exportAnalysisReport()">
+                <button class="dialog-btn dialog-btn-primary" id="export-analysis-btn">
                     <i class="fas fa-file-export"></i> Export Report
                 </button>
-                <button class="dialog-btn" onclick="closeLiveDialog('analysis-dialog')">
+                <button class="dialog-btn" id="close-analysis-dialog-btn">
                     Close
                 </button>
             </div>
@@ -2176,7 +2177,7 @@
         <div class="dialog-content">
             <div class="dialog-header">
                 <h3>🔗 Share Playlist</h3>
-                <button class="dialog-close-btn" onclick="closeLiveDialog('share-dialog')">
+                <button class="dialog-close-btn" id="close-share-dialog">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -2193,10 +2194,10 @@
                 </div>
             </div>
             <div class="dialog-footer">
-                <button class="dialog-btn dialog-btn-primary" onclick="copyShareURL()">
+                <button class="dialog-btn dialog-btn-primary" id="copy-share-url-btn">
                     <i class="fas fa-copy"></i> Copy URL
                 </button>
-                <button class="dialog-btn" onclick="closeLiveDialog('share-dialog')">
+                <button class="dialog-btn" id="close-share-dialog-btn">
                     Close
                 </button>
             </div>
@@ -2374,29 +2375,74 @@
         
         function displayChannels(channels) {
             const container = document.getElementById('live-channel-list');
-            container.innerHTML = '';
+            // Clear container safely
+            while (container.firstChild) {
+                container.removeChild(container.firstChild);
+            }
             
             channels.forEach((channel, index) => {
                 const channelEl = document.createElement('div');
                 channelEl.className = 'channel-item';
-                channelEl.innerHTML = `
-                    <div class="channel-logo">
-                        <img src="${channel.logo || 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22><text y=%2220%22>📺</text></svg>'}" 
-                             onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22><text y=%2220%22>📺</text></svg>'">
-                    </div>
-                    <div class="channel-info">
-                        <div class="channel-name">${channel.name}</div>
-                        <div class="channel-group">${channel.group || 'Other'}</div>
-                    </div>
-                    <div class="channel-actions">
-                        <button class="channel-action-btn" onclick="toggleFavorite(${index})" title="Toggle Favorite">
-                            <i class="fas fa-star ${isFavorite(index) ? 'favorited' : ''}"></i>
-                        </button>
-                        <button class="channel-action-btn" onclick="playChannel(${index})" title="Play Channel">
-                            <i class="fas fa-play"></i>
-                        </button>
-                    </div>
-                `;
+                
+                // Channel logo container
+                const logoDiv = document.createElement('div');
+                logoDiv.className = 'channel-logo';
+                
+                const logoImg = document.createElement('img');
+                const defaultLogo = 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22><text y=%2220%22>📺</text></svg>';
+                logoImg.src = channel.logo || defaultLogo;
+                logoImg.addEventListener('error', function() {
+                    this.src = defaultLogo;
+                });
+                logoDiv.appendChild(logoImg);
+                
+                // Channel info container
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'channel-info';
+                
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'channel-name';
+                nameDiv.textContent = channel.name;
+                
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'channel-group';
+                groupDiv.textContent = channel.group || 'Other';
+                
+                infoDiv.appendChild(nameDiv);
+                infoDiv.appendChild(groupDiv);
+                
+                // Channel actions container
+                const actionsDiv = document.createElement('div');
+                actionsDiv.className = 'channel-actions';
+                
+                const favoriteBtn = document.createElement('button');
+                favoriteBtn.className = 'channel-action-btn';
+                favoriteBtn.title = 'Toggle Favorite';
+                favoriteBtn.addEventListener('click', () => toggleFavorite(index));
+                
+                const favoriteIcon = document.createElement('i');
+                favoriteIcon.className = 'fas fa-star';
+                if (isFavorite(index)) {
+                    favoriteIcon.classList.add('favorited');
+                }
+                favoriteBtn.appendChild(favoriteIcon);
+                
+                const playBtn = document.createElement('button');
+                playBtn.className = 'channel-action-btn';
+                playBtn.title = 'Play Channel';
+                playBtn.addEventListener('click', () => playChannel(index));
+                
+                const playIcon = document.createElement('i');
+                playIcon.className = 'fas fa-play';
+                playBtn.appendChild(playIcon);
+                
+                actionsDiv.appendChild(favoriteBtn);
+                actionsDiv.appendChild(playBtn);
+                
+                channelEl.appendChild(logoDiv);
+                channelEl.appendChild(infoDiv);
+                channelEl.appendChild(actionsDiv);
+                
                 container.appendChild(channelEl);
             });
         }
@@ -4114,6 +4160,60 @@
             document.getElementById('next-btn').addEventListener('click', playNextVideo);
             document.getElementById('menu-next-btn').addEventListener('click', playNextVideo);
             menuButton.addEventListener('click', toggleDropdownMenu);
+            
+            // Hub button hover effects
+            const hubButton = document.getElementById('hubButton');
+            if (hubButton) {
+                hubButton.addEventListener('mouseover', function() {
+                    this.style.transform = 'scale(1.05) translateY(-2px)';
+                    this.style.boxShadow = '0 6px 20px rgba(0, 212, 255, 0.6)';
+                });
+                
+                hubButton.addEventListener('mouseout', function() {
+                    this.style.transform = 'scale(1) translateY(0)';
+                    this.style.boxShadow = '0 4px 15px rgba(0, 212, 255, 0.4)';
+                });
+            }
+            
+            // Dialog button event listeners
+            const exportFavBtn = document.getElementById('export-favorites-btn');
+            if (exportFavBtn) exportFavBtn.addEventListener('click', exportFavoritesAsM3U);
+            
+            const clearFavBtn = document.getElementById('clear-favorites-btn');
+            if (clearFavBtn) clearFavBtn.addEventListener('click', clearAllFavorites);
+            
+            const closeFavBtn = document.getElementById('close-favorites-dialog-btn');
+            if (closeFavBtn) closeFavBtn.addEventListener('click', () => closeLiveDialog('favorites-dialog'));
+            
+            const closeFavDialogBtn = document.getElementById('close-favorites-dialog');
+            if (closeFavDialogBtn) closeFavDialogBtn.addEventListener('click', () => closeLiveDialog('favorites-dialog'));
+            
+            const clearHistBtn = document.getElementById('clear-history-btn');
+            if (clearHistBtn) clearHistBtn.addEventListener('click', clearAllHistory);
+            
+            const closeHistBtn = document.getElementById('close-history-dialog-btn');
+            if (closeHistBtn) closeHistBtn.addEventListener('click', () => closeLiveDialog('history-dialog'));
+            
+            const closeHistDialogBtn = document.getElementById('close-history-dialog');
+            if (closeHistDialogBtn) closeHistDialogBtn.addEventListener('click', () => closeLiveDialog('history-dialog'));
+            
+            const exportAnalysisBtn = document.getElementById('export-analysis-btn');
+            if (exportAnalysisBtn) exportAnalysisBtn.addEventListener('click', exportAnalysisReport);
+            
+            const closeAnalysisBtn = document.getElementById('close-analysis-dialog-btn');
+            if (closeAnalysisBtn) closeAnalysisBtn.addEventListener('click', () => closeLiveDialog('analysis-dialog'));
+            
+            const closeAnalysisDialogBtn = document.getElementById('close-analysis-dialog');
+            if (closeAnalysisDialogBtn) closeAnalysisDialogBtn.addEventListener('click', () => closeLiveDialog('analysis-dialog'));
+            
+            const copyShareBtn = document.getElementById('copy-share-url-btn');
+            if (copyShareBtn) copyShareBtn.addEventListener('click', copyShareURL);
+            
+            const closeShareBtn = document.getElementById('close-share-dialog-btn');
+            if (closeShareBtn) closeShareBtn.addEventListener('click', () => closeLiveDialog('share-dialog'));
+            
+            const closeShareDialogBtn = document.getElementById('close-share-dialog');
+            if (closeShareDialogBtn) closeShareDialogBtn.addEventListener('click', () => closeLiveDialog('share-dialog'));
             
             // Video events
             videoPlayer.addEventListener('ended', handleVideoEnd);

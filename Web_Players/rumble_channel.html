@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; media-src *; img-src * data: blob:; connect-src *; frame-src *;">
     <title>{PAGE_TITLE}</title>
     <style>
         * {
@@ -269,7 +270,7 @@
 </head>
 <body>
 <!-- Back to Hub Button -->
-    <a href="../index.html" style="position: fixed; top: 20px; left: 20px; z-index: 10000; background: linear-gradient(135deg, #00d4ff, #0066ff); color: white; padding: 12px 24px; border-radius: 25px; text-decoration: none; font-weight: bold; font-size: 14px; box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4); transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;" onmouseover="this.style.transform='scale(1.05) translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0, 212, 255, 0.6)';" onmouseout="this.style.transform='scale(1) translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0, 212, 255, 0.4)';">🏠 Hub</a>
+    <a href="../index.html" id="hubButton" style="position: fixed; top: 20px; left: 20px; z-index: 10000; background: linear-gradient(135deg, #00d4ff, #0066ff); color: white; padding: 12px 24px; border-radius: 25px; text-decoration: none; font-weight: bold; font-size: 14px; box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4); transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;">🏠 Hub</a>
     
 
     <div class="container">
@@ -307,6 +308,22 @@
     </div>
 
     <script>
+        // Add event listeners for hub button
+        document.addEventListener('DOMContentLoaded', function() {
+            const hubButton = document.getElementById('hubButton');
+            if (hubButton) {
+                hubButton.addEventListener('mouseover', function() {
+                    this.style.transform = 'scale(1.05) translateY(-2px)';
+                    this.style.boxShadow = '0 6px 20px rgba(0, 212, 255, 0.6)';
+                });
+                
+                hubButton.addEventListener('mouseout', function() {
+                    this.style.transform = 'scale(1) translateY(0)';
+                    this.style.boxShadow = '0 4px 15px rgba(0, 212, 255, 0.4)';
+                });
+            }
+        });
+        
         // Embedded playlist data
         const PLAYLIST = {PLAYLIST_JSON};
         let currentIndex = 0;
@@ -322,12 +339,15 @@
         // Render playlist sidebar
         function renderPlaylist() {
             const container = document.getElementById('playlistContainer');
-            container.innerHTML = '';
+            // Clear container safely
+            while (container.firstChild) {
+                container.removeChild(container.firstChild);
+            }
 
             PLAYLIST.forEach((video, index) => {
                 const item = document.createElement('div');
                 item.className = 'playlist-item';
-                item.onclick = () => loadVideo(index);
+                item.addEventListener('click', () => loadVideo(index));
 
                 // Create elements safely to prevent XSS
                 if (video.thumbnail) {
@@ -400,7 +420,10 @@
             iframe.style.height = '100%';
 
             const container = document.getElementById('videoContainer');
-            container.innerHTML = '';
+            // Clear container safely
+            while (container.firstChild) {
+                container.removeChild(container.firstChild);
+            }
             container.appendChild(iframe);
         }
 
