@@ -28,7 +28,7 @@ except ImportError:
 
 # NDI output import
 try:
-    sys.path.insert(0, str(Path(__file__).parent.parent))
+    sys.path.insert(0, str(Path(__file__).parent.parent / "Core_Modules"))
     from ndi_output import get_ndi_manager
     NDI_AVAILABLE = True
 except ImportError:

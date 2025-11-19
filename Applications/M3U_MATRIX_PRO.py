@@ -13,17 +13,18 @@ from pathlib import Path
 import uuid
 
 # Calculate project root and add to sys.path
-# M3U_MATRIX_PRO.py is in src/videos/, so go up 2 levels to project root
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-SRC_DIR = PROJECT_ROOT / "src"
+# M3U_MATRIX_PRO.py is now in Applications/, so go up 1 level to project root
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+CORE_MODULES_DIR = PROJECT_ROOT / "Core_Modules"
+WEB_PLAYERS_DIR = PROJECT_ROOT / "Web_Players"
 
-# Add src directory to sys.path for imports
-if str(SRC_DIR) not in sys.path:
-    sys.path.insert(0, str(SRC_DIR))
+# Add Core_Modules directory to sys.path for imports
+if str(CORE_MODULES_DIR) not in sys.path:
+    sys.path.insert(0, str(CORE_MODULES_DIR))
 
 # Define resource paths
-TEMPLATES_DIR = PROJECT_ROOT / "templates"
-DATA_DIR = SRC_DIR / "data"
+TEMPLATES_DIR = WEB_PLAYERS_DIR
+DATA_DIR = PROJECT_ROOT / "data"
 
 # Optional imports - only needed for advanced features
 try:
