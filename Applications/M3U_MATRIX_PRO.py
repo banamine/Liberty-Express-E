@@ -5,7 +5,7 @@ from tkinterdnd2 import DND_FILES, TkinterDnD
 import re, os, threading, tempfile, webbrowser, urllib.request, socket, json, csv, subprocess
 from datetime import datetime, timedelta
 from collections import defaultdict
-from urllib.parse import urlparse
+from urllib.parse import urlparse, unquote
 import requests
 import sys
 import logging
@@ -406,7 +406,7 @@ class M3UMatrix:
                  width=15, height=2).pack(pady=15)
 
     def load_settings(self):
-        """Load user settings"""
+        """Load user settings with robust error handling"""
         settings_file = "m3u_matrix_settings.json"
         default_settings = {
             "window_geometry": "1600x950",
@@ -421,7 +421,25 @@ class M3UMatrix:
         try:
             if os.path.exists(settings_file):
                 with open(settings_file, 'r') as f:
-                    self.settings = {**default_settings, **json.load(f)}
+                    content = f.read().strip()
+                    if not content:
+                        # File is empty
+                        self.logger.warning("Settings file is empty, using defaults")
+                        self.settings = default_settings
+                    else:
+                        try:
+                            loaded_settings = json.loads(content)
+                            # Merge with defaults to ensure all keys exist
+                            self.settings = {**default_settings, **loaded_settings}
+                        except json.JSONDecodeError as json_err:
+                            self.logger.warning(f"Settings file corrupted: {json_err}, using defaults")
+                            self.settings = default_settings
+                            # Try to backup the corrupted file
+                            try:
+                                import shutil
+                                shutil.copy2(settings_file, f"{settings_file}.corrupt.{datetime.now().strftime('%Y%m%d_%H%M%S')}")
+                            except:
+                                pass
             else:
                 self.settings = default_settings
         except Exception as e:
@@ -1428,14 +1446,16 @@ Success Rate: {results['working']/results['total']*100:.1f}%
         # Extract name - works for both #EXTINF: and #EXTM: formats
         name_part = line.split(',')[-1].strip()
         if name_part:
-            channel["name"] = name_part
+            # URL decode the name to handle %20, %27, etc.
+            channel["name"] = unquote(name_part)
 
         if "tvg-name" in attributes:
-            channel["name"] = attributes["tvg-name"]
+            # URL decode attribute values as well
+            channel["name"] = unquote(attributes["tvg-name"])
         if "group-title" in attributes:
-            channel["group"] = attributes["group-title"]
+            channel["group"] = unquote(attributes["group-title"])
         if "tvg-logo" in attributes:
-            channel["logo"] = attributes["tvg-logo"]
+            channel["logo"] = attributes["tvg-logo"]  # Don't decode URLs
         if "tvg-id" in attributes:
             channel["tvg_id"] = attributes["tvg-id"]
 
@@ -1470,7 +1490,8 @@ Success Rate: {results['working']/results['total']*100:.1f}%
             name = url.split('/')[-1]
             if '?' in name:
                 name = name.split('?')[0]
-            name = urllib.parse.unquote(name) if hasattr(urllib.parse, 'unquote') else name
+            # URL decode the name to handle %20, %27, etc.
+            name = unquote(name)
             
             channel = {
                 "name": name or f"Link {idx}",

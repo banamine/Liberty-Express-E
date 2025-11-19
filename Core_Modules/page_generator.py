@@ -48,6 +48,46 @@ def clean_title(raw_title):
     return title if title else 'Unknown'
 
 
+def sanitize_directory_name(name):
+    """
+    Sanitize a string to be safe for directory names on all OS platforms
+    - URL decodes first (%20 → space, %27 → apostrophe)
+    - Removes or replaces invalid characters
+    - Ensures Windows compatibility
+    """
+    if not name:
+        return 'unknown'
+    
+    # URL decode first to handle %20, %27, etc.
+    name = unquote(str(name))
+    
+    # Replace problematic characters that are invalid in Windows paths
+    # Windows disallows: < > : " | ? * \ / and control chars 0-31
+    # Also replace % to avoid issues with partially encoded strings
+    invalid_chars = '<>:"|?*\\/\0%'
+    for char in invalid_chars:
+        name = name.replace(char, '_')
+    
+    # Remove control characters
+    name = ''.join(char for char in name if ord(char) >= 32)
+    
+    # Replace multiple spaces/underscores with single underscore
+    name = re.sub(r'[\s_]+', '_', name)
+    
+    # Remove leading/trailing underscores and dots (Windows limitation)
+    name = name.strip('_.').strip()
+    
+    # Limit length to 255 chars (filesystem limit)
+    if len(name) > 255:
+        name = name[:255]
+    
+    # If empty after cleaning, use fallback
+    if not name:
+        name = 'unknown'
+    
+    return name
+
+
 class NexusTVPageGenerator:
     def __init__(self, template_path=None):
         if template_path is None:
@@ -663,8 +703,9 @@ class WebIPTVGenerator:
         # Use channel_name as folder name if no custom filename specified
         output_name = output_filename if output_filename else channel_name
         
-        # Create output directory
-        page_dir = self.output_dir / output_name
+        # Create output directory with sanitized name
+        safe_dir_name = sanitize_directory_name(output_name)
+        page_dir = self.output_dir / safe_dir_name
         page_dir.mkdir(exist_ok=True)
         
         # Copy template files
@@ -910,7 +951,8 @@ class SimplePlayerGenerator:
             raise ValueError("No valid channels found in M3U content")
         
         output_name = output_filename if output_filename else channel_name
-        page_dir = self.output_dir / output_name
+        safe_dir_name = sanitize_directory_name(output_name)
+        page_dir = self.output_dir / safe_dir_name
         page_dir.mkdir(exist_ok=True)
         
         # Copy CSS
@@ -1106,7 +1148,8 @@ class RumbleChannelGenerator:
             raise ValueError("No Rumble videos found in playlist")
         
         # Create page folder
-        page_folder = self.output_dir / page_name
+        safe_dir_name = sanitize_directory_name(page_name)
+        page_folder = self.output_dir / safe_dir_name
         page_folder.mkdir(exist_ok=True, parents=True)
         
         # Build playlist JSON for template
@@ -1351,7 +1394,8 @@ class MultiChannelGenerator:
             default_channel_count = 1
         
         # Create page folder
-        page_folder = self.output_dir / page_name
+        safe_dir_name = sanitize_directory_name(page_name)
+        page_folder = self.output_dir / safe_dir_name
         page_folder.mkdir(exist_ok=True, parents=True)
         
         # Build playlist JSON for template
@@ -1607,7 +1651,8 @@ class BufferTVGenerator:
             raise ValueError("No valid channels found in M3U content")
         
         # Create page folder
-        page_folder = self.output_dir / page_name
+        safe_dir_name = sanitize_directory_name(page_name)
+        page_folder = self.output_dir / safe_dir_name
         page_folder.mkdir(exist_ok=True)
         
         # Read template
