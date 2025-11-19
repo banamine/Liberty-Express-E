@@ -506,6 +506,7 @@ class M3UMatrix:
                 ("RUMBLE BROWSER", "#FF6347", self.open_rumble_browser),
                 ("RUMBLE CHANNEL", "#FF4500", self.generate_rumble_channel),
                 ("BUFFER TV", "#DC143C", self.generate_buffer_tv),
+                ("STREAM HUB", "#00d4ff", self.generate_stream_hub),
                 ("SMART SCHEDULE", "#9b59b6", self.smart_scheduler),
                 ("JSON GUIDE", "#95e1d3", self.export_tv_guide_json)]
         for txt, col, cmd in row2:
@@ -516,6 +517,8 @@ class M3UMatrix:
         tb3.pack(fill=tk.X, pady=2)
         row3 = [("URL IMPORT", "#4ecdc4", self.url_import_workbench),
                 ("IMPORT URL", "#8e44ad", self.import_url),
+                ("BULK EDITOR", "#2ecc71", self.open_bulk_editor),
+                ("VERSION CTRL", "#3498db", self.open_version_control),
                 ("TIMESTAMP GEN", "#ff6b6b", self.timestamp_generator),
                 ("FETCH EPG", "#d35400", self.fetch_epg),
                 ("TV GUIDE", "#9b59b6", self.open_guide),
@@ -4866,6 +4869,995 @@ Services included:
                 self.root.after(0, lambda: self.stat.config(text="Generation failed"))
         
         threading.Thread(target=generation_thread, daemon=True).start()
+    
+    def generate_stream_hub(self):
+        """Generate Stream Hub live TV player with glass-morphism design"""
+        if not PAGE_GENERATOR_AVAILABLE:
+            messagebox.showwarning("Feature Unavailable", 
+                "Page generator not available.\n\n"
+                "Download the full project from GitHub to use this feature.")
+            return
+            
+        if not self.channels:
+            messagebox.showwarning("No Channels", "Load channels first!")
+            return
+        
+        # Show configuration dialog
+        config_dialog = tk.Toplevel(self.root)
+        config_dialog.title("Stream Hub Configuration")
+        config_dialog.geometry("500x350")
+        config_dialog.configure(bg="#1a1a2e")
+        config_dialog.transient(self.root)
+        config_dialog.grab_set()
+        
+        # Title with animated gradient effect
+        tk.Label(
+            config_dialog,
+            text="⚡ STREAM HUB",
+            font=("Segoe UI", 20, "bold"),
+            bg="#1a1a2e",
+            fg="#00d4ff"
+        ).pack(pady=20)
+        
+        # Description
+        tk.Label(
+            config_dialog,
+            text=f"Found {len(self.channels)} live channels in your playlist.\n\n"
+                 "Create a stunning broadcast-quality IPTV player with:\n"
+                 "• Glass-morphism UI with animated gradients\n"
+                 "• Smart HLS/MP4/Audio fallback system\n"
+                 "• Live channel grid with status indicators\n"
+                 "• Multi-timezone clock and program info",
+            font=("Segoe UI", 10),
+            bg="#1a1a2e",
+            fg="#fff",
+            justify=tk.CENTER
+        ).pack(pady=10)
+        
+        # Page name
+        name_frame = tk.Frame(config_dialog, bg="#1a1a2e")
+        name_frame.pack(pady=15, padx=30, fill=tk.X)
+        
+        tk.Label(name_frame, text="Page Name:", bg="#1a1a2e", fg="#fff",
+                font=("Arial", 10, "bold")).pack(anchor=tk.W)
+        page_name_var = tk.StringVar(value="Stream Hub Live")
+        tk.Entry(name_frame, textvariable=page_name_var, width=40,
+                bg="#2c3e50", fg="#fff", font=("Arial", 10)).pack(fill=tk.X, pady=5)
+        
+        # Buttons
+        btn_frame = tk.Frame(config_dialog, bg="#1a1a2e")
+        btn_frame.pack(pady=20)
+        
+        def generate():
+            page_name = page_name_var.get().strip()
+            if not page_name:
+                messagebox.showwarning("Invalid Name", "Please enter a page name!")
+                return
+            
+            config_dialog.destroy()
+            self._generate_stream_hub_page(page_name)
+        
+        tk.Button(btn_frame, text="✨ GENERATE", command=generate,
+                 bg="#00d4ff", fg="#000", font=("Arial", 12, "bold"),
+                 width=15, height=2).pack(side=tk.LEFT, padx=10)
+        tk.Button(btn_frame, text="Cancel", command=config_dialog.destroy,
+                 bg="#e74c3c", fg="#fff", font=("Arial", 10),
+                 width=12, height=2).pack(side=tk.LEFT, padx=10)
+    
+    def _generate_stream_hub_page(self, page_name):
+        """Generate the Stream Hub page with the template"""
+        def generation_thread():
+            try:
+                self.root.after(0, lambda: self.stat.config(text="Generating Stream Hub..."))
+                
+                # Check for template
+                from page_generator import StreamHubGenerator
+                
+                # Clean page name for filesystem
+                safe_name = "".join(c if c.isalnum() or c in " -_" else "_" for c in page_name).strip()
+                safe_name = safe_name.replace(" ", "_")
+                
+                # Prepare M3U content
+                m3u_content = "#EXTM3U\n"
+                for ch in self.channels:
+                    m3u_content += f"#EXTINF:-1 "
+                    if ch.get('tvg_name'):
+                        m3u_content += f'tvg-name="{ch["tvg_name"]}" '
+                    if ch.get('tvg_logo'):
+                        m3u_content += f'tvg-logo="{ch["tvg_logo"]}" '
+                    if ch.get('group'):
+                        m3u_content += f'group-title="{ch["group"]}" '
+                    m3u_content += f',{ch.get("name", "Unknown")}\n'
+                    m3u_content += f'{ch.get("url", "")}\n'
+                
+                # Generate page
+                generator = StreamHubGenerator()
+                output_path = generator.generate_page(m3u_content, safe_name)
+                
+                abs_path = output_path.absolute()
+                abs_dir = Path('generated_pages').absolute()
+                
+                self.root.after(0, lambda: messagebox.showinfo(
+                    "Success!",
+                    f"⚡ Stream Hub Generated!\n\n"
+                    f"Page: {page_name}\n"
+                    f"Channels: {len(self.channels)}\n\n"
+                    f"📂 Open this file:\n{abs_path}\n\n"
+                    f"✨ Features:\n"
+                    f"• Glass-morphism design with animated gradients\n"
+                    f"• Intelligent HLS/MP4/Audio fallback\n"
+                    f"• Live channel grid with categories\n"
+                    f"• Numeric keypad & search\n"
+                    f"• Multi-timezone clock\n\n"
+                    f"All files saved to:\n{abs_dir / safe_name}"
+                ))
+                
+                self.root.after(0, lambda: self.stat.config(
+                    text=f"⚡ Stream Hub: {len(self.channels)} channels"))
+                
+            except Exception as e:
+                import traceback
+                error_details = traceback.format_exc()
+                self.root.after(0, lambda: messagebox.showerror(
+                    "Generation Error",
+                    f"Failed to generate Stream Hub:\n\n{str(e)}\n\n{error_details}"
+                ))
+                self.root.after(0, lambda: self.stat.config(text="Generation failed"))
+        
+        threading.Thread(target=generation_thread, daemon=True).start()
+    
+    def open_bulk_editor(self):
+        """Open the Bulk Editor - spreadsheet-like interface for batch operations"""
+        if not self.channels:
+            messagebox.showwarning("No Channels", "Load channels first to use the bulk editor!")
+            return
+        
+        # Create bulk editor window
+        editor = tk.Toplevel(self.root)
+        editor.title("📊 Bulk Channel Editor - Spreadsheet Mode")
+        editor.geometry("1200x700")
+        editor.configure(bg="#1a1a2e")
+        
+        # Header
+        header_frame = tk.Frame(editor, bg="#2c3e50", height=60)
+        header_frame.pack(fill=tk.X)
+        header_frame.pack_propagate(False)
+        
+        tk.Label(header_frame, text="📊 BULK CHANNEL EDITOR", 
+                font=("Arial", 18, "bold"), fg="#2ecc71", bg="#2c3e50").pack(side=tk.LEFT, padx=20, pady=15)
+        
+        tk.Label(header_frame, text=f"{len(self.channels)} channels loaded | Use checkboxes to select",
+                font=("Arial", 10), fg="#ecf0f1", bg="#2c3e50").pack(side=tk.LEFT, padx=20)
+        
+        # Toolbar for bulk operations
+        toolbar = tk.Frame(editor, bg="#34495e", height=50)
+        toolbar.pack(fill=tk.X)
+        toolbar.pack_propagate(False)
+        
+        # Selection controls
+        select_frame = tk.Frame(toolbar, bg="#34495e")
+        select_frame.pack(side=tk.LEFT, padx=10, pady=8)
+        
+        tk.Button(select_frame, text="✓ All", command=lambda: self._select_all_bulk(editor),
+                 bg="#3498db", fg="#fff", width=8).pack(side=tk.LEFT, padx=2)
+        tk.Button(select_frame, text="✗ None", command=lambda: self._select_none_bulk(editor),
+                 bg="#95a5a6", fg="#fff", width=8).pack(side=tk.LEFT, padx=2)
+        tk.Button(select_frame, text="⇄ Invert", command=lambda: self._invert_selection_bulk(editor),
+                 bg="#9b59b6", fg="#fff", width=8).pack(side=tk.LEFT, padx=2)
+        
+        # Bulk operations
+        ops_frame = tk.Frame(toolbar, bg="#34495e")
+        ops_frame.pack(side=tk.LEFT, padx=20, pady=8)
+        
+        tk.Button(ops_frame, text="🔍 Find & Replace", command=lambda: self._find_replace_bulk(editor),
+                 bg="#e67e22", fg="#fff", width=15).pack(side=tk.LEFT, padx=2)
+        tk.Button(ops_frame, text="📁 Change Group", command=lambda: self._change_group_bulk(editor),
+                 bg="#16a085", fg="#fff", width=15).pack(side=tk.LEFT, padx=2)
+        tk.Button(ops_frame, text="🏷️ Add Tag", command=lambda: self._add_tag_bulk(editor),
+                 bg="#f39c12", fg="#fff", width=12).pack(side=tk.LEFT, padx=2)
+        tk.Button(ops_frame, text="🔗 Update URLs", command=lambda: self._update_urls_bulk(editor),
+                 bg="#e74c3c", fg="#fff", width=12).pack(side=tk.LEFT, padx=2)
+        
+        # Status filter
+        filter_frame = tk.Frame(toolbar, bg="#34495e")
+        filter_frame.pack(side=tk.RIGHT, padx=10, pady=8)
+        
+        tk.Label(filter_frame, text="Filter:", fg="#ecf0f1", bg="#34495e").pack(side=tk.LEFT, padx=5)
+        filter_var = tk.StringVar(value="all")
+        for text, value in [("All", "all"), ("✅ Working", "working"), ("❌ Dead", "dead"), ("⚠️ Slow", "slow")]:
+            tk.Radiobutton(filter_frame, text=text, variable=filter_var, value=value,
+                          bg="#34495e", fg="#ecf0f1", selectcolor="#2c3e50",
+                          command=lambda: self._apply_filter_bulk(editor, filter_var.get())).pack(side=tk.LEFT)
+        
+        # Main content - Spreadsheet view
+        content = tk.Frame(editor, bg="#1a1a2e")
+        content.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        
+        # Create Treeview with checkboxes
+        columns = ("✓", "#", "Status", "Name", "Group", "URL", "Tags")
+        tree = ttk.Treeview(content, columns=columns, show="headings", selectmode="extended")
+        
+        # Configure columns
+        tree.heading("✓", text="✓")
+        tree.column("✓", width=30, stretch=False)
+        tree.heading("#", text="#")
+        tree.column("#", width=40, stretch=False)
+        tree.heading("Status", text="Status")
+        tree.column("Status", width=60, stretch=False)
+        tree.heading("Name", text="Channel Name")
+        tree.column("Name", width=250, stretch=True)
+        tree.heading("Group", text="Group")
+        tree.column("Group", width=150, stretch=True)
+        tree.heading("URL", text="URL")
+        tree.column("URL", width=400, stretch=True)
+        tree.heading("Tags", text="Tags")
+        tree.column("Tags", width=150, stretch=True)
+        
+        # Style the treeview
+        style = ttk.Style()
+        style.configure("Treeview", 
+                       background="#2c3e50",
+                       foreground="#ecf0f1",
+                       fieldbackground="#2c3e50",
+                       rowheight=25)
+        style.configure("Treeview.Heading",
+                       background="#34495e",
+                       foreground="#2ecc71",
+                       font=("Arial", 10, "bold"))
+        
+        # Scrollbars
+        vsb = ttk.Scrollbar(content, orient="vertical", command=tree.yview)
+        hsb = ttk.Scrollbar(content, orient="horizontal", command=tree.xview)
+        tree.configure(yscrollcommand=vsb.set, xscrollcommand=hsb.set)
+        
+        # Pack elements
+        tree.grid(row=0, column=0, sticky="nsew")
+        vsb.grid(row=0, column=1, sticky="ns")
+        hsb.grid(row=1, column=0, sticky="ew")
+        
+        content.grid_rowconfigure(0, weight=1)
+        content.grid_columnconfigure(0, weight=1)
+        
+        # Store references
+        editor.tree = tree
+        editor.channels_data = self.channels.copy()
+        editor.selected_items = set()
+        
+        # Populate tree
+        self._populate_bulk_editor(tree, self.channels)
+        
+        # Enable inline editing
+        tree.bind("<Double-1>", lambda e: self._edit_cell_bulk(e, tree))
+        tree.bind("<Button-1>", lambda e: self._toggle_checkbox_bulk(e, tree, editor))
+        
+        # Bottom status bar
+        status_bar = tk.Frame(editor, bg="#2c3e50", height=40)
+        status_bar.pack(fill=tk.X)
+        status_bar.pack_propagate(False)
+        
+        status_label = tk.Label(status_bar, text="Ready. Double-click cells to edit inline.", 
+                               fg="#ecf0f1", bg="#2c3e50")
+        status_label.pack(side=tk.LEFT, padx=10, pady=10)
+        
+        # Apply changes button
+        apply_frame = tk.Frame(status_bar, bg="#2c3e50")
+        apply_frame.pack(side=tk.RIGHT, padx=10, pady=5)
+        
+        tk.Button(apply_frame, text="💾 Apply Changes", command=lambda: self._apply_bulk_changes(editor),
+                 bg="#27ae60", fg="#fff", font=("Arial", 11, "bold"),
+                 width=15, height=1).pack(side=tk.LEFT, padx=5)
+        tk.Button(apply_frame, text="Export CSV", command=lambda: self._export_csv_bulk(editor),
+                 bg="#3498db", fg="#fff", width=12, height=1).pack(side=tk.LEFT, padx=5)
+        tk.Button(apply_frame, text="Close", command=editor.destroy,
+                 bg="#e74c3c", fg="#fff", width=10, height=1).pack(side=tk.LEFT, padx=5)
+        
+        editor.status_label = status_label
+    
+    def _populate_bulk_editor(self, tree, channels):
+        """Populate the bulk editor tree with channel data"""
+        for i, channel in enumerate(channels, 1):
+            # Determine status (simulated for now)
+            status = "✅"  # Default to working
+            if not channel.get('url'):
+                status = "❌"
+            elif 'backup' in channel.get('url', '').lower():
+                status = "⚠️"
+            
+            values = (
+                "☐",  # Checkbox
+                str(i),  # Number
+                status,  # Status
+                channel.get('name', 'Unknown'),
+                channel.get('group', ''),
+                channel.get('url', ''),
+                ', '.join(channel.get('tags', [])) if isinstance(channel.get('tags'), list) else channel.get('tags', '')
+            )
+            tree.insert("", "end", values=values, tags=('unchecked',))
+    
+    def _toggle_checkbox_bulk(self, event, tree, editor):
+        """Toggle checkbox in bulk editor"""
+        region = tree.identify_region(event.x, event.y)
+        if region == "cell":
+            column = tree.identify_column(event.x)
+            if column == "#1":  # Checkbox column
+                item = tree.identify_row(event.y)
+                if item:
+                    current = tree.item(item)['values']
+                    if current[0] == "☐":
+                        tree.set(item, "✓", "☑")
+                        tree.item(item, tags=('checked',))
+                        editor.selected_items.add(item)
+                    else:
+                        tree.set(item, "✓", "☐")
+                        tree.item(item, tags=('unchecked',))
+                        editor.selected_items.discard(item)
+                    
+                    # Update status
+                    count = len(editor.selected_items)
+                    editor.status_label.config(text=f"{count} items selected")
+    
+    def _select_all_bulk(self, editor):
+        """Select all items in bulk editor"""
+        tree = editor.tree
+        for item in tree.get_children():
+            tree.set(item, "✓", "☑")
+            tree.item(item, tags=('checked',))
+            editor.selected_items.add(item)
+        editor.status_label.config(text=f"All {len(editor.selected_items)} items selected")
+    
+    def _select_none_bulk(self, editor):
+        """Deselect all items in bulk editor"""
+        tree = editor.tree
+        for item in tree.get_children():
+            tree.set(item, "✓", "☐")
+            tree.item(item, tags=('unchecked',))
+        editor.selected_items.clear()
+        editor.status_label.config(text="No items selected")
+    
+    def _invert_selection_bulk(self, editor):
+        """Invert selection in bulk editor"""
+        tree = editor.tree
+        for item in tree.get_children():
+            current = tree.item(item)['values']
+            if current[0] == "☐":
+                tree.set(item, "✓", "☑")
+                tree.item(item, tags=('checked',))
+                editor.selected_items.add(item)
+            else:
+                tree.set(item, "✓", "☐")
+                tree.item(item, tags=('unchecked',))
+                editor.selected_items.discard(item)
+        editor.status_label.config(text=f"{len(editor.selected_items)} items selected")
+    
+    def _find_replace_bulk(self, editor):
+        """Find and replace in selected items"""
+        if not editor.selected_items:
+            messagebox.showwarning("No Selection", "Please select items first!")
+            return
+        
+        # Create find/replace dialog
+        dialog = tk.Toplevel(editor)
+        dialog.title("Find & Replace")
+        dialog.geometry("400x250")
+        dialog.configure(bg="#2c3e50")
+        
+        tk.Label(dialog, text="Find:", fg="#ecf0f1", bg="#2c3e50").grid(row=0, column=0, padx=10, pady=10, sticky="e")
+        find_var = tk.StringVar()
+        tk.Entry(dialog, textvariable=find_var, width=30).grid(row=0, column=1, padx=10, pady=10)
+        
+        tk.Label(dialog, text="Replace:", fg="#ecf0f1", bg="#2c3e50").grid(row=1, column=0, padx=10, pady=10, sticky="e")
+        replace_var = tk.StringVar()
+        tk.Entry(dialog, textvariable=replace_var, width=30).grid(row=1, column=1, padx=10, pady=10)
+        
+        tk.Label(dialog, text="In field:", fg="#ecf0f1", bg="#2c3e50").grid(row=2, column=0, padx=10, pady=10, sticky="e")
+        field_var = tk.StringVar(value="Name")
+        field_menu = ttk.Combobox(dialog, textvariable=field_var, values=["Name", "Group", "URL", "Tags"], width=27)
+        field_menu.grid(row=2, column=1, padx=10, pady=10)
+        
+        def do_replace():
+            find_text = find_var.get()
+            replace_text = replace_var.get()
+            field = field_var.get()
+            
+            if not find_text:
+                messagebox.showwarning("Empty Find", "Please enter text to find!")
+                return
+            
+            tree = editor.tree
+            field_map = {"Name": 3, "Group": 4, "URL": 5, "Tags": 6}
+            col_index = field_map.get(field, 3)
+            
+            replaced = 0
+            for item in editor.selected_items:
+                values = list(tree.item(item)['values'])
+                original = str(values[col_index])
+                if find_text in original:
+                    values[col_index] = original.replace(find_text, replace_text)
+                    tree.item(item, values=values)
+                    replaced += 1
+            
+            editor.status_label.config(text=f"Replaced {replaced} occurrences")
+            dialog.destroy()
+        
+        tk.Button(dialog, text="Replace All", command=do_replace,
+                 bg="#27ae60", fg="#fff", width=15).grid(row=3, column=1, padx=10, pady=20)
+    
+    def _change_group_bulk(self, editor):
+        """Change group for selected items"""
+        if not editor.selected_items:
+            messagebox.showwarning("No Selection", "Please select items first!")
+            return
+        
+        new_group = simpledialog.askstring("Change Group", "Enter new group name:")
+        if new_group is not None:
+            tree = editor.tree
+            for item in editor.selected_items:
+                values = list(tree.item(item)['values'])
+                values[4] = new_group  # Group column
+                tree.item(item, values=values)
+            editor.status_label.config(text=f"Changed group for {len(editor.selected_items)} items")
+    
+    def _add_tag_bulk(self, editor):
+        """Add tag to selected items"""
+        if not editor.selected_items:
+            messagebox.showwarning("No Selection", "Please select items first!")
+            return
+        
+        new_tag = simpledialog.askstring("Add Tag", "Enter tag to add:")
+        if new_tag:
+            tree = editor.tree
+            for item in editor.selected_items:
+                values = list(tree.item(item)['values'])
+                current_tags = str(values[6])
+                if current_tags and current_tags != '':
+                    values[6] = f"{current_tags}, {new_tag}"
+                else:
+                    values[6] = new_tag
+                tree.item(item, values=values)
+            editor.status_label.config(text=f"Added tag to {len(editor.selected_items)} items")
+    
+    def _update_urls_bulk(self, editor):
+        """Bulk update URLs with pattern"""
+        if not editor.selected_items:
+            messagebox.showwarning("No Selection", "Please select items first!")
+            return
+        
+        # Create URL update dialog
+        dialog = tk.Toplevel(editor)
+        dialog.title("Bulk URL Update")
+        dialog.geometry("500x200")
+        dialog.configure(bg="#2c3e50")
+        
+        tk.Label(dialog, text="URL Pattern (use {name} for channel name):", 
+                fg="#ecf0f1", bg="#2c3e50").pack(padx=10, pady=10)
+        
+        pattern_var = tk.StringVar(value="http://example.com/stream/{name}.m3u8")
+        tk.Entry(dialog, textvariable=pattern_var, width=60).pack(padx=10, pady=10)
+        
+        tk.Label(dialog, text="Example: http://server.com/{name}/index.m3u8", 
+                fg="#95a5a6", bg="#2c3e50", font=("Arial", 9)).pack(padx=10, pady=5)
+        
+        def apply_pattern():
+            pattern = pattern_var.get()
+            tree = editor.tree
+            updated = 0
+            
+            for item in editor.selected_items:
+                values = list(tree.item(item)['values'])
+                name = str(values[3]).replace(' ', '_')  # Name column
+                new_url = pattern.replace('{name}', name)
+                values[5] = new_url  # URL column
+                tree.item(item, values=values)
+                updated += 1
+            
+            editor.status_label.config(text=f"Updated URLs for {updated} items")
+            dialog.destroy()
+        
+        tk.Button(dialog, text="Apply Pattern", command=apply_pattern,
+                 bg="#27ae60", fg="#fff", width=20).pack(pady=20)
+    
+    def _apply_filter_bulk(self, editor, filter_type):
+        """Apply status filter to bulk editor"""
+        tree = editor.tree
+        
+        # Clear current view
+        for item in tree.get_children():
+            tree.delete(item)
+        
+        # Repopulate based on filter
+        for i, channel in enumerate(self.channels, 1):
+            # Determine status
+            status = "✅"
+            if not channel.get('url'):
+                status = "❌"
+            elif 'backup' in channel.get('url', '').lower():
+                status = "⚠️"
+            
+            # Apply filter
+            if filter_type == "all":
+                show = True
+            elif filter_type == "working" and status == "✅":
+                show = True
+            elif filter_type == "dead" and status == "❌":
+                show = True
+            elif filter_type == "slow" and status == "⚠️":
+                show = True
+            else:
+                show = False
+            
+            if show:
+                values = (
+                    "☐", str(i), status,
+                    channel.get('name', 'Unknown'),
+                    channel.get('group', ''),
+                    channel.get('url', ''),
+                    ', '.join(channel.get('tags', [])) if isinstance(channel.get('tags'), list) else ''
+                )
+                tree.insert("", "end", values=values, tags=('unchecked',))
+        
+        editor.selected_items.clear()
+        editor.status_label.config(text=f"Filter applied: {filter_type}")
+    
+    def _edit_cell_bulk(self, event, tree):
+        """Enable inline editing for cells"""
+        region = tree.identify_region(event.x, event.y)
+        if region == "cell":
+            column = tree.identify_column(event.x)
+            item = tree.identify_row(event.y)
+            
+            # Skip checkbox and status columns
+            if column in ["#1", "#2", "#3"]:
+                return
+            
+            if item:
+                # Get column index
+                col_index = int(column.replace('#', '')) - 1
+                values = tree.item(item)['values']
+                current_value = values[col_index]
+                
+                # Create entry widget for editing
+                x, y, width, height = tree.bbox(item, column)
+                
+                entry = tk.Entry(tree, width=width//8)
+                entry.place(x=x, y=y, width=width, height=height)
+                entry.insert(0, current_value)
+                entry.focus()
+                entry.select_range(0, tk.END)
+                
+                def save_edit(event=None):
+                    new_value = entry.get()
+                    values = list(tree.item(item)['values'])
+                    values[col_index] = new_value
+                    tree.item(item, values=values)
+                    entry.destroy()
+                
+                def cancel_edit(event=None):
+                    entry.destroy()
+                
+                entry.bind('<Return>', save_edit)
+                entry.bind('<Escape>', cancel_edit)
+                entry.bind('<FocusOut>', save_edit)
+    
+    def _apply_bulk_changes(self, editor):
+        """Apply bulk editor changes back to main channel list"""
+        tree = editor.tree
+        
+        # Update channels from tree
+        updated_channels = []
+        for item in tree.get_children():
+            values = tree.item(item)['values']
+            channel = {
+                'name': values[3],
+                'group': values[4],
+                'url': values[5],
+                'tags': values[6].split(', ') if values[6] else []
+            }
+            updated_channels.append(channel)
+        
+        # Apply to main channel list
+        self.channels = updated_channels
+        self.fill()  # Refresh main view
+        
+        messagebox.showinfo("Success", f"Applied changes to {len(updated_channels)} channels")
+        editor.destroy()
+    
+    def _export_csv_bulk(self, editor):
+        """Export bulk editor data to CSV"""
+        import csv
+        from tkinter import filedialog
+        
+        filename = filedialog.asksaveasfilename(
+            defaultextension=".csv",
+            filetypes=[("CSV files", "*.csv"), ("All files", "*.*")]
+        )
+        
+        if filename:
+            tree = editor.tree
+            with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
+                writer = csv.writer(csvfile)
+                
+                # Write header
+                writer.writerow(['Number', 'Status', 'Name', 'Group', 'URL', 'Tags'])
+                
+                # Write data
+                for item in tree.get_children():
+                    values = tree.item(item)['values']
+                    writer.writerow(values[1:])  # Skip checkbox column
+            
+            editor.status_label.config(text=f"Exported to {filename}")
+    
+    def open_version_control(self):
+        """Open Version Control system for playlist history and rollback"""
+        # Create version control directory if not exists
+        version_dir = Path("playlist_versions")
+        version_dir.mkdir(exist_ok=True)
+        
+        # Create version control window
+        vc_window = tk.Toplevel(self.root)
+        vc_window.title("🔄 Playlist Version Control")
+        vc_window.geometry("900x600")
+        vc_window.configure(bg="#1e2329")
+        
+        # Header
+        header = tk.Frame(vc_window, bg="#2d3339", height=70)
+        header.pack(fill=tk.X)
+        header.pack_propagate(False)
+        
+        tk.Label(header, text="🔄 VERSION CONTROL", 
+                font=("Arial", 20, "bold"), fg="#3498db", bg="#2d3339").pack(side=tk.LEFT, padx=20, pady=20)
+        
+        current_count = len(self.channels) if self.channels else 0
+        tk.Label(header, text=f"Current playlist: {current_count} channels",
+                font=("Arial", 11), fg="#bdc3c7", bg="#2d3339").pack(side=tk.LEFT, padx=20)
+        
+        # Toolbar
+        toolbar = tk.Frame(vc_window, bg="#34495e", height=60)
+        toolbar.pack(fill=tk.X)
+        toolbar.pack_propagate(False)
+        
+        btn_frame = tk.Frame(toolbar, bg="#34495e")
+        btn_frame.pack(side=tk.LEFT, padx=10, pady=10)
+        
+        tk.Button(btn_frame, text="📸 Save Snapshot", command=lambda: self._save_version(vc_window),
+                 bg="#27ae60", fg="#fff", font=("Arial", 10, "bold"),
+                 width=15, height=2).pack(side=tk.LEFT, padx=5)
+        tk.Button(btn_frame, text="🔄 Restore Version", command=lambda: self._restore_version(vc_window),
+                 bg="#e67e22", fg="#fff", font=("Arial", 10, "bold"),
+                 width=15, height=2).pack(side=tk.LEFT, padx=5)
+        tk.Button(btn_frame, text="📊 Compare Versions", command=lambda: self._compare_versions(vc_window),
+                 bg="#9b59b6", fg="#fff", font=("Arial", 10, "bold"),
+                 width=15, height=2).pack(side=tk.LEFT, padx=5)
+        tk.Button(btn_frame, text="🗑️ Delete Version", command=lambda: self._delete_version(vc_window),
+                 bg="#e74c3c", fg="#fff", font=("Arial", 10, "bold"),
+                 width=15, height=2).pack(side=tk.LEFT, padx=5)
+        
+        # Auto-save toggle
+        auto_frame = tk.Frame(toolbar, bg="#34495e")
+        auto_frame.pack(side=tk.RIGHT, padx=20, pady=15)
+        
+        vc_window.auto_save_var = tk.BooleanVar(value=False)
+        tk.Checkbutton(auto_frame, text="Auto-save on changes", 
+                      variable=vc_window.auto_save_var,
+                      bg="#34495e", fg="#ecf0f1", selectcolor="#2c3e50",
+                      font=("Arial", 10)).pack(side=tk.LEFT)
+        
+        # Main content - Version list
+        content = tk.Frame(vc_window, bg="#1e2329")
+        content.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        
+        # Version list
+        list_frame = tk.Frame(content, bg="#2d3339", relief=tk.RIDGE, bd=2)
+        list_frame.pack(fill=tk.BOTH, expand=True)
+        
+        tk.Label(list_frame, text="📚 Saved Versions", 
+                font=("Arial", 12, "bold"), fg="#3498db", bg="#2d3339").pack(pady=10)
+        
+        # Create Treeview for versions
+        columns = ("Version", "Date", "Time", "Channels", "Size", "Description")
+        tree = ttk.Treeview(list_frame, columns=columns, show="headings", height=15)
+        
+        # Configure columns
+        tree.heading("Version", text="Version")
+        tree.column("Version", width=80)
+        tree.heading("Date", text="Date")
+        tree.column("Date", width=100)
+        tree.heading("Time", text="Time")
+        tree.column("Time", width=80)
+        tree.heading("Channels", text="Channels")
+        tree.column("Channels", width=80)
+        tree.heading("Size", text="Size")
+        tree.column("Size", width=80)
+        tree.heading("Description", text="Description")
+        tree.column("Description", width=350)
+        
+        # Style
+        style = ttk.Style()
+        style.configure("Treeview", 
+                       background="#2d3339",
+                       foreground="#ecf0f1",
+                       fieldbackground="#2d3339")
+        
+        # Scrollbar
+        scrollbar = ttk.Scrollbar(list_frame, orient="vertical", command=tree.yview)
+        tree.configure(yscrollcommand=scrollbar.set)
+        
+        tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=10, pady=10)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        
+        vc_window.tree = tree
+        
+        # Load existing versions
+        self._load_versions(tree, version_dir)
+        
+        # Statistics panel
+        stats_frame = tk.Frame(vc_window, bg="#2d3339", height=100)
+        stats_frame.pack(fill=tk.X, padx=10, pady=5)
+        stats_frame.pack_propagate(False)
+        
+        tk.Label(stats_frame, text="📈 Version Statistics", 
+                font=("Arial", 11, "bold"), fg="#3498db", bg="#2d3339").pack(pady=5)
+        
+        stats_text = tk.Text(stats_frame, height=3, bg="#1e2329", fg="#ecf0f1", 
+                            font=("Courier", 9), relief=tk.FLAT)
+        stats_text.pack(fill=tk.BOTH, padx=10, pady=5)
+        
+        # Calculate statistics
+        version_files = list(version_dir.glob("*.json"))
+        total_versions = len(version_files)
+        total_size = sum(f.stat().st_size for f in version_files) / 1024  # KB
+        oldest = min(version_files, key=lambda f: f.stat().st_mtime).name if version_files else "N/A"
+        
+        stats_text.insert("1.0", f"Total Versions: {total_versions} | Storage Used: {total_size:.1f} KB | Oldest: {oldest}")
+        stats_text.config(state=tk.DISABLED)
+        
+        # Bind double-click to view version details
+        tree.bind("<Double-1>", lambda e: self._view_version_details(tree, version_dir))
+    
+    def _save_version(self, vc_window):
+        """Save current playlist as a version"""
+        if not self.channels:
+            messagebox.showwarning("No Playlist", "No playlist loaded to save!")
+            return
+        
+        # Create save dialog
+        dialog = tk.Toplevel(vc_window)
+        dialog.title("Save Version")
+        dialog.geometry("400x200")
+        dialog.configure(bg="#2c3e50")
+        
+        tk.Label(dialog, text="Version Description:", fg="#ecf0f1", bg="#2c3e50",
+                font=("Arial", 11)).pack(pady=10)
+        
+        desc_text = tk.Text(dialog, height=4, width=45, bg="#34495e", fg="#ecf0f1")
+        desc_text.pack(padx=20, pady=10)
+        desc_text.insert("1.0", f"Snapshot of {len(self.channels)} channels")
+        
+        def save():
+            description = desc_text.get("1.0", "end").strip()
+            timestamp = datetime.now()
+            version_name = f"v{timestamp.strftime('%Y%m%d_%H%M%S')}"
+            
+            version_data = {
+                "version": version_name,
+                "timestamp": timestamp.isoformat(),
+                "description": description,
+                "channel_count": len(self.channels),
+                "channels": self.channels,
+                "groups": list(set(ch.get('group', '') for ch in self.channels))
+            }
+            
+            # Save to file
+            version_file = Path("playlist_versions") / f"{version_name}.json"
+            with open(version_file, 'w', encoding='utf-8') as f:
+                json.dump(version_data, f, indent=2, ensure_ascii=False)
+            
+            # Refresh version list
+            self._load_versions(vc_window.tree, Path("playlist_versions"))
+            
+            messagebox.showinfo("Success", f"Version {version_name} saved successfully!")
+            dialog.destroy()
+        
+        tk.Button(dialog, text="💾 Save Version", command=save,
+                 bg="#27ae60", fg="#fff", width=20).pack(pady=10)
+    
+    def _restore_version(self, vc_window):
+        """Restore a selected version"""
+        selection = vc_window.tree.selection()
+        if not selection:
+            messagebox.showwarning("No Selection", "Please select a version to restore!")
+            return
+        
+        item = vc_window.tree.item(selection[0])
+        version_name = item['values'][0]
+        
+        if messagebox.askyesno("Restore Version", 
+                               f"Are you sure you want to restore version {version_name}?\n"
+                               f"Current playlist will be replaced!"):
+            # Load version data
+            version_file = Path("playlist_versions") / f"{version_name}.json"
+            if version_file.exists():
+                with open(version_file, 'r', encoding='utf-8') as f:
+                    version_data = json.load(f)
+                
+                # Restore channels
+                self.channels = version_data['channels']
+                self.fill()  # Refresh main display
+                
+                messagebox.showinfo("Success", f"Restored {len(self.channels)} channels from {version_name}")
+                self.stat.config(text=f"Restored from {version_name}")
+    
+    def _compare_versions(self, vc_window):
+        """Compare two versions"""
+        selection = vc_window.tree.selection()
+        if not selection:
+            messagebox.showwarning("No Selection", "Please select a version to compare with current!")
+            return
+        
+        item = vc_window.tree.item(selection[0])
+        version_name = item['values'][0]
+        
+        # Load selected version
+        version_file = Path("playlist_versions") / f"{version_name}.json"
+        if not version_file.exists():
+            return
+        
+        with open(version_file, 'r', encoding='utf-8') as f:
+            version_data = json.load(f)
+        
+        old_channels = version_data['channels']
+        current_channels = self.channels if self.channels else []
+        
+        # Create comparison window
+        comp_window = tk.Toplevel(vc_window)
+        comp_window.title(f"Compare: Current vs {version_name}")
+        comp_window.geometry("700x500")
+        comp_window.configure(bg="#1e2329")
+        
+        # Header
+        tk.Label(comp_window, text=f"📊 Comparison: Current ({len(current_channels)} ch) vs {version_name} ({len(old_channels)} ch)",
+                font=("Arial", 12, "bold"), fg="#3498db", bg="#1e2329").pack(pady=10)
+        
+        # Analysis
+        current_names = set(ch.get('name', '') for ch in current_channels)
+        old_names = set(ch.get('name', '') for ch in old_channels)
+        
+        added = current_names - old_names
+        removed = old_names - current_names
+        unchanged = current_names & old_names
+        
+        # Display results
+        notebook = ttk.Notebook(comp_window)
+        notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        
+        # Added channels tab
+        added_frame = tk.Frame(notebook, bg="#2d3339")
+        notebook.add(added_frame, text=f"➕ Added ({len(added)})")
+        
+        added_list = tk.Listbox(added_frame, bg="#34495e", fg="#2ecc71", 
+                               font=("Courier", 10))
+        added_list.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        for name in sorted(added):
+            added_list.insert(tk.END, name)
+        
+        # Removed channels tab
+        removed_frame = tk.Frame(notebook, bg="#2d3339")
+        notebook.add(removed_frame, text=f"➖ Removed ({len(removed)})")
+        
+        removed_list = tk.Listbox(removed_frame, bg="#34495e", fg="#e74c3c",
+                                 font=("Courier", 10))
+        removed_list.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        for name in sorted(removed):
+            removed_list.insert(tk.END, name)
+        
+        # Unchanged channels tab
+        unchanged_frame = tk.Frame(notebook, bg="#2d3339")
+        notebook.add(unchanged_frame, text=f"✓ Unchanged ({len(unchanged)})")
+        
+        unchanged_list = tk.Listbox(unchanged_frame, bg="#34495e", fg="#95a5a6",
+                                   font=("Courier", 10))
+        unchanged_list.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        for name in sorted(unchanged):
+            unchanged_list.insert(tk.END, name)
+        
+        # Summary
+        summary_frame = tk.Frame(comp_window, bg="#2c3e50", height=60)
+        summary_frame.pack(fill=tk.X, padx=10, pady=5)
+        summary_text = f"Summary: {len(added)} added, {len(removed)} removed, {len(unchanged)} unchanged"
+        tk.Label(summary_frame, text=summary_text, fg="#ecf0f1", bg="#2c3e50",
+                font=("Arial", 11)).pack(pady=20)
+    
+    def _delete_version(self, vc_window):
+        """Delete a selected version"""
+        selection = vc_window.tree.selection()
+        if not selection:
+            messagebox.showwarning("No Selection", "Please select a version to delete!")
+            return
+        
+        item = vc_window.tree.item(selection[0])
+        version_name = item['values'][0]
+        
+        if messagebox.askyesno("Delete Version", 
+                               f"Are you sure you want to delete version {version_name}?\n"
+                               f"This cannot be undone!"):
+            version_file = Path("playlist_versions") / f"{version_name}.json"
+            if version_file.exists():
+                version_file.unlink()
+                self._load_versions(vc_window.tree, Path("playlist_versions"))
+                messagebox.showinfo("Success", f"Version {version_name} deleted")
+    
+    def _load_versions(self, tree, version_dir):
+        """Load all saved versions into tree"""
+        # Clear existing
+        for item in tree.get_children():
+            tree.delete(item)
+        
+        # Load version files
+        version_files = sorted(version_dir.glob("*.json"), key=lambda f: f.stat().st_mtime, reverse=True)
+        
+        for vf in version_files:
+            try:
+                with open(vf, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                
+                timestamp = datetime.fromisoformat(data['timestamp'])
+                size_kb = vf.stat().st_size / 1024
+                
+                values = (
+                    data['version'],
+                    timestamp.strftime('%Y-%m-%d'),
+                    timestamp.strftime('%H:%M:%S'),
+                    data['channel_count'],
+                    f"{size_kb:.1f} KB",
+                    data.get('description', '')[:50]  # Truncate long descriptions
+                )
+                tree.insert("", "end", values=values)
+            except:
+                continue
+    
+    def _view_version_details(self, tree, version_dir):
+        """View detailed information about a version"""
+        selection = tree.selection()
+        if not selection:
+            return
+        
+        item = tree.item(selection[0])
+        version_name = item['values'][0]
+        
+        version_file = version_dir / f"{version_name}.json"
+        if not version_file.exists():
+            return
+        
+        with open(version_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        
+        # Create details window
+        details = tk.Toplevel()
+        details.title(f"Version Details: {version_name}")
+        details.geometry("600x400")
+        details.configure(bg="#2c3e50")
+        
+        # Display details
+        text = tk.Text(details, bg="#34495e", fg="#ecf0f1", font=("Courier", 10))
+        text.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        
+        details_text = f"""VERSION INFORMATION
+{'='*50}
+Version: {data['version']}
+Created: {data['timestamp']}
+Channels: {data['channel_count']}
+Description: {data.get('description', 'No description')}
+
+CHANNEL GROUPS:
+{', '.join(data.get('groups', []))}
+
+SAMPLE CHANNELS (First 10):
+{'='*50}
+"""
+        for i, ch in enumerate(data['channels'][:10], 1):
+            details_text += f"{i}. {ch.get('name', 'Unknown')} - {ch.get('group', 'No Group')}\n"
+        
+        text.insert("1.0", details_text)
+        text.config(state=tk.DISABLED)
     
     def smart_scheduler(self):
         """Intelligent playlist scheduler with rotation algorithms and random modes"""
