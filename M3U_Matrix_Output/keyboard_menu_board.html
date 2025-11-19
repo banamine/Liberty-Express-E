@@ -649,7 +649,21 @@
 
     <!-- Numeric Keypad -->
     <div class="numpad-container">
-        <div class="numpad-title">Quick Jump</div>
+        <div class="numpad-title">Quick Jump & Execute</div>
+        <!-- Quick Playlist Input -->
+        <div style="margin-bottom: 15px;">
+            <input type="text" id="quickPlaylist" placeholder="Enter playlist path..." 
+                   style="width: 100%; padding: 8px; background: rgba(30, 35, 60, 0.6); 
+                          border: 1px solid rgba(0, 255, 255, 0.3); border-radius: 8px; 
+                          color: #e0e5ff; font-size: 12px;">
+            <button onclick="loadQuickPlaylist()" 
+                    style="width: 100%; margin-top: 5px; padding: 8px; 
+                           background: linear-gradient(135deg, #27ae60, #2ecc71); 
+                           border: none; border-radius: 8px; color: white; 
+                           cursor: pointer; font-weight: bold;">
+                Load Playlist
+            </button>
+        </div>
         <div class="numpad-grid">
             <div class="numpad-key" data-num="1">1</div>
             <div class="numpad-key" data-num="2">2</div>
@@ -662,7 +676,16 @@
             <div class="numpad-key" data-num="9">9</div>
             <div class="numpad-key zero" data-num="0">0</div>
             <div class="numpad-key" data-num="clear">C</div>
+            <div class="numpad-key" data-num="enter" style="background: linear-gradient(135deg, #27ae60, #2ecc71); grid-column: span 3;">ENTER</div>
         </div>
+        <!-- Back to M3U Matrix Button -->
+        <button onclick="backToMatrix()" 
+                style="width: 100%; margin-top: 15px; padding: 10px; 
+                       background: linear-gradient(135deg, #e74c3c, #ff5555); 
+                       border: none; border-radius: 10px; color: white; 
+                       cursor: pointer; font-weight: bold; font-size: 14px;">
+            🏠 Back to M3U Matrix
+        </button>
     </div>
 
     <!-- Information Drawer -->
@@ -1002,6 +1025,7 @@
             });
 
             // Setup numpad
+            let selectedFunction = null;
             document.querySelectorAll('.numpad-key').forEach(key => {
                 key.addEventListener('click', () => {
                     const num = key.dataset.num;
@@ -1009,10 +1033,17 @@
                         searchTerm = '';
                         document.getElementById('searchInput').value = '';
                         generateKeyboard();
+                        selectedFunction = null;
+                    } else if (num === 'enter') {
+                        // Execute the selected function
+                        if (selectedFunction) {
+                            executeFunction(selectedFunction);
+                        }
                     } else if (presets[num]) {
-                        // Jump to function
+                        // Jump to function and select it
                         const func = functions.find(f => f.id === presets[num]);
                         if (func) {
+                            selectedFunction = func;
                             showFunctionDetails(func);
                             // Highlight key
                             const keyElement = document.querySelector(`[data-id="${func.id}"]`);
@@ -1020,6 +1051,8 @@
                                 keyElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
                                 animateKeyPress(keyElement);
                             }
+                            // Execute immediately on number press
+                            executeFunction(func);
                         }
                     }
                 });
@@ -1184,6 +1217,113 @@
         function showLoading() {
             document.querySelector('.loading').classList.add('active');
         }
+
+        // Execute function - actually triggers M3U Matrix commands
+        function executeFunction(func) {
+            console.log(`Executing function: ${func.name} (${func.id})`);
+            
+            // Show confirmation
+            const confirmMsg = `Executing: ${func.icon} ${func.name}`;
+            showNotification(confirmMsg, 'success');
+            
+            // Here you would integrate with M3U Matrix API
+            // For now, we'll simulate the action
+            switch(func.category) {
+                case 'file':
+                    if (func.id === 'new_file') {
+                        // Create new playlist
+                        window.open('/M3U_Matrix_Output/generated_pages/index.html?action=new', '_blank');
+                    } else if (func.id === 'open_file') {
+                        // Open existing playlist
+                        document.getElementById('quickPlaylist').focus();
+                    }
+                    break;
+                case 'generate':
+                    // Generate pages
+                    window.open('/M3U_Matrix_Output/generated_pages/index.html?action=generate&template=' + func.id, '_blank');
+                    break;
+                case 'export':
+                    // Export functions
+                    window.open('/M3U_Matrix_Output/generated_pages/index.html?action=export&format=' + func.id, '_blank');
+                    break;
+                default:
+                    // General action
+                    window.open('/M3U_Matrix_Output/generated_pages/index.html?action=' + func.id, '_blank');
+            }
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 80px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: ${type === 'success' ? 'linear-gradient(135deg, #27ae60, #2ecc71)' : 'rgba(0, 255, 255, 0.9)'};
+                color: white;
+                padding: 12px 24px;
+                border-radius: 10px;
+                font-weight: bold;
+                z-index: 10000;
+                animation: slideDown 0.3s ease;
+                box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideUp 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 2000);
+        }
+
+        // Load quick playlist
+        function loadQuickPlaylist() {
+            const playlistPath = document.getElementById('quickPlaylist').value.trim();
+            if (playlistPath) {
+                showNotification('Loading playlist: ' + playlistPath, 'success');
+                // Open M3U Matrix with the playlist
+                window.open('/M3U_Matrix_Output/generated_pages/index.html?playlist=' + encodeURIComponent(playlistPath), '_blank');
+            } else {
+                showNotification('Please enter a playlist path', 'error');
+            }
+        }
+
+        // Back to M3U Matrix
+        function backToMatrix() {
+            window.location.href = '/M3U_Matrix_Output/generated_pages/index.html';
+        }
+
+        // Add animation keyframes
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideDown {
+                from {
+                    opacity: 0;
+                    transform: translate(-50%, -20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translate(-50%, 0);
+                }
+            }
+            @keyframes slideUp {
+                from {
+                    opacity: 1;
+                    transform: translate(-50%, 0);
+                }
+                to {
+                    opacity: 0;
+                    transform: translate(-50%, -20px);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Add passive event listeners for Weebly compatibility
+        document.addEventListener('wheel', function(e) {}, { passive: true });
+        document.addEventListener('touchmove', function(e) {}, { passive: true });
     </script>
 </body>
 </html>

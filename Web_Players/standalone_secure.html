@@ -294,6 +294,9 @@
     </style>
 </head>
 <body>
+    <!-- Back to Hub Button -->
+    <a href="/M3U_Matrix_Output/generated_pages/index.html" style="position: fixed; top: 10px; left: 10px; z-index: 9999; background: rgba(0,0,0,0.8); color: white; padding: 8px 12px; border-radius: 8px; text-decoration: none; font-size: 14px; border: 1px solid rgba(255,255,255,0.3);">🏠 Hub</a>
+    
     <div class="header">
         <h1>{{PAGE_TITLE}}</h1>
         <div class="stats">
@@ -682,6 +685,10 @@
                 }, 500);
             }
         });
+        
+        // Add passive event listeners for Weebly compatibility
+        document.addEventListener('wheel', function(e) {}, { passive: true });
+        document.addEventListener('touchmove', function(e) {}, { passive: true });
     </script>
 </body>
 </html>
