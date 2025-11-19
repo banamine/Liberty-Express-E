@@ -6,7 +6,7 @@ echo.
 echo Starting Video Player Pro...
 echo.
 
-cd /d "%~dp0Applications"
+cd /d "%~dp0..\Applications"
 python VIDEO_PLAYER_PRO.py
 
 if errorlevel 1 (

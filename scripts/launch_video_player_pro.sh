@@ -7,7 +7,7 @@ echo ""
 echo "Starting Video Player Pro..."
 echo ""
 
-cd "$(dirname "$0")/Applications"
+cd "$(dirname "$0")/../Applications"
 python3 VIDEO_PLAYER_PRO.py
 
 if [ $? -ne 0 ]; then
