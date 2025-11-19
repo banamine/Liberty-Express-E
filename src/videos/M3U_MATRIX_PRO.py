@@ -507,6 +507,7 @@ class M3UMatrix:
                 ("RUMBLE CHANNEL", "#FF4500", self.generate_rumble_channel),
                 ("BUFFER TV", "#DC143C", self.generate_buffer_tv),
                 ("STREAM HUB", "#00d4ff", self.generate_stream_hub),
+                ("STANDALONE", "#9400D3", self.generate_standalone_secure),
                 ("SMART SCHEDULE", "#9b59b6", self.smart_scheduler),
                 ("JSON GUIDE", "#95e1d3", self.export_tv_guide_json)]
         for txt, col, cmd in row2:
@@ -5004,6 +5005,159 @@ Services included:
                 ))
                 self.root.after(0, lambda: self.stat.config(text="Generation failed"))
         
+        threading.Thread(target=generation_thread, daemon=True).start()
+    
+    def generate_standalone_secure(self):
+        """Generate standalone secure player page with hidden URLs and chunked loading"""
+        if not PAGE_GENERATOR_AVAILABLE:
+            messagebox.showwarning("Feature Unavailable", 
+                "Page generator not available.\n\n"
+                "Download the full project from GitHub to use this feature.")
+            return
+            
+        if not self.channels:
+            messagebox.showwarning("No Channels", "Load channels first!")
+            return
+        
+        # Show configuration dialog
+        config_dialog = tk.Toplevel(self.root)
+        config_dialog.title("Standalone Secure Player Configuration")
+        config_dialog.geometry("550x500")
+        config_dialog.configure(bg="#1a1a2e")
+        config_dialog.transient(self.root)
+        config_dialog.grab_set()
+        
+        # Title with purple gradient
+        tk.Label(
+            config_dialog,
+            text="🔒 STANDALONE SECURE PLAYER",
+            font=("Segoe UI", 20, "bold"),
+            bg="#1a1a2e",
+            fg="#9400D3"
+        ).pack(pady=20)
+        
+        # Description
+        tk.Label(
+            config_dialog,
+            text=f"Found {len(self.channels)} channels in your playlist.\n\n"
+                 "Create a completely self-contained HTML player with:\n"
+                 "• Everything embedded inline (no external files)\n"
+                 "• URLs hidden from user view (security)\n"
+                 "• Smart loading - 20% chunks for large playlists\n"
+                 "• Perfect for GitHub Pages hosting\n"
+                 "• Works offline once loaded",
+            font=("Segoe UI", 10),
+            bg="#1a1a2e",
+            fg="#fff",
+            justify=tk.CENTER
+        ).pack(pady=10)
+        
+        # Page name
+        name_frame = tk.Frame(config_dialog, bg="#1a1a2e")
+        name_frame.pack(pady=15, padx=30, fill=tk.X)
+        
+        tk.Label(name_frame, text="Page Name:", bg="#1a1a2e", fg="#fff",
+                font=("Arial", 10, "bold")).pack(anchor=tk.W)
+        page_name_var = tk.StringVar(value="Secure Player")
+        tk.Entry(name_frame, textvariable=page_name_var, width=40,
+                bg="#2c3e50", fg="#fff", font=("Arial", 10)).pack(fill=tk.X, pady=5)
+        
+        # GitHub Pages info
+        github_frame = tk.Frame(config_dialog, bg="#1a1a2e")
+        github_frame.pack(pady=10, padx=30, fill=tk.X)
+        
+        tk.Label(
+            github_frame,
+            text="📦 GitHub Pages Ready:\n"
+                 "Generated file can be uploaded directly to GitHub\n"
+                 "and hosted at: username.github.io/repository/",
+            font=("Segoe UI", 9),
+            bg="#1a1a2e",
+            fg="#00d4ff",
+            justify=tk.LEFT
+        ).pack(anchor=tk.W)
+        
+        # Buttons
+        btn_frame = tk.Frame(config_dialog, bg="#1a1a2e")
+        btn_frame.pack(pady=20)
+        
+        def generate():
+            page_name = page_name_var.get().strip()
+            if not page_name:
+                messagebox.showwarning("Invalid Name", "Please enter a page name!")
+                return
+            
+            config_dialog.destroy()
+            self._generate_standalone_page(page_name)
+        
+        tk.Button(btn_frame, text="🚀 GENERATE", command=generate,
+                 bg="#9400D3", fg="#fff", font=("Arial", 12, "bold"),
+                 width=15, height=2).pack(side=tk.LEFT, padx=10)
+        tk.Button(btn_frame, text="Cancel", command=config_dialog.destroy,
+                 bg="#e74c3c", fg="#fff", font=("Arial", 10),
+                 width=12, height=2).pack(side=tk.LEFT, padx=10)
+    
+    def _generate_standalone_page(self, page_name):
+        """Generate the standalone secure page with template"""
+        def generation_thread():
+            try:
+                self.root.after(0, lambda: self.stat.config(text="Generating Standalone Secure Player..."))
+                
+                # Import generator
+                from page_generator import StandaloneSecurePageGenerator
+                
+                # Prepare M3U content
+                m3u_content = "#EXTM3U\n"
+                for ch in self.channels:
+                    m3u_content += f"#EXTINF:-1 "
+                    if ch.get('tvg_name'):
+                        m3u_content += f'tvg-name="{ch["tvg_name"]}" '
+                    if ch.get('tvg_logo'):
+                        m3u_content += f'tvg-logo="{ch["tvg_logo"]}" '
+                    if ch.get('group'):
+                        m3u_content += f'group-title="{ch["group"]}" '
+                    m3u_content += f',{ch.get("name", "Unknown")}\n'
+                    m3u_content += f'{ch.get("url", "")}\n'
+                
+                # Generate page
+                generator = StandaloneSecurePageGenerator()
+                output_path = generator.generate_page(m3u_content, page_name)
+                
+                if output_path:
+                    self.root.after(0, lambda: self.stat.config(
+                        text=f"✅ Standalone page generated: {output_path.name}"))
+                    
+                    # Show success message with GitHub Pages instructions
+                    abs_path = output_path.absolute()
+                    self.root.after(100, lambda: messagebox.showinfo(
+                        "🔒 Standalone Secure Player Generated!", 
+                        f"Your standalone player has been generated!\n\n"
+                        f"📁 File: {output_path.name}\n"
+                        f"📂 Location: {abs_path}\n\n"
+                        f"✨ Features:\n"
+                        f"• Completely self-contained (no external files)\n"
+                        f"• URLs hidden from display\n"
+                        f"• 20% chunked loading for performance\n"
+                        f"• {len(self.channels)} channels embedded\n\n"
+                        f"📦 GitHub Pages Hosting:\n"
+                        f"1. Upload to GitHub repository\n"
+                        f"2. Enable Pages in Settings → Pages\n"
+                        f"3. Access at: username.github.io/repo/\n\n"
+                        f"Check README_GITHUB_PAGES.md for full instructions."))
+                else:
+                    self.root.after(0, lambda: messagebox.showerror(
+                        "Generation Failed", "Failed to generate standalone page"))
+                
+            except ImportError as e:
+                self.root.after(0, lambda: messagebox.showerror(
+                    "Import Error", f"Could not load Standalone generator: {e}"))
+            except Exception as e:
+                import traceback
+                error_details = traceback.format_exc()
+                self.root.after(0, lambda: messagebox.showerror(
+                    "Generation Error", f"Failed to generate page: {e}\n\n{error_details}"))
+        
+        # Run in thread
         threading.Thread(target=generation_thread, daemon=True).start()
     
     def open_bulk_editor(self):

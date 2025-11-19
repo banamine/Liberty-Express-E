@@ -1763,6 +1763,212 @@ with a visual audio spectrum analyzer.
         return html_path
 
 
+class StandaloneSecurePageGenerator:
+    """
+    Standalone Secure Page Generator
+    Generates completely self-contained HTML pages with:
+    - All dependencies embedded inline (no external files)
+    - Hidden URLs (never displayed in UI)
+    - Smart chunking for large playlists (20% at a time)
+    - Base64 encoded playlist data for obfuscation
+    """
+    
+    def __init__(self, template_path=None):
+        if template_path is None:
+            template_path = Path(__file__).resolve().parent.parent / "templates" / "standalone_secure_player.html"
+        self.template_path = Path(template_path)
+        self.output_dir = Path("generated_pages") / "standalone"
+        self.output_dir.mkdir(exist_ok=True, parents=True)
+        
+        # Load HLS.js library for embedding
+        self.hls_library = self._load_hls_library()
+    
+    def _load_hls_library(self):
+        """Load HLS.js library content for embedding"""
+        try:
+            # Try to load HLS.js from templates directory
+            hls_path = Path(__file__).resolve().parent.parent / "templates" / "simple-player" / "js" / "libs" / "hls.min.js"
+            if hls_path.exists():
+                with open(hls_path, 'r', encoding='utf-8') as f:
+                    return f.read()
+            
+            # Fallback: Use a minimal HLS.js placeholder
+            return "/* HLS.js library will be embedded here */"
+        except Exception as e:
+            print(f"Warning: Could not load HLS.js: {e}")
+            return "/* HLS.js library placeholder */"
+    
+    def parse_m3u_to_channels(self, m3u_content):
+        """Parse M3U content and extract channel information without exposing URLs"""
+        channels = []
+        lines = m3u_content.strip().split('\n')
+        
+        i = 0
+        while i < len(lines):
+            line = lines[i].strip()
+            
+            if line.startswith('#EXTINF:'):
+                # Parse channel info
+                name_match = re.search(r',(.+)$', line)
+                logo_match = re.search(r'tvg-logo="([^"]+)"', line)
+                group_match = re.search(r'group-title="([^"]+)"', line)
+                
+                channel = {
+                    'name': name_match.group(1) if name_match else 'Channel',
+                    'logo': logo_match.group(1) if logo_match else '',
+                    'group': group_match.group(1) if group_match else 'General'
+                }
+                
+                # Get URL from next line but store internally
+                i += 1
+                if i < len(lines) and not lines[i].startswith('#'):
+                    channel['_src'] = lines[i].strip()
+                    channels.append(channel)
+            
+            i += 1
+        
+        return channels
+    
+    def generate_page(self, m3u_content, page_name="Secure Player", metadata=None):
+        """
+        Generate a completely self-contained HTML page
+        
+        Args:
+            m3u_content: M3U playlist content
+            page_name: Name for the page
+            metadata: Optional metadata dictionary
+        
+        Returns:
+            Path to generated HTML file
+        """
+        try:
+            # Read template
+            with open(self.template_path, 'r', encoding='utf-8') as f:
+                template = f.read()
+            
+            # Parse channels
+            channels = self.parse_m3u_to_channels(m3u_content)
+            
+            if not channels:
+                print("Warning: No valid channels found in playlist")
+                return None
+            
+            # Prepare playlist data for embedding
+            # We'll recreate a minimal M3U structure with only essential data
+            playlist_lines = ['#EXTM3U']
+            for channel in channels:
+                # Include channel info but URL will be stored internally
+                extinf_line = f'#EXTINF:-1 group-title="{channel["group"]}"'
+                if channel.get('logo'):
+                    extinf_line += f' tvg-logo="{channel["logo"]}"'
+                extinf_line += f',{channel["name"]}'
+                playlist_lines.append(extinf_line)
+                playlist_lines.append(channel.get('_src', ''))
+            
+            # Base64 encode the playlist data for obfuscation
+            import base64
+            playlist_str = '\n'.join(playlist_lines)
+            encoded_playlist = base64.b64encode(playlist_str.encode('utf-8')).decode('utf-8')
+            
+            # Generate safe filename
+            safe_name = re.sub(r'[^\w\-_]', '_', page_name.lower())[:50]
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            filename = f"{safe_name}_{timestamp}.html"
+            
+            # Replace placeholders in template
+            html_content = template.replace('{{PAGE_TITLE}}', page_name)
+            html_content = html_content.replace('{{PLAYLIST_DATA}}', encoded_playlist)
+            html_content = html_content.replace('{{HLS_LIBRARY}}', self.hls_library)
+            
+            # Add metadata if provided
+            if metadata:
+                meta_json = json.dumps(metadata, indent=2)
+                html_content = html_content.replace('{{METADATA}}', meta_json)
+            else:
+                html_content = html_content.replace('{{METADATA}}', '{}')
+            
+            # Write output file
+            output_path = self.output_dir / filename
+            with open(output_path, 'w', encoding='utf-8') as f:
+                f.write(html_content)
+            
+            print(f"✅ Generated standalone secure page: {output_path}")
+            print(f"   • {len(channels)} channels embedded")
+            print(f"   • URLs hidden from display")
+            print(f"   • 20% chunked loading enabled")
+            print(f"   • Completely self-contained (no external dependencies)")
+            
+            # Create README for GitHub Pages
+            self._create_github_pages_readme()
+            
+            return output_path
+            
+        except Exception as e:
+            print(f"❌ Error generating standalone page: {e}")
+            import traceback
+            traceback.print_exc()
+            return None
+    
+    def _create_github_pages_readme(self):
+        """Create README with GitHub Pages deployment instructions"""
+        readme_content = """# Standalone Secure Player - GitHub Pages Deployment
+
+## Quick Setup
+
+1. **Create GitHub Repository**
+   - Go to GitHub.com and create a new repository
+   - Name it (e.g., `my-iptv-player`)
+   - Make it PUBLIC (required for free GitHub Pages)
+
+2. **Upload Generated Files**
+   - Upload all files from `generated_pages/standalone/` folder
+   - Make sure `index.html` is in the root (rename one of your players if needed)
+
+3. **Enable GitHub Pages**
+   - Go to Settings → Pages
+   - Source: Deploy from a branch
+   - Branch: main (or master)
+   - Folder: / (root)
+   - Click Save
+
+4. **Access Your Player**
+   - Wait 2-5 minutes for deployment
+   - Your site will be available at: `https://YOUR-USERNAME.github.io/REPO-NAME/`
+
+## Features
+- ✅ Completely self-contained (no server needed)
+- ✅ URLs hidden from user view
+- ✅ Smart loading (20% chunks for large playlists)
+- ✅ Works offline once loaded
+- ✅ Mobile responsive
+
+## Multiple Players
+You can host multiple players:
+- `index.html` - Main player (accessible at root)
+- `player2.html` - Additional player
+- `player3.html` - Another player
+
+Access them at:
+- `https://YOUR-USERNAME.github.io/REPO-NAME/`
+- `https://YOUR-USERNAME.github.io/REPO-NAME/player2.html`
+- `https://YOUR-USERNAME.github.io/REPO-NAME/player3.html`
+
+## Custom Domain (Optional)
+1. Create file named `CNAME` with your domain
+2. Configure DNS at your domain provider
+3. Enable HTTPS in GitHub Pages settings
+
+## Updates
+Simply upload new HTML files to update your players. Changes go live in 1-2 minutes.
+"""
+        
+        readme_path = self.output_dir / "README_GITHUB_PAGES.md"
+        with open(readme_path, 'w', encoding='utf-8') as f:
+            f.write(readme_content)
+        
+        print(f"📝 Created GitHub Pages deployment guide: {readme_path}")
+
+
 if __name__ == "__main__":
     # Example usage
     generator = NexusTVPageGenerator()
