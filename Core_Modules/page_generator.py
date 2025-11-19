@@ -51,7 +51,7 @@ def clean_title(raw_title):
 class NexusTVPageGenerator:
     def __init__(self, template_path=None):
         if template_path is None:
-            template_path = Path(__file__).resolve().parent.parent / "templates" / "nexus_tv_template.html"
+            template_path = Path(__file__).resolve().parent.parent / "Web_Players" / "nexus_tv.html"
         self.template_path = Path(template_path)
         
         # Use OutputManager for organized directory structure
@@ -1055,7 +1055,7 @@ class RumbleChannelGenerator:
     
     def __init__(self, template_path=None):
         if template_path is None:
-            template_path = Path(__file__).resolve().parent.parent / "templates" / "rumble_channel_template.html"
+            template_path = Path(__file__).resolve().parent.parent / "Web_Players" / "rumble_channel.html"
         self.template_path = Path(template_path)
         
         # Use OutputManager for organized directory structure
@@ -1310,7 +1310,7 @@ class MultiChannelGenerator:
     
     def __init__(self, template_path=None):
         if template_path is None:
-            template_path = Path(__file__).resolve().parent.parent / "templates" / "multi_channel_template.html"
+            template_path = Path(__file__).resolve().parent.parent / "Web_Players" / "multi_channel.html"
         self.template_path = Path(template_path)
         
         # Use OutputManager for organized directory structure
@@ -1541,7 +1541,7 @@ class BufferTVGenerator:
     """
     def __init__(self, template_path=None):
         if template_path is None:
-            template_path = Path(__file__).resolve().parent.parent / "templates" / "buffer_tv_template.html"
+            template_path = Path(__file__).resolve().parent.parent / "Web_Players" / "buffer_tv.html"
         self.template_path = Path(template_path)
         
         # Use OutputManager for organized directory structure
@@ -1676,7 +1676,7 @@ class StreamHubGenerator:
     """
     def __init__(self, template_path=None):
         if template_path is None:
-            template_path = Path(__file__).resolve().parent.parent / "templates" / "stream_hub_template.html"
+            template_path = Path(__file__).resolve().parent.parent / "Web_Players" / "stream_hub.html"
         self.template_path = Path(template_path)
         
         # Use OutputManager for organized directory structure
