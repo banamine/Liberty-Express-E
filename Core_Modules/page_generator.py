@@ -54,6 +54,7 @@ def sanitize_directory_name(name):
     - URL decodes first (%20 → space, %27 → apostrophe)
     - Removes or replaces invalid characters
     - Ensures Windows compatibility
+    - Blocks Windows reserved device names
     """
     if not name:
         return 'unknown'
@@ -80,6 +81,19 @@ def sanitize_directory_name(name):
     # Limit length to 255 chars (filesystem limit)
     if len(name) > 255:
         name = name[:255]
+    
+    # Check for Windows reserved device names
+    # These names are reserved in Windows and cannot be used as filenames
+    reserved_names = [
+        'CON', 'PRN', 'AUX', 'NUL',
+        'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9',
+        'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9'
+    ]
+    
+    # Check if the name (without extension) matches a reserved name
+    name_upper = name.upper().split('.')[0]
+    if name_upper in reserved_names:
+        name = f"_{name}"  # Prefix with underscore to make it valid
     
     # If empty after cleaning, use fallback
     if not name:
