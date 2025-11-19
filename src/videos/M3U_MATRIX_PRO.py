@@ -1896,13 +1896,19 @@ Success Rate: {results['working']/results['total']*100:.1f}%
             messagebox.showwarning("No Channels", "Load channels first!")
             return
         
-        exports_dir = Path("exports")
-        exports_dir.mkdir(exist_ok=True)
+        # Use OutputManager for organized exports
+        try:
+            from output_manager import get_output_manager
+            manager = get_output_manager()
+            exports_dir = manager.json_data_dir
+        except:
+            exports_dir = Path("M3U_Matrix_Output") / "json_data"
+            exports_dir.mkdir(exist_ok=True, parents=True)
         
         filename = filedialog.asksaveasfilename(
             defaultextension=".json",
-            filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
             initialdir=str(exports_dir),
+            filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
             initialfile=f"playlist_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
         )
         
@@ -2755,19 +2761,29 @@ Success Rate: {results['working']/results['total']*100:.1f}%
         )
 
     def save(self):
-        folder = filedialog.askdirectory()
+        # Use OutputManager for organized saves
+        try:
+            from output_manager import get_output_manager
+            manager = get_output_manager()
+            default_dir = manager.playlists_dir
+        except:
+            default_dir = Path("M3U_Matrix_Output") / "playlists"
+            default_dir.mkdir(exist_ok=True, parents=True)
+        
+        filename = filedialog.asksaveasfilename(
+            defaultextension=".m3u",
+            initialdir=str(default_dir),
+            filetypes=[("M3U files", "*.m3u"), ("M3U8 files", "*.m3u8"), ("All files", "*.*")],
+            initialfile=f"MATRIX_{datetime.now().strftime('%Y%m%d')}_{len(self.channels)}.m3u"
+        )
 
-        if folder:
-            path = os.path.join(
-                folder,
-                f"MATRIX_{datetime.now().strftime('%Y%m%d')}_{len(self.channels)}.m3u"
-            )
-            with open(path, "w", encoding="utf-8") as f:
+        if filename:
+            with open(filename, "w", encoding="utf-8") as f:
                 f.write(self.m3u)
             self.mark_clean()  # Clear unsaved changes flag
             messagebox.showinfo(
                 "Saved", f"Playlist saved with {len(self.channels)} channels")
-            self.stat.config(text=f"SAVED: {path}")
+            self.stat.config(text=f"SAVED: {os.path.basename(filename)}")
 
     def overlay(self):
         html_content = """
@@ -4318,13 +4334,19 @@ Services included:
             messagebox.showwarning("No Channels", "Load channels first!")
             return
         
-        exports_dir = Path("exports")
-        exports_dir.mkdir(exist_ok=True)
+        # Use OutputManager for organized exports
+        try:
+            from output_manager import get_output_manager
+            manager = get_output_manager()
+            exports_dir = manager.playlists_dir
+        except:
+            exports_dir = Path("M3U_Matrix_Output") / "playlists"
+            exports_dir.mkdir(exist_ok=True, parents=True)
         
         filename = filedialog.asksaveasfilename(
             defaultextension=".m3u",
-            filetypes=[("M3U files", "*.m3u"), ("M3U8 files", "*.m3u8"), ("All files", "*.*")],
             initialdir=str(exports_dir),
+            filetypes=[("M3U files", "*.m3u"), ("M3U8 files", "*.m3u8"), ("All files", "*.*")],
             initialfile=f"playlist_{datetime.now().strftime('%Y%m%d_%H%M%S')}.m3u"
         )
         
@@ -6446,8 +6468,14 @@ Coverage: {(total_slots / total_channels):.1f}x per show
                 btn_frame.pack(fill=tk.X, pady=10)
                 
                 def save_schedule():
-                    json_dir = Path("json")
-                    json_dir.mkdir(exist_ok=True)
+                    # Use OutputManager for organized JSON saves
+                    try:
+                        from output_manager import get_output_manager
+                        manager = get_output_manager()
+                        json_dir = manager.json_data_dir
+                    except:
+                        json_dir = Path("M3U_Matrix_Output") / "json_data"
+                        json_dir.mkdir(exist_ok=True, parents=True)
                     
                     filename = filedialog.asksaveasfilename(
                         defaultextension=".json",
@@ -6469,8 +6497,14 @@ Coverage: {(total_slots / total_channels):.1f}x per show
                         self.stat.config(text=f"✅ Smart schedule saved: {mode} mode")
                 
                 def save_and_generate_page():
-                    json_dir = Path("json")
-                    json_dir.mkdir(exist_ok=True)
+                    # Use OutputManager for organized JSON saves
+                    try:
+                        from output_manager import get_output_manager
+                        manager = get_output_manager()
+                        json_dir = manager.json_data_dir
+                    except:
+                        json_dir = Path("M3U_Matrix_Output") / "json_data"
+                        json_dir.mkdir(exist_ok=True, parents=True)
                     
                     filename = filedialog.asksaveasfilename(
                         defaultextension=".json",
