@@ -2844,7 +2844,7 @@ Success Rate: {results['working']/results['total']*100:.1f}%
     
     def launch_redis_services(self):
         """Launch Redis server, API, and Dashboard with output window"""
-        redis_dir = Path("redis")
+        redis_dir = PROJECT_ROOT / "redis"
         
         if not redis_dir.exists():
             messagebox.showwarning(
@@ -3795,8 +3795,8 @@ Services included:
                 self.root.after(0, lambda: self.stat.config(text="Generating Web IPTV..."))
                 webiptv_path = TEMPLATES_DIR / "web-iptv-extension"
                 if webiptv_path.exists():
-                    from page_generator import WebIPTVPageGenerator
-                    webiptv_gen = WebIPTVPageGenerator(template_path=str(webiptv_path))
+                    from page_generator import WebIPTVGenerator
+                    webiptv_gen = WebIPTVGenerator(template_path=str(webiptv_path))
                     webiptv_output = webiptv_gen.generate_page(m3u_content, first_channel_name)
                     generated.append({
                         'name': f"{first_channel_name} - Web IPTV",
@@ -3808,8 +3808,8 @@ Services included:
                 self.root.after(0, lambda: self.stat.config(text="Generating Simple Player..."))
                 simple_path = TEMPLATES_DIR / "simple-player"
                 if simple_path.exists():
-                    from page_generator import SimplePlayerPageGenerator
-                    simple_gen = SimplePlayerPageGenerator(template_path=str(simple_path))
+                    from page_generator import SimplePlayerGenerator
+                    simple_gen = SimplePlayerGenerator(template_path=str(simple_path))
                     simple_output = simple_gen.generate_page(m3u_content, first_channel_name)
                     generated.append({
                         'name': f"{first_channel_name} - Simple Player",
