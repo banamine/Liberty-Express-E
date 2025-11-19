@@ -267,7 +267,8 @@ class M3UMatrix:
             ("🗑️ Delete", self.delete_selected, "#E74C3C"),
             ("🔗 Validate Links", self.validate_links, "#9B59B6"),
             ("📡 EPG Import", self.import_epg, "#3498DB"),
-            ("🌐 Generate Pages", self.show_page_generator_menu, "#2ECC71")
+            ("🎬 CLASSIC TV", self.generate_classic, "#FF0000"),  # YOUR BIG RED BUTTON IS BACK!
+            ("🌐 More Players", self.show_page_generator_menu, "#2ECC71")
         ]
 
         for i, (text, command, color) in enumerate(button_configs):
