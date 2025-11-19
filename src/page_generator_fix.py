@@ -40,7 +40,7 @@ def get_application_path():
 
 def get_output_directory(subfolder=""):
     """
-    Get the correct output directory for generated pages
+    Get the correct output directory for generated pages using OutputManager
     
     Args:
         subfolder: Optional subfolder within generated_pages (e.g., "nexus_tv")
@@ -48,16 +48,28 @@ def get_output_directory(subfolder=""):
     Returns:
         Path object pointing to the correct output directory
     """
-    base = get_application_path()
-    output_dir = base / "generated_pages"
-    
-    if subfolder:
-        output_dir = output_dir / subfolder
-    
-    # Create directory if it doesn't exist
-    output_dir.mkdir(exist_ok=True, parents=True)
-    
-    return output_dir
+    # Import OutputManager to handle organized structure
+    try:
+        from output_manager import get_output_manager
+        manager = get_output_manager()
+        
+        # Map subfolder names to page types
+        if subfolder:
+            return manager.get_page_output_dir(subfolder)
+        else:
+            return manager.pages_dir
+    except ImportError:
+        # Fallback if OutputManager not available
+        base = get_application_path()
+        output_dir = base / "M3U_Matrix_Output" / "generated_pages"
+        
+        if subfolder:
+            output_dir = output_dir / subfolder
+        
+        # Create directory if it doesn't exist
+        output_dir.mkdir(exist_ok=True, parents=True)
+        
+        return output_dir
 
 def get_template_path(template_name):
     """
@@ -133,7 +145,7 @@ def fix_page_generator_paths():
     return None
 
 def _fix_nexus_tv_generator(cls):
-    """Fix NexusTVPageGenerator to use correct paths"""
+    """Fix NexusTVPageGenerator to use OutputManager organized paths"""
     original_init = cls.__init__
     
     def fixed_init(self, template_path=None):
@@ -146,7 +158,7 @@ def _fix_nexus_tv_generator(cls):
     cls.__init__ = fixed_init
 
 def _fix_web_iptv_generator(cls):
-    """Fix WebIPTVGenerator to use correct paths"""
+    """Fix WebIPTVGenerator to use OutputManager organized paths"""
     original_init = cls.__init__
     
     def fixed_init(self, template_path=None):
@@ -158,7 +170,7 @@ def _fix_web_iptv_generator(cls):
     cls.__init__ = fixed_init
 
 def _fix_simple_player_generator(cls):
-    """Fix SimplePlayerGenerator to use correct paths"""
+    """Fix SimplePlayerGenerator to use OutputManager organized paths"""
     original_init = cls.__init__
     
     def fixed_init(self, template_path=None):
@@ -170,7 +182,7 @@ def _fix_simple_player_generator(cls):
     cls.__init__ = fixed_init
 
 def _fix_rumble_generator(cls):
-    """Fix RumbleChannelGenerator to use correct paths"""
+    """Fix RumbleChannelGenerator to use OutputManager organized paths"""
     original_init = cls.__init__
     
     def fixed_init(self, template_path=None):
@@ -188,7 +200,7 @@ def _fix_rumble_generator(cls):
     cls.__init__ = fixed_init
 
 def _fix_multi_channel_generator(cls):
-    """Fix MultiChannelGenerator to use correct paths"""
+    """Fix MultiChannelGenerator to use OutputManager organized paths"""
     original_init = cls.__init__
     
     def fixed_init(self, template_path=None):
@@ -200,7 +212,7 @@ def _fix_multi_channel_generator(cls):
     cls.__init__ = fixed_init
 
 def _fix_buffer_tv_generator(cls):
-    """Fix BufferTVGenerator to use correct paths"""
+    """Fix BufferTVGenerator to use OutputManager organized paths"""
     original_init = cls.__init__
     
     def fixed_init(self, template_path=None):
