@@ -49,21 +49,43 @@ try:
         PAGE_GENERATOR_AVAILABLE = True
         print("Page generators loaded (development mode)")
         
-        # Create helper function for development
+        # Create helper function for development using OutputManager
         def get_output_directory(subfolder=""):
-            output_dir = Path("generated_pages")
-            if subfolder:
-                output_dir = output_dir / subfolder
-            output_dir.mkdir(exist_ok=True, parents=True)
-            return output_dir
+            try:
+                from output_manager import get_output_manager
+                manager = get_output_manager()
+                if subfolder:
+                    return manager.get_page_output_dir(subfolder)
+                else:
+                    return manager.pages_dir
+            except ImportError:
+                # Fallback if OutputManager not available
+                output_dir = Path("M3U_Matrix_Output") / "generated_pages"
+                if subfolder:
+                    output_dir = output_dir / subfolder
+                output_dir.mkdir(exist_ok=True, parents=True)
+                return output_dir
             
 except ImportError as e:
     PAGE_GENERATOR_AVAILABLE = False
     logging.warning(f"Page generator not available: {e}")
     
-    # Fallback helper
+    # Fallback helper using OutputManager
     def get_output_directory(subfolder=""):
-        return Path("generated_pages")
+        try:
+            from output_manager import get_output_manager
+            manager = get_output_manager()
+            if subfolder:
+                return manager.get_page_output_dir(subfolder)
+            else:
+                return manager.pages_dir
+        except ImportError:
+            # Fallback if OutputManager not available
+            output_dir = Path("M3U_Matrix_Output") / "generated_pages"
+            if subfolder:
+                output_dir = output_dir / subfolder
+            output_dir.mkdir(exist_ok=True, parents=True)
+            return output_dir
 
 try:
     from utils import (sanitize_filename, validate_url, validate_file_path, 
@@ -2741,36 +2763,28 @@ Success Rate: {results['working']/results['total']*100:.1f}%
     def open_navigation_hub(self):
         """Open the Navigation Hub page in default browser"""
         try:
-            # Get the directory containing this script
-            script_dir = os.path.dirname(os.path.abspath(__file__))
+            # Use OutputManager to get the correct hub path
+            try:
+                from output_manager import get_output_manager
+                manager = get_output_manager()
+                hub_path = manager.pages_dir / "index.html"
+            except ImportError:
+                # Fallback to M3U_Matrix_Output structure
+                hub_path = Path.cwd() / "M3U_Matrix_Output" / "generated_pages" / "index.html"
             
-            # Try multiple possible locations for generated_pages/index.html
-            possible_paths = [
-                # Same directory as script (for deployment)
-                os.path.join(script_dir, "generated_pages", "index.html"),
-                # Parent directory (if in src/videos/)
-                os.path.join(script_dir, "..", "generated_pages", "index.html"),
-                # Root of project (if in nested structure)
-                os.path.join(script_dir, "..", "..", "generated_pages", "index.html"),
-            ]
-            
-            hub_path = None
-            for path in possible_paths:
-                normalized_path = os.path.normpath(path)
-                if os.path.exists(normalized_path):
-                    hub_path = normalized_path
-                    break
-            
-            if not hub_path:
-                messagebox.showerror(
+            # Check if hub exists
+            if not hub_path.exists():
+                messagebox.showwarning(
                     "Navigation Hub Not Found",
                     "Navigation Hub not found!\n\n"
-                    "The hub page will be created automatically when you generate your first player page."
+                    "The hub page will be created automatically when you generate your first player page.\n\n"
+                    f"Expected location:\n{hub_path}"
                 )
                 return
             
-            # Open in default browser
-            webbrowser.open(f"file://{hub_path}")
+            # Open in default browser using absolute path
+            abs_path = hub_path.absolute()
+            webbrowser.open(f"file:///{abs_path}")
             self.stat.config(text="Navigation Hub opened in browser")
         except Exception as e:
             self.show_error_dialog("Failed to Open Hub", "Could not open Navigation Hub", e)
