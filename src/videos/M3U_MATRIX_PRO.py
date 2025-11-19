@@ -95,6 +95,14 @@ try:
 except ImportError as e:
     UTILS_AVAILABLE = False
     logging.warning(f"Utils module not available: {e}")
+
+# NDI Output import
+try:
+    from ndi_output import get_ndi_manager
+    NDI_AVAILABLE = True
+except ImportError as e:
+    NDI_AVAILABLE = False
+    logging.info(f"NDI output module not available: {e}")
     download_and_cache_thumbnail = None
     get_cached_thumbnail_stats = None
     # Minimal fallback functions
@@ -644,7 +652,8 @@ class M3UMatrix:
                 ("STREAM HUB", "#00d4ff", self.generate_stream_hub),
                 ("STANDALONE", "#9400D3", self.generate_standalone_secure),
                 ("SMART SCHEDULE", "#9b59b6", self.smart_scheduler),
-                ("JSON GUIDE", "#95e1d3", self.export_tv_guide_json)]
+                ("JSON GUIDE", "#95e1d3", self.export_tv_guide_json),
+                ("🔴 NDI", "#FF0000", self.open_ndi_control)]
         for txt, col, cmd in row2:
             self.create_styled_button(tb2, txt, cmd, bg_color=col, width=14).pack(side=tk.LEFT, padx=4)
         
@@ -3544,6 +3553,223 @@ Services included:
                 "Please check that the browser component is installed correctly."
             )
             self.logger.error(f"Error opening Rumble Browser: {e}", exc_info=True)
+    
+    def open_ndi_control(self):
+        """Open NDI Control Center for managing NDI outputs"""
+        if not NDI_AVAILABLE:
+            messagebox.showinfo(
+                "NDI Not Available",
+                "NDI output module is not available.\n\n"
+                "Please ensure NDI Tools are installed and\n"
+                "the NDI output module is properly configured."
+            )
+            return
+        
+        try:
+            ndi_manager = get_ndi_manager()
+            
+            # Create NDI Control Window
+            ndi_window = tk.Toplevel(self.root)
+            ndi_window.title("NDI Output Control Center")
+            ndi_window.geometry("800x600")
+            ndi_window.configure(bg="#1a1a2e")
+            ndi_window.transient(self.root)
+            
+            # Center the window
+            ndi_window.update_idletasks()
+            x = (ndi_window.winfo_screenwidth() // 2) - 400
+            y = (ndi_window.winfo_screenheight() // 2) - 300
+            ndi_window.geometry(f"+{x}+{y}")
+            
+            # Header
+            header = tk.Label(
+                ndi_window,
+                text="🔴 NDI OUTPUT CONTROL CENTER",
+                font=("Arial", 18, "bold"),
+                bg="#1a1a2e",
+                fg="#ff0000"
+            )
+            header.pack(pady=20)
+            
+            # Info label
+            info_label = tk.Label(
+                ndi_window,
+                text="Network Device Interface - Professional Broadcast Output",
+                font=("Arial", 11),
+                bg="#1a1a2e",
+                fg="#cccccc"
+            )
+            info_label.pack(pady=(0, 20))
+            
+            # Control Frame
+            control_frame = tk.Frame(ndi_window, bg="#2a2a3e")
+            control_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=(0, 20))
+            
+            # Channel List Frame
+            list_frame = tk.Frame(control_frame, bg="#2a2a3e")
+            list_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+            
+            tk.Label(
+                list_frame,
+                text="Active Channels:",
+                font=("Arial", 12, "bold"),
+                bg="#2a2a3e",
+                fg="#00ff88"
+            ).pack(anchor="w", pady=(0, 10))
+            
+            # Channel Listbox
+            channel_listbox = tk.Listbox(
+                list_frame,
+                bg="#1a1a2e",
+                fg="#ffffff",
+                font=("Courier", 10),
+                selectmode=tk.SINGLE,
+                height=10
+            )
+            channel_listbox.pack(fill=tk.BOTH, expand=True)
+            
+            # Populate with current channels
+            for i, channel in enumerate(self.channels[:20], 1):  # Show first 20 channels
+                channel_name = channel.get('name', f'Channel {i}')
+                channel_listbox.insert(tk.END, f"{i:3d}. {channel_name}")
+            
+            # NDI Control Buttons
+            button_frame = tk.Frame(control_frame, bg="#2a2a3e")
+            button_frame.pack(fill=tk.X, padx=10, pady=10)
+            
+            def start_ndi_for_channel():
+                selection = channel_listbox.curselection()
+                if not selection:
+                    messagebox.showwarning("No Selection", "Please select a channel first")
+                    return
+                
+                idx = selection[0]
+                if idx < len(self.channels):
+                    channel = self.channels[idx]
+                    url = channel.get('url', '')
+                    name = channel.get('name', f'Channel_{idx+1}')
+                    
+                    # Start NDI stream
+                    success = ndi_manager.create_stream(
+                        channel_name=name,
+                        source_url=url,
+                        resolution=(1920, 1080),
+                        framerate=30
+                    )
+                    
+                    if success:
+                        messagebox.showinfo("NDI Started", f"NDI output started for:\n{name}")
+                        update_status()
+                    else:
+                        messagebox.showerror("NDI Error", f"Failed to start NDI for:\n{name}")
+            
+            def stop_all_ndi():
+                ndi_manager.stop_all_streams()
+                messagebox.showinfo("NDI Stopped", "All NDI streams stopped")
+                update_status()
+            
+            tk.Button(
+                button_frame,
+                text="▶ Start NDI Output",
+                command=start_ndi_for_channel,
+                bg="#00ff88",
+                fg="#1a1a2e",
+                font=("Arial", 10, "bold"),
+                width=20,
+                pady=5
+            ).pack(side=tk.LEFT, padx=5)
+            
+            tk.Button(
+                button_frame,
+                text="⏹ Stop All NDI",
+                command=stop_all_ndi,
+                bg="#ff3333",
+                fg="#ffffff",
+                font=("Arial", 10, "bold"),
+                width=20,
+                pady=5
+            ).pack(side=tk.LEFT, padx=5)
+            
+            tk.Button(
+                button_frame,
+                text="📹 Open Video Player",
+                command=self.launch_video_player,
+                bg="#00d4ff",
+                fg="#1a1a2e",
+                font=("Arial", 10, "bold"),
+                width=20,
+                pady=5
+            ).pack(side=tk.LEFT, padx=5)
+            
+            # Status Display
+            status_frame = tk.Frame(ndi_window, bg="#2a2a3e")
+            status_frame.pack(fill=tk.BOTH, padx=20, pady=(0, 20))
+            
+            tk.Label(
+                status_frame,
+                text="NDI Status:",
+                font=("Arial", 12, "bold"),
+                bg="#2a2a3e",
+                fg="#00ff88"
+            ).pack(anchor="w", pady=(10, 5))
+            
+            status_text = tk.Text(
+                status_frame,
+                height=6,
+                bg="#1a1a2e",
+                fg="#cccccc",
+                font=("Courier", 9),
+                wrap=tk.WORD
+            )
+            status_text.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
+            
+            def update_status():
+                status_text.delete('1.0', tk.END)
+                status_list = ndi_manager.get_all_status()
+                
+                if status_list:
+                    for status in status_list:
+                        status_info = (
+                            f"📡 {status['source_name']}\n"
+                            f"   Status: {'🟢 Active' if status['is_active'] else '🔴 Inactive'}\n"
+                            f"   Resolution: {status['resolution']} @ {status['framerate']}fps\n"
+                            f"   Bandwidth: {status['bandwidth_mbps']} Mbps\n\n"
+                        )
+                        status_text.insert(tk.END, status_info)
+                else:
+                    status_text.insert('1.0', "No active NDI streams\n\n"
+                                             "Select a channel and click 'Start NDI Output'\n"
+                                             "to begin broadcasting via NDI.")
+            
+            # Initial status update
+            update_status()
+            
+            # Auto-refresh status
+            def auto_refresh():
+                if ndi_window.winfo_exists():
+                    update_status()
+                    ndi_window.after(2000, auto_refresh)
+            
+            auto_refresh()
+            
+            # Close button
+            tk.Button(
+                ndi_window,
+                text="✖ Close",
+                command=ndi_window.destroy,
+                bg="#333333",
+                fg="#ffffff",
+                font=("Arial", 10, "bold"),
+                width=15,
+                pady=5
+            ).pack(pady=10)
+            
+        except Exception as e:
+            messagebox.showerror(
+                "NDI Control Error",
+                f"Failed to open NDI Control Center:\n{str(e)}"
+            )
+            self.logger.error(f"Error opening NDI Control: {e}", exc_info=True)
     
     def _import_rumble_channel_from_browser(self, channel):
         """

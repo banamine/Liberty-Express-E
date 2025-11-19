@@ -26,6 +26,15 @@ except ImportError:
     VLC_AVAILABLE = False
     print("WARNING: python-vlc not available. Install VLC media player for embedded playback.")
 
+# NDI output import
+try:
+    sys.path.insert(0, str(Path(__file__).parent.parent))
+    from ndi_output import get_ndi_manager
+    NDI_AVAILABLE = True
+except ImportError:
+    NDI_AVAILABLE = False
+    print("INFO: NDI output module not available.")
+
 class VideoPlayerWorkbench(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
@@ -369,6 +378,283 @@ class VideoPlayerWorkbench(tk.Toplevel):
             padx=15,
             pady=8
         ).pack(side=tk.LEFT, padx=5)
+        
+        # NDI Control Panel
+        if NDI_AVAILABLE:
+            self.create_ndi_panel(parent)
+    
+    def create_ndi_panel(self, parent):
+        """Create collapsible NDI control panel"""
+        # NDI Panel Container
+        self.ndi_frame = tk.Frame(parent, bg='#1a1a2e')
+        self.ndi_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        
+        # NDI Header with collapse toggle
+        ndi_header_frame = tk.Frame(self.ndi_frame, bg='#1a1a2e')
+        ndi_header_frame.pack(fill=tk.X)
+        
+        self.ndi_collapsed = tk.BooleanVar(value=False)
+        self.ndi_toggle_btn = tk.Button(
+            ndi_header_frame,
+            text="▼ NDI OUTPUT CONTROL",
+            command=self.toggle_ndi_panel,
+            bg='#2a2a3e',
+            fg='#00ff88',
+            font=('Arial', 11, 'bold'),
+            anchor='w',
+            padx=10,
+            pady=5,
+            relief=tk.FLAT
+        )
+        self.ndi_toggle_btn.pack(fill=tk.X)
+        
+        # NDI Controls Container
+        self.ndi_controls = tk.Frame(self.ndi_frame, bg='#2a2a3e')
+        self.ndi_controls.pack(fill=tk.BOTH, expand=True, pady=(5, 0))
+        
+        # Initialize NDI Manager
+        self.ndi_manager = None
+        self.ndi_stream_active = False
+        
+        if NDI_AVAILABLE:
+            try:
+                self.ndi_manager = get_ndi_manager()
+            except Exception as e:
+                print(f"Failed to initialize NDI manager: {e}")
+        
+        # NDI Enable Toggle
+        enable_frame = tk.Frame(self.ndi_controls, bg='#2a2a3e')
+        enable_frame.pack(fill=tk.X, padx=10, pady=5)
+        
+        tk.Label(
+            enable_frame,
+            text="NDI Output:",
+            font=('Arial', 10),
+            fg='#cccccc',
+            bg='#2a2a3e'
+        ).pack(side=tk.LEFT, padx=(0, 10))
+        
+        self.ndi_enabled = tk.BooleanVar(value=False)
+        self.ndi_enable_btn = tk.Button(
+            enable_frame,
+            text="⚪ DISABLED",
+            command=self.toggle_ndi_output,
+            bg='#333333',
+            fg='#888888',
+            font=('Arial', 10, 'bold'),
+            width=15,
+            pady=3
+        )
+        self.ndi_enable_btn.pack(side=tk.LEFT)
+        
+        # NDI Source Name
+        name_frame = tk.Frame(self.ndi_controls, bg='#2a2a3e')
+        name_frame.pack(fill=tk.X, padx=10, pady=5)
+        
+        tk.Label(
+            name_frame,
+            text="Source Name:",
+            font=('Arial', 10),
+            fg='#cccccc',
+            bg='#2a2a3e'
+        ).pack(side=tk.LEFT, padx=(0, 10))
+        
+        self.ndi_source_name = tk.StringVar(value="M3U_Player_1")
+        self.ndi_name_entry = tk.Entry(
+            name_frame,
+            textvariable=self.ndi_source_name,
+            font=('Courier', 10),
+            bg='#1a1a2e',
+            fg='#00ff88',
+            insertbackground='#00ff88',
+            width=25
+        )
+        self.ndi_name_entry.pack(side=tk.LEFT)
+        
+        # NDI Settings
+        settings_frame = tk.Frame(self.ndi_controls, bg='#2a2a3e')
+        settings_frame.pack(fill=tk.X, padx=10, pady=5)
+        
+        tk.Label(
+            settings_frame,
+            text="Quality:",
+            font=('Arial', 10),
+            fg='#cccccc',
+            bg='#2a2a3e'
+        ).pack(side=tk.LEFT, padx=(0, 10))
+        
+        self.ndi_quality = tk.StringVar(value="1080p30")
+        quality_options = ["720p30", "1080p30", "1080p60", "4K30"]
+        quality_menu = tk.OptionMenu(
+            settings_frame,
+            self.ndi_quality,
+            *quality_options
+        )
+        quality_menu.config(
+            bg='#1a1a2e',
+            fg='#00ff88',
+            font=('Arial', 9),
+            activebackground='#2a2a3e',
+            activeforeground='#00ff88',
+            highlightthickness=0
+        )
+        quality_menu.pack(side=tk.LEFT)
+        
+        # NDI Status Display
+        status_frame = tk.Frame(self.ndi_controls, bg='#2a2a3e')
+        status_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        
+        tk.Label(
+            status_frame,
+            text="NDI Status:",
+            font=('Arial', 10, 'bold'),
+            fg='#00ff88',
+            bg='#2a2a3e'
+        ).pack(anchor='w')
+        
+        self.ndi_status_text = tk.Text(
+            status_frame,
+            height=4,
+            font=('Courier', 9),
+            bg='#1a1a2e',
+            fg='#cccccc',
+            wrap=tk.WORD
+        )
+        self.ndi_status_text.pack(fill=tk.BOTH, expand=True, pady=(5, 0))
+        
+        # Update status display
+        self.update_ndi_status()
+        
+        # Start with panel collapsed
+        self.toggle_ndi_panel()
+    
+    def toggle_ndi_panel(self):
+        """Toggle NDI panel visibility"""
+        if self.ndi_collapsed.get():
+            self.ndi_controls.pack(fill=tk.BOTH, expand=True, pady=(5, 0))
+            self.ndi_toggle_btn.config(text="▼ NDI OUTPUT CONTROL")
+            self.ndi_collapsed.set(False)
+        else:
+            self.ndi_controls.pack_forget()
+            self.ndi_toggle_btn.config(text="▶ NDI OUTPUT CONTROL")
+            self.ndi_collapsed.set(True)
+    
+    def toggle_ndi_output(self):
+        """Enable/disable NDI output for current video"""
+        if not self.ndi_manager:
+            messagebox.showerror("NDI Error", "NDI Manager not available")
+            return
+        
+        if self.ndi_enabled.get():
+            # Disable NDI
+            self.stop_ndi_output()
+            self.ndi_enabled.set(False)
+            self.ndi_enable_btn.config(
+                text="⚪ DISABLED",
+                bg='#333333',
+                fg='#888888'
+            )
+        else:
+            # Enable NDI
+            if self.current_index >= 0 and self.current_index < len(self.playlist):
+                self.start_ndi_output()
+                self.ndi_enabled.set(True)
+                self.ndi_enable_btn.config(
+                    text="🔴 ENABLED",
+                    bg='#ff3333',
+                    fg='#ffffff'
+                )
+            else:
+                messagebox.showwarning("No Video", "Please select a video first")
+    
+    def start_ndi_output(self):
+        """Start NDI output for current video"""
+        if not self.ndi_manager or self.current_index < 0:
+            return
+        
+        try:
+            video = self.playlist[self.current_index]
+            source_name = self.ndi_source_name.get()
+            
+            # Parse quality setting
+            quality = self.ndi_quality.get()
+            if quality == "720p30":
+                resolution = (1280, 720)
+                framerate = 30
+            elif quality == "1080p60":
+                resolution = (1920, 1080)
+                framerate = 60
+            elif quality == "4K30":
+                resolution = (3840, 2160)
+                framerate = 30
+            else:  # Default 1080p30
+                resolution = (1920, 1080)
+                framerate = 30
+            
+            # Create NDI stream
+            success = self.ndi_manager.create_stream(
+                channel_name=source_name,
+                source_url=video['filepath'],
+                resolution=resolution,
+                framerate=framerate
+            )
+            
+            if success:
+                self.ndi_stream_active = True
+                self.update_ndi_status()
+            else:
+                messagebox.showerror("NDI Error", "Failed to start NDI output")
+                self.ndi_enabled.set(False)
+                self.ndi_enable_btn.config(
+                    text="⚪ DISABLED",
+                    bg='#333333',
+                    fg='#888888'
+                )
+        except Exception as e:
+            messagebox.showerror("NDI Error", f"Failed to start NDI output:\n{str(e)}")
+    
+    def stop_ndi_output(self):
+        """Stop NDI output"""
+        if not self.ndi_manager:
+            return
+        
+        try:
+            source_name = f"{self.ndi_manager.config['channel_prefix']}{self.ndi_source_name.get()}"
+            self.ndi_manager.stop_stream(source_name)
+            self.ndi_stream_active = False
+            self.update_ndi_status()
+        except Exception as e:
+            print(f"Error stopping NDI output: {e}")
+    
+    def update_ndi_status(self):
+        """Update NDI status display"""
+        if not self.ndi_manager:
+            self.ndi_status_text.delete('1.0', tk.END)
+            self.ndi_status_text.insert('1.0', "NDI Manager not available")
+            return
+        
+        try:
+            status_list = self.ndi_manager.get_all_status()
+            self.ndi_status_text.delete('1.0', tk.END)
+            
+            if status_list:
+                for status in status_list:
+                    status_text = (
+                        f"Source: {status['source_name']}\n"
+                        f"Active: {'✓' if status['is_active'] else '✗'}\n"
+                        f"Resolution: {status['resolution']} @ {status['framerate']}fps\n"
+                        f"Bandwidth: {status['bandwidth_mbps']} Mbps\n"
+                    )
+                    self.ndi_status_text.insert(tk.END, status_text)
+            else:
+                self.ndi_status_text.insert('1.0', "No active NDI streams")
+        except Exception as e:
+            self.ndi_status_text.delete('1.0', tk.END)
+            self.ndi_status_text.insert('1.0', f"Status update error: {e}")
+        
+        # Schedule next update if NDI is active
+        if self.ndi_stream_active:
+            self.after(1000, self.update_ndi_status)
     
     def open_videos(self):
         files = filedialog.askopenfilenames(
