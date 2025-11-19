@@ -7,7 +7,7 @@ echo ""
 echo "Starting M3U Matrix Pro..."
 echo ""
 
-cd "$(dirname "$0")/Applications"
+cd "$(dirname "$0")/../Applications"
 python3 M3U_MATRIX_PRO.py
 
 if [ $? -ne 0 ]; then

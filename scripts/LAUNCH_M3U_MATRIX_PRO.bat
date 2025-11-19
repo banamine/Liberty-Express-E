@@ -6,7 +6,7 @@ echo.
 echo Starting M3U Matrix Pro...
 echo.
 
-cd /d "%~dp0Applications"
+cd /d "%~dp0..\Applications"
 python M3U_MATRIX_PRO.py
 
 if errorlevel 1 (
