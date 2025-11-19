@@ -4885,7 +4885,7 @@ Services included:
         # Show configuration dialog
         config_dialog = tk.Toplevel(self.root)
         config_dialog.title("Stream Hub Configuration")
-        config_dialog.geometry("500x350")
+        config_dialog.geometry("500x450")  # Increased height to show buttons
         config_dialog.configure(bg="#1a1a2e")
         config_dialog.transient(self.root)
         config_dialog.grab_set()
