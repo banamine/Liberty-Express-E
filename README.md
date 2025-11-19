@@ -1,765 +1,351 @@
 # 🎬 M3U MATRIX ALL-IN-ONE
+## Professional IPTV Management & Streaming Platform
 
-**Complete IPTV Management & Streaming Platform**
-
-Transform M3U playlists into beautiful, auto-scheduled streaming TV channels with a neon cyberpunk interface!
-
-![Status](https://img.shields.io/badge/status-fully%20operational-brightgreen)
-![Python](https://img.shields.io/badge/python-3.11-blue)
-![Version](https://img.shields.io/badge/version-5.0-green)
-![License](https://img.shields.io/badge/license-MIT-blue)
+### ✨ NEW: Simplified Folder Structure & NDI Broadcast Support!
+The project has been completely reorganized for easier navigation and includes professional broadcast capabilities.
 
 ---
 
 ## 🚀 Quick Start
 
-### **Option 1: Clone from GitHub (Easiest)**
+### Windows Users:
+1. **Launch M3U Matrix Pro**: Double-click `LAUNCH_M3U_MATRIX_PRO.bat`
+2. **Launch Video Player Pro**: Double-click `LAUNCH_VIDEO_PLAYER_PRO.bat`
 
-```bash
-# Clone the repository
-git clone https://github.com/YOUR-USERNAME/M3U-MATRIX-ALL-IN-ONE.git
-cd M3U-MATRIX-ALL-IN-ONE
-
-# Install dependencies (Python)
-pip install -r requirements.txt
-
-# Install dependencies (Node.js for web server)
-npm install
-
-# Launch the playlist manager
-python src/M3U_MATRIX_PRO.py
-```
-
-### **Option 2: Run on Replit**
-
-1. Fork this Repl
-2. Click the "Run" button
-3. Open the webview to see your channels
+### Linux/Mac Users:
+1. **Launch M3U Matrix Pro**: Run `./launch_m3u_matrix_pro.sh`
+2. **Launch Video Player Pro**: Run `./launch_video_player_pro.sh`
 
 ---
 
-## ✨ Features
-
-### 🎯 **M3U Matrix Pro** (Python Desktop App)
-- **Drag & Drop**: Drop M3U files directly into the app
-- **Double-Click**: Open files from the list instantly
-- **Copy/Paste**: Copy file paths and paste to load from clipboard
-- **Live Validation**: Check if channel URLs work (preserves broken links!)
-- **Smart Organization**: Remove duplicates, sort by group
-- **EPG Integration**: TV Guide with XMLTV support
-- **Undo/Redo**: 50-step history for all operations
-- **UUID Tracking**: Reliable change detection and duplicate prevention
-- **CSV & JSON Export**: Analyze playlists in any format
-- **URL Import Workbench**: Bulk import URLs with validation
-- **Timestamp Generator**: Create seek markers for long-form content
-- **Link Status Checking**: Validate all channels with status preservation
-- **Page Generator**: Create NEXUS TV channels automatically
-
-### 📺 **NEXUS TV** (Web Streaming Player) - Version 5.0 Hybrid Mode
-- **Dual Mode System**: Toggle between Schedule Mode & Live Mode
-- **Schedule Mode**: 24-hour automated TV channel
-- **Live Mode**: On-demand M3U playlist player
-- **M3U Playlist Loading**: Upload file, paste URL, or paste content
-- **Favorites System**: Mark/unmark channels with persistence
-- **History Tracking**: Auto-saves last 20 playlists
-- **Channel Search**: Real-time search across channel names
-- **Notification Toasts**: Success/error/warning/info messages
-- **HLS Detection**: Auto-detects .m3u8 streams
-- **Cyberpunk UI**: Neon glowing interface
-- **Fullscreen Player**: Immersive viewing experience
-- **Midnight Refresh**: New schedule every day
-
-### 🎨 **Page Generator**
-- Injects M3U playlists into NEXUS TV template
-- Creates 100+ channel pages with hybrid mode
-- Group-based or all-in-one generation
-- Professional quality matching the template
-
----
-
-## 📁 Project Structure
+## 📁 Clean & Organized Project Structure
 
 ```
 M3U_MATRIX_ALL_IN_ONE/
-├── src/
-│   ├── M3U_MATRIX_PRO.py          # Main Python app (3073 lines)
-│   ├── page_generator.py           # Channel generator
-│   ├── utils.py                    # Utility functions
-│   └── test_m3u_matrix.py          # Unit tests (8 passing)
-├── templates/
-│   └── nexus_tv_template.html      # NEXUS TV template (3038 lines)
+│
+├── 📱 Applications/              ← Main Applications Here!
+│   ├── M3U_MATRIX_PRO.py       (IPTV Playlist Manager)
+│   └── VIDEO_PLAYER_PRO.py     (Media Player Workbench)
+│
+├── 🌐 Web_Players/              ← All Web Player Templates
+│   ├── nexus_tv.html           (24-hour Scheduled Player)
+│   ├── buffer_tv.html          (TV with Buffering Controls)
+│   ├── multi_channel.html      (1-6 Simultaneous Channels)
+│   ├── simple_player.html      (Clean Video Player)
+│   ├── web_iptv.html          (Sequential Channel Player)
+│   ├── rumble_channel.html    (Rumble Video Player)
+│   ├── stream_hub.html        (Live TV Hub)
+│   └── standalone_secure.html (Secure Standalone Player)
+│
+├── 📦 Core_Modules/             ← Core Python Libraries
+│   ├── page_generator.py      (Page Generation Engine)
+│   ├── ndi_output.py          (NDI Broadcast Support)
+│   ├── output_manager.py      (File Management)
+│   └── page_generator_fix.py  (Runtime Fixes)
+│
+├── 💾 M3U_Matrix_Output/        ← All Generated Content
+│   ├── generated_pages/        (Your Generated Players)
+│   │   └── index.html         (Navigation Hub)
+│   ├── playlists/             (Saved Playlists)
+│   ├── thumbnails/            (Video Thumbnails)
+│   ├── documentation/         (Guides & Docs)
+│   └── exports/               (Exported Files)
+│
+├── 📚 Sample_Playlists/         ← Demo Content
+│   └── [Demo M3U Files]
+│
+├── 📖 Documentation/            ← User Guides
+│   ├── README.md              (Main Documentation)
+│   ├── NDI_BROADCAST_GUIDE.md (NDI Setup Guide)
+│   └── INSTALLER_GUIDE.md     (Installation Guide)
+│
+└── 🚀 Launch Scripts
+    ├── LAUNCH_M3U_MATRIX_PRO.bat     (Windows)
+    ├── LAUNCH_VIDEO_PLAYER_PRO.bat   (Windows)
+    ├── launch_m3u_matrix_pro.sh      (Linux/Mac)
+    └── launch_video_player_pro.sh    (Linux/Mac)
+```
+
+---
+
+## 🎯 Key Features
+
+### M3U MATRIX PRO (Desktop Application)
+- **Complete IPTV Management**: Load, edit, organize M3U playlists
+- **Smart Channel Organization**: Auto-sort by country, category, language
+- **EPG Integration**: TV guide support with XMLTV
+- **Thumbnail Caching**: Automatic channel logo management
+- **Page Generation**: Create 8+ different web player types
+- **🔴 NDI Broadcast Output**: Stream to OBS, vMix, TriCaster
+- **Rumble Integration**: Import and manage Rumble channels
+- **Smart Scheduler**: 7-day automated scheduling
+- **Navigation Hub**: Central management for all generated pages
+
+### VIDEO PLAYER PRO (Media Workbench)
+- **VLC-Powered Playback**: Professional media player
+- **Screenshot Capture**: Automated or manual screenshots
+- **Metadata Extraction**: FFmpeg-powered video analysis
+- **Playlist Management**: Advanced playlist editing
+- **NDI Output Toggle**: One-click broadcast streaming
+- **Scheduling**: Time-based playback automation
+- **Persistent Settings**: Remember folder preferences
+
+### Web Players (8 Professional Templates)
+1. **NEXUS TV**: 24-hour auto-scheduled cyberpunk player
+2. **Buffer TV**: TV player with numeric keypad (0-9, +10, +20)
+3. **Multi-Channel**: Watch 1-6 channels simultaneously
+4. **Simple Player**: Clean, minimalist video player
+5. **Web IPTV**: Traditional channel-based player
+6. **Rumble Channel**: Dedicated Rumble video player
+7. **Stream Hub**: Professional broadcast hub
+8. **Standalone Secure**: Encrypted URL player
+
+---
+
+## 🔴 NDI Broadcast Integration
+
+### Professional Video-over-IP Streaming
+Stream any channel to production software via **Network Device Interface (NDI)**:
+
+- **Multi-Channel Broadcasting**: Stream multiple channels simultaneously
+- **Production Quality**: 1920x1080 @ 30fps professional video
+- **Compatible Software**: OBS Studio, vMix, Wirecast, TriCaster
+- **Real-Time Monitoring**: Live status for all streams
+- **Network Efficient**: ~150 Mbps per Full NDI stream
+- **One-Click Control**: Easy start/stop from control center
+
+**Access NDI Control Center**: Click the **🔴 NDI** button (red) in M3U Matrix Pro toolbar
+
+### NDI Quick Setup:
+1. Install NDI Tools from [ndi.tv](https://ndi.tv/tools/)
+2. Install VLC Media Player with NDI plugin
+3. Launch M3U Matrix Pro
+4. Click **🔴 NDI** button
+5. Select channel and click "Start NDI Output"
+6. Open OBS/vMix and add NDI source
+
+---
+
+## 💡 How to Use
+
+### Basic Workflow
+1. **Launch M3U Matrix Pro** using the launch script
+2. **Load M3U Playlist**: Drag & drop or use LOAD button
+3. **Organize Channels**: Click ORGANIZE for auto-sorting
+4. **Generate Players**: Choose from 8 player types
+5. **Open Navigation Hub**: Click NAV HUB to manage pages
+
+### Advanced Features
+- **NDI Broadcasting**: Stream channels to production systems
+- **Rumble Browser**: Visual channel discovery with categories
+- **Smart Scheduling**: Automated 7-day TV schedules
+- **Multi-Channel Viewer**: Watch up to 6 channels at once
+- **Buffer TV**: Advanced buffering with numeric channel selection
+
+---
+
+## 🛠️ System Requirements
+
+### Required Software
+- **Python 3.11 or 3.12** (NOT 3.13 - PyInstaller incompatible)
+- **VLC Media Player** (Required for Video Player Pro)
+- **Web Browser** (Chrome, Firefox, Edge recommended)
+
+### Optional Software
+- **FFmpeg**: For video metadata and duration extraction
+- **NDI Tools**: For broadcast streaming capability
+- **OBS Studio**: For receiving NDI streams
+
+### Python Libraries
+```bash
+pip install tkinterdnd2 requests Pillow python-vlc
+```
+
+---
+
+## 📦 Installation Guide
+
+### Step 1: Download & Extract
+1. Download the project ZIP file
+2. Extract to your desired location (e.g., `C:\M3U_Matrix` or `~/Documents/M3U_Matrix`)
+
+### Step 2: Install Python
+1. Download Python 3.11 or 3.12 from [python.org](https://python.org)
+2. During installation, check "Add Python to PATH"
+3. Verify: `python --version`
+
+### Step 3: Install VLC
+1. Download VLC from [videolan.org](https://videolan.org)
+2. Install with default settings
+3. VLC is required for Video Player Pro
+
+### Step 4: Install Python Libraries
+```bash
+# Open terminal/command prompt in project folder
+pip install tkinterdnd2 requests Pillow python-vlc
+```
+
+### Step 5: Launch Applications
+- **Windows**: Double-click the `.bat` files
+- **Linux/Mac**: Run the `.sh` scripts
+
+---
+
+## 🎨 Generated Output Structure
+
+All generated content is professionally organized in `M3U_Matrix_Output/`:
+
+```
+M3U_Matrix_Output/
 ├── generated_pages/
-│   ├── index.html                  # Channel selector
-│   └── *.html                      # Individual channel pages
-├── Sample Playlists/               # Example M3U files
-├── logs/                           # Application logs
-├── exports/                        # Exported files
-├── backups/                        # Backup files
-├── thumbnails/                     # Channel thumbnails
-├── epg_data/                       # EPG cache
-├── package.json                    # Node.js dependencies
-├── requirements.txt                # Python dependencies
-├── .gitignore                      # Git ignore rules
-├── ROADMAP.md                      # Development roadmap
-├── HYBRID_MODE_GUIDE.md            # NEXUS TV Hybrid Mode guide
-├── TIMESTAMP_GENERATOR.md          # Timestamp generator docs
-├── SECURITY_IMPROVEMENTS.md        # Security features
-└── README.md                       # This file
+│   ├── index.html           ← Navigation Hub (Main Page)
+│   ├── nexus_tv/           ← NEXUS TV Players
+│   ├── buffer_tv/          ← Buffer TV Players
+│   ├── multi_channel/      ← Multi-Channel Players
+│   ├── simple_player/      ← Simple Players
+│   ├── web_iptv/          ← Web IPTV Players
+│   ├── rumble_channel/    ← Rumble Players
+│   └── standalone/        ← Standalone Players
+├── playlists/             ← Saved M3U Files
+├── thumbnails/            ← Channel Logos & Screenshots
+├── exports/              ← JSON, CSV Exports
+└── documentation/        ← Generated Guides
 ```
 
 ---
 
-## 🎮 How to Use
-
-### **Step 1: Load Playlists**
-
-**Method A: Drag & Drop**
-- Drag M3U files directly into the "Loaded Files" panel
-- Files load automatically
-- Multi-file drop supported
-
-**Method B: Click to Open**
-- Click the **LOAD** button
-- Select one or more M3U files
-- Files appear in the list
-
-**Method C: Double-Click**
-- Double-click any file in the list to open it
-- Clears current channels and loads selected file
-
-**Method D: URL Import**
-- Click **URL IMPORT** for bulk URL loading
-- Or click **IMPORT URL** for single M3U URL
-- Paste URLs or load from text file
-- Auto-validates and categorizes
-
-**Method E: Paste File Path**
-- Right-click file → Copy File Path
-- Use for referencing or sharing
-
-### **Step 2: Organize & Validate**
-
-**Smart Organization:**
-- Click **ORGANIZE** to clean and sort channels
-- Auto-groups by category
-- Removes duplicates
-- Alphabetical sorting
-
-**Link Validation:**
-- Click **CHECK** to validate all channel URLs
-- Status icons appear:
-  - ✅ **Working**: URL responds (200, 206, 403)
-  - ❌ **Broken**: URL fails (404, 500, connection error)
-  - ⏱️ **Timeout**: No response within 5 seconds
-- **Important**: Broken links are NEVER auto-removed!
-- Original playlist structure preserved
-- Review and manually remove if needed
-
-**Manual Editing:**
-- Drag rows to reorder channels
-- Double-click cells to edit name, URL, group, logo
-- Right-click for context menu (Cut, Copy, Paste, Delete)
-- Use Undo/Redo (50-step history)
-
-### **Step 3: Advanced Features**
-
-**URL Import Workbench:**
-1. Click **URL IMPORT**
-2. Paste URLs (one per line) or load from file
-3. Auto-validates HTTP/HTTPS URLs
-4. Click "Import URLs"
-5. Channels added with "Imported" group
-
-**Timestamp Generator:**
-1. Click **TIMESTAMP GEN**
-2. Select folder with video/audio files
-3. Choose interval (e.g., 5 minutes)
-4. M3U playlist generated with seek markers
-5. Perfect for documentaries, podcasts, lectures
-
-**EPG Integration:**
-1. Click **FETCH EPG**
-2. Enter XMLTV EPG URL
-3. Downloads and parses program data
-4. Matches channels by ID
-5. Updates channel metadata
-
-**TV Guide:**
-1. Click **TV GUIDE**
-2. Select channel from list
-3. Add time slots with show names
-4. Click "Schedule" to save
-5. Export via **JSON GUIDE** button
-
-**Undo/Redo System:**
-- Tracks all operations (edit, cut, copy, paste, delete)
-- 50-step maximum history
-- Click **UNDO** (Ctrl+Z) or **REDO** (Ctrl+Y)
-- Session-based (resets on app restart)
-
-### **Step 4: Generate NEXUS TV Pages**
-- Click **GENERATE PAGES**
-- Choose:
-  - **"Yes"** = One channel per category (Movies, Sports, etc.)
-  - **"No"** = One mega-channel with all programs
-- All pages include **Hybrid Mode** (Schedule + Live)
-
-### **Step 5: Watch Your Channels**
-
-**Schedule Mode (Default):**
-- Open the webview or visit `http://localhost:5000`
-- Browse the channel selector
-- Click any channel card to start watching
-- Enjoy 24-hour auto-scheduled playback!
-
-**Live Mode (NEW!):**
-1. Click mode toggle button: `🔄 SCHEDULE` → `🔄 LIVE`
-2. Live panel slides in from right
-3. Click "Load M3U" to upload playlist
-4. Channels appear with logos (or 📺 fallback)
-5. Click ▶ to play any channel
-6. Click ⭐ to favorite
-7. Search channels with search box
-8. Mode and favorites persist across sessions!
-
----
-
-## 🔄 GitHub Setup & Updates
-
-### **Initial Setup (First Time)**
-
-1. **Create GitHub Repository**
-   - Go to [github.com/new](https://github.com/new)
-   - Name it: `M3U-MATRIX-ALL-IN-ONE`
-   - Keep it Public or Private
-   - Don't initialize with README (we have one)
-
-2. **Connect to GitHub (Command Line)**
-   ```bash
-   # Configure Git
-   git config --global user.name "Your Name"
-   git config --global user.email "your@email.com"
-   
-   # Initialize repository (if not already done)
-   git init
-   
-   # Add all files
-   git add .
-   
-   # First commit
-   git commit -m "Initial commit: M3U Matrix All-In-One v5.0"
-   
-   # Add your GitHub repo
-   git remote add origin https://github.com/YOUR-USERNAME/M3U-MATRIX-ALL-IN-ONE.git
-   
-   # Push to GitHub
-   git push -u origin main
-   ```
-
-3. **Use GitHub Desktop (Easier!)**
-   - Download [GitHub Desktop](https://desktop.github.com/)
-   - Click "File" → "Add Local Repository"
-   - Select your M3U Matrix folder
-   - Click "Publish repository" button
-   - It syncs automatically!
-
-### **Update Workflow (Regular Updates)**
-
-**Command Line:**
-```bash
-# Check status
-git status
-
-# Add changes
-git add .
-
-# Commit with message
-git commit -m "Updated playlists and generated new channels"
-
-# Push to GitHub
-git push origin main
-```
-
-**GitHub Desktop:**
-1. Open GitHub Desktop
-2. See your changes listed
-3. Write a summary (e.g., "Added 10 new channels")
-4. Click "Commit to main"
-5. Click "Push origin"
-
-**Pull Updates (From GitHub to Local):**
-```bash
-git pull origin main
-```
-
-### **Branching Strategy**
-
-```bash
-# Create feature branch
-git checkout -b feature/new-feature
-
-# Make changes and commit
-git add .
-git commit -m "Add new feature"
-
-# Push feature branch
-git push origin feature/new-feature
-
-# Create pull request on GitHub
-# Merge after review
-```
-
-### **3-Way Sync (GitHub + Replit + Local)**
-
-**Scenario 1: Work on Replit, sync to GitHub**
-```bash
-# In Replit Shell
-git add .
-git commit -m "Changes from Replit"
-git push origin main
-```
-
-**Scenario 2: Work locally, sync to GitHub**
-```bash
-# On local machine
-git add .
-git commit -m "Changes from local"
-git push origin main
-```
-
-**Scenario 3: Pull latest from GitHub**
-```bash
-# In Replit or local
-git pull origin main
-```
-
-**Automatic Sync with GitHub Actions:**
-
-Create `.github/workflows/sync.yml`:
-
-```yaml
-name: Auto Sync
-on:
-  push:
-    branches: [main]
-jobs:
-  sync:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Sync Files
-        run: |
-          echo "Files synced successfully!"
-          # Add custom sync commands here
-```
-
-### **.gitignore Configuration**
-
-The repository includes a comprehensive `.gitignore` that excludes:
-- **User data**: Logs, temp files, settings
-- **Python cache**: __pycache__, *.pyc
-- **Node modules**: node_modules/
-- **System files**: .DS_Store, .vscode/, .idea/
-- **Working directories**: logs/, exports/, backups/, thumbnails/, epg_data/
-
-**Important:**
-- User playlists are NOT tracked (privacy)
-- Settings files are local-only
-- Generated pages can be tracked (optional)
-
-To track generated pages, edit `.gitignore`:
-```
-# Comment out this line to track generated pages
-# generated_pages/*.html
-```
-
----
-
-## 📦 Dependencies
-
-### Python Packages
-```
-requests        # HTTP requests for URL validation & EPG
-pillow          # Image processing for logos/thumbnails
-tkinterdnd2     # Drag & drop support
-```
-
-### Node.js Packages
-```
-serve           # Static file server for NEXUS TV
-```
-
-### Installation
-```bash
-# Python
-pip install -r requirements.txt
-
-# Node.js
-npm install
-
-# Or install globally
-npm install -g serve
-```
-
-### System Requirements
-- **Python**: 3.11 or higher
-- **Node.js**: 16 or higher
-- **RAM**: 2GB minimum (4GB recommended for large playlists)
-- **Storage**: 500MB minimum
-- **OS**: Windows, macOS, Linux (tested on all three)
-
----
-
-## 🎨 Generated Page Examples
-
-Each generated page includes:
-- **24-hour schedule grid** with movie titles & times
-- **Auto-scheduled playback** (content changes throughout the day)
-- **Neon cyberpunk interface** with glowing effects
-- **Fullscreen player** with volume controls
-- **Midnight auto-refresh** for new schedule
-- **Hybrid Mode**: Toggle between Schedule & Live modes
-- **M3U Loader**: Load playlists in Live Mode
-- **Favorites & History**: Persistent channel management
-
-**Example Channels:**
-- Alien 3 (53 programs)
-- Ancient Aliens 1-18 (208 programs)
-- Flux8 (670 programs)
-
-**All pages are 3038 lines** with full hybrid functionality!
-
----
-
-## 🛠️ Troubleshooting
-
-### **Python App Won't Start**
-```bash
-# Check Python version
-python3 --version  # Should be 3.11+
-
-# Reinstall dependencies
-pip install --upgrade -r requirements.txt
-
-# Check logs
-cat src/logs/m3u_matrix.log
-
-# Clear Python cache
-find . -type d -name __pycache__ -exec rm -r {} +
-```
-
-### **Drag & Drop Not Working**
-- Ensure `tkinterdnd2` is installed: `pip install tkinterdnd2`
-- Windows: Install Visual C++ Redistributable
-- Linux: Install tk-dev package: `sudo apt-get install python3-tk`
-- Only drop `.m3u` or `.m3u8` files
-- Try clicking **LOAD** instead
-
-### **Link Validation Slow**
-- Reduce timeout in settings (default: 5 seconds)
-- Check network connection
-- Some servers block automated requests (use User-Agent header)
-- Validate in smaller batches
-
-### **Channels Disappear After Check**
-- Channels are NEVER auto-removed!
-- Check if search filter is active (clear search box)
-- Check if columns are collapsed (expand treeview)
-- Use **UNDO** to restore if accidentally deleted
-
-### **Web Server Issues**
-```bash
-# Restart web server
-npx serve -l 5000
-
-# Check if port 5000 is in use
-lsof -i :5000  # macOS/Linux
-netstat -ano | findstr :5000  # Windows
-
-# Kill process on port 5000
-kill -9 <PID>  # macOS/Linux
-taskkill /PID <PID> /F  # Windows
-
-# Clear browser cache
-Ctrl+Shift+R (Windows/Linux)
-Cmd+Shift+R (Mac)
-```
-
-### **Generated Pages Not Showing**
-- Check `generated_pages/` folder exists
-- Ensure web server is running
-- Clear browser cache and refresh
-- Check browser console for errors (F12)
-- For HLS streams: Add HLS.js library to `<head>`
-
-### **EPG Not Loading**
-- Verify EPG URL is accessible
-- Check XML format validity
-- Ensure internet connection
-- Check firewall/proxy settings
-- Try different EPG source
-
-### **Undo/Redo Not Working**
-- Check if history limit reached (50 steps max)
-- Restart app to clear history
-- Some operations may not be undoable (e.g., file operations)
+## 🔧 Troubleshooting
+
+### Common Issues & Solutions
+
+| Issue | Solution |
+|-------|----------|
+| "Python not found" | Install Python 3.11 or 3.12, add to PATH |
+| "Module not found" | Run `pip install tkinterdnd2 requests Pillow python-vlc` |
+| "VLC not available" | Install VLC Media Player |
+| "NDI not working" | Install NDI Tools and VLC NDI plugin |
+| "Can't open navigation hub" | Check `M3U_Matrix_Output/generated_pages/index.html` |
+| "PyInstaller fails" | Use Python 3.11/3.12, NOT 3.13 |
+
+### File Locations
+- **Navigation Hub**: `M3U_Matrix_Output/generated_pages/index.html`
+- **Generated Players**: `M3U_Matrix_Output/generated_pages/[type]/`
+- **Saved Playlists**: `M3U_Matrix_Output/playlists/`
+- **Documentation**: `Documentation/` folder
 
 ---
 
 ## 📚 Documentation
 
-- **ROADMAP.md**: Development roadmap and feature tracking
-- **HYBRID_MODE_GUIDE.md**: NEXUS TV Hybrid Mode complete guide
-- **TIMESTAMP_GENERATOR.md**: Timestamp generator usage & examples
-- **SECURITY_IMPROVEMENTS.md**: Security features & best practices
-- **FEATURE_COMPARISON.md**: Feature matrix & version comparison
-- **M3U_MATRIX_README.md**: Original M3U Matrix Pro documentation
+### Available Guides
+- **Main Documentation**: This README
+- **NDI Broadcast Guide**: `Documentation/NDI_BROADCAST_GUIDE.md`
+- **Installation Guide**: `Documentation/INSTALLER_GUIDE.md`
+- **Player Documentation**: Built into each generated page
+
+### Quick Reference
+- **NAV HUB Button** (Gold): Opens navigation center
+- **🔴 NDI Button** (Red): Opens broadcast control
+- **RUMBLE BROWSER** (Tomato): Visual channel discovery
+- **GENERATE PAGES** (Pink): Create web players
 
 ---
 
-## 🎯 Features Roadmap
+## 🚀 Quick Commands
 
-### ✅ Completed (Version 5.0)
-- [x] Full M3U parser with validation
-- [x] Drag & drop file support
-- [x] Double-click to open files
-- [x] Copy/paste file paths
-- [x] Link status checking with preservation
-- [x] Undo/Redo system (50-step history)
-- [x] UUID tracking for reliable change detection
-- [x] Page generator integration
-- [x] NEXUS TV Hybrid Mode (Schedule + Live)
-- [x] URL Import Workbench
-- [x] Timestamp Generator
-- [x] EPG Integration (XMLTV)
-- [x] Smart Playlist Organization
-- [x] TV Guide Integration
-- [x] JSON & CSV export
-- [x] Favorites system
-- [x] History tracking
-- [x] Channel search
-- [x] Notification toasts
-- [x] HLS stream detection
+### Windows Commands
+```batch
+REM Launch M3U Matrix Pro
+LAUNCH_M3U_MATRIX_PRO.bat
 
-### 🚧 In Progress
-- [ ] Smart Playlist Generator with AI categorization
-- [ ] Theme customization (Light/Dark toggle)
-- [ ] Channel analysis dashboard
-- [ ] Export favorites as M3U
-- [ ] DASH (.mpd) stream support
-- [ ] URL encryption for sharing
-
-### 📝 Planned
-- [ ] Cloud playlist sync
-- [ ] Recording/timeshift
-- [ ] User authentication
-- [ ] Mobile app (React Native)
-- [ ] API endpoints
-- [ ] Multi-language support
-- [ ] Plugin system
-- [ ] Collaborative editing
-
----
-
-## 📄 License
-
-MIT License - See [LICENSE](LICENSE) file
-
-```
-Copyright (c) 2025 M3U Matrix Team
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+REM Launch Video Player Pro
+LAUNCH_VIDEO_PLAYER_PRO.bat
 ```
 
----
-
-## 🤝 Contributing
-
-Contributions welcome! We'd love your help making M3U Matrix even better.
-
-### **How to Contribute**
-
-1. Fork this repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Make your changes
-4. Test thoroughly
-5. Commit changes: `git commit -m 'Add amazing feature'`
-6. Push to branch: `git push origin feature/amazing-feature`
-7. Open a Pull Request
-
-### **Coding Standards**
-
-- **Python**: PEP 8 style guide
-- **JavaScript**: ES6+ with semicolons
-- **Comments**: For complex logic only
-- **Type hints**: Use where applicable
-- **Tests**: Add tests for new features
-
-### **Testing**
-
-Run tests before submitting:
-
+### Linux/Mac Commands
 ```bash
-python -m pytest src/test_m3u_matrix.py -v
+# Launch M3U Matrix Pro
+./launch_m3u_matrix_pro.sh
+
+# Launch Video Player Pro
+./launch_video_player_pro.sh
 ```
 
-### **Bug Reports**
-
-Please include:
-- Python/Node version
-- Operating system
-- Steps to reproduce
-- Expected vs actual behavior
-- Screenshots (if applicable)
-- Log files (src/logs/m3u_matrix.log)
+### Python Direct Launch
+```bash
+# From project root
+cd Applications
+python M3U_MATRIX_PRO.py
+python VIDEO_PLAYER_PRO.py
+```
 
 ---
 
-## 💡 Tips & Tricks
+## 🎬 Workflow Examples
 
-### **Workflow Shortcuts**
-1. **Quick Load**: Drag multiple M3U files at once
-2. **Quick Edit**: Double-click any cell in the matrix
-3. **Quick Copy**: Right-click file → Copy File Path
-4. **Quick Workflow**: Load → Organize → Check → Generate Pages
-5. **Quick Mode Toggle**: Click mode button in NEXUS TV
+### Create a 24-Hour TV Channel
+1. Load M3U playlist in M3U Matrix Pro
+2. Click **SMART SCHEDULE** for 7-day scheduling
+3. Select **NEXUS TV** template
+4. Generate pages
+5. Open in browser for auto-scheduled playback
 
-### **M3U Best Practices**
-- Validate URLs before generating pages
-- Organize by groups (Movies, TV, Sports)
-- Use descriptive channel names
-- Include logos for better visuals
-- Add EPG data for program guides
-- Export backups regularly
+### Broadcast to OBS Studio
+1. Load channels in M3U Matrix Pro
+2. Click **🔴 NDI** button
+3. Select channel, click "Start NDI Output"
+4. In OBS: Add Source → NDI Source
+5. Select your channel from dropdown
 
-### **GitHub Tips**
-- Commit often (every major change)
-- Use descriptive commit messages: "Add feature X" not "Update"
-- Create branches for experiments
-- Use `.gitignore` to exclude logs/temp files
-- Tag releases: `git tag -a v5.0 -m "Version 5.0"`
-
-### **Performance Tips**
-- For large playlists (>1000 channels): Use batch validation
-- Close unused dialogs to free memory
-- Clear logs periodically (logs/ folder)
-- Use search/filter instead of scrolling
-- Export to JSON for faster processing
-
-### **Security Tips**
-- Validate all URLs before adding
-- Don't commit API keys or passwords
-- Use environment variables for secrets
-- Review EPG XML before importing
-- Keep backups of original playlists
+### Multi-Channel Monitoring
+1. Generate **Multi-Channel** player
+2. Select 4 or 6 channel grid
+3. Load different streams per channel
+4. Use keyboard (1-6) to switch audio
 
 ---
 
-## 📞 Support
+## 📝 License & Credits
 
-- **Issues**: [GitHub Issues](https://github.com/YOUR-USERNAME/M3U-MATRIX-ALL-IN-ONE/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/YOUR-USERNAME/M3U-MATRIX-ALL-IN-ONE/discussions)
-- **Documentation**: See `docs/` folder
-- **Email**: support@example.com
+**M3U MATRIX ALL-IN-ONE** - Professional IPTV Management Platform
 
-**Before reporting issues:**
-1. Check existing issues first
-2. Update to latest version
-3. Clear cache and restart
-4. Check logs for errors
-5. Provide reproduction steps
+This project combines multiple technologies to create a comprehensive IPTV solution:
 
----
+### Core Technologies
+- **Python/Tkinter**: Desktop application framework
+- **HTML5/CSS3/JavaScript**: Web player interfaces
+- **VLC Media Player**: Professional video playback
+- **NDI Protocol**: Broadcast-grade streaming
+- **FFmpeg**: Video processing and metadata
+- **HLS.js/dash.js**: Adaptive streaming support
 
-## 🌟 Show Your Support
-
-Give a ⭐️ if this project helped you!
-
-[![GitHub Stars](https://img.shields.io/github/stars/YOUR-USERNAME/M3U-MATRIX-ALL-IN-ONE?style=social)](https://github.com/YOUR-USERNAME/M3U-MATRIX-ALL-IN-ONE/stargazers)
-
----
-
-## 🎉 Version History
-
-**v5.0 (November 15, 2025)** - Hybrid Mode Release
-- 🔄 Mode toggle (Schedule ↔ Live)
-- 📺 Live Mode channel picker
-- ⭐ Favorites system
-- 📜 History tracking (20 playlists)
-- 🔍 Channel search
-- 🔔 Notification toasts
-- Template: 3,038 lines (+379 CSS, +290 JS)
-
-**v4.7 (November 15, 2025)** - Security & Reliability
-- 🛡️ Enhanced XSS prevention
-- 🔍 Improved URL validation (GET+range fallback)
-- 🔒 Safe XML escaping
-- 🆔 UUID-based audit updates (thread-safe)
-
-**v4.6 (November 15, 2025)** - Timestamp Generator
-- 📹 Media file scanner
-- ⏱️ Duration detection (ffprobe/estimation)
-- 🎬 Seek marker generation
-- Supports MP4, MKV, AVI, MP3, OGG, WEBM
-
-**v4.5 (November 15, 2025)** - Phase 1 Complete
-- ↩️ Undo/Redo (50-step history)
-- 📤 JSON export with metadata
-- 🧪 Unit tests (8 passing)
-- 🔐 Settings backup/restore
+### Features Highlights
+- 8 different web player templates
+- Professional NDI broadcast output
+- Rumble video platform integration
+- Smart 7-day scheduling system
+- Multi-channel simultaneous viewing
+- Comprehensive playlist management
 
 ---
 
-## 🙏 Acknowledgments
+## 📞 Support & Help
 
-- **TkinterDnD2** for drag & drop support
-- **Font Awesome** for icons
-- **Archive.org** for sample content
-- **Replit** for cloud development platform
-- **GitHub** for version control
-- All contributors and users!
+### Getting Help
+1. **Check Documentation**: Review guides in Documentation folder
+2. **Navigation Hub**: Access at `M3U_Matrix_Output/generated_pages/index.html`
+3. **Error Messages**: Screenshot any errors for troubleshooting
+4. **Python Version**: Ensure using 3.11 or 3.12 (NOT 3.13)
+5. **Dependencies**: Verify all required libraries installed
 
----
-
-**M3U MATRIX ALL-IN-ONE** - Professional IPTV Management & Streaming Platform
-
-Made with ❤️ by the M3U Matrix Team
-
-**⭐ Star us on GitHub if you find this useful!**
+### Project Structure Benefits
+- **Simplified Organization**: Easy to find everything
+- **One-Click Launch**: Convenient batch/shell scripts
+- **Clean Separation**: Apps, templates, and output organized
+- **Professional Layout**: Broadcast-ready configuration
 
 ---
 
-## 📊 Project Stats
+**Transform your IPTV experience with professional management and broadcasting!** 🎬📺✨
 
-- **Total Lines**: ~15,000+ (Python + HTML + CSS + JS)
-- **Test Coverage**: 87.5%
-- **Supported Formats**: M3U, M3U8, XMLTV, JSON, CSV
-- **Supported Streams**: HTTP, HTTPS, HLS, RTMP, RTSP
-- **Platforms**: Windows, macOS, Linux
-- **License**: MIT
-- **Status**: ✅ Production Ready
-
----
-
-**Quick Links:**
-- [Download](https://github.com/YOUR-USERNAME/M3U-MATRIX-ALL-IN-ONE/releases)
-- [Documentation](https://github.com/YOUR-USERNAME/M3U-MATRIX-ALL-IN-ONE/wiki)
-- [Changelog](CHANGELOG.md)
-- [Contributing](CONTRIBUTING.md)
-- [License](LICENSE)
+*Version 5.0 - Now with NDI Broadcast Support and Simplified Structure*
