@@ -724,7 +724,7 @@
     <div class="numpad-container" id="rightPanel">
         <div class="right-panel-header" id="panelHeader">
             <span>⌨️ ScheduleFlow Advanced Options</span>
-            <button class="minimize-btn" id="minimizeBtn" onclick="toggleMinimize()" title="Double-click header to toggle">−</button>
+            <button class="minimize-btn" id="minimizeBtn" title="Click to minimize">−</button>
         </div>
         <div class="right-panel-content" id="panelContent">
         <div class="numpad-title">Quick Jump & Execute</div>
@@ -1413,13 +1413,21 @@
         (function setupDrag() {
             const h = document.getElementById('panelHeader');
             const p = document.getElementById('rightPanel');
-            if (!h || !p) {
+            const b = document.getElementById('minimizeBtn');
+            if (!h || !p || !b) {
                 setTimeout(setupDrag, 100);
                 return;
             }
             
+            // Minimize button click
+            b.onclick = function(e) {
+                e.stopPropagation();
+                toggleMinimize();
+            };
+            
+            // Drag start
             h.onmousedown = function(e) {
-                if (e.target.id === 'minimizeBtn') return;
+                if (e.target === b || b.contains(e.target)) return;
                 pnlDrag = true;
                 const r = p.getBoundingClientRect();
                 pnlX = e.clientX - r.left;
@@ -1428,6 +1436,7 @@
                 p.style.bottom = 'auto';
             };
             
+            // Drag move
             document.onmousemove = function(e) {
                 if (!pnlDrag) return;
                 let x = Math.round((e.clientX - pnlX) / 20) * 20;
@@ -1439,6 +1448,7 @@
                 p.style.position = 'fixed';
             };
             
+            // Drag end
             document.onmouseup = function() {
                 pnlDrag = false;
             };
