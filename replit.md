@@ -12,6 +12,30 @@ This project provides a comprehensive IPTV solution, integrating a Python deskto
     - Do not make changes to the `M3U_MATRIX_README.md` file.
     - Ensure all changes are well-documented within the code.
 
+## GitHub Auto-Deployment Feature (NEW - Nov 22, 2025)
+
+### Status: ✅ IMPLEMENTATION COMPLETE
+
+**Automatic GitHub Push for Generated Pages**
+- **Module:** `Core_Modules/github_deploy.py` (GitHubDeploy class)
+- **Integration:** M3U_MATRIX_PRO deployment workflow
+- **Features:**
+  - Copy generated pages to GitHub "Ready Made" folder
+  - Automatic git add/commit/push workflow
+  - Repository: `C:\Users\banamine\Documents\GitHub\Liberty-Express-`
+  - Branch: main
+- **Deployment Trigger:** After page generation, click CANCEL to deploy
+- **Status Display:** Real-time deployment confirmation with file count
+- **Security:** GitHub credentials managed through Replit integration
+
+**Workflow:**
+1. Generate player pages in M3U MATRIX PRO
+2. When prompted, click CANCEL to deploy
+3. Files automatically copied to Ready Made/ folder
+4. Git commit created with timestamp
+5. Pushed to GitHub main branch
+6. Confirmation dialog shows file count and status
+
 ## Phase 2 - Real Stream Validation (Dec 23, 2025)
 
 ### Status: ✅ IMPLEMENTATION COMPLETE (3/3 Components)

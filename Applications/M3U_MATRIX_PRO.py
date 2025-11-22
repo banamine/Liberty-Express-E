@@ -48,6 +48,7 @@ from Core_Modules.utils.helpers import (
 from Core_Modules.gui.components import ButtonFactory, DialogFactory, ProgressManager, TreeviewManager
 from Core_Modules.ffprobe_validator import validate_m3u_quick, FFprobeValidator
 from Core_Modules.http_validator import HTTPValidator
+from Core_Modules.github_deploy import GitHubDeploy, deploy_generated_pages
 
 # Initialize generators as None - will be set in try/except
 NexusTVPageGenerator = None
@@ -159,6 +160,7 @@ class M3UMatrix:
         self.channel_validator = ChannelValidator()
         self.undo_manager = UndoManager()
         self.progress_manager = ProgressManager(self.root)
+        self.github_deployer = GitHubDeploy()  # GitHub deployment handler
         
         # Initialize caches
         self.thumbnail_cache = SimpleCache(max_size=200)
@@ -908,15 +910,63 @@ Sample Details:
             if result and 'output_file' in result:
                 self.update_status(f"Generated {name} page")
                 
-                # Ask to open
-                if messagebox.askyesno("Page Generated", f"Page generated successfully!\n\nOpen {name} player?"):
+                # Ask what to do next
+                response = messagebox.showquestion(
+                    "Page Generated", 
+                    f"Page generated successfully!\n\n"
+                    f"Open {name} player?\n\n"
+                    f"Click YES to open in browser,\n"
+                    f"NO to skip, or CANCEL to deploy to GitHub"
+                )
+                
+                if response == tk.YES:
                     webbrowser.open(f"file:///{result['output_file']}")
+                elif response == tk.CANCEL:
+                    # Deploy to GitHub
+                    self.deploy_to_github(output_dir)
             else:
                 messagebox.showerror("Generation Failed", f"Failed to generate {name} page")
                 
         except Exception as e:
             self.logger.error(f"Failed to generate {name} page: {e}")
             messagebox.showerror("Generation Error", str(e))
+
+    def deploy_to_github(self, source_dir):
+        """Deploy generated pages to GitHub Ready Made folder"""
+        self.update_status("🚀 Deploying to GitHub...")
+        
+        def do_deploy():
+            try:
+                # Deploy to GitHub
+                result = self.github_deployer.deploy(str(source_dir), auto_push=True)
+                
+                if result['success']:
+                    message = f"✅ Deployment Successful!\n\n"
+                    message += f"Copied files:\n"
+                    for file in result['copied_files'][:5]:  # Show first 5
+                        file_name = Path(file).name
+                        message += f"  • {file_name}\n"
+                    if len(result['copied_files']) > 5:
+                        message += f"  ... and {len(result['copied_files']) - 5} more\n"
+                    message += f"\nTotal: {len(result['copied_files'])} files\n"
+                    message += f"Location: Ready Made/\n"
+                    message += f"Status: Pushed to GitHub main branch"
+                    
+                    self.root.after(0, lambda: messagebox.showinfo("GitHub Deployment", message))
+                    self.update_status("✅ Deployment complete - pushed to GitHub")
+                else:
+                    error_msg = result['error'] or "Unknown error"
+                    self.root.after(0, lambda: messagebox.showerror("Deployment Failed", f"Error: {error_msg}"))
+                    self.update_status(f"❌ Deployment failed: {error_msg}")
+            
+            except Exception as e:
+                self.logger.error(f"Deployment error: {e}")
+                self.root.after(0, lambda: messagebox.showerror("Deployment Error", str(e)))
+        
+        # Run deployment in thread
+        thread = threading.Thread(target=do_deploy)
+        thread.daemon = True
+        thread.start()
 
     def get_channel_schedule(self, channel):
         """Get schedule for a channel"""
