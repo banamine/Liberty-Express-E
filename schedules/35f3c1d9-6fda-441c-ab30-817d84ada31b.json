@@ -1,0 +1,51 @@
+{
+  "id": "35f3c1d9-6fda-441c-ab30-817d84ada31b",
+  "name": "test_export",
+  "source": "xml",
+  "filepath": "/tmp/test_export.xml",
+  "imported": "2025-11-22T22:45:05.141414+00:00",
+  "events": [
+    {
+      "title": "Morning Show",
+      "start": "2025-11-22T15:00:00Z",
+      "end": "2025-11-22T17:00:00Z",
+      "description": "",
+      "category": "",
+      "id": "8c5b361f-fa75-4201-8850-fc50ae8a0365"
+    },
+    {
+      "title": "Afternoon Special",
+      "start": "2025-11-22T14:00:00Z",
+      "end": "2025-11-22T16:00:00Z",
+      "description": "",
+      "category": "",
+      "id": "9b726fa4-1032-41e4-998a-6b2ba707ba5f"
+    }
+  ],
+  "metadata": {
+    "total_imported": 2,
+    "duplicates_removed": 0,
+    "conflicts_detected": 1,
+    "unique_events": 2
+  },
+  "warnings": {
+    "duplicates": [],
+    "conflicts": [
+      {
+        "type": "overlap",
+        "event1": {
+          "index": 0,
+          "title": "Morning Show",
+          "start": "2025-11-22T15:00:00Z",
+          "end": "2025-11-22T17:00:00Z"
+        },
+        "event2": {
+          "index": 1,
+          "title": "Afternoon Special",
+          "start": "2025-11-22T14:00:00Z",
+          "end": "2025-11-22T16:00:00Z"
+        }
+      }
+    ]
+  }
+}

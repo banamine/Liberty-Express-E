@@ -548,6 +548,181 @@ class M3UMatrixPro:
         except Exception as e:
             return {"status": "error", "message": str(e)}
 
+    def export_schedule_xml(self, schedule_id: str, output_path: str) -> Dict[str, Any]:
+        """Export schedule to TVGuide XML format (human-readable, schema-compatible)"""
+        try:
+            # Find schedule
+            schedule = None
+            for sched in self.config.get("schedules", []):
+                if sched.get("id") == schedule_id:
+                    schedule = sched
+                    break
+            
+            if not schedule:
+                return {"status": "error", "message": f"Schedule {schedule_id} not found"}
+            
+            # Build XML with proper structure
+            xml_parts = [
+                '<?xml version="1.0" encoding="utf-8"?>',
+                '<tvguide generated="' + datetime.now(timezone.utc).isoformat() + '">',
+                f'  <metadata>',
+                f'    <name>{self._escape_xml(schedule.get("name", ""))}</name>',
+                f'    <source>{self._escape_xml(schedule.get("source", "unknown"))}</source>',
+                f'    <imported>{schedule.get("imported", "")}</imported>',
+                f'    <event_count>{len(schedule.get("events", []))}</event_count>',
+                f'  </metadata>',
+                f'  <schedule>'
+            ]
+            
+            # Add events
+            for event in schedule.get("events", []):
+                xml_parts.append(f'    <event id="{self._escape_xml(event.get("id", ""))}">') 
+                xml_parts.append(f'      <title>{self._escape_xml(event.get("title", ""))}</title>')
+                xml_parts.append(f'      <start>{event.get("start", "")}</start>')
+                xml_parts.append(f'      <end>{event.get("end", "")}</end>')
+                if event.get("description"):
+                    xml_parts.append(f'      <description>{self._escape_xml(event.get("description", ""))}</description>')
+                if event.get("category"):
+                    xml_parts.append(f'      <category>{self._escape_xml(event.get("category", ""))}</category>')
+                xml_parts.append(f'    </event>')
+            
+            xml_parts.append(f'  </schedule>')
+            xml_parts.append(f'</tvguide>')
+            
+            xml_content = '\n'.join(xml_parts)
+            
+            # Write to file
+            with open(output_path, 'w', encoding='utf-8') as f:
+                f.write(xml_content)
+            
+            # Validate exported XML can be parsed
+            try:
+                ET.fromstring(xml_content)
+                is_valid = True
+            except ET.ParseError:
+                is_valid = False
+            
+            return {
+                "status": "success",
+                "path": str(output_path),
+                "events": len(schedule.get("events", [])),
+                "schema": "tvguide",
+                "valid": is_valid,
+                "format": "xml",
+                "human_readable": True
+            }
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+    def export_schedule_json(self, schedule_id: str, output_path: str) -> Dict[str, Any]:
+        """Export schedule to JSON format (human-readable, pretty-printed)"""
+        try:
+            # Find schedule
+            schedule = None
+            for sched in self.config.get("schedules", []):
+                if sched.get("id") == schedule_id:
+                    schedule = sched
+                    break
+            
+            if not schedule:
+                return {"status": "error", "message": f"Schedule {schedule_id} not found"}
+            
+            # Build JSON structure
+            export_data = {
+                "schedule": {
+                    "metadata": {
+                        "name": schedule.get("name"),
+                        "source": schedule.get("source"),
+                        "imported": schedule.get("imported"),
+                        "generated": datetime.now(timezone.utc).isoformat(),
+                        "event_count": len(schedule.get("events", []))
+                    },
+                    "events": schedule.get("events", [])
+                }
+            }
+            
+            # Write to file with pretty formatting
+            with open(output_path, 'w', encoding='utf-8') as f:
+                json.dump(export_data, f, indent=2, ensure_ascii=False)
+            
+            # Validate JSON by re-parsing
+            try:
+                with open(output_path) as f:
+                    json.load(f)
+                is_valid = True
+            except json.JSONDecodeError:
+                is_valid = False
+            
+            return {
+                "status": "success",
+                "path": str(output_path),
+                "events": len(schedule.get("events", [])),
+                "schema": "schedule",
+                "valid": is_valid,
+                "format": "json",
+                "human_readable": True
+            }
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+    def export_all_schedules_xml(self, output_path: str) -> Dict[str, Any]:
+        """Export all schedules to single TVGuide XML file"""
+        try:
+            xml_parts = [
+                '<?xml version="1.0" encoding="utf-8"?>',
+                '<tvguide generated="' + datetime.now(timezone.utc).isoformat() + '">',
+                f'  <metadata>',
+                f'    <schedule_count>{len(self.config.get("schedules", []))}</schedule_count>',
+                f'    <total_events>{sum(len(s.get("events", [])) for s in self.config.get("schedules", []))}</total_events>',
+                f'  </metadata>',
+            ]
+            
+            # Add all schedules
+            for schedule in self.config.get("schedules", []):
+                xml_parts.append(f'  <schedule id="{self._escape_xml(schedule.get("id", ""))}">') 
+                xml_parts.append(f'    <name>{self._escape_xml(schedule.get("name", ""))}</name>')
+                
+                for event in schedule.get("events", []):
+                    xml_parts.append(f'    <event id="{self._escape_xml(event.get("id", ""))}">') 
+                    xml_parts.append(f'      <title>{self._escape_xml(event.get("title", ""))}</title>')
+                    xml_parts.append(f'      <start>{event.get("start", "")}</start>')
+                    xml_parts.append(f'      <end>{event.get("end", "")}</end>')
+                    if event.get("description"):
+                        xml_parts.append(f'      <description>{self._escape_xml(event.get("description", ""))}</description>')
+                    if event.get("category"):
+                        xml_parts.append(f'      <category>{self._escape_xml(event.get("category", ""))}</category>')
+                    xml_parts.append(f'    </event>')
+                
+                xml_parts.append(f'  </schedule>')
+            
+            xml_parts.append(f'</tvguide>')
+            xml_content = '\n'.join(xml_parts)
+            
+            with open(output_path, 'w', encoding='utf-8') as f:
+                f.write(xml_content)
+            
+            total_events = sum(len(s.get("events", [])) for s in self.config.get("schedules", []))
+            return {
+                "status": "success",
+                "path": str(output_path),
+                "schedules": len(self.config.get("schedules", [])),
+                "events": total_events,
+                "human_readable": True
+            }
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+    @staticmethod
+    def _escape_xml(text: str) -> str:
+        """Escape XML special characters"""
+        if not isinstance(text, str):
+            text = str(text)
+        return (text.replace("&", "&amp;")
+                    .replace("<", "&lt;")
+                    .replace(">", "&gt;")
+                    .replace('"', "&quot;")
+                    .replace("'", "&apos;"))
+
     def create_schedule(self, name: str, items: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Create a schedule from items with validation"""
         try:
@@ -670,6 +845,9 @@ if __name__ == "__main__":
     parser.add_argument('--list-pages', action='store_true', help='List generated pages')
     parser.add_argument('--export-m3u', nargs=2, metavar=('ITEMS_JSON', 'OUTPUT_FILE'), help='Export items to M3U file')
     parser.add_argument('--export-caspar', nargs=2, metavar=('SCHEDULE_JSON', 'OUTPUT_FILE'), help='Export schedule to CasparCG XML')
+    parser.add_argument('--export-schedule-xml', nargs=2, metavar=('SCHEDULE_ID', 'OUTPUT_FILE'), help='Export schedule to TVGuide XML')
+    parser.add_argument('--export-schedule-json', nargs=2, metavar=('SCHEDULE_ID', 'OUTPUT_FILE'), help='Export schedule to JSON')
+    parser.add_argument('--export-all-xml', metavar='OUTPUT_FILE', help='Export all schedules to TVGuide XML')
     
     args = parser.parse_args()
     matrix = M3UMatrixPro()
@@ -694,6 +872,12 @@ if __name__ == "__main__":
     elif args.export_caspar:
         schedule = json.loads(args.export_caspar[0])
         print(json.dumps(matrix.export_to_caspar(schedule, args.export_caspar[1]), indent=2))
+    elif args.export_schedule_xml:
+        print(json.dumps(matrix.export_schedule_xml(args.export_schedule_xml[0], args.export_schedule_xml[1]), indent=2))
+    elif args.export_schedule_json:
+        print(json.dumps(matrix.export_schedule_json(args.export_schedule_json[0], args.export_schedule_json[1]), indent=2))
+    elif args.export_all_xml:
+        print(json.dumps(matrix.export_all_schedules_xml(args.export_all_xml), indent=2))
     else:
         print("ScheduleFlow M3U Matrix Pro v2.1.0 - CLI Tool")
         print("Use --help for available commands")

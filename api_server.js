@@ -261,6 +261,101 @@ app.get('/api/playlists', (req, res) => {
   }
 });
 
+// Export schedule to XML
+app.post('/api/export-schedule-xml', (req, res) => {
+  try {
+    const { schedule_id, filename } = req.body;
+    if (!schedule_id) {
+      return res.status(400).json({ status: 'error', message: 'Missing schedule_id' });
+    }
+    
+    const outputFile = path.join(__dirname, filename || `schedule_${schedule_id}.xml`);
+    const python = spawn('python3', ['M3U_Matrix_Pro.py', '--export-schedule-xml', schedule_id, outputFile]);
+    let output = '';
+    
+    python.stdout.on('data', (data) => {
+      output += data.toString();
+    });
+    
+    python.on('close', (code) => {
+      if (code === 0) {
+        try {
+          const result = JSON.parse(output);
+          res.json(result);
+        } catch (e) {
+          res.status(500).json({ status: 'error', message: 'Failed to parse export result' });
+        }
+      } else {
+        res.status(500).json({ status: 'error', message: 'Export failed' });
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// Export schedule to JSON
+app.post('/api/export-schedule-json', (req, res) => {
+  try {
+    const { schedule_id, filename } = req.body;
+    if (!schedule_id) {
+      return res.status(400).json({ status: 'error', message: 'Missing schedule_id' });
+    }
+    
+    const outputFile = path.join(__dirname, filename || `schedule_${schedule_id}.json`);
+    const python = spawn('python3', ['M3U_Matrix_Pro.py', '--export-schedule-json', schedule_id, outputFile]);
+    let output = '';
+    
+    python.stdout.on('data', (data) => {
+      output += data.toString();
+    });
+    
+    python.on('close', (code) => {
+      if (code === 0) {
+        try {
+          const result = JSON.parse(output);
+          res.json(result);
+        } catch (e) {
+          res.status(500).json({ status: 'error', message: 'Failed to parse export result' });
+        }
+      } else {
+        res.status(500).json({ status: 'error', message: 'Export failed' });
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// Export all schedules to XML
+app.post('/api/export-all-schedules-xml', (req, res) => {
+  try {
+    const filename = req.body.filename || 'all_schedules.xml';
+    const outputFile = path.join(__dirname, filename);
+    const python = spawn('python3', ['M3U_Matrix_Pro.py', '--export-all-xml', outputFile]);
+    let output = '';
+    
+    python.stdout.on('data', (data) => {
+      output += data.toString();
+    });
+    
+    python.on('close', (code) => {
+      if (code === 0) {
+        try {
+          const result = JSON.parse(output);
+          res.json(result);
+        } catch (e) {
+          res.status(500).json({ status: 'error', message: 'Failed to parse export result' });
+        }
+      } else {
+        res.status(500).json({ status: 'error', message: 'Export failed' });
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
 // API endpoint to fetch real Infowars videos
 app.get('/api/infowars-videos', (req, res) => {
   try {

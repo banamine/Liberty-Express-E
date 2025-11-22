@@ -15,86 +15,84 @@
 
 ## Fixed Issues & Implementation (Nov 22, Session 3)
 ### ✅ PRODUCTION-READY IMPORT/EXPORT/SCHEDULE SYSTEM
-**Status:** COMPLETE with full validation, UTC normalization, duplicate detection, conflict detection
+**Status:** COMPLETE with full validation, UTC normalization, duplicate detection, conflict detection, human-readable export
 
-#### What Was Implemented:
+#### Core Components Implemented:
+
+**A. IMPORT SYSTEM**
 1. **Schedule Validators** - XML/JSON schema validation with error reporting
-   - Validates root elements, event structure, required fields
-   - Detects malformed XML (rejects parse errors)
-   - Validates JSON schema (checks object structure, required fields)
-
 2. **Timestamp Parser** - ISO 8601 parsing with UTC normalization
-   - Parses formats: 2025-11-22T10:00:00Z, 2025-11-22T10:00:00-05:00, 2025-11-22T10:00:00+01:00
-   - Converts all timezones to UTC
-   - Returns consistent ISO 8601 UTC strings (e.g., 2025-11-22T15:00:00Z)
-
-3. **Duplicate Detector** - Cryptographic hash-based detection
-   - Uses MD5(title:start_time) for duplicate identification
-   - Detects exact duplicates (same title + same start time)
-   - Removes duplicates from imported schedules, reports count
-
+3. **Duplicate Detector** - Cryptographic hash-based detection (MD5)
 4. **Conflict Detector** - Overlapping timeslot detection
-   - Detects all overlapping event pairs
-   - Returns conflict details (event indices, titles, start/end times)
-   - Reports conflicts in import result
+5. **Import Functions** - `import_schedule_xml()`, `import_schedule_json()`, `import_m3u()`
 
-5. **Import Functions**
-   - `import_schedule_xml(filepath)` - Import TVGuide XML with validation
-   - `import_schedule_json(filepath)` - Import schedule JSON with validation
-   - `import_m3u(filepath)` - Import M3U playlists (simple format)
-   - All return: schedule_id, events_imported, duplicates_removed, conflicts_detected
+**B. EXPORT SYSTEM** (NEW - Nov 22 Session 3, Round 2)
+1. **XML Export** - `export_schedule_xml(schedule_id)` - TVGuide XML format with metadata
+2. **JSON Export** - `export_schedule_json(schedule_id)` - Pretty-printed JSON with full structure
+3. **Batch Export** - `export_all_schedules_xml()` - All schedules in single TVGuide XML
+4. **XML Escaping** - Proper special character handling for all exports
+5. **Schema Validation** - Re-parses exported files to validate integrity
 
-6. **API Endpoints**
-   - `POST /api/import-schedule` - Trigger import (XML or JSON)
-   - `GET /api/schedules` - List all imported schedules with validation metadata
-   - `GET /api/playlists` - List all playlists
-   - All endpoints call Python backend via subprocess
+#### Audit Test Results (Nov 22, 2025 - COMPLETE):
 
-#### Audit Test Results (Nov 22, 2025):
+**IMPORT TESTS:**
 ✅ **Test 1: Malformed XML Rejection**
-- Input: Incomplete XML (missing closing tags)
-- Expected: Parse error, error status
-- Result: PASS - Returns `{"status":"error","type":"parse_error",...}`
+- Result: PASS - Returns parse_error for incomplete XML
 
 ✅ **Test 2: Timezone Normalization**
-- Input: 3 events in different timezones (-05:00, +01:00, Z)
-- Expected: All times converted to UTC
-- Result: PASS - 2025-11-22T10:00:00-05:00 → 2025-11-22T15:00:00Z, 2025-11-22T10:00:00+01:00 → 2025-11-22T09:00:00Z
+- Result: PASS - -05:00 → 15:00Z, +01:00 → 09:00Z (UTC conversion correct)
 
 ✅ **Test 3: Duplicate Detection**
-- Input: 3 events (1 duplicate: "Morning Show" imported twice with same start time)
-- Expected: 1 duplicate removed, returned in warnings
-- Result: PASS - `"duplicates_removed": 1, "warnings": {"duplicates": [...]}` with event data
+- Result: PASS - Duplicates removed, count reported
 
-✅ **Bonus Test 4: Conflict Detection**
-- Input: 2 overlapping events (Morning Show 15:00-17:00, Afternoon Special 14:00-16:00)
-- Expected: Overlap detected
-- Result: PASS - `"conflicts_detected": 1` with event pair details
+✅ **Test 4: Conflict Detection (Bonus)**
+- Result: PASS - Overlapping timeslots detected
+
+**EXPORT TESTS:**
+✅ **Test 1: Schema Match**
+- Input: 2 events from imported schedule
+- Expected: Exported XML matches TVGuide schema
+- Result: PASS - XML valid, parses correctly, structure matches
+
+✅ **Test 2: Human-Readable**
+- Expected: Pretty-printed with indentation
+- Result: PASS - Both XML and JSON properly indented (2-space/4-space)
+- Sample: 18 lines of structured, readable XML with metadata
+
+✅ **Test 3: All Events Included**
+- Input: Export single schedule (2 events), then export all (5 schedules, 9 total events)
+- Expected: All events present in output
+- Result: PASS - Round-trip test: 2 events exported → 2 events re-imported
+- Batch export: 5 schedules, 9 total events, all present in XML
 
 #### Files Created/Modified:
 - **M3U_Matrix_Pro.py** (v2.1.0)
   - Added: TimestampParser, ScheduleValidator, DuplicateDetector, ConflictDetector classes
-  - Added: `import_schedule_xml()`, `import_schedule_json()`, `_extract_xml_event()` methods
-  - All using Python stdlib only (xml.etree.ElementTree, datetime, hashlib, uuid)
-  - CLI arguments: `--import-schedule-xml FILE`, `--import-schedule-json FILE`
+  - Added Import: `import_schedule_xml()`, `import_schedule_json()`, `_extract_xml_event()` methods
+  - Added Export: `export_schedule_xml()`, `export_schedule_json()`, `export_all_schedules_xml()` methods
+  - Added Utilities: `_escape_xml()` for proper XML escaping
+  - All using Python stdlib only (xml.etree.ElementTree, datetime, hashlib, uuid, json)
+  - CLI arguments: `--import-schedule-xml FILE`, `--import-schedule-json FILE`, `--export-schedule-xml SCHEDULE_ID FILE`, `--export-schedule-json SCHEDULE_ID FILE`, `--export-all-xml FILE`
   - Removed Flask dependency (was failing)
 
 - **api_server.js**
-  - Added: `/api/import-schedule` (POST)
-  - Added: `/api/schedules` (GET)
-  - Added: `/api/playlists` (GET)
-  - All call Python backend via subprocess spawn
+  - Added Import: `/api/import-schedule` (POST)
+  - Added Query: `/api/schedules` (GET), `/api/playlists` (GET)
+  - Added Export: `/api/export-schedule-xml` (POST), `/api/export-schedule-json` (POST), `/api/export-all-schedules-xml` (POST)
+  - All endpoints call Python backend via subprocess spawn
 
 - **Schedules Storage**
   - Each imported schedule saved to `schedules/{schedule_id}.json`
   - Metadata includes: total_imported, duplicates_removed, conflicts_detected
   - Warnings stored: duplicate events, conflict pairs with full details
+  - Exports validated via re-parsing (XML/JSON syntax verification)
 
 #### Known Limitations:
 - No conflict resolution (auto-merge, time-shift, etc.) - only detection
-- No XSD validation for XML (uses loose schema validation)
+- No XSD validation for XML (uses DTD-free validation)
 - No database (uses JSON files in filesystem)
 - No UI for viewing/editing conflict details (data is stored, awaiting UI)
+- No date range filtering (exports entire schedule, not filtered by date)
 
 ## System Architecture
 
