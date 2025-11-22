@@ -3,831 +3,321 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ScheduleFlow - Rumble News Carousel | 30 Live Channels</title>
+    <title>ScheduleFlow Rumble News - Live Channels</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #0a0a14 0%, #15151a 50%, #0a0a14 100%);
+            background: linear-gradient(135deg, #0f1419 0%, #1a2332 100%);
             color: #fff;
-            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             min-height: 100vh;
-        }
-
-        .main-container {
             display: flex;
             flex-direction: column;
-            height: 100vh;
-            position: relative;
         }
-
-        /* Header */
         .header {
             background: rgba(0, 0, 0, 0.5);
-            border-bottom: 1px solid rgba(255, 69, 0, 0.2);
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 100;
-            backdrop-filter: blur(10px);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 2px solid #ff6b35;
         }
-
-        .logo {
-            font-size: 18px;
-            font-weight: bold;
+        .header h1 { font-size: 24px; margin-bottom: 5px; }
+        .header p { color: #aaa; font-size: 14px; }
+        .main {
+            flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            position: relative;
         }
-
-        .logo > span:last-child {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        .header-controls {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            justify-content: flex-end;
-        }
-
-        .btn {
-            padding: 8px 16px;
-            background: rgba(255, 69, 0, 0.15);
-            border: 1px solid rgba(255, 69, 0, 0.4);
-            color: #ff6347;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            white-space: nowrap;
-        }
-
-        .btn:hover {
-            background: rgba(255, 69, 0, 0.25);
-            border-color: rgba(255, 69, 0, 0.6);
-        }
-
-        /* Clock Overlay */
-        .clock-overlay {
+        .controls {
             position: absolute;
             top: 20px;
             right: 20px;
-            background: rgba(10, 10, 20, 0.9);
-            padding: 12px 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            background: rgba(255, 107, 53, 0.2);
+            border: 2px solid #ff6b35;
+            color: #ff6b35;
+            padding: 10px 20px;
             border-radius: 8px;
-            border: 1px solid rgba(255, 69, 0, 0.2);
-            z-index: 50;
-            text-align: right;
-        }
-
-        .clock-time {
-            font-size: 18px;
-            font-weight: 300;
-            letter-spacing: 1px;
-            color: #ff6347;
-        }
-
-        .clock-date {
-            font-size: 11px;
-            color: rgba(255, 255, 255, 0.6);
-            margin-top: 3px;
-        }
-
-        /* Carousel Container */
-        .carousel-container {
-            flex: 1;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 30px;
-            overflow: hidden;
-        }
-
-        /* Channel Card */
-        .channel-card {
-            position: relative;
-            width: 100%;
-            max-width: 650px;
-            background: linear-gradient(135deg, rgba(40, 60, 80, 0.6) 0%, rgba(20, 40, 60, 0.7) 100%);
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
-            border: 1px solid rgba(255, 69, 0, 0.2);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 60px 40px;
-            text-align: center;
-            gap: 20px;
-            min-height: 450px;
             cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
             transition: all 0.3s ease;
         }
-
-        .channel-card:hover {
-            border-color: rgba(255, 69, 0, 0.4);
-            box-shadow: 0 10px 50px rgba(255, 69, 0, 0.15);
+        .btn:hover { background: #ff6b35; color: #fff; }
+        .card {
+            background: linear-gradient(135deg, rgba(30, 50, 80, 0.9), rgba(20, 35, 60, 0.9));
+            border: 2px solid rgba(255, 107, 53, 0.3);
+            border-radius: 16px;
+            padding: 40px;
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
         }
-
-        /* Live Indicator */
-        .live-indicator {
+        .badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #ff6b35;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
             display: flex;
             align-items: center;
-            gap: 10px;
-            color: #ff4500;
-            font-weight: bold;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
+            gap: 5px;
+            animation: pulse 1s infinite;
         }
-
-        .live-dot {
-            width: 12px;
-            height: 12px;
-            background: #ff4500;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.6; transform: scale(1.15); }
-        }
-
-        /* Channel Name */
-        .channel-name-large {
-            font-size: 44px;
-            font-weight: bold;
-            color: #fff;
-            letter-spacing: 0.5px;
-            word-break: break-word;
-        }
-
-        /* Stats */
-        .channel-stats {
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+        .live-dot { width: 8px; height: 8px; background: #ff6b35; border-radius: 50%; display: inline-block; }
+        .name { font-size: 36px; font-weight: 700; margin: 20px 0; }
+        .stats {
             display: flex;
+            gap: 30px;
             justify-content: center;
-            gap: 50px;
-            width: 100%;
-            flex-wrap: wrap;
+            margin: 20px 0;
         }
-
         .stat {
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 8px;
         }
-
-        .stat-icon {
-            font-size: 28px;
-        }
-
-        .stat-value {
-            font-size: 18px;
-            font-weight: bold;
-            color: #fff;
-        }
-
-        .stat-label {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.6);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        /* Watch Button */
+        .stat-value { font-size: 24px; font-weight: 700; color: #ff6b35; }
+        .stat-label { font-size: 12px; color: #888; text-transform: uppercase; }
         .watch-btn {
-            margin-top: 10px;
-            padding: 14px 36px;
-            background: linear-gradient(135deg, #ff4500, #ff6347);
-            color: white;
+            background: linear-gradient(135deg, #ff6b35, #ff8a52);
+            color: #fff;
             border: none;
-            border-radius: 50px;
+            padding: 16px 40px;
+            border-radius: 12px;
             font-size: 16px;
-            font-weight: bold;
+            font-weight: 700;
             cursor: pointer;
+            margin-top: 20px;
             transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
         }
-
-        .watch-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 20px rgba(255, 69, 0, 0.4);
+        .watch-btn:hover { transform: scale(1.05); }
+        .nav {
+            display: flex;
+            gap: 20px;
+            margin-top: 30px;
         }
-
-        /* Help Text */
-        .help-text {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.5);
-            margin-top: 15px;
-        }
-
-        /* Navigation Arrows */
-        .nav-arrow {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
+        .arrow {
             width: 50px;
             height: 50px;
-            background: rgba(255, 69, 0, 0.2);
-            border: 2px solid rgba(255, 69, 0, 0.5);
             border-radius: 50%;
+            border: 2px solid #ff6b35;
+            background: rgba(255, 107, 53, 0.1);
+            color: #ff6b35;
+            cursor: pointer;
+            font-size: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
             transition: all 0.3s ease;
-            z-index: 50;
-            color: #ff6347;
-            font-size: 24px;
         }
-
-        .nav-arrow:hover {
-            background: rgba(255, 69, 0, 0.4);
-            transform: translateY(-50%) scale(1.1);
-        }
-
-        .nav-arrow.prev { left: 20px; }
-        .nav-arrow.next { right: 20px; }
-
-        /* Carousel Dots */
-        .carousel-dots {
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
+        .arrow:hover { background: #ff6b35; color: #fff; }
+        .dots {
             display: flex;
             gap: 8px;
-            z-index: 50;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
         }
-
         .dot {
             width: 10px;
             height: 10px;
-            background: rgba(255, 69, 0, 0.3);
             border-radius: 50%;
+            background: rgba(255, 107, 53, 0.3);
             cursor: pointer;
             transition: all 0.3s ease;
         }
-
-        .dot.active {
-            background: #ff4500;
-            width: 30px;
-            border-radius: 5px;
-        }
-
-        /* HLS Video Modal */
-        .embed-modal {
+        .dot.active { background: #ff6b35; width: 30px; border-radius: 5px; }
+        .modal {
             display: none;
             position: fixed;
             top: 0;
             left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.98);
-            z-index: 10000;
-            align-items: center;
-            justify-content: center;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .embed-modal.active {
-            display: flex;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .embed-modal-content {
-            width: 95%;
-            max-width: 1200px;
-            height: 90%;
-            display: flex;
-            flex-direction: column;
-            background: rgba(10, 10, 10, 0.95);
-            border-radius: 12px;
-            border: 1px solid rgba(255, 69, 0, 0.3);
-            overflow: hidden;
-        }
-
-        .embed-modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.6);
-            border-bottom: 1px solid rgba(255, 69, 0, 0.2);
-        }
-
-        .embed-modal-header h2 {
-            margin: 0;
-            color: #ff6347;
-            font-size: 24px;
-            flex: 1;
-        }
-
-        .modal-controls {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .modal-btn {
-            padding: 8px 14px;
-            background: rgba(255, 69, 0, 0.2);
-            border: 1px solid rgba(255, 69, 0, 0.5);
-            color: #ff6347;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: bold;
-            transition: all 0.2s ease;
-        }
-
-        .modal-btn:hover {
-            background: rgba(255, 69, 0, 0.3);
-        }
-
-        .modal-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .close-btn {
-            width: 40px;
-            height: 40px;
-            padding: 0;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-        }
-
-        .embed-container {
-            flex: 1;
-            overflow: auto;
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #000;
-        }
-
-        #videoPlayer {
             width: 100%;
             height: 100%;
-            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
-
-        /* Channel Dropdown */
-        .channel-dropdown {
-            display: none;
-            position: absolute;
-            top: 100%;
-            left: 20px;
-            background: rgba(10, 10, 20, 0.98);
-            border: 1px solid rgba(255, 69, 0, 0.3);
-            border-radius: 8px;
-            max-height: 400px;
-            overflow-y: auto;
-            z-index: 100;
-            min-width: 250px;
-            box-shadow: 0 5px 30px rgba(0, 0, 0, 0.8);
-            margin-top: 5px;
+        .modal.active { display: flex; }
+        .modal-box {
+            width: 100%;
+            max-width: 1000px;
+            background: rgba(20, 35, 60, 0.95);
+            border: 2px solid #ff6b35;
+            border-radius: 16px;
+            padding: 20px;
         }
-
-        .channel-dropdown.active {
-            display: block;
-        }
-
-        .dropdown-item {
-            padding: 12px 16px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border-bottom: 1px solid rgba(255, 69, 0, 0.1);
-            font-size: 13px;
+        .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 107, 53, 0.3);
+            padding-bottom: 15px;
         }
-
-        .dropdown-item:hover {
-            background: rgba(255, 69, 0, 0.15);
-        }
-
-        .dropdown-item.active {
-            background: rgba(255, 69, 0, 0.25);
-            color: #ff4500;
-            font-weight: bold;
-        }
-
-        .dropdown-item-viewers {
-            font-size: 11px;
-            color: rgba(255, 255, 255, 0.5);
-        }
-
-        .dropdown-item-status {
-            font-size: 11px;
-            padding: 3px 8px;
-            border-radius: 3px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .dropdown-item-status.live {
-            background: rgba(0, 255, 0, 0.2);
-            color: #00ff88;
-        }
-
-        /* VOD State - Grayed Out */
-        .channel-card.is-vod {
-            opacity: 0.6;
-            filter: brightness(0.8);
-        }
-
-        .channel-card.is-vod .channel-name-large {
-            color: rgba(255, 255, 255, 0.7);
-        }
-
-        .channel-card.is-vod .live-indicator {
-            color: #ffaa55;
-        }
-
-        .channel-card.is-vod .live-dot {
-            background: #ffaa55;
-            animation: none;
-        }
-
-        .vod-badge {
+        .modal-title { font-size: 18px; font-weight: 700; }
+        .close-btn { background: none; border: none; color: #ff6b35; font-size: 28px; cursor: pointer; }
+        .embed-container { width: 100%; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; }
+        .embed-container iframe { width: 100%; height: 100%; border: none; }
+        .clock {
             position: absolute;
             top: 20px;
-            right: 20px;
-            background: rgba(255, 150, 0, 0.3);
-            border: 1px solid rgba(255, 150, 0, 0.6);
-            color: #ffaa55;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            left: 20px;
+            font-size: 12px;
+            color: #ff6b35;
+            font-weight: 600;
         }
-
-        .status-checking {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(100, 100, 100, 0.3);
-            border: 1px solid rgba(150, 150, 150, 0.6);
-            color: #aaa;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            animation: pulse 1s infinite;
+        @media (max-width: 768px) {
+            .card { padding: 20px; }
+            .name { font-size: 24px; }
+            .stats { gap: 15px; }
         }
     </style>
 </head>
 <body>
-    <div class="main-container">
-        <!-- Header -->
-        <div class="header">
-            <div class="logo">
-                <span>📺 ScheduleFlow Rumble News</span>
-                <span>30 Premium News Channels - Live Streams</span>
-            </div>
-            <div class="header-controls">
-                <button class="btn" onclick="toggleChannelList()">⚙️ All Channels</button>
-                <button class="btn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
-                <button class="btn" onclick="closeCarousel()">✕ Close</button>
-            </div>
-        </div>
-
-        <!-- Clock Overlay -->
-        <div class="clock-overlay">
-            <div class="clock-time" id="clockTime">00:00:00</div>
-            <div class="clock-date" id="clockDate">Loading...</div>
-        </div>
-
-        <!-- Carousel Container -->
-        <div class="carousel-container">
-            <!-- Channel Card -->
-            <div class="channel-card" id="channelCard" onclick="openEmbedModal()">
-                <div id="statusBadge"></div>
-
-                <div class="live-indicator">
-                    <span class="live-dot"></span>
-                    <span id="liveText">CHECKING...</span>
-                </div>
-
-                <h1 class="channel-name-large" id="channelNameDisplay">Loading...</h1>
-
-                <div class="channel-stats">
-                    <div class="stat">
-                        <span class="stat-icon">👥</span>
-                        <span class="stat-value" id="viewerCount">0</span>
-                        <span class="stat-label">Viewers</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-icon">📊</span>
-                        <span class="stat-value" id="rankDisplay">#1</span>
-                        <span class="stat-label">Rank</span>
-                    </div>
-                </div>
-
-                <button class="watch-btn" onclick="openEmbedModal(); return false;">
-                    👁️ WATCH NOW
-                </button>
-
-                <div class="help-text">
-                    ← Use arrows or keyboard to browse • Click to watch →
-                </div>
-            </div>
-
-            <!-- Navigation Arrows -->
-            <span class="nav-arrow prev" onclick="previousChannel()">❮</span>
-            <span class="nav-arrow next" onclick="nextChannel()">❯</span>
-
-            <!-- Carousel Dots -->
-            <div class="carousel-dots" id="carouselDots"></div>
-
-            <!-- Channel Dropdown -->
-            <div class="channel-dropdown" id="channelDropdown"></div>
-        </div>
+    <div class="clock" id="clock"></div>
+    
+    <div class="header">
+        <h1>📺 ScheduleFlow Rumble News</h1>
+        <p>Live News Channels - Verified Nov 22, 2025</p>
     </div>
 
-    <!-- HLS Video Modal -->
-    <div class="embed-modal" id="embedModal">
-        <div class="embed-modal-content">
-            <div class="embed-modal-header">
-                <h2 id="modalChannelName">Channel Name</h2>
-                <div class="modal-controls">
-                    <button class="modal-btn" onclick="previousChannelInModal()" title="Previous Channel">← Prev</button>
-                    <button class="modal-btn" onclick="nextChannelInModal()" title="Next Channel">Next →</button>
-                    <button class="modal-btn close-btn" onclick="closeEmbedModal()" title="Close">✕</button>
+    <div class="main">
+        <div class="controls">
+            <button class="btn" onclick="showAllChannels()">📋 All</button>
+            <button class="btn" onclick="document.documentElement.requestFullscreen()">⛶ FS</button>
+            <button class="btn" onclick="window.close()">✕ Close</button>
+        </div>
+
+        <div class="card" id="card" style="position: relative;">
+            <div class="badge">
+                <div class="live-dot"></div> LIVE
+            </div>
+
+            <div class="name" id="name">Loading...</div>
+            <div style="color: #aaa; font-size: 14px; margin-bottom: 20px;" id="rank">#-</div>
+
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-value" id="viewers">-</div>
+                    <div class="stat-label">Viewers</div>
                 </div>
+            </div>
+
+            <button class="watch-btn" onclick="playChannel()">👁️ WATCH NOW</button>
+
+            <div style="color: #666; font-size: 12px; margin-top: 15px;">
+                ← Use arrows to browse • Press ENTER to watch • Press ESC to close video →
+            </div>
+        </div>
+
+        <div class="nav">
+            <button class="arrow" onclick="prevChannel()">‹</button>
+            <button class="arrow" onclick="nextChannel()">›</button>
+        </div>
+
+        <div class="dots" id="dots"></div>
+    </div>
+
+    <!-- Embed Modal -->
+    <div class="modal" id="modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div class="modal-title" id="modaltitle">Loading...</div>
+                <button class="close-btn" onclick="closeChannel()">✕</button>
             </div>
             <div class="embed-container">
-                <video id="videoPlayer" controls style="width: 100%; height: 100%; max-width: 1000px;"></video>
+                <iframe id="embed" allowfullscreen allow="autoplay; fullscreen"></iframe>
             </div>
         </div>
     </div>
 
-    <!-- HLS.js Library -->
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-    
     <script>
-        // Store live status
-        const liveStatus = {};
-        
-        // Load HLS channels from JSON (this becomes our primary data source)
-        let channelsData = [];
-        let currentChannelIndex = 0;
-        let hls = null;
+        let channels = [];
+        let current = 0;
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            loadHLSChannels();
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadChannels();
             updateClock();
             setInterval(updateClock, 1000);
-            document.addEventListener('keydown', handleKeyboardShortcuts);
+            document.addEventListener('keydown', handleKeys);
         });
 
-        // Load HLS channels from JSON file (SINGLE SOURCE OF TRUTH)
-        function loadHLSChannels() {
-            fetch('rumble_hls_channels.json')
-                .then(r => r.json())
-                .then(data => {
-                    // Use HLS channels as primary data source
-                    channelsData = data.map((ch, idx) => ({
-                        index: idx + 1,
-                        name: ch.name,
-                        title: ch.title,
-                        viewers: parseInt(ch.viewers),
-                        hls_url: ch.hls_url,
-                        video_id: ch.video_id,
-                        rank: idx + 1
-                    }));
-                    
-                    // Mark all as LIVE (they came from your report)
-                    channelsData.forEach(ch => {
-                        liveStatus[ch.name] = true;
-                    });
-                    
-                    console.log('✅ Loaded', channelsData.length, 'HLS channels from JSON');
-                    updateChannelDisplay();
-                    updateCarouselDots();
-                    buildChannelDropdown();
-                })
-                .catch(e => console.error('❌ Failed to load HLS channels:', e));
-        }
-
-        function handleKeyboardShortcuts(e) {
-            if (e.key === 'ArrowLeft') {
-                previousChannel();
-            } else if (e.key === 'ArrowRight') {
-                nextChannel();
-            } else if (e.key === 'Escape') {
-                closeEmbedModal();
-            } else if (e.key >= '1' && e.key <= '9') {
-                const index = parseInt(e.key) - 1;
-                if (index < channelsData.length) {
-                    currentChannelIndex = index;
-                    updateChannelDisplay();
-                    updateCarouselDots();
-                }
+        async function loadChannels() {
+            try {
+                const res = await fetch('rumble_channels_iframe.json');
+                channels = await res.json();
+                console.log(`✅ Loaded ${channels.length} channels`);
+                render();
+                updateDots();
+            } catch (e) {
+                console.error('Failed:', e);
             }
         }
 
-        function nextChannel() {
-            currentChannelIndex = (currentChannelIndex + 1) % channelsData.length;
-            updateChannelDisplay();
-            updateCarouselDots();
+        function render() {
+            if (!channels.length) return;
+            const ch = channels[current];
+            document.getElementById('name').textContent = ch.name;
+            document.getElementById('rank').textContent = `#${ch.index}`;
+            document.getElementById('viewers').textContent = ch.viewers.toLocaleString();
+            document.getElementById('modaltitle').textContent = `${ch.name} (${ch.viewers.toLocaleString()} viewers)`;
         }
 
-        function previousChannel() {
-            currentChannelIndex = (currentChannelIndex - 1 + channelsData.length) % channelsData.length;
-            updateChannelDisplay();
-            updateCarouselDots();
-        }
-
-        function nextChannelInModal() {
-            nextChannel();
-            loadEmbedModal();
-        }
-
-        function previousChannelInModal() {
-            previousChannel();
-            loadEmbedModal();
-        }
-
-        function goToChannel(index) {
-            currentChannelIndex = index;
-            updateChannelDisplay();
-            updateCarouselDots();
-            closeChannelList();
-        }
-
-        function updateChannelDisplay() {
-            if (channelsData.length === 0) return; // Wait for data to load
-            
-            const channel = channelsData[currentChannelIndex];
-            const isLive = liveStatus[channel.name] !== undefined ? liveStatus[channel.name] : null;
-            const card = document.getElementById('channelCard');
-            const badge = document.getElementById('statusBadge');
-            const liveText = document.getElementById('liveText');
-
-            document.getElementById('channelNameDisplay').textContent = channel.name;
-            document.getElementById('viewerCount').textContent = channel.viewers.toLocaleString();
-            document.getElementById('rankDisplay').textContent = `#${channel.rank}`;
-
-            // All channels from the report are LIVE
-            if (isLive === null) {
-                badge.className = 'status-checking';
-                badge.textContent = 'CHECKING...';
-                card.classList.remove('is-vod');
-                liveText.textContent = 'CHECKING...';
-            } else if (isLive) {
-                badge.style.display = 'none';
-                card.classList.remove('is-vod');
-                liveText.textContent = 'LIVE NOW';
-            } else {
-                badge.className = 'vod-badge';
-                badge.textContent = 'VOD';
-                card.classList.add('is-vod');
-                liveText.textContent = 'VOD';
-            }
-        }
-
-        function openEmbedModal() {
-            document.getElementById('embedModal').classList.add('active');
-            loadEmbedModal();
-        }
-
-        function closeEmbedModal() {
-            document.getElementById('embedModal').classList.remove('active');
-            if (hls) {
-                hls.destroy();
-                hls = null;
-            }
-            const video = document.getElementById('videoPlayer');
-            video.src = '';
-        }
-
-        function loadEmbedModal() {
-            const channel = channelsData[currentChannelIndex];
-            document.getElementById('modalChannelName').textContent = `${channel.name} (${channel.viewers.toLocaleString()} viewers)`;
-
-            // Use HLS URL directly from channel data
-            if (channel.hls_url) {
-                const video = document.getElementById('videoPlayer');
-                
-                if (Hls.isSupported()) {
-                    if (hls) {
-                        hls.destroy();
-                    }
-                    hls = new Hls({
-                        debug: false,
-                        enableWorker: true,
-                        lowLevelLogger: null
-                    });
-                    hls.loadSource(channel.hls_url);
-                    hls.attachMedia(video);
-                    hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                        video.play().catch(e => console.log('Autoplay prevented:', e));
-                    });
-                    hls.on(Hls.Events.ERROR, (event, data) => {
-                        console.log('❌ HLS Error:', data);
-                    });
-                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                    // Safari native HLS support
-                    video.src = channel.hls_url;
-                    video.play().catch(e => console.log('Autoplay prevented:', e));
-                }
-            }
-        }
-
-        function updateCarouselDots() {
-            const dotsContainer = document.getElementById('carouselDots');
-            dotsContainer.innerHTML = '';
-
-            for (let i = 0; i < channelsData.length; i++) {
-                const dot = document.createElement('div');
-                dot.className = 'dot' + (i === currentChannelIndex ? ' active' : '');
-                dot.onclick = () => goToChannel(i);
-                dotsContainer.appendChild(dot);
-            }
-        }
-
-        function buildChannelDropdown() {
-            const dropdown = document.getElementById('channelDropdown');
-            dropdown.innerHTML = '';
-
-            channelsData.forEach((channel, index) => {
-                const item = document.createElement('div');
-                item.className = 'dropdown-item' + (index === currentChannelIndex ? ' active' : '');
-                
-                const status = liveStatus[channel.channelId] ? 'LIVE' : 'VOD';
-                item.innerHTML = `
-                    <span>${channel.name}<br><span class="dropdown-item-viewers">${channel.viewers.toLocaleString()} viewers</span></span>
-                    <span class="dropdown-item-status ${liveStatus[channel.channelId] ? 'live' : ''}">${status}</span>
-                `;
-                
-                item.onclick = () => goToChannel(index);
-                dropdown.appendChild(item);
+        function updateDots() {
+            const container = document.getElementById('dots');
+            container.innerHTML = '';
+            channels.forEach((_, i) => {
+                const d = document.createElement('div');
+                d.className = `dot ${i === current ? 'active' : ''}`;
+                d.onclick = () => { current = i; render(); updateDots(); };
+                container.appendChild(d);
             });
         }
 
-        function toggleChannelList() {
-            const dropdown = document.getElementById('channelDropdown');
-            dropdown.classList.toggle('active');
+        function nextChannel() { current = (current + 1) % channels.length; render(); updateDots(); }
+        function prevChannel() { current = (current - 1 + channels.length) % channels.length; render(); updateDots(); }
+
+        function playChannel() {
+            const ch = channels[current];
+            document.getElementById('embed').src = ch.embed_url;
+            document.getElementById('modal').classList.add('active');
         }
 
-        function closeChannelList() {
-            document.getElementById('channelDropdown').classList.remove('active');
+        function closeChannel() {
+            document.getElementById('modal').classList.remove('active');
+            document.getElementById('embed').src = '';
         }
 
-        function toggleFullscreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    console.log(`Error attempting to enable fullscreen: ${err.message}`);
-                });
-            } else {
-                document.exitFullscreen();
-            }
-        }
-
-        function closeCarousel() {
-            window.close();
+        function handleKeys(e) {
+            if (e.key === 'ArrowRight') nextChannel();
+            if (e.key === 'ArrowLeft') prevChannel();
+            if (e.key === 'Enter') playChannel();
+            if (e.key === 'Escape') closeChannel();
         }
 
         function updateClock() {
             const now = new Date();
-            const time = now.toLocaleTimeString('en-US', { hour12: false });
-            const date = now.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
-            
-            document.getElementById('clockTime').textContent = time;
-            document.getElementById('clockDate').textContent = date;
+            document.getElementById('clock').textContent = now.toLocaleTimeString();
+        }
+
+        function showAllChannels() {
+            alert(`${channels.length} channels loaded.\n\nTop 10:\n${channels.map((c, i) => `${i+1}. ${c.name}`).join('\n')}`);
         }
     </script>
 </body>
