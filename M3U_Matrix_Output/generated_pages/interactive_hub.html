@@ -740,9 +740,52 @@
             transform: translateY(-5px);
             box-shadow: 0 10px 30px rgba(0,255,100,0.3);
         }
+        /* Top Navigation */
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background: rgba(0, 0, 0, 0.7);
+            border-bottom: 2px solid #00ffff;
+            position: sticky;
+            top: 0;
+            z-index: 200;
+            margin-bottom: 20px;
+        }
+        
+        .top-nav a, .top-nav button {
+            color: #00ffff;
+            text-decoration: none;
+            padding: 8px 16px;
+            border: 1px solid #00ffff;
+            border-radius: 5px;
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            font-size: 0.9em;
+            margin: 0 5px;
+        }
+        
+        .top-nav a:hover, .top-nav button:hover {
+            background: #00ffff;
+            color: #000;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+        }
     </style>
 </head>
 <body>
+    <!-- Top Navigation Bar -->
+    <div class="top-nav">
+        <a href="index.html" style="font-size: 1.2em;">🎬 M3U MATRIX</a>
+        <div>
+            <a href="index.html">Home</a>
+            <a href="interactive_hub.html">🎛️ Control Hub</a>
+            <a href="../Applications/M3U_MATRIX_PRO.py" target="_blank">📋 M3U MATRIX PRO</a>
+        </div>
+    </div>
+
     <!-- Animated Background -->
     <div class="bg-animation"></div>
 

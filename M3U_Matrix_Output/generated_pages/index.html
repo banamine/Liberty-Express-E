@@ -12,558 +12,376 @@
             background: linear-gradient(135deg, #0a0a0f 0%, #1a0a2e 50%, #0a0a0f 100%);
             color: #fff;
             min-height: 100vh;
-            overflow-x: hidden;
         }
         
-        .animated-bg {
-            position: fixed;
+        /* Navigation */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background: rgba(0, 0, 0, 0.6);
+            border-bottom: 2px solid #00f3ff;
+            position: sticky;
             top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                radial-gradient(circle at 20% 50%, rgba(0, 243, 255, 0.08) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(255, 0, 255, 0.08) 0%, transparent 50%);
-            animation: bgPulse 15s ease-in-out infinite;
-            z-index: 0;
+            z-index: 100;
         }
         
-        @keyframes bgPulse {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 1; }
+        .nav-brand {
+            font-size: 1.5em;
+            font-weight: 900;
+            color: #00f3ff;
+            text-decoration: none;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            list-style: none;
+        }
+        
+        .nav-links a {
+            color: #00f3ff;
+            text-decoration: none;
+            padding: 8px 16px;
+            border: 1px solid #00f3ff;
+            border-radius: 5px;
+            transition: all 0.3s;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+        
+        .nav-links a:hover {
+            background: #00f3ff;
+            color: #000;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.6);
         }
         
         .container {
-            position: relative;
-            z-index: 1;
             max-width: 1400px;
             margin: 0 auto;
-            padding: 40px 20px;
+            padding: 30px 20px;
         }
         
         header {
             text-align: center;
-            margin-bottom: 80px;
-            padding: 50px 40px;
+            margin-bottom: 40px;
+            padding: 30px;
             background: rgba(0, 0, 0, 0.4);
             border: 2px solid #00f3ff;
-            border-radius: 20px;
-            box-shadow: 0 0 40px rgba(0, 243, 255, 0.2);
+            border-radius: 10px;
         }
         
         h1 {
-            font-size: 3.5em;
-            font-weight: 900;
+            font-size: 2.5em;
             background: linear-gradient(90deg, #00f3ff, #ff00ff, #00f3ff);
             background-size: 200% auto;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            animation: gradient 3s linear infinite;
-            margin-bottom: 15px;
-        }
-        
-        @keyframes gradient {
-            0% { background-position: 0% center; }
-            100% { background-position: 200% center; }
+            margin-bottom: 10px;
         }
         
         .subtitle {
-            font-size: 1.3em;
             color: #00f3ff;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            margin-bottom: 10px;
-        }
-        
-        .tagline {
             font-size: 1em;
-            color: #aaa;
-            margin-top: 15px;
-            font-style: italic;
-        }
-        
-        .section-title {
-            font-size: 2.2em;
-            color: #00f3ff;
-            margin: 60px 0 40px;
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            border-bottom: 2px solid #ff00ff;
-            padding-bottom: 15px;
-        }
-        
-        .players-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 30px;
-            margin-bottom: 60px;
-        }
-        
-        .player-card {
-            background: rgba(0, 0, 0, 0.5);
-            border: 2px solid #00f3ff;
-            border-radius: 15px;
-            padding: 30px;
-            text-align: center;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .player-card:hover {
-            transform: translateY(-8px);
-            border-color: #ff00ff;
-            box-shadow: 0 0 40px rgba(255, 0, 255, 0.4);
-        }
-        
-        .player-icon {
-            font-size: 3.5em;
-            margin-bottom: 15px;
-        }
-        
-        .player-name {
-            font-size: 1.6em;
-            font-weight: 700;
-            margin-bottom: 10px;
-            color: #fff;
-        }
-        
-        .player-desc {
-            font-size: 0.95em;
-            color: #aaa;
-            margin-bottom: 20px;
-            flex-grow: 1;
-            line-height: 1.5;
-        }
-        
-        .launch-btn {
-            display: inline-block;
-            background: linear-gradient(90deg, #00f3ff, #ff00ff);
-            color: #000;
-            padding: 12px 30px;
-            border-radius: 25px;
-            text-decoration: none;
-            font-weight: 700;
-            transition: all 0.3s;
-            border: none;
-            cursor: pointer;
-            font-size: 0.95em;
-        }
-        
-        .launch-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 25px rgba(0, 243, 255, 0.8);
-        }
-        
-        .demo-btn {
-            display: inline-block;
-            background: rgba(0, 243, 255, 0.2);
-            color: #00f3ff;
-            padding: 8px 20px;
-            border-radius: 15px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s;
-            border: 1px solid #00f3ff;
-            cursor: pointer;
-            font-size: 0.85em;
-            margin-top: 10px;
-        }
-        
-        .demo-btn:hover {
-            background: rgba(0, 243, 255, 0.4);
-            box-shadow: 0 0 15px rgba(0, 243, 255, 0.6);
-        }
-        
-        /* Modal Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(5px);
-        }
-        
-        .modal.active {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .modal-content {
-            background: rgba(10, 10, 15, 0.95);
-            border: 2px solid #00f3ff;
-            border-radius: 15px;
-            padding: 30px;
-            max-width: 900px;
-            max-height: 85vh;
-            overflow-y: auto;
-            width: 95%;
-            box-shadow: 0 0 60px rgba(0, 243, 255, 0.3);
-        }
-        
-        .close-btn {
-            color: #00f3ff;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-            background: none;
-            border: none;
-            transition: all 0.3s;
-        }
-        
-        .close-btn:hover {
-            color: #ff00ff;
-            transform: scale(1.2);
-        }
-        
-        .modal-title {
-            color: #00f3ff;
-            font-size: 1.8em;
-            margin: 20px 0;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-        
-        .player-preview {
-            width: 100%;
-            height: 400px;
-            background: #000;
-            border: 2px solid #00f3ff;
-            border-radius: 10px;
-            margin: 20px 0;
-        }
-        
-        .playlist-demo {
-            background: rgba(0, 243, 255, 0.05);
-            border: 1px solid #00f3ff;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 15px 0;
-            max-height: 250px;
-            overflow-y: auto;
-        }
-        
-        .playlist-item {
-            padding: 10px;
-            border-bottom: 1px solid #00f3ff;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.9em;
-        }
-        
-        .playlist-item:hover {
-            background: rgba(0, 243, 255, 0.1);
-            padding-left: 20px;
-        }
-        
-        .playlist-item:last-child {
-            border-bottom: none;
-        }
-        
-        .stats {
-            text-align: center;
-            margin-top: 80px;
-            padding: 40px;
-            background: rgba(0, 0, 0, 0.5);
-            border-radius: 15px;
-            border: 2px solid #00f3ff;
-            box-shadow: 0 0 30px rgba(0, 243, 255, 0.2);
-        }
-        
-        .stats h3 {
-            color: #00f3ff;
-            font-size: 1.5em;
-            margin-bottom: 20px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 30px;
-            margin-top: 20px;
-        }
-        
-        .stat-item {
-            padding: 20px;
-            background: rgba(0, 243, 255, 0.05);
-            border: 1px solid #00f3ff;
-            border-radius: 10px;
-        }
-        
-        .stat-number {
-            font-size: 2.5em;
-            color: #00f3ff;
-            font-weight: 900;
             margin-bottom: 5px;
         }
         
-        .stat-label {
-            font-size: 0.9em;
+        .tagline {
             color: #aaa;
+            font-size: 0.9em;
+        }
+        
+        .section-title {
+            font-size: 1.6em;
+            color: #00f3ff;
+            margin: 40px 0 20px;
             text-transform: uppercase;
             letter-spacing: 1px;
+            border-bottom: 2px solid #ff00ff;
+            padding-bottom: 10px;
+        }
+        
+        /* Mini Player Examples */
+        .examples-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .player-example {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #00f3ff;
+            border-radius: 10px;
+            padding: 15px;
+            overflow: hidden;
+        }
+        
+        .player-title {
+            color: #00f3ff;
+            font-size: 1.1em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        
+        .mini-player {
+            width: 100%;
+            height: 180px;
+            background: #000;
+            border: 1px solid #00f3ff;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .player-desc {
+            font-size: 0.85em;
+            color: #aaa;
+            line-height: 1.4;
+        }
+        
+        .launch-link {
+            display: inline-block;
+            background: linear-gradient(90deg, #00f3ff, #ff00ff);
+            color: #000;
+            padding: 8px 16px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.85em;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+        
+        .launch-link:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.8);
+        }
+        
+        /* Sample Channels */
+        .channels-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+        
+        .channel-card {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #00f3ff;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .channel-card:hover {
+            transform: translateY(-5px);
+            border-color: #ff00ff;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
+        }
+        
+        .channel-num {
+            font-size: 1.8em;
+            font-weight: 900;
+            color: #ff00ff;
+            margin-bottom: 5px;
+        }
+        
+        .channel-name {
+            color: #00f3ff;
+            font-weight: 700;
+            font-size: 0.95em;
+            margin-bottom: 5px;
+        }
+        
+        .channel-type {
+            color: #aaa;
+            font-size: 0.75em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-item {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #00f3ff;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .stat-num {
+            font-size: 2em;
+            color: #00f3ff;
+            font-weight: 900;
+        }
+        
+        .stat-label {
+            color: #aaa;
+            font-size: 0.8em;
+            margin-top: 5px;
         }
         
         @media (max-width: 768px) {
-            h1 { font-size: 2.2em; }
-            .section-title { font-size: 1.6em; }
-            .players-grid { grid-template-columns: 1fr; }
-            header { padding: 30px 20px; }
-            .modal-content { width: 95%; padding: 20px; }
-            .player-preview { height: 300px; }
+            h1 { font-size: 1.8em; }
+            .nav-links { flex-direction: column; gap: 10px; }
+            .examples-grid { grid-template-columns: 1fr; }
+            .channels-grid { grid-template-columns: repeat(2, 1fr); }
+            .stats-bar { grid-template-columns: repeat(2, 1fr); }
+            nav { padding: 10px 15px; }
         }
     </style>
 </head>
 <body>
-    <div class="animated-bg"></div>
+    <nav>
+        <a href="index.html" class="nav-brand">🎬 M3U MATRIX</a>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="interactive_hub.html">🎛️ Control Hub</a></li>
+            <li><a href="../Applications/M3U_MATRIX_PRO.py" target="_blank">📋 M3U MATRIX PRO (Download)</a></li>
+        </ul>
+    </nav>
     
     <div class="container">
         <header>
-            <h1>🎬 M3U MATRIX</h1>
-            <p class="subtitle">Professional IPTV Streaming Platform</p>
-            <p class="tagline">Unified Entertainment Across All Devices • Real-Time Video Streaming with Advanced Controls</p>
+            <h1>M3U MATRIX - Professional IPTV Platform</h1>
+            <p class="subtitle">Real-Time Video Streaming with Advanced Controls</p>
+            <p class="tagline">Multiple specialized players for all your IPTV needs</p>
         </header>
         
-        <div class="section-title">🎮 Interactive Player Gallery</div>
+        <div class="section-title">🎬 Live Player Examples</div>
         
-        <div class="players-grid" id="playersGrid">
-            <!-- Players will be inserted here -->
-        </div>
-        
-        <div class="stats">
-            <h3>📊 Platform Overview</h3>
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <div class="stat-number">8</div>
-                    <div class="stat-label">Specialized Players</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">∞</div>
-                    <div class="stat-label">Playlist Support</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">24/7</div>
-                    <div class="stat-label">Streaming Ready</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">4K</div>
-                    <div class="stat-label">Video Support</div>
-                </div>
-            </div>
-            <p style="margin-top: 30px; color: #aaa; font-size: 0.9em;">M3U Matrix All-In-One IPTV Platform • Real working examples with sample content</p>
-        </div>
-    </div>
-    
-    <!-- Modals -->
-    <div class="modal" id="simpleModal">
-        <div class="modal-content">
-            <button class="close-btn" onclick="closeModal('simpleModal')">&times;</button>
-            <div class="modal-title">🎬 Simple Player - Live Demo</div>
-            <div class="player-preview">
-                <video width="100%" height="100%" controls style="background: #000;">
-                    <source src="https://archive.org/download/ancientalienscollection/S01E01%20-%20The%20Evidence.mkv" type="video/mp4">
-                    Your browser does not support the video tag.
+        <div class="examples-grid">
+            <!-- Simple Player Example -->
+            <div class="player-example">
+                <div class="player-title">Simple Player</div>
+                <video class="mini-player" controls>
+                    <source src="https://commondatastorage.googleapis.com/gtv-videos-library/sample/BigBuckBunny.mp4" type="video/mp4">
                 </video>
+                <p class="player-desc">Clean HTML5 player with HLS/DASH support. Sequential and shuffle playback modes.</p>
+                <a href="simple_player/index.html" class="launch-link">▶ Launch Player</a>
             </div>
-            <h3 style="color: #00f3ff; margin-top: 20px;">📽️ Currently Playing</h3>
-            <div class="playlist-demo">
-                <div class="playlist-item">▶ Ancient Aliens S01E01 - The Evidence (Now Playing)</div>
-                <div class="playlist-item">Ancient Aliens S01E02 - The Visitors</div>
-                <div class="playlist-item">Ancient Aliens S01E03 - The Mission</div>
-                <div class="playlist-item">Ancient Aliens S01E04 - Closer Encounters</div>
-                <div class="playlist-item">Ancient Aliens S01E05 - The Return</div>
-                <div class="playlist-item">+ 619 more episodes...</div>
+            
+            <!-- Multi-Channel Example -->
+            <div class="player-example">
+                <div class="player-title">Multi-Channel Viewer (2x2 Grid)</div>
+                <div class="mini-player" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2px;">
+                    <video controls style="width: 100%; height: 100%; background: #000;">
+                        <source src="https://commondatastorage.googleapis.com/gtv-videos-library/sample/BigBuckBunny.mp4" type="video/mp4">
+                    </video>
+                    <video controls style="width: 100%; height: 100%; background: #000;">
+                        <source src="https://commondatastorage.googleapis.com/gtv-videos-library/sample/ElephantsDream.mp4" type="video/mp4">
+                    </video>
+                    <video controls style="width: 100%; height: 100%; background: #000;">
+                        <source src="https://commondatastorage.googleapis.com/gtv-videos-library/sample/ForBiggerBlazes.mp4" type="video/mp4">
+                    </video>
+                    <video controls style="width: 100%; height: 100%; background: #000;">
+                        <source src="https://commondatastorage.googleapis.com/gtv-videos-library/sample/Sintel.mp4" type="video/mp4">
+                    </video>
+                </div>
+                <p class="player-desc">Watch up to 6 videos simultaneously. Smart audio management and focus mode.</p>
+                <a href="multi_channel/index.html" class="launch-link">▶ Launch Player</a>
             </div>
-            <p style="margin-top: 20px; color: #aaa;">Real content from your playlist | HLS/DASH support | Sequential and shuffle playback</p>
+            
+            <!-- Infowars Example -->
+            <div class="player-example">
+                <div class="player-title">Infowars Extravaganza</div>
+                <div class="mini-player" style="display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #E31E24, #8B0000);">
+                    <div style="text-align: center;">
+                        <div style="font-size: 3em;">🔴</div>
+                        <div style="color: #FFD700; font-size: 0.8em; margin-top: 10px;">RSS Feed Player</div>
+                    </div>
+                </div>
+                <p class="player-desc">Advanced RSS-fed player with skip controls, volume, fullscreen, multi-screen viewing.</p>
+                <a href="infowars_extravaganza_daily.html" class="launch-link">▶ Launch Player</a>
+            </div>
+        </div>
+        
+        <div class="section-title">📺 Sample Channels (10 Quick Test Channels)</div>
+        <p style="color: #aaa; margin-bottom: 15px; font-size: 0.9em;">Use these free demo channels to test any template. Ready to use with all player types.</p>
+        
+        <div class="channels-grid">
+            <div class="channel-card">
+                <div class="channel-num">1</div>
+                <div class="channel-name">Big Buck Bunny</div>
+                <div class="channel-type">Movies</div>
+            </div>
+            <div class="channel-card">
+                <div class="channel-num">2</div>
+                <div class="channel-name">Sintel</div>
+                <div class="channel-type">Movies</div>
+            </div>
+            <div class="channel-card">
+                <div class="channel-num">3</div>
+                <div class="channel-name">Elephant Dream</div>
+                <div class="channel-type">Entertainment</div>
+            </div>
+            <div class="channel-card">
+                <div class="channel-num">4</div>
+                <div class="channel-name">For Bigger Blazes</div>
+                <div class="channel-type">Entertainment</div>
+            </div>
+            <div class="channel-card">
+                <div class="channel-num">5</div>
+                <div class="channel-name">For Bigger Escape</div>
+                <div class="channel-type">Documentary</div>
+            </div>
+            <div class="channel-card">
+                <div class="channel-num">6</div>
+                <div class="channel-name">For Bigger Fun</div>
+                <div class="channel-type">Music</div>
+            </div>
+            <div class="channel-card">
+                <div class="channel-num">7</div>
+                <div class="channel-name">For Bigger Joyrides</div>
+                <div class="channel-type">Entertainment</div>
+            </div>
+            <div class="channel-card">
+                <div class="channel-num">8</div>
+                <div class="channel-name">For Bigger Meltdowns</div>
+                <div class="channel-type">Documentary</div>
+            </div>
+            <div class="channel-card">
+                <div class="channel-num">9</div>
+                <div class="channel-name">Subaru Outback</div>
+                <div class="channel-type">Entertainment</div>
+            </div>
+            <div class="channel-card">
+                <div class="channel-num">10</div>
+                <div class="channel-name">Tears of Steel</div>
+                <div class="channel-type">Movies</div>
+            </div>
+        </div>
+        
+        <div class="section-title">📊 Platform Status</div>
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-num">8</div>
+                <div class="stat-label">Player Types</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-num">∞</div>
+                <div class="stat-label">Playlists</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-num">24/7</div>
+                <div class="stat-label">Streaming</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-num">4K</div>
+                <div class="stat-label">Support</div>
+            </div>
         </div>
     </div>
-    
-    <div class="modal" id="multiModal">
-        <div class="modal-content">
-            <button class="close-btn" onclick="closeModal('multiModal')">&times;</button>
-            <div class="modal-title">🎯 Multi-Channel Viewer - 2x2 Grid Demo</div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0;">
-                <div style="border: 1px solid #00f3ff; border-radius: 8px; overflow: hidden;">
-                    <video width="100%" height="200" controls style="background: #000;">
-                        <source src="https://archive.org/download/the-looney-tunes-show_202405/The%20Looney%20Tunes%20Show_S01E01_Best%20Friends.mp4" type="video/mp4">
-                    </video>
-                    <div style="padding: 10px; background: rgba(0,0,0,0.5); font-size: 0.85em;">Looney Tunes S01E01</div>
-                </div>
-                <div style="border: 1px solid #00f3ff; border-radius: 8px; overflow: hidden;">
-                    <video width="100%" height="200" controls style="background: #000;">
-                        <source src="https://archive.org/download/the-looney-tunes-show_202405/The%20Looney%20Tunes%20Show_S01E02_Members%20Only.mp4" type="video/mp4">
-                    </video>
-                    <div style="padding: 10px; background: rgba(0,0,0,0.5); font-size: 0.85em;">Looney Tunes S01E02</div>
-                </div>
-                <div style="border: 1px solid #00f3ff; border-radius: 8px; overflow: hidden;">
-                    <video width="100%" height="200" controls style="background: #000;">
-                        <source src="https://archive.org/download/Petticoat_Junction_Series/Petticoat%20Junction%20-%20Season%205/Petticoat%20Junction%20-%205x01%20-%20Is%20This%20My%20Daughter.mp4" type="video/mp4">
-                    </video>
-                    <div style="padding: 10px; background: rgba(0,0,0,0.5); font-size: 0.85em;">Petticoat Junction S05E01</div>
-                </div>
-                <div style="border: 1px solid #00f3ff; border-radius: 8px; overflow: hidden;">
-                    <video width="100%" height="200" controls style="background: #000;">
-                        <source src="https://archive.org/download/Petticoat_Junction_Series/Petticoat%20Junction%20-%20Season%205/Petticoat%20Junction%20-%205x02%20-%20It's%20Not%20Easy%20to%20Be%20a%20Mother.mp4" type="video/mp4">
-                    </video>
-                    <div style="padding: 10px; background: rgba(0,0,0,0.5); font-size: 0.85em;">Petticoat Junction S05E02</div>
-                </div>
-            </div>
-            <p style="margin-top: 20px; color: #aaa;">Watch up to 6 videos simultaneously • Smart audio management • Focus mode available</p>
-        </div>
-    </div>
-    
-    <div class="modal" id="infowarsModal">
-        <div class="modal-content">
-            <button class="close-btn" onclick="closeModal('infowarsModal')">&times;</button>
-            <div class="modal-title">🔴 Infowars Extravaganza - Advanced Controls</div>
-            <div class="player-preview">
-                <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; background: linear-gradient(135deg, #E31E24, #8B0000);">
-                    <div style="font-size: 3em;">📺</div>
-                    <div style="color: #FFD700; font-size: 1.5em; text-transform: uppercase; letter-spacing: 2px; margin-top: 20px;">Infowars RSS Feed</div>
-                    <div style="color: #FFD700; font-size: 0.9em; margin-top: 10px;">Click play to start streaming latest videos</div>
-                </div>
-            </div>
-            <h3 style="color: #00f3ff; margin-top: 20px;">⚙️ Advanced Controls Available</h3>
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0;">
-                <div style="background: rgba(0,243,255,0.1); padding: 10px; border-radius: 5px; border: 1px solid #00f3ff; text-align: center; font-size: 0.85em;">⏪ Skip 10s/20s/30s/1m</div>
-                <div style="background: rgba(0,243,255,0.1); padding: 10px; border-radius: 5px; border: 1px solid #00f3ff; text-align: center; font-size: 0.85em;">🔊 Volume Control</div>
-                <div style="background: rgba(0,243,255,0.1); padding: 10px; border-radius: 5px; border: 1px solid #00f3ff; text-align: center; font-size: 0.85em;">⛶ Fullscreen Toggle</div>
-                <div style="background: rgba(0,243,255,0.1); padding: 10px; border-radius: 5px; border: 1px solid #00f3ff; text-align: center; font-size: 0.85em;">📺 Multi-Screen (2x2/2x3)</div>
-                <div style="background: rgba(0,243,255,0.1); padding: 10px; border-radius: 5px; border: 1px solid #00f3ff; text-align: center; font-size: 0.85em;">📹 Video Clipping</div>
-                <div style="background: rgba(0,243,255,0.1); padding: 10px; border-radius: 5px; border: 1px solid #00f3ff; text-align: center; font-size: 0.85em;">📸 Screenshot Capture</div>
-            </div>
-            <p style="margin-top: 20px; color: #aaa;">Real RSS feed • Auto-hiding transparent controls • Timestamp-based clipping • PC save integration</p>
-        </div>
-    </div>
-    
-    <script>
-        const players = [
-            {
-                name: "Simple Player",
-                icon: "🎬",
-                desc: "HTML5 video player with HLS/DASH support. Sequential and shuffle playback modes with responsive design for all devices.",
-                link: "simple_player/index.html",
-                demo: "simpleModal"
-            },
-            {
-                name: "Multi-Channel Viewer",
-                icon: "🎯",
-                desc: "Watch up to 6 videos simultaneously in grid layout (1-6 channels). Smart audio management and focus mode.",
-                link: "multi_channel/index.html",
-                demo: "multiModal"
-            },
-            {
-                name: "Infowars Extravaganza",
-                icon: "🔴",
-                desc: "Advanced RSS-fed player with skip controls, volume, fullscreen, multi-screen, clipping, and screenshots.",
-                link: "infowars_extravaganza_daily.html",
-                demo: "infowarsModal"
-            },
-            {
-                name: "NEXUS TV",
-                icon: "🎭",
-                desc: "24-hour auto-scheduled streaming with neon cyberpunk aesthetic, favorites, and offline support.",
-                link: "nexus_tv/index.html",
-                demo: null
-            },
-            {
-                name: "Buffer TV",
-                icon: "📺",
-                desc: "TV player with advanced buffering controls, numeric keypad, TV Guide overlay, and quick categories.",
-                link: "buffer_tv/index.html",
-                demo: null
-            },
-            {
-                name: "Web IPTV",
-                icon: "▶️",
-                desc: "Sequential channel playback with group-based organization and mobile optimization.",
-                link: "web_iptv/index.html",
-                demo: null
-            },
-            {
-                name: "Rumble Channel",
-                icon: "🟣",
-                desc: "Specialized player for Rumble videos with automatic URL detection and secure iframe embedding.",
-                link: "rumble_channel/index.html",
-                demo: null
-            },
-            {
-                name: "Control Hub",
-                icon: "🎛️",
-                desc: "Central dashboard for managing all players, generating custom content, and viewing deployment status.",
-                link: "interactive_hub.html",
-                demo: null
-            }
-        ];
-        
-        const grid = document.getElementById('playersGrid');
-        
-        players.forEach((player) => {
-            const card = document.createElement('div');
-            card.className = 'player-card';
-            
-            const icon = document.createElement('div');
-            icon.className = 'player-icon';
-            icon.textContent = player.icon;
-            
-            const name = document.createElement('div');
-            name.className = 'player-name';
-            name.textContent = player.name;
-            
-            const desc = document.createElement('div');
-            desc.className = 'player-desc';
-            desc.textContent = player.desc;
-            
-            const btn = document.createElement('a');
-            btn.href = player.link;
-            btn.className = 'launch-btn';
-            btn.textContent = '▶ Launch';
-            
-            card.appendChild(icon);
-            card.appendChild(name);
-            card.appendChild(desc);
-            card.appendChild(btn);
-            
-            if (player.demo) {
-                const demoBtn = document.createElement('button');
-                demoBtn.className = 'demo-btn';
-                demoBtn.textContent = '👁 See Demo';
-                demoBtn.onclick = () => openModal(player.demo);
-                card.appendChild(demoBtn);
-            }
-            
-            grid.appendChild(card);
-        });
-        
-        function openModal(modalId) {
-            document.getElementById(modalId).classList.add('active');
-        }
-        
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('active');
-        }
-        
-        window.onclick = function(event) {
-            const modals = document.querySelectorAll('.modal.active');
-            modals.forEach(modal => {
-                if (event.target == modal) {
-                    modal.classList.remove('active');
-                }
-            });
-        }
-    </script>
 </body>
 </html>
