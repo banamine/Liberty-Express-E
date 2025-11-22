@@ -885,33 +885,37 @@
                     Quick Actions
                 </div>
                 <div class="quick-actions-grid">
-                    <div class="quick-action-btn" onclick="quickAction('nexus')">
+                    <div class="quick-action-btn" onclick="launchPlayer('nexus_tv/index.html')">
                         <div class="quick-action-icon">🎭</div>
                         <div>Nexus TV</div>
                     </div>
-                    <div class="quick-action-btn" onclick="quickAction('buffer')">
+                    <div class="quick-action-btn" onclick="launchPlayer('buffer_tv/index.html')">
                         <div class="quick-action-icon">📺</div>
                         <div>Buffer TV</div>
                     </div>
-                    <div class="quick-action-btn" onclick="quickAction('multi')">
+                    <div class="quick-action-btn" onclick="launchPlayer('multi_channel/index.html')">
                         <div class="quick-action-icon">🎯</div>
                         <div>Multi-View</div>
                     </div>
-                    <div class="quick-action-btn" onclick="quickAction('classic')">
-                        <div class="quick-action-icon">📻</div>
-                        <div>Classic TV</div>
-                    </div>
-                    <div class="quick-action-btn" onclick="quickAction('simple')">
+                    <div class="quick-action-btn" onclick="launchPlayer('simple_player/index.html')">
                         <div class="quick-action-icon">▶️</div>
                         <div>Simple Player</div>
                     </div>
-                    <div class="quick-action-btn" onclick="quickAction('rumble')">
+                    <div class="quick-action-btn" onclick="launchPlayer('infowars_extravaganza_daily.html')">
+                        <div class="quick-action-icon">🔴</div>
+                        <div>Infowars</div>
+                    </div>
+                    <div class="quick-action-btn" onclick="launchPlayer('rumble_channel/index.html')">
                         <div class="quick-action-icon">🟣</div>
                         <div>Rumble</div>
                     </div>
-                    <div class="quick-action-btn" onclick="quickAction('performance')">
-                        <div class="quick-action-icon">🟢</div>
-                        <div>Performance</div>
+                    <div class="quick-action-btn" onclick="launchPlayer('web_iptv/index.html')">
+                        <div class="quick-action-icon">📻</div>
+                        <div>Web IPTV</div>
+                    </div>
+                    <div class="quick-action-btn" onclick="launchPlayer('index.html')">
+                        <div class="quick-action-icon">🏠</div>
+                        <div>Home</div>
                     </div>
                 </div>
             </div>
@@ -1398,6 +1402,13 @@
             if (url) {
                 window.open(url, '_blank', 'width=1200,height=800,resizable=yes,scrollbars=yes');
             }
+        }
+
+        // Launch Player - New Function for Dashboard Buttons
+        function launchPlayer(url) {
+            const playerName = url.split('/')[0] || 'Player';
+            showToast(`Launching ${playerName}...`, 'success');
+            window.open(url, '_blank', 'width=1200,height=800,resizable=yes,scrollbars=yes');
         }
 
         // Action Functions
