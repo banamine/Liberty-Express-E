@@ -172,8 +172,8 @@
         }
         .modal-title { font-size: 18px; font-weight: 700; }
         .close-btn { background: none; border: none; color: #ff6b35; font-size: 28px; cursor: pointer; }
-        .embed-container { width: 100%; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; }
-        .embed-container iframe { width: 100%; height: 100%; border: none; }
+        .embed-container { width: 100%; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; background: #000; }
+        #rumble-embed { width: 100%; height: 100%; }
         .clock {
             position: absolute;
             top: 20px;
@@ -241,11 +241,12 @@
                 <div class="modal-title" id="modaltitle">Loading...</div>
                 <button class="close-btn" onclick="closeChannel()">✕</button>
             </div>
-            <div class="embed-container">
-                <iframe id="embed" allowfullscreen allow="autoplay; fullscreen"></iframe>
-            </div>
+            <div class="embed-container" id="rumble-embed"></div>
         </div>
     </div>
+
+    <!-- Rumble Embed API -->
+    <script>!function(r,u,m,b,l,e){r._Rumble=b,r[b]||(r[b]=function(){(r[b]._=r[b]._||[]).push(arguments);if(r[b]._.length==1){l=u.createElement(m),e=u.getElementsByTagName(m)[0],l.async=1,l.src="https://rumble.com/embedJS/u4"+(arguments[1].video?'.'+arguments[1].video:'')+"/?url="+encodeURIComponent(location.href)+"&args="+encodeURIComponent(JSON.stringify([].slice.apply(arguments))),e.parentNode.insertBefore(l,e)}})}(window, document, "script", "Rumble");</script>
 
     <script>
         let channels = [];
@@ -295,13 +296,20 @@
 
         function playChannel() {
             const ch = channels[current];
-            document.getElementById('embed').src = ch.embed_url;
+            const embedDiv = document.getElementById('rumble-embed');
+            const uniqueId = `rumble_${ch.video_id}`;
+            embedDiv.innerHTML = `<div id="${uniqueId}"></div>`;
             document.getElementById('modal').classList.add('active');
+            
+            // Call Rumble official embed API
+            if (window.Rumble) {
+                Rumble("play", {"video": ch.video_id, "div": uniqueId});
+            }
         }
 
         function closeChannel() {
             document.getElementById('modal').classList.remove('active');
-            document.getElementById('embed').src = '';
+            document.getElementById('rumble-embed').innerHTML = '';
         }
 
         function handleKeys(e) {
