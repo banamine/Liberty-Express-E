@@ -6,7 +6,7 @@ Refactored modular version using Core_Modules architecture
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk, font, simpledialog
 from tkinterdnd2 import DND_FILES, TkinterDnD
-import re, os, threading, tempfile, webbrowser
+import re, os, threading, tempfile, webbrowser, random
 from datetime import datetime, timedelta
 from collections import defaultdict
 from urllib.parse import urlparse, unquote
@@ -46,6 +46,7 @@ from Core_Modules.utils.helpers import (
     create_progress_dialog, open_folder_in_explorer
 )
 from Core_Modules.gui.components import ButtonFactory, DialogFactory, ProgressManager, TreeviewManager
+from Core_Modules.ffprobe_validator import validate_m3u_quick
 
 # Optional imports - only needed for advanced features
 try:
@@ -268,9 +269,9 @@ class M3UMatrix:
             # Row 2 - Advanced features
             ("🗑️ Delete", self.delete_selected, "#E74C3C"),
             ("🔗 Validate Links", self.validate_links, "#9B59B6"),
+            ("🎬 FFprobe Check", self.validate_with_ffprobe, "#00FFFF"),
             ("📡 EPG Import", self.import_epg, "#3498DB"),
-            ("🎬 CLASSIC TV", self.generate_classic, "#FF0000"),
-            ("🌐 More Players", self.show_page_generator_menu, "#2ECC71")
+            ("🎬 CLASSIC TV", self.generate_classic, "#FF0000")
         ]
 
         # Layout buttons in 2 rows (5 per row)
@@ -595,6 +596,73 @@ Success Rate: {stats['success_rate']:.1f}%
 """
         
         messagebox.showinfo("Validation Results", message)
+
+    def validate_with_ffprobe(self):
+        """Real stream validation using FFprobe - quick random sample"""
+        if not self.channels:
+            messagebox.showwarning("No Channels", "No channels to validate")
+            return
+        
+        # Save current channels to temp M3U first
+        temp_m3u = Path(tempfile.gettempdir()) / "ffprobe_temp_validation.m3u"
+        try:
+            if self.m3u_parser.write_m3u(self.channels, str(temp_m3u)):
+                self.update_status("Running FFprobe validation (random sample)...")
+                
+                # Run validation in thread
+                def validate_ffprobe():
+                    try:
+                        result = validate_m3u_quick(str(temp_m3u), timeout_seconds=10)
+                        self.root.after(0, lambda: self.show_ffprobe_results(result))
+                    except Exception as e:
+                        self.root.after(0, lambda: messagebox.showerror("Validation Error", str(e)))
+                
+                thread = threading.Thread(target=validate_ffprobe)
+                thread.daemon = True
+                thread.start()
+            else:
+                messagebox.showerror("Error", "Failed to prepare validation")
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
+
+    def show_ffprobe_results(self, result):
+        """Display FFprobe validation results"""
+        self.update_status("FFprobe validation complete")
+        
+        # Build result message
+        health_status = "✅ HEALTHY" if result.is_healthy else "❌ UNHEALTHY"
+        
+        message = f"""
+FFprobe Real Stream Validation Results
+{'='*50}
+
+Total Channels: {result.total_channels}
+Sample Size: {result.sample_size} (random check)
+Valid: {result.valid_channels} / Invalid: {result.invalid_channels}
+
+Health Status: {health_status}
+(If one stream is bad, all are considered bad)
+
+Sample Details:
+"""
+        
+        for i, validation in enumerate(result.sample_results, 1):
+            status = "✅" if validation.is_valid else "❌"
+            message += f"\n{i}. {status} {validation.stream_type.upper()}\n"
+            message += f"   URL: {validation.url[:50]}...\n"
+            
+            if validation.is_valid:
+                if validation.video_codec:
+                    message += f"   Video: {validation.video_codec}"
+                    if validation.resolution:
+                        message += f" ({validation.resolution})"
+                    message += "\n"
+                if validation.audio_codec:
+                    message += f"   Audio: {validation.audio_codec}\n"
+            else:
+                message += f"   Error: {validation.error_message}\n"
+        
+        messagebox.showinfo("FFprobe Validation Results", message)
 
     def import_epg(self):
         """Import EPG data"""
