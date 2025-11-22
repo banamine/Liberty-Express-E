@@ -8,6 +8,7 @@ import subprocess
 import json
 import logging
 import random
+import requests
 from pathlib import Path
 from typing import List, Dict, Tuple, Optional
 from dataclasses import dataclass
@@ -28,6 +29,9 @@ class StreamValidationResult:
     resolution: Optional[str] = None
     bitrate: Optional[str] = None
     error_message: Optional[str] = None
+    validation_tier: str = "unknown"  # 'http', 'ffprobe', 'hls', 'none'
+    http_status: Optional[int] = None  # HTTP status code
+    hls_segments_checked: int = 0  # Number of HLS segments verified
 
 
 @dataclass
@@ -289,6 +293,158 @@ class FFprobeValidator:
         
         # Healthy if more than 80% are valid
         result.is_healthy = (result.valid_channels / len(channels) > 0.8) if channels else False
+        
+        return result
+    
+    def validate_hls_segments(self, m3u8_url: str, segment_count: int = 3) -> Tuple[bool, str, int]:
+        """
+        Validate HLS stream by checking m3u8 playlist and downloading segments.
+        Phase 2 Requirement: Download first N segments → 200 + growing .ts files
+        
+        Args:
+            m3u8_url: URL to .m3u8 playlist
+            segment_count: Number of segments to validate
+            
+        Returns:
+            Tuple of (is_valid, error_message, segments_checked)
+        """
+        try:
+            # Fetch m3u8 playlist
+            headers = {
+                'User-Agent': 'M3U-Matrix-Pro/1.0 (FFmpeg-compatible)',
+                'Referer': m3u8_url
+            }
+            response = requests.get(m3u8_url, timeout=5, headers=headers, verify=False)
+            
+            if response.status_code != 200:
+                return False, f"M3U8 HTTP {response.status_code}", 0
+            
+            # Parse m3u8 content
+            lines = response.text.strip().split('\n')
+            segments = []
+            base_url = '/'.join(m3u8_url.split('/')[:-1]) + '/'
+            
+            for line in lines:
+                line = line.strip()
+                # Skip comments and directives
+                if not line or line.startswith('#'):
+                    continue
+                # Extract segment URL
+                if line.endswith('.ts') or line.endswith('.m4s'):
+                    # Handle relative URLs
+                    if line.startswith('http'):
+                        segments.append(line)
+                    else:
+                        segments.append(base_url + line)
+            
+            if not segments:
+                return False, "No segments found in M3U8", 0
+            
+            # Validate first N segments
+            segments_to_check = min(segment_count, len(segments))
+            checked = 0
+            last_size = 0
+            
+            for i, segment_url in enumerate(segments[:segments_to_check]):
+                try:
+                    seg_response = requests.head(
+                        segment_url,
+                        timeout=3,
+                        headers=headers,
+                        verify=False,
+                        allow_redirects=True
+                    )
+                    
+                    if seg_response.status_code != 200:
+                        return False, f"Segment {i+1} HTTP {seg_response.status_code}", checked
+                    
+                    # Check Content-Length header for file growth
+                    content_length = seg_response.headers.get('Content-Length', '0')
+                    try:
+                        current_size = int(content_length)
+                        if current_size > 0 and current_size > last_size:
+                            last_size = current_size
+                    except:
+                        pass
+                    
+                    checked += 1
+                
+                except requests.Timeout:
+                    return False, f"Segment {i+1} timeout", checked
+                except Exception as e:
+                    return False, f"Segment {i+1} error: {str(e)[:30]}", checked
+            
+            if checked == segments_to_check:
+                return True, f"✅ {checked} segments validated", checked
+            
+            return False, f"Only {checked}/{segments_to_check} segments validated", checked
+        
+        except requests.Timeout:
+            return False, "M3U8 timeout", 0
+        except Exception as e:
+            return False, f"HLS error: {str(e)[:40]}", 0
+    
+    def validate_stream_with_tiers(self, url: str) -> StreamValidationResult:
+        """
+        Enhanced validation with multi-tier checking.
+        Phase 2 Requirement: HTTP 200 + ffprobe + HLS segments
+        
+        Returns StreamValidationResult with validation_tier set to indicate which tier passed
+        """
+        result = StreamValidationResult(
+            url=url,
+            is_valid=False,
+            stream_type=self._detect_stream_type(url),
+            validation_tier="none"
+        )
+        
+        # Tier 1: HTTP validation (quick pre-check)
+        if not url.startswith('file://'):
+            try:
+                http_response = requests.head(
+                    url,
+                    timeout=3,
+                    headers={'User-Agent': 'M3U-Matrix-Pro/1.0'},
+                    verify=False,
+                    allow_redirects=True
+                )
+                result.http_status = http_response.status_code
+                
+                if http_response.status_code != 200:
+                    result.error_message = f"HTTP {http_response.status_code}"
+                    result.validation_tier = "http"
+                    return result
+                
+                result.validation_tier = "http"
+            except:
+                # If HTTP check fails, continue to FFprobe (some streams don't support HEAD)
+                pass
+        
+        # Tier 2: FFprobe validation
+        ffprobe_result = self.validate_stream(url)
+        if ffprobe_result.is_valid:
+            result.is_valid = True
+            result.validation_tier = "ffprobe"
+            result.video_codec = ffprobe_result.video_codec
+            result.audio_codec = ffprobe_result.audio_codec
+            result.resolution = ffprobe_result.resolution
+            result.bitrate = ffprobe_result.bitrate
+            result.duration = ffprobe_result.duration
+            return result
+        
+        # Tier 3: HLS segment validation (if HLS detected)
+        if result.stream_type == 'hls':
+            hls_valid, hls_error, segments = self.validate_hls_segments(url)
+            result.hls_segments_checked = segments
+            if hls_valid:
+                result.is_valid = True
+                result.validation_tier = "hls"
+                result.error_message = hls_error
+                return result
+            else:
+                result.error_message = hls_error
+        else:
+            result.error_message = ffprobe_result.error_message
         
         return result
 

@@ -46,7 +46,8 @@ from Core_Modules.utils.helpers import (
     create_progress_dialog, open_folder_in_explorer
 )
 from Core_Modules.gui.components import ButtonFactory, DialogFactory, ProgressManager, TreeviewManager
-from Core_Modules.ffprobe_validator import validate_m3u_quick
+from Core_Modules.ffprobe_validator import validate_m3u_quick, FFprobeValidator
+from Core_Modules.http_validator import HTTPValidator
 
 # Initialize generators as None - will be set in try/except
 NexusTVPageGenerator = None
@@ -592,35 +593,143 @@ Success Rate: {stats['success_rate']:.1f}%
         messagebox.showinfo("Validation Results", message)
 
     def validate_with_ffprobe(self):
-        """Real stream validation using FFprobe - quick random sample"""
+        """Phase 2: Multi-tier stream validation (HTTP + FFprobe + HLS)"""
         if not self.channels:
             messagebox.showwarning("No Channels", "No channels to validate")
             return
         
-        # Save current channels to temp M3U first
-        temp_m3u = Path(tempfile.gettempdir()) / "ffprobe_temp_validation.m3u"
-        try:
-            if self.m3u_parser.write_m3u(self.channels, str(temp_m3u)):
-                self.update_status("Running FFprobe validation (random sample)...")
+        self.update_status("🔄 Running Phase 2 validation (HTTP → FFprobe → HLS)...")
+        
+        # Run validation in thread
+        def validate_multi_tier():
+            try:
+                # Use enhanced multi-tier validator
+                validator = FFprobeValidator(timeout_seconds=10)
+                http_validator = HTTPValidator(timeout_seconds=5)
                 
-                # Run validation in thread
-                def validate_ffprobe():
-                    try:
-                        result = validate_m3u_quick(str(temp_m3u), timeout_seconds=10)
-                        self.root.after(0, lambda: self.show_ffprobe_results(result))
-                    except Exception as e:
-                        self.root.after(0, lambda: messagebox.showerror("Validation Error", str(e)))
+                # Validate random sample (5 streams)
+                sample_size = min(5, len(self.channels))
+                sample = random.sample(self.channels, sample_size)
                 
-                thread = threading.Thread(target=validate_ffprobe)
-                thread.daemon = True
-                thread.start()
-            else:
-                messagebox.showerror("Error", "Failed to prepare validation")
-        except Exception as e:
-            messagebox.showerror("Error", str(e))
+                results = {
+                    'total': len(self.channels),
+                    'sample_size': sample_size,
+                    'validations': [],
+                    'stats': {'http': 0, 'ffprobe': 0, 'hls': 0, 'failed': 0}
+                }
+                
+                for channel in sample:
+                    url = channel.get('url', '')
+                    
+                    # Use multi-tier validation
+                    validation = validator.validate_stream_with_tiers(url)
+                    
+                    # Add channel info for context
+                    validation_dict = {
+                        'channel_name': channel.get('name', 'Unknown'),
+                        'url': url,
+                        'is_valid': validation.is_valid,
+                        'validation_tier': validation.validation_tier,
+                        'stream_type': validation.stream_type,
+                        'http_status': validation.http_status,
+                        'video_codec': validation.video_codec,
+                        'audio_codec': validation.audio_codec,
+                        'resolution': validation.resolution,
+                        'error_message': validation.error_message,
+                        'hls_segments_checked': validation.hls_segments_checked
+                    }
+                    results['validations'].append(validation_dict)
+                    
+                    # Update stats
+                    if validation.is_valid:
+                        results['stats'][validation.validation_tier] += 1
+                    else:
+                        results['stats']['failed'] += 1
+                
+                self.root.after(0, lambda: self.show_phase2_results(results))
+            except Exception as e:
+                logger.error(f"Validation error: {e}")
+                self.root.after(0, lambda: messagebox.showerror("Validation Error", str(e)))
+        
+        thread = threading.Thread(target=validate_multi_tier)
+        thread.daemon = True
+        thread.start()
 
+    def show_phase2_results(self, results):
+        """Display Phase 2 multi-tier validation results with visual status"""
+        self.update_status("✅ Phase 2 validation complete")
+        
+        # Build comprehensive result message
+        stats = results['stats']
+        total_valid = stats['http'] + stats['ffprobe'] + stats['hls']
+        
+        message = f"""
+{'='*60}
+PHASE 2: MULTI-TIER STREAM VALIDATION RESULTS
+{'='*60}
+
+OVERALL STATISTICS
+  Total Channels: {results['total']}
+  Sample Size: {results['sample_size']} (random check)
+  ✅ Valid: {total_valid}/{results['sample_size']}
+  ❌ Failed: {stats['failed']}/{results['sample_size']}
+
+VALIDATION TIERS BREAKDOWN
+  🟢 HTTP Tier (reachable): {stats['http']} streams
+  🔵 FFprobe Tier (playable): {stats['ffprobe']} streams
+  🟠 HLS Tier (segments OK): {stats['hls']} streams
+
+{'='*60}
+DETAILED RESULTS:
+{'='*60}
+"""
+        
+        for i, val in enumerate(results['validations'], 1):
+            # Status indicator with color codes
+            if val['is_valid']:
+                if val['validation_tier'] == 'http':
+                    status_icon = "🟢"
+                elif val['validation_tier'] == 'ffprobe':
+                    status_icon = "🔵"
+                elif val['validation_tier'] == 'hls':
+                    status_icon = "🟠"
+                else:
+                    status_icon = "✅"
+            else:
+                status_icon = "❌"
+            
+            message += f"\n{i}. {status_icon} {val['channel_name']}\n"
+            message += f"   Type: {val['stream_type'].upper()}\n"
+            message += f"   Tier: {val['validation_tier'].upper() if val['is_valid'] else 'FAILED'}\n"
+            
+            if val['is_valid']:
+                if val['video_codec']:
+                    message += f"   Video: {val['video_codec']}"
+                    if val['resolution']:
+                        message += f" ({val['resolution']})"
+                    message += "\n"
+                if val['audio_codec']:
+                    message += f"   Audio: {val['audio_codec']}\n"
+                if val['hls_segments_checked'] > 0:
+                    message += f"   HLS Segments: {val['hls_segments_checked']} verified\n"
+            else:
+                message += f"   ⚠️ Error: {val['error_message']}\n"
+                if val['http_status']:
+                    message += f"   HTTP Status: {val['http_status']}\n"
+            
+            message += f"   URL: {val['url'][:55]}...\n"
+        
+        message += f"\n{'='*60}\n"
+        message += f"INTERPRETATION:\n"
+        message += f"  🟢 GREEN: Stream passes HTTP check (reachable)\n"
+        message += f"  🔵 BLUE: Stream passes FFprobe (metadata readable)\n"
+        message += f"  🟠 ORANGE: Stream passes HLS segment check\n"
+        message += f"  ❌ RED: Stream failed validation (unreachable/broken)\n"
+        
+        messagebox.showinfo("Phase 2: Multi-Tier Validation Results", message)
+    
     def show_ffprobe_results(self, result):
-        """Display FFprobe validation results"""
+        """Display FFprobe validation results (legacy)"""
         self.update_status("FFprobe validation complete")
         
         # Build result message
