@@ -4,449 +4,515 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>M3U MATRIX - Professional IPTV Platform</title>
+    <title>ScheduleFlow - Modern Playout Scheduler</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-            background: linear-gradient(135deg, #0a0a0f 0%, #1a0a2e 50%, #0a0a0f 100%);
-            color: #fff;
-            min-height: 100vh;
+            background: #f8f9fa;
+            color: #1a1a1a;
+            line-height: 1.6;
         }
         
         nav {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px 40px;
-            background: rgba(0, 0, 0, 0.8);
-            border-bottom: 3px solid #00f3ff;
+            padding: 16px 40px;
+            background: #fff;
+            border-bottom: 1px solid #e5e7eb;
             position: sticky;
             top: 0;
             z-index: 100;
         }
         
-        .nav-left {
-            font-size: 1.4em;
-            font-weight: 900;
-            color: #00f3ff;
-            text-decoration: none;
+        .logo {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #1f2937;
         }
         
         .nav-right {
             display: flex;
-            gap: 15px;
+            gap: 25px;
+            align-items: center;
         }
         
         .nav-right a {
-            color: #00f3ff;
+            color: #374151;
             text-decoration: none;
-            padding: 10px 20px;
-            border: 2px solid #00f3ff;
-            border-radius: 5px;
-            font-weight: 700;
-            transition: all 0.3s;
             font-size: 0.95em;
+            transition: color 0.3s;
         }
         
         .nav-right a:hover {
-            background: #00f3ff;
-            color: #000;
-            box-shadow: 0 0 20px rgba(0, 243, 255, 0.8);
+            color: #1f2937;
         }
         
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 40px 30px;
+        .nav-right .cta {
+            background: #2563eb;
+            color: #fff;
+            padding: 8px 20px;
+            border-radius: 6px;
+            transition: background 0.3s;
+        }
+        
+        .nav-right .cta:hover {
+            background: #1d4ed8;
         }
         
         .hero {
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            padding: 80px 40px;
             text-align: center;
-            padding: 50px 40px;
-            background: linear-gradient(135deg, rgba(0, 243, 255, 0.1), rgba(255, 0, 255, 0.1));
-            border: 2px solid #00f3ff;
-            border-radius: 15px;
-            margin-bottom: 60px;
         }
         
         .hero h1 {
-            font-size: 3em;
-            background: linear-gradient(90deg, #00f3ff, #ff00ff, #00f3ff);
-            background-size: 200% auto;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 15px;
+            font-size: 2.8em;
             font-weight: 900;
+            color: #1f2937;
+            margin-bottom: 20px;
+            line-height: 1.2;
         }
         
         .hero p {
             font-size: 1.2em;
-            color: #00f3ff;
-            margin-bottom: 10px;
+            color: #6b7280;
+            margin-bottom: 40px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
         }
         
-        .hero .tagline {
-            color: #aaa;
-            font-size: 1em;
+        .hero-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
         }
         
-        .section-title {
-            font-size: 1.8em;
-            color: #00f3ff;
-            margin: 50px 0 30px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            border-bottom: 3px solid #ff00ff;
-            padding-bottom: 15px;
-            text-align: center;
-        }
-        
-        .players-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 25px;
-            margin-bottom: 60px;
-        }
-        
-        .player-card {
-            background: rgba(0, 0, 0, 0.6);
-            border: 2px solid #00f3ff;
-            border-radius: 12px;
-            padding: 25px;
-            text-align: center;
-            transition: all 0.3s;
-        }
-        
-        .player-card:hover {
-            transform: translateY(-8px);
-            border-color: #ff00ff;
-            box-shadow: 0 10px 40px rgba(0, 243, 255, 0.4);
-        }
-        
-        .player-icon {
-            font-size: 3em;
-            margin-bottom: 15px;
-        }
-        
-        .player-name {
-            font-size: 1.4em;
-            font-weight: 700;
-            color: #fff;
-            margin-bottom: 10px;
-        }
-        
-        .player-desc {
-            color: #aaa;
-            font-size: 0.95em;
-            line-height: 1.6;
-            margin-bottom: 20px;
-        }
-        
-        .launch-btn {
-            display: inline-block;
-            background: linear-gradient(90deg, #00f3ff, #ff00ff);
-            color: #000;
-            padding: 12px 30px;
-            border-radius: 25px;
+        .btn {
+            padding: 12px 32px;
+            border-radius: 6px;
             text-decoration: none;
-            font-weight: 700;
+            font-weight: 600;
             transition: all 0.3s;
             border: none;
             cursor: pointer;
-            font-size: 0.95em;
+            font-size: 1em;
         }
         
-        .launch-btn:hover {
-            transform: scale(1.08);
-            box-shadow: 0 0 25px rgba(0, 243, 255, 0.8);
+        .btn-primary {
+            background: #2563eb;
+            color: #fff;
         }
         
-        .samples-section {
-            background: rgba(0, 0, 0, 0.5);
-            border: 2px solid #00f3ff;
-            border-radius: 12px;
-            padding: 30px;
-            margin-bottom: 60px;
+        .btn-primary:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
         }
         
-        .channels-grid {
+        .btn-secondary {
+            background: #fff;
+            color: #2563eb;
+            border: 2px solid #2563eb;
+        }
+        
+        .btn-secondary:hover {
+            background: #f0f9ff;
+            transform: translateY(-2px);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 40px;
+        }
+        
+        .section {
+            padding: 80px 0;
+        }
+        
+        .section h2 {
+            font-size: 2.2em;
+            font-weight: 900;
+            color: #1f2937;
+            margin-bottom: 50px;
+            text-align: center;
+        }
+        
+        .features-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
         }
         
-        .channel-card {
-            background: rgba(0, 243, 255, 0.05);
-            border: 1px solid #00f3ff;
-            border-radius: 8px;
-            padding: 20px;
+        .feature {
+            padding: 30px;
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
             text-align: center;
             transition: all 0.3s;
         }
         
-        .channel-card:hover {
-            background: rgba(0, 243, 255, 0.15);
-            transform: scale(1.05);
+        .feature:hover {
+            border-color: #2563eb;
+            box-shadow: 0 10px 30px rgba(37, 99, 235, 0.1);
+            transform: translateY(-5px);
         }
         
-        .channel-num {
-            font-size: 2em;
-            font-weight: 900;
-            color: #ff00ff;
-            margin-bottom: 8px;
+        .feature-icon {
+            font-size: 3em;
+            margin-bottom: 20px;
         }
         
-        .channel-name {
-            color: #00f3ff;
-            font-weight: 700;
-            font-size: 0.9em;
-            margin-bottom: 5px;
+        .feature h3 {
+            font-size: 1.3em;
+            color: #1f2937;
+            margin-bottom: 12px;
         }
         
-        .channel-type {
-            color: #888;
-            font-size: 0.75em;
-            text-transform: uppercase;
+        .feature p {
+            color: #6b7280;
+            font-size: 0.95em;
         }
         
-        .stats-grid {
+        .stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 20px;
-            margin-top: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            margin: 60px 0;
         }
         
         .stat-box {
-            background: rgba(0, 243, 255, 0.05);
-            border: 1px solid #00f3ff;
-            border-radius: 8px;
-            padding: 20px;
             text-align: center;
         }
         
         .stat-number {
             font-size: 2.5em;
-            color: #00f3ff;
             font-weight: 900;
-            margin-bottom: 8px;
+            color: #2563eb;
+            margin-bottom: 10px;
         }
         
         .stat-label {
-            color: #aaa;
-            font-size: 0.85em;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            color: #6b7280;
+            font-weight: 600;
+        }
+        
+        .use-cases {
+            background: #f9fafb;
+            padding: 40px;
+            border-radius: 12px;
+            margin-bottom: 60px;
+        }
+        
+        .use-cases h3 {
+            color: #1f2937;
+            margin-bottom: 25px;
+            font-size: 1.3em;
+        }
+        
+        .use-case-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .use-case-item {
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            border-left: 4px solid #2563eb;
+        }
+        
+        .use-case-item strong {
+            color: #1f2937;
+            display: block;
+            margin-bottom: 8px;
+        }
+        
+        .use-case-item span {
+            color: #6b7280;
+            font-size: 0.9em;
+        }
+        
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+        
+        .pricing-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 40px 30px;
+            background: #fff;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .pricing-card.featured {
+            border-color: #2563eb;
+            box-shadow: 0 10px 30px rgba(37, 99, 235, 0.15);
+            transform: scale(1.05);
+        }
+        
+        .pricing-card h3 {
+            font-size: 1.5em;
+            color: #1f2937;
+            margin-bottom: 15px;
+        }
+        
+        .price {
+            font-size: 2.5em;
+            font-weight: 900;
+            color: #2563eb;
+            margin: 20px 0;
+        }
+        
+        .price-desc {
+            color: #6b7280;
+            font-size: 0.9em;
+            margin-bottom: 30px;
+        }
+        
+        .pricing-features {
+            text-align: left;
+            margin-bottom: 30px;
+        }
+        
+        .pricing-features li {
+            list-style: none;
+            padding: 10px 0;
+            color: #6b7280;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .pricing-features li:before {
+            content: "✓ ";
+            color: #10b981;
+            font-weight: bold;
+            margin-right: 10px;
         }
         
         .cta-section {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: #fff;
+            padding: 80px 40px;
             text-align: center;
-            padding: 40px;
-            background: rgba(0, 0, 0, 0.6);
-            border: 2px solid #ff00ff;
             border-radius: 12px;
-            margin-bottom: 40px;
+            margin: 80px 0;
         }
         
         .cta-section h2 {
-            color: #ff00ff;
-            font-size: 1.8em;
-            margin-bottom: 20px;
+            color: #fff;
+            margin-bottom: 30px;
         }
         
-        .cta-btn {
-            display: inline-block;
-            background: linear-gradient(90deg, #ff00ff, #00f3ff);
-            color: #000;
-            padding: 15px 40px;
-            border-radius: 30px;
-            text-decoration: none;
-            font-weight: 700;
+        .cta-section p {
             font-size: 1.1em;
-            transition: all 0.3s;
-            border: none;
-            cursor: pointer;
-            margin: 0 15px;
+            margin-bottom: 40px;
+            color: #e0e7ff;
         }
         
-        .cta-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 30px rgba(255, 0, 255, 0.8);
+        .cta-section .btn {
+            background: #fff;
+            color: #2563eb;
+        }
+        
+        .cta-section .btn:hover {
+            background: #f0f9ff;
+        }
+        
+        footer {
+            background: #1f2937;
+            color: #d1d5db;
+            padding: 40px;
+            text-align: center;
+            font-size: 0.9em;
         }
         
         @media (max-width: 768px) {
             .hero h1 { font-size: 2em; }
-            .nav-right { flex-direction: column; gap: 8px; }
-            nav { flex-direction: column; gap: 15px; }
-            .players-grid { grid-template-columns: 1fr; }
-            .channels-grid { grid-template-columns: repeat(2, 1fr); }
+            .hero p { font-size: 1em; }
+            nav { flex-direction: column; gap: 20px; }
+            .pricing-card.featured { transform: scale(1); }
         }
     </style>
 </head>
 <body>
     <nav>
-        <a href="landing.html" class="nav-left">🎬 M3U MATRIX</a>
+        <div class="logo">ScheduleFlow</div>
         <div class="nav-right">
-            <a href="landing.html">Home</a>
-            <a href="interactive_hub.html">🎛️ Control Hub</a>
-            <a href="../Applications/M3U_MATRIX_PRO.py" download>📋 Download PRO</a>
+            <a href="#features">Features</a>
+            <a href="#pricing">Pricing</a>
+            <a href="interactive_hub.html" class="cta">Dashboard</a>
         </div>
     </nav>
     
+    <div class="hero">
+        <div class="container">
+            <h1>Run your 24/7 TV channel without losing your mind.</h1>
+            <p>Modern playout scheduler for campus TV, hotels, YouTube live streams, and local stations. Drag-and-drop scheduling, auto-fillers, and professional export—all in one tool.</p>
+            <div class="hero-buttons">
+                <a href="interactive_hub.html" class="btn btn-primary">Start Scheduling →</a>
+                <a href="#" class="btn btn-secondary">View Demo</a>
+            </div>
+        </div>
+    </div>
+    
     <div class="container">
-        <div class="hero">
-            <h1>M3U MATRIX</h1>
-            <p>Professional IPTV Streaming Platform</p>
-            <p class="tagline">Complete solution for managing and streaming your content 24/7</p>
-        </div>
-        
-        <div class="section-title">🎮 8 Specialized Players Ready to Use</div>
-        
-        <div class="players-grid">
-            <div class="player-card">
-                <div class="player-icon">🎬</div>
-                <div class="player-name">Simple Player</div>
-                <div class="player-desc">Clean HTML5 player with HLS/DASH support. Sequential and shuffle playback modes.</div>
-                <a href="simple_player/index.html" class="launch-btn">▶ Launch</a>
-            </div>
-            
-            <div class="player-card">
-                <div class="player-icon">🎯</div>
-                <div class="player-name">Multi-Channel</div>
-                <div class="player-desc">Watch up to 6 videos at once. Smart audio management and focus mode included.</div>
-                <a href="multi_channel/index.html" class="launch-btn">▶ Launch</a>
-            </div>
-            
-            <div class="player-card">
-                <div class="player-icon">🔴</div>
-                <div class="player-name">Infowars Extravaganza</div>
-                <div class="player-desc">Advanced RSS player with skip controls, clipping, screenshots, and multi-screen viewing.</div>
-                <a href="infowars_extravaganza_daily.html" class="launch-btn">▶ Launch</a>
-            </div>
-            
-            <div class="player-card">
-                <div class="player-icon">🎭</div>
-                <div class="player-name">NEXUS TV</div>
-                <div class="player-desc">24-hour auto-scheduled streaming with cyberpunk UI, favorites, and offline support.</div>
-                <a href="nexus_tv/index.html" class="launch-btn">▶ Launch</a>
-            </div>
-            
-            <div class="player-card">
-                <div class="player-icon">📺</div>
-                <div class="player-name">Buffer TV</div>
-                <div class="player-desc">Advanced TV player with buffering controls, numeric keypad, and TV Guide overlay.</div>
-                <a href="buffer_tv/index.html" class="launch-btn">▶ Launch</a>
-            </div>
-            
-            <div class="player-card">
-                <div class="player-icon">▶️</div>
-                <div class="player-name">Web IPTV</div>
-                <div class="player-desc">Sequential channel playback with group organization and mobile optimization.</div>
-                <a href="web_iptv/index.html" class="launch-btn">▶ Launch</a>
-            </div>
-            
-            <div class="player-card">
-                <div class="player-icon">🟣</div>
-                <div class="player-name">Rumble Channel</div>
-                <div class="player-desc">Dedicated Rumble video player with automatic URL detection and secure embedding.</div>
-                <a href="rumble_channel/index.html" class="launch-btn">▶ Launch</a>
-            </div>
-            
-            <div class="player-card">
-                <div class="player-icon">🎛️</div>
-                <div class="player-name">Control Hub</div>
-                <div class="player-desc">Central dashboard for managing all players, scheduling content, and deployment.</div>
-                <a href="interactive_hub.html" class="launch-btn">▶ Launch</a>
-            </div>
-        </div>
-        
-        <div class="samples-section">
-            <h3 style="color: #00f3ff; margin-bottom: 10px;">📺 10 Sample Channels - Ready to Use</h3>
-            <p style="color: #aaa; margin-bottom: 20px;">Free demo channels to test any template. Works with all player types.</p>
-            
-            <div class="channels-grid">
-                <div class="channel-card">
-                    <div class="channel-num">1</div>
-                    <div class="channel-name">Big Buck Bunny</div>
-                    <div class="channel-type">Movies</div>
+        <div class="section">
+            <h2 id="features">Built for Modern Broadcasting</h2>
+            <div class="features-grid">
+                <div class="feature">
+                    <div class="feature-icon">📅</div>
+                    <h3>1-Minute Precision Grid</h3>
+                    <p>Schedule down to the second. Zoom in/out for hourly planning or day views. No more guessing.</p>
                 </div>
-                <div class="channel-card">
-                    <div class="channel-num">2</div>
-                    <div class="channel-name">Sintel</div>
-                    <div class="channel-type">Movies</div>
+                <div class="feature">
+                    <div class="feature-icon">🎯</div>
+                    <h3>Smart Drag-and-Drop</h3>
+                    <p>Reorder, duplicate, copy/paste entire weeks. Weekly recurring events built in.</p>
                 </div>
-                <div class="channel-card">
-                    <div class="channel-num">3</div>
-                    <div class="channel-name">Elephant Dream</div>
-                    <div class="channel-type">Entertainment</div>
+                <div class="feature">
+                    <div class="feature-icon">🔄</div>
+                    <h3>Auto-Filler System</h3>
+                    <p>Run out of content? Automatically insert promos, weather, bumpers, or music to fill gaps.</p>
                 </div>
-                <div class="channel-card">
-                    <div class="channel-num">4</div>
-                    <div class="channel-name">For Bigger Blazes</div>
-                    <div class="channel-type">Entertainment</div>
+                <div class="feature">
+                    <div class="feature-icon">📊</div>
+                    <h3>Category Balancing</h3>
+                    <p>Set rules: max 3 music videos in a row, never repeat within 4 hours, etc.</p>
                 </div>
-                <div class="channel-card">
-                    <div class="channel-num">5</div>
-                    <div class="channel-name">For Bigger Escape</div>
-                    <div class="channel-type">Documentary</div>
+                <div class="feature">
+                    <div class="feature-icon">🚀</div>
+                    <h3>Professional Export</h3>
+                    <p>Send schedules to CasparCG, OBS, vMix, FFmpeg, Blackmagic HyperDeck, JustPlayout, and more.</p>
                 </div>
-                <div class="channel-card">
-                    <div class="channel-num">6</div>
-                    <div class="channel-name">For Bigger Fun</div>
-                    <div class="channel-type">Music</div>
-                </div>
-                <div class="channel-card">
-                    <div class="channel-num">7</div>
-                    <div class="channel-name">For Bigger Joyrides</div>
-                    <div class="channel-type">Entertainment</div>
-                </div>
-                <div class="channel-card">
-                    <div class="channel-num">8</div>
-                    <div class="channel-name">For Bigger Meltdowns</div>
-                    <div class="channel-type">Documentary</div>
-                </div>
-                <div class="channel-card">
-                    <div class="channel-num">9</div>
-                    <div class="channel-name">Subaru Outback</div>
-                    <div class="channel-type">Entertainment</div>
-                </div>
-                <div class="channel-card">
-                    <div class="channel-num">10</div>
-                    <div class="channel-name">Tears of Steel</div>
-                    <div class="channel-type">Movies</div>
+                <div class="feature">
+                    <div class="feature-icon">🌐</div>
+                    <h3>REST API + Web Control</h3>
+                    <p>Control your playout remotely. Built-in webhooks for third-party integrations.</p>
                 </div>
             </div>
         </div>
         
-        <div class="section-title">📊 Platform Overview</div>
+        <div class="use-cases">
+            <h3>💼 Used by:</h3>
+            <div class="use-case-list">
+                <div class="use-case-item">
+                    <strong>Campus TV Stations</strong>
+                    <span>Schedule student-produced content 24/7</span>
+                </div>
+                <div class="use-case-item">
+                    <strong>Hotel & Hospitality</strong>
+                    <span>Lobby screens, in-room entertainment channels</span>
+                </div>
+                <div class="use-case-item">
+                    <strong>YouTube Live Channels</strong>
+                    <span>Schedule streaming content without manual intervention</span>
+                </div>
+                <div class="use-case-item">
+                    <strong>Local TV Stations</strong>
+                    <span>Professional playout with minimal staff</span>
+                </div>
+                <div class="use-case-item">
+                    <strong>Internet Radio</strong>
+                    <span>Music rotation with category balancing rules</span>
+                </div>
+                <div class="use-case-item">
+                    <strong>Event Streaming</strong>
+                    <span>Multi-day festivals with scheduled content blocks</span>
+                </div>
+            </div>
+        </div>
         
-        <div class="stats-grid">
+        <div class="stats">
             <div class="stat-box">
-                <div class="stat-number">8</div>
-                <div class="stat-label">Player Types</div>
+                <div class="stat-number">24/7</div>
+                <div class="stat-label">Unattended Playout</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">1-Min</div>
+                <div class="stat-label">Precision</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">6+</div>
+                <div class="stat-label">Export Formats</div>
             </div>
             <div class="stat-box">
                 <div class="stat-number">∞</div>
-                <div class="stat-label">Playlists</div>
+                <div class="stat-label">Schedulable Content</div>
             </div>
-            <div class="stat-box">
-                <div class="stat-number">24/7</div>
-                <div class="stat-label">Streaming</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-number">4K</div>
-                <div class="stat-label">Video Support</div>
-            </div>
-        </div>
-        
-        <div class="cta-section">
-            <h2>Ready to Get Started?</h2>
-            <a href="interactive_hub.html" class="cta-btn">🎛️ Go to Control Hub</a>
-            <a href="../Applications/M3U_MATRIX_PRO.py" download class="cta-btn">📋 Download M3U MATRIX PRO</a>
         </div>
     </div>
+    
+    <div class="cta-section">
+        <div class="container">
+            <h2>Schedule your first week in 30 seconds.</h2>
+            <p>No credit card required. Free tier includes everything you need to get started.</p>
+            <a href="interactive_hub.html" class="btn btn-primary">Launch Dashboard</a>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="section">
+            <h2 id="pricing">Simple, Transparent Pricing</h2>
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3>Free</h3>
+                    <div class="price">$0</div>
+                    <div class="price-desc">Forever free for single channel</div>
+                    <ul class="pricing-features">
+                        <li>1 channel</li>
+                        <li>30-day schedule history</li>
+                        <li>Local export only</li>
+                        <li>Community support</li>
+                    </ul>
+                    <a href="interactive_hub.html" class="btn btn-secondary">Get Started</a>
+                </div>
+                
+                <div class="pricing-card featured">
+                    <h3>Pro</h3>
+                    <div class="price">$49<span style="font-size: 0.4em; color: #6b7280;">/mo</span></div>
+                    <div class="price-desc">For broadcasters & streamers</div>
+                    <ul class="pricing-features">
+                        <li>Up to 5 channels</li>
+                        <li>Unlimited schedule history</li>
+                        <li>Professional export (CasparCG, OBS, vMix)</li>
+                        <li>REST API access</li>
+                        <li>Priority email support</li>
+                    </ul>
+                    <a href="interactive_hub.html" class="btn btn-primary">Try Pro</a>
+                </div>
+                
+                <div class="pricing-card">
+                    <h3>Enterprise</h3>
+                    <div class="price">Custom</div>
+                    <div class="price-desc">Multi-channel, dedicated support</div>
+                    <ul class="pricing-features">
+                        <li>Unlimited channels</li>
+                        <li>Advanced permissions</li>
+                        <li>Custom integrations</li>
+                        <li>On-premise deployment</li>
+                        <li>24/7 support</li>
+                    </ul>
+                    <a href="#" class="btn btn-secondary">Contact Sales</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 ScheduleFlow. Built for modern broadcasting.</p>
+        </div>
+    </footer>
 </body>
 </html>

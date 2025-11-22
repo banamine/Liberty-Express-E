@@ -1,7 +1,7 @@
-# M3U MATRIX ALL-IN-ONE - IPTV Management & Streaming Platform
+# ScheduleFlow - Modern Playout Scheduler for 24/7 Broadcasting
 
 ## Overview
-This project delivers a comprehensive IPTV solution, combining a Python desktop application for M3U playlist management (M3U MATRIX PRO) with various web-based streaming TV players. The platform aims to provide robust tools for organizing and playing streaming content, ensuring a seamless and engaging content consumption experience. Key capabilities include professional M3U playlist management, 24-hour scheduled streaming (NEXUS TV), sequential channel playback (Web IPTV), multi-channel viewing (Multi-Channel Viewer), dedicated Rumble video playback, and advanced TV playback with buffering controls (Buffer TV). It also features a standalone Video Player Pro with advanced scheduling and a Professional NDI (Network Device Interface) output for broadcast-grade video-over-IP streaming.
+**ScheduleFlow** is a professional-grade, modern playout scheduler built for campus TV stations, hotels, YouTube live channels, and local broadcasters. Purpose-built to eliminate the complexity of traditional broadcast scheduling while maintaining professional features. Core functionality includes intelligent drag-and-drop scheduling (1-minute precision), auto-filler system (for gap management), category balancing (content rotation rules), multi-week planning with recurring events, and professional export to industry-standard playout engines (CasparCG, OBS, vMix, FFmpeg, Blackmagic HyperDeck, JustPlayout). The system includes a REST API for remote control, web-based dashboard, and is designed for unattended 24/7 operation.
 
 ## User Preferences
 - **Communication Style:** Please use clear, simple language and avoid overly technical jargon where possible.
@@ -12,21 +12,19 @@ This project delivers a comprehensive IPTV solution, combining a Python desktop 
     - Do not make changes to the `M3U_MATRIX_README.md` file.
     - Ensure all changes are well-documented within the code.
 
-## Phase 2 Completion Status (Nov 22, 2025)
+## Phase 2 Completion → Phase 3 Rebrand (Nov 22, 2025)
 
-### ✅ ALL SYSTEMS OPERATIONAL - 100% TYPE SAFE
-- **LSP Diagnostics**: Fixed 26 → **0 errors** (100% type-safe)
-  - M3U_MATRIX_PRO.py: 12 errors fixed (UndoManager methods, dialogbox types, reattach)
-  - Core modules: All 14 remaining errors fixed (tv_schedule_db, auto_scheduler, web_epg_server)
-- **Component Integration**: 5/5 core modules wired + 3/3 applications fully connected
-- **Database**: 4 SQLite tables with 20 methods (channels, shows, schedules, time_slots)
-- **Auto-Scheduling**: 5 features operational (folder/M3U import, 24/7 auto-build, shuffle/loop, JSON export)
-- **Web EPG Server**: 3 HTTP endpoints live (/now.json, /schedules, /epg)
-- **Web Players**: 11 templates + Control Hub with 16+ buttons
-- **Professional Landing Page** (NEW - Nov 22): 
-  - Live at `/generated_pages/` with hero section, 8 specialized player cards, sample channels grid, platform stats
-  - Fully wired navigation: Landing Page ↔ Control Hub ↔ Download PRO
-  - All player launch buttons connected and functional
+### ✅ REBRAND TO SCHEDULEFLOW - PROFESSIONAL POSITIONING
+- **Name Change**: M3U MATRIX → **ScheduleFlow** (professional playout scheduler)
+- **New Positioning**: "Run your 24/7 TV channel without losing your mind"
+- **Target Market**: Campus TV, hotels, YouTube live, local stations (realistic, honest positioning)
+- **Professional Landing Page** (Nov 22): 
+  - Clean, modern design (light theme, professional blue accent)
+  - Hero: Simple, honest value proposition
+  - 6 core features (1-min grid, drag-drop, auto-filler, category balancing, export, REST API)
+  - Use cases: Campus TV, hospitality, YouTube Live, local stations, radio, events
+  - 3-tier pricing (Free → Pro $49/mo → Enterprise)
+  - Clear, professional tone (removed "M3U MATRIX" branding entirely)
 - **Production Status**: Ready for Phase 3 (Jan 6 deadline)
 
 ## System Architecture
