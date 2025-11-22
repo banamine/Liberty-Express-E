@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src * data: blob:; media-src *; connect-src *;">
-    <title>M3U Matrix - IPTV Streaming Platform</title>
+    <title>M3U Matrix - Professional IPTV Platform</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -116,26 +115,10 @@
             flex-direction: column;
         }
         
-        .player-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(0, 243, 255, 0.1), transparent);
-            transform: rotate(45deg);
-            transition: all 0.5s;
-        }
-        
         .player-card:hover {
             transform: translateY(-8px);
             border-color: #ff00ff;
             box-shadow: 0 0 40px rgba(255, 0, 255, 0.4);
-        }
-        
-        .player-card:hover::before {
-            left: 100%;
         }
         
         .player-icon {
@@ -175,6 +158,117 @@
         .launch-btn:hover {
             transform: scale(1.05);
             box-shadow: 0 0 25px rgba(0, 243, 255, 0.8);
+        }
+        
+        .demo-btn {
+            display: inline-block;
+            background: rgba(0, 243, 255, 0.2);
+            color: #00f3ff;
+            padding: 8px 20px;
+            border-radius: 15px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: 1px solid #00f3ff;
+            cursor: pointer;
+            font-size: 0.85em;
+            margin-top: 10px;
+        }
+        
+        .demo-btn:hover {
+            background: rgba(0, 243, 255, 0.4);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.6);
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: rgba(10, 10, 15, 0.95);
+            border: 2px solid #00f3ff;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 900px;
+            max-height: 85vh;
+            overflow-y: auto;
+            width: 95%;
+            box-shadow: 0 0 60px rgba(0, 243, 255, 0.3);
+        }
+        
+        .close-btn {
+            color: #00f3ff;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            background: none;
+            border: none;
+            transition: all 0.3s;
+        }
+        
+        .close-btn:hover {
+            color: #ff00ff;
+            transform: scale(1.2);
+        }
+        
+        .modal-title {
+            color: #00f3ff;
+            font-size: 1.8em;
+            margin: 20px 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .player-preview {
+            width: 100%;
+            height: 400px;
+            background: #000;
+            border: 2px solid #00f3ff;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .playlist-demo {
+            background: rgba(0, 243, 255, 0.05);
+            border: 1px solid #00f3ff;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+        
+        .playlist-item {
+            padding: 10px;
+            border-bottom: 1px solid #00f3ff;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9em;
+        }
+        
+        .playlist-item:hover {
+            background: rgba(0, 243, 255, 0.1);
+            padding-left: 20px;
+        }
+        
+        .playlist-item:last-child {
+            border-bottom: none;
         }
         
         .stats {
@@ -224,25 +318,12 @@
         }
         
         @media (max-width: 768px) {
-            h1 {
-                font-size: 2.2em;
-            }
-            
-            .section-title {
-                font-size: 1.6em;
-            }
-            
-            .players-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            header {
-                padding: 30px 20px;
-            }
-            
-            .subtitle {
-                font-size: 1em;
-            }
+            h1 { font-size: 2.2em; }
+            .section-title { font-size: 1.6em; }
+            .players-grid { grid-template-columns: 1fr; }
+            header { padding: 30px 20px; }
+            .modal-content { width: 95%; padding: 20px; }
+            .player-preview { height: 300px; }
         }
     </style>
 </head>
@@ -252,94 +333,183 @@
     <div class="container">
         <header>
             <h1>🎬 M3U MATRIX</h1>
-            <p class="subtitle">IPTV Streaming Platform</p>
-            <p class="tagline">Unified Entertainment Across All Devices • 24/7 Streaming Solutions</p>
+            <p class="subtitle">Professional IPTV Streaming Platform</p>
+            <p class="tagline">Unified Entertainment Across All Devices • Real-Time Video Streaming with Advanced Controls</p>
         </header>
         
-        <div class="section-title">🎮 Available Players</div>
+        <div class="section-title">🎮 Interactive Player Gallery</div>
         
         <div class="players-grid" id="playersGrid">
-            <!-- Players will be dynamically inserted here -->
+            <!-- Players will be inserted here -->
         </div>
         
         <div class="stats">
-            <h3>📊 Platform Statistics</h3>
+            <h3>📊 Platform Overview</h3>
             <div class="stats-grid">
                 <div class="stat-item">
-                    <div class="stat-number" id="playerCount">0</div>
-                    <div class="stat-label">Active Players</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">24/7</div>
-                    <div class="stat-label">Streaming</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">RSS</div>
-                    <div class="stat-label">Feed Support</div>
+                    <div class="stat-number">8</div>
+                    <div class="stat-label">Specialized Players</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-number">∞</div>
-                    <div class="stat-label">Channels</div>
+                    <div class="stat-label">Playlist Support</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">Streaming Ready</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">4K</div>
+                    <div class="stat-label">Video Support</div>
                 </div>
             </div>
-            <p style="margin-top: 30px; color: #aaa; font-size: 0.9em;">Powered by M3U Matrix All-In-One Platform</p>
+            <p style="margin-top: 30px; color: #aaa; font-size: 0.9em;">M3U Matrix All-In-One IPTV Platform • Real working examples with sample content</p>
+        </div>
+    </div>
+    
+    <!-- Modals -->
+    <div class="modal" id="simpleModal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal('simpleModal')">&times;</button>
+            <div class="modal-title">🎬 Simple Player - Live Demo</div>
+            <div class="player-preview">
+                <video width="100%" height="100%" controls style="background: #000;">
+                    <source src="https://archive.org/download/ancientalienscollection/S01E01%20-%20The%20Evidence.mkv" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+            <h3 style="color: #00f3ff; margin-top: 20px;">📽️ Currently Playing</h3>
+            <div class="playlist-demo">
+                <div class="playlist-item">▶ Ancient Aliens S01E01 - The Evidence (Now Playing)</div>
+                <div class="playlist-item">Ancient Aliens S01E02 - The Visitors</div>
+                <div class="playlist-item">Ancient Aliens S01E03 - The Mission</div>
+                <div class="playlist-item">Ancient Aliens S01E04 - Closer Encounters</div>
+                <div class="playlist-item">Ancient Aliens S01E05 - The Return</div>
+                <div class="playlist-item">+ 619 more episodes...</div>
+            </div>
+            <p style="margin-top: 20px; color: #aaa;">Real content from your playlist | HLS/DASH support | Sequential and shuffle playback</p>
+        </div>
+    </div>
+    
+    <div class="modal" id="multiModal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal('multiModal')">&times;</button>
+            <div class="modal-title">🎯 Multi-Channel Viewer - 2x2 Grid Demo</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0;">
+                <div style="border: 1px solid #00f3ff; border-radius: 8px; overflow: hidden;">
+                    <video width="100%" height="200" controls style="background: #000;">
+                        <source src="https://archive.org/download/the-looney-tunes-show_202405/The%20Looney%20Tunes%20Show_S01E01_Best%20Friends.mp4" type="video/mp4">
+                    </video>
+                    <div style="padding: 10px; background: rgba(0,0,0,0.5); font-size: 0.85em;">Looney Tunes S01E01</div>
+                </div>
+                <div style="border: 1px solid #00f3ff; border-radius: 8px; overflow: hidden;">
+                    <video width="100%" height="200" controls style="background: #000;">
+                        <source src="https://archive.org/download/the-looney-tunes-show_202405/The%20Looney%20Tunes%20Show_S01E02_Members%20Only.mp4" type="video/mp4">
+                    </video>
+                    <div style="padding: 10px; background: rgba(0,0,0,0.5); font-size: 0.85em;">Looney Tunes S01E02</div>
+                </div>
+                <div style="border: 1px solid #00f3ff; border-radius: 8px; overflow: hidden;">
+                    <video width="100%" height="200" controls style="background: #000;">
+                        <source src="https://archive.org/download/Petticoat_Junction_Series/Petticoat%20Junction%20-%20Season%205/Petticoat%20Junction%20-%205x01%20-%20Is%20This%20My%20Daughter.mp4" type="video/mp4">
+                    </video>
+                    <div style="padding: 10px; background: rgba(0,0,0,0.5); font-size: 0.85em;">Petticoat Junction S05E01</div>
+                </div>
+                <div style="border: 1px solid #00f3ff; border-radius: 8px; overflow: hidden;">
+                    <video width="100%" height="200" controls style="background: #000;">
+                        <source src="https://archive.org/download/Petticoat_Junction_Series/Petticoat%20Junction%20-%20Season%205/Petticoat%20Junction%20-%205x02%20-%20It's%20Not%20Easy%20to%20Be%20a%20Mother.mp4" type="video/mp4">
+                    </video>
+                    <div style="padding: 10px; background: rgba(0,0,0,0.5); font-size: 0.85em;">Petticoat Junction S05E02</div>
+                </div>
+            </div>
+            <p style="margin-top: 20px; color: #aaa;">Watch up to 6 videos simultaneously • Smart audio management • Focus mode available</p>
+        </div>
+    </div>
+    
+    <div class="modal" id="infowarsModal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal('infowarsModal')">&times;</button>
+            <div class="modal-title">🔴 Infowars Extravaganza - Advanced Controls</div>
+            <div class="player-preview">
+                <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; background: linear-gradient(135deg, #E31E24, #8B0000);">
+                    <div style="font-size: 3em;">📺</div>
+                    <div style="color: #FFD700; font-size: 1.5em; text-transform: uppercase; letter-spacing: 2px; margin-top: 20px;">Infowars RSS Feed</div>
+                    <div style="color: #FFD700; font-size: 0.9em; margin-top: 10px;">Click play to start streaming latest videos</div>
+                </div>
+            </div>
+            <h3 style="color: #00f3ff; margin-top: 20px;">⚙️ Advanced Controls Available</h3>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0;">
+                <div style="background: rgba(0,243,255,0.1); padding: 10px; border-radius: 5px; border: 1px solid #00f3ff; text-align: center; font-size: 0.85em;">⏪ Skip 10s/20s/30s/1m</div>
+                <div style="background: rgba(0,243,255,0.1); padding: 10px; border-radius: 5px; border: 1px solid #00f3ff; text-align: center; font-size: 0.85em;">🔊 Volume Control</div>
+                <div style="background: rgba(0,243,255,0.1); padding: 10px; border-radius: 5px; border: 1px solid #00f3ff; text-align: center; font-size: 0.85em;">⛶ Fullscreen Toggle</div>
+                <div style="background: rgba(0,243,255,0.1); padding: 10px; border-radius: 5px; border: 1px solid #00f3ff; text-align: center; font-size: 0.85em;">📺 Multi-Screen (2x2/2x3)</div>
+                <div style="background: rgba(0,243,255,0.1); padding: 10px; border-radius: 5px; border: 1px solid #00f3ff; text-align: center; font-size: 0.85em;">📹 Video Clipping</div>
+                <div style="background: rgba(0,243,255,0.1); padding: 10px; border-radius: 5px; border: 1px solid #00f3ff; text-align: center; font-size: 0.85em;">📸 Screenshot Capture</div>
+            </div>
+            <p style="margin-top: 20px; color: #aaa;">Real RSS feed • Auto-hiding transparent controls • Timestamp-based clipping • PC save integration</p>
         </div>
     </div>
     
     <script>
         const players = [
             {
-                name: "Infowars Extravaganza",
-                icon: "🔴",
-                desc: "Advanced RSS-fed player with multi-screen viewing (2x2 or 2x3), skip controls (10s/20s/30s/1m), volume slider, fullscreen, video clipping with timestamps, and screenshot capture.",
-                link: "infowars_extravaganza_daily.html"
-            },
-            {
-                name: "NEXUS TV",
-                icon: "🎭",
-                desc: "24-hour auto-scheduled streaming with neon cyberpunk aesthetic. Dynamic content scheduling, favorites system, and offline support with IndexedDB persistence.",
-                link: "nexus_tv/index.html"
-            },
-            {
-                name: "Buffer TV",
-                icon: "📺",
-                desc: "TV player with advanced buffering controls. Numeric keypad navigation, adjustable load timeout, automatic retry, TV Guide overlay, and quick category access.",
-                link: "buffer_tv/index.html"
+                name: "Simple Player",
+                icon: "🎬",
+                desc: "HTML5 video player with HLS/DASH support. Sequential and shuffle playback modes with responsive design for all devices.",
+                link: "simple_player/index.html",
+                demo: "simpleModal"
             },
             {
                 name: "Multi-Channel Viewer",
                 icon: "🎯",
-                desc: "Grid-based player supporting 1-6 simultaneous channels. Smart audio management, focus mode, configurable rotation scheduler, and keyboard shortcuts.",
-                link: "multi_channel/index.html"
+                desc: "Watch up to 6 videos simultaneously in grid layout (1-6 channels). Smart audio management and focus mode.",
+                link: "multi_channel/index.html",
+                demo: "multiModal"
+            },
+            {
+                name: "Infowars Extravaganza",
+                icon: "🔴",
+                desc: "Advanced RSS-fed player with skip controls, volume, fullscreen, multi-screen, clipping, and screenshots.",
+                link: "infowars_extravaganza_daily.html",
+                demo: "infowarsModal"
+            },
+            {
+                name: "NEXUS TV",
+                icon: "🎭",
+                desc: "24-hour auto-scheduled streaming with neon cyberpunk aesthetic, favorites, and offline support.",
+                link: "nexus_tv/index.html",
+                demo: null
+            },
+            {
+                name: "Buffer TV",
+                icon: "📺",
+                desc: "TV player with advanced buffering controls, numeric keypad, TV Guide overlay, and quick categories.",
+                link: "buffer_tv/index.html",
+                demo: null
             },
             {
                 name: "Web IPTV",
                 icon: "▶️",
-                desc: "Sequential channel playback with group-based organization. Clean, responsive interface with shuffle/sequential modes and mobile optimization.",
-                link: "web_iptv/index.html"
-            },
-            {
-                name: "Simple Player",
-                icon: "🎬",
-                desc: "Minimalist HTML5 video player. HLS/DASH stream support, sequential and shuffle playback modes, responsive design for all devices.",
-                link: "simple_player/index.html"
+                desc: "Sequential channel playback with group-based organization and mobile optimization.",
+                link: "web_iptv/index.html",
+                demo: null
             },
             {
                 name: "Rumble Channel",
                 icon: "🟣",
-                desc: "Specialized player for Rumble videos with automatic URL detection. Secure iframe embedding, oEmbed metadata fetching, and offline storage.",
-                link: "rumble_channel/index.html"
+                desc: "Specialized player for Rumble videos with automatic URL detection and secure iframe embedding.",
+                link: "rumble_channel/index.html",
+                demo: null
             },
             {
-                name: "Interactive Control Hub",
+                name: "Control Hub",
                 icon: "🎛️",
-                desc: "Central management dashboard for all players. Generate custom players, manage playlists, view deployment status, and access GitHub Pages.",
-                link: "interactive_hub.html"
+                desc: "Central dashboard for managing all players, generating custom content, and viewing deployment status.",
+                link: "interactive_hub.html",
+                demo: null
             }
         ];
         
         const grid = document.getElementById('playersGrid');
-        const playerCount = document.getElementById('playerCount');
         
         players.forEach((player) => {
             const card = document.createElement('div');
@@ -367,10 +537,33 @@
             card.appendChild(desc);
             card.appendChild(btn);
             
+            if (player.demo) {
+                const demoBtn = document.createElement('button');
+                demoBtn.className = 'demo-btn';
+                demoBtn.textContent = '👁 See Demo';
+                demoBtn.onclick = () => openModal(player.demo);
+                card.appendChild(demoBtn);
+            }
+            
             grid.appendChild(card);
         });
         
-        playerCount.textContent = players.length;
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+        
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal.active');
+            modals.forEach(modal => {
+                if (event.target == modal) {
+                    modal.classList.remove('active');
+                }
+            });
+        }
     </script>
 </body>
 </html>
