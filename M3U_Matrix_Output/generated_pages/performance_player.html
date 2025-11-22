@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; media-src * blob:; img-src * data: blob:; connect-src *; font-src 'self' data:;">
+    <title>Performance Player - M3U MATRIX</title>
+    <!-- CDN Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dashjs@latest/dist/dash.all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #0f0f0f;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .player-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .player-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            background-color: #1a1a1a;
+            z-index: 10;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ffd700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-icon {
+            font-size: 28px;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 15px;
+        }
+
+        .header-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .header-btn:hover {
+            background-color: #333;
+        }
+
+        .header-btn.active {
+            background-color: rgba(255, 215, 0, 0.2);
+            color: #ffd700;
+        }
+
+        /* Main Content Area */
+        .player-main {
+            display: flex;
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Video Container */
+        .video-container {
+            position: relative;
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #000;
+            transition: all 0.3s ease;
+        }
+
+        .video-player {
+            width: 100%;
+            height: 100%;
+            max-width: 100%;
+            object-fit: contain;
+        }
+
+        /* Video Controls */
+        .video-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .video-container:hover .video-controls {
+            opacity: 1;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 5px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, #ffd700, #ffed4e);
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        .control-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .left-controls, .right-controls {
+            display: flex;
+            gap: 15px;
+        }
+
+        .control-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            font-size: 16px;
+            transition: color 0.2s;
+        }
+
+        .control-btn:hover {
+            color: #ffd700;
+        }
+
+        .time-display {
+            font-size: 12px;
+            min-width: 100px;
+        }
+
+        /* Sidebars */
+        .sidebar {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 320px;
+            background-color: #1a1a1a;
+            z-index: 20;
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 215, 0, 0.1);
+        }
+
+        .left-sidebar {
+            left: 0;
+            transform: translateX(-100%);
+        }
+
+        .right-sidebar {
+            right: 0;
+            transform: translateX(100%);
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+            background-color: rgba(255, 215, 0, 0.05);
+        }
+
+        .sidebar-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ffd700;
+        }
+
+        .close-sidebar {
+            background: none;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .sidebar-content {
+            padding: 15px;
+        }
+
+        /* Playlist */
+        .playlist-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .playlist-item {
+            display: flex;
+            gap: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .playlist-item:hover {
+            background-color: #252525;
+            border-color: rgba(255, 215, 0, 0.2);
+        }
+
+        .playlist-item.active {
+            background-color: rgba(255, 215, 0, 0.1);
+            border-color: #ffd700;
+        }
+
+        .playlist-thumbnail {
+            width: 80px;
+            height: 45px;
+            background-color: #333;
+            border-radius: 2px;
+            flex-shrink: 0;
+            background-size: cover;
+            background-position: center;
+            border: 1px solid rgba(255, 215, 0, 0.1);
+        }
+
+        .playlist-info {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .playlist-title {
+            font-size: 14px;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .playlist-duration {
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        .playlist-index {
+            font-size: 11px;
+            color: #666;
+        }
+
+        /* Pagination Info */
+        .pagination-info {
+            padding: 15px;
+            border-top: 1px solid rgba(255, 215, 0, 0.1);
+            text-align: center;
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        .pagination-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .pagination-buttons button {
+            flex: 1;
+            padding: 8px;
+            background-color: #333;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .pagination-buttons button:hover:not(:disabled) {
+            background-color: rgba(255, 215, 0, 0.1);
+            border-color: #ffd700;
+            color: #ffd700;
+        }
+
+        .pagination-buttons button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* Settings */
+        .settings-group {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+        }
+
+        .settings-title {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #ffd700;
+        }
+
+        .settings-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .settings-label {
+            font-size: 14px;
+        }
+
+        .settings-select, .settings-input {
+            background-color: #333;
+            border: 1px solid #444;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .settings-select:focus, .settings-input:focus {
+            border-color: #ffd700;
+            outline: none;
+        }
+
+        .settings-toggle {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+
+        .settings-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #444;
+            transition: .3s;
+            border-radius: 20px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: #ffd700;
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+        }
+
+        /* Dim Overlay */
+        .dim-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 15;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+        }
+
+        .dim-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Info Bar */
+        .info-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(255, 215, 0, 0.9);
+            color: #000;
+            padding: 8px 15px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 5;
+            transform: translateY(-100%);
+            transition: transform 0.3s;
+        }
+
+        .info-bar.show {
+            transform: translateY(0);
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 215, 0, 0.2);
+            border-radius: 50%;
+            border-top-color: #ffd700;
+            animation: spin 1s ease-in-out infinite;
+            z-index: 5;
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* Memory Stats */
+        .memory-stats {
+            padding: 10px 15px;
+            background-color: rgba(255, 215, 0, 0.05);
+            border-top: 1px solid rgba(255, 215, 0, 0.1);
+            font-size: 11px;
+            color: #aaa;
+        }
+
+        .memory-stats-item {
+            margin: 3px 0;
+            font-family: monospace;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 280px;
+            }
+            
+            .header-btn span {
+                display: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .sidebar {
+                width: 100%;
+            }
+            
+            .logo {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="player-container">
+        <!-- Header -->
+        <div class="player-header">
+            <div class="logo">
+                <span class="logo-icon">▶</span>
+                <span>PERFORMANCE PLAYER</span>
+            </div>
+            <div class="header-controls">
+                <button class="header-btn" id="playlist-toggle">
+                    <i data-feather="list"></i>
+                    <span>Playlist</span>
+                </button>
+                <button class="header-btn" id="favorites-btn">
+                    <i data-feather="heart"></i>
+                    <span>Favorites</span>
+                </button>
+                <button class="header-btn" id="settings-toggle">
+                    <i data-feather="settings"></i>
+                    <span>Settings</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="player-main">
+            <!-- Video Container -->
+            <div class="video-container">
+                <video class="video-player" id="video-player" crossorigin="anonymous">
+                    Your browser does not support the video tag.
+                </video>
+                
+                <!-- Custom Video Controls -->
+                <div class="video-controls">
+                    <div class="progress-bar" id="progress-bar">
+                        <div class="progress" id="progress"></div>
+                    </div>
+                    <div class="control-buttons">
+                        <div class="left-controls">
+                            <button class="control-btn" id="play-pause" title="Play/Pause">
+                                <i data-feather="play"></i>
+                            </button>
+                            <button class="control-btn" id="volume-btn" title="Mute/Unmute">
+                                <i data-feather="volume-2"></i>
+                            </button>
+                            <span class="time-display" id="time-display">0:00 / 0:00</span>
+                        </div>
+                        <div class="right-controls">
+                            <button class="control-btn" id="fullscreen-btn" title="Fullscreen">
+                                <i data-feather="maximize"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Loading Spinner -->
+                <div class="loading-spinner" id="loading-spinner"></div>
+                
+                <!-- Info Bar -->
+                <div class="info-bar" id="info-bar"></div>
+            </div>
+
+            <!-- Dim Overlay -->
+            <div class="dim-overlay" id="dim-overlay"></div>
+
+            <!-- Left Sidebar (Playlist) -->
+            <div class="sidebar left-sidebar" id="left-sidebar">
+                <div class="sidebar-header">
+                    <div class="sidebar-title">Playlist</div>
+                    <button class="close-sidebar" id="close-left-sidebar" title="Close">
+                        <i data-feather="x"></i>
+                    </button>
+                </div>
+                <div class="sidebar-content">
+                    <div class="playlist-container" id="playlist-container">
+                        <div style="text-align: center; color: #aaa; padding: 20px;">
+                            Loading playlist...
+                        </div>
+                    </div>
+                    <div class="pagination-info" id="pagination-info"></div>
+                    <div class="memory-stats" id="memory-stats"></div>
+                </div>
+            </div>
+
+            <!-- Right Sidebar (Settings) -->
+            <div class="sidebar right-sidebar" id="right-sidebar">
+                <div class="sidebar-header">
+                    <div class="sidebar-title">Settings</div>
+                    <button class="close-sidebar" id="close-right-sidebar" title="Close">
+                        <i data-feather="x"></i>
+                    </button>
+                </div>
+                <div class="sidebar-content">
+                    <div class="settings-group">
+                        <div class="settings-title">Video Quality</div>
+                        <div class="settings-option">
+                            <label class="settings-label">Quality</label>
+                            <select class="settings-select" id="quality-select">
+                                <option value="auto">Auto</option>
+                                <option value="1080">1080p</option>
+                                <option value="720">720p</option>
+                                <option value="480">480p</option>
+                                <option value="360">360p</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-group">
+                        <div class="settings-title">Playback</div>
+                        <div class="settings-option">
+                            <label class="settings-label">Autoplay</label>
+                            <label class="settings-toggle">
+                                <input type="checkbox" id="autoplay-toggle">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="settings-option">
+                            <label class="settings-label">Loop Playlist</label>
+                            <label class="settings-toggle">
+                                <input type="checkbox" id="loop-toggle">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-group">
+                        <div class="settings-title">Interface</div>
+                        <div class="settings-option">
+                            <label class="settings-label">Show Info Bar</label>
+                            <label class="settings-toggle">
+                                <input type="checkbox" id="infobar-toggle" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Initialize Feather icons
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+            
+            // Player state
+            const playerState = {
+                currentVideoIndex: 0,
+                isPlaying: false,
+                volume: 1,
+                isMuted: false,
+                currentTime: 0,
+                duration: 0,
+                autoplay: false,
+                loop: false,
+                showInfoBar: true
+            };
+            
+            // DOM Elements
+            const videoPlayer = document.getElementById('video-player');
+            const playlistContainer = document.getElementById('playlist-container');
+            const leftSidebar = document.getElementById('left-sidebar');
+            const rightSidebar = document.getElementById('right-sidebar');
+            const dimOverlay = document.getElementById('dim-overlay');
+            const infoBar = document.getElementById('info-bar');
+            const loadingSpinner = document.getElementById('loading-spinner');
+            const paginationInfo = document.getElementById('pagination-info');
+            const memoryStats = document.getElementById('memory-stats');
+            
+            // Buttons
+            const playlistToggle = document.getElementById('playlist-toggle');
+            const settingsToggle = document.getElementById('settings-toggle');
+            const favoritesBtn = document.getElementById('favorites-btn');
+            const closeLeftSidebar = document.getElementById('close-left-sidebar');
+            const closeRightSidebar = document.getElementById('close-right-sidebar');
+            const playPauseBtn = document.getElementById('play-pause');
+            const volumeBtn = document.getElementById('volume-btn');
+            const fullscreenBtn = document.getElementById('fullscreen-btn');
+            const progressBar = document.getElementById('progress-bar');
+            const progress = document.getElementById('progress');
+            const timeDisplay = document.getElementById('time-display');
+            
+            // Settings
+            const autoplayToggle = document.getElementById('autoplay-toggle');
+            const loopToggle = document.getElementById('loop-toggle');
+            const infobarToggle = document.getElementById('infobar-toggle');
+            const qualitySelect = document.getElementById('quality-select');
+            
+            // Initialize lazy loader with embedded playlist
+            let playlistLoader = null;
+            
+            async function initializePlaylist() {
+                // Get playlist from page (set by M3U MATRIX PRO)
+                const playlist = typeof EMBEDDED_PLAYLIST !== 'undefined' ? EMBEDDED_PLAYLIST : [];
+                
+                if (playlist.length === 0) {
+                    playlistContainer.innerHTML = '<div style="text-align: center; color: #aaa; padding: 20px;">No playlist loaded</div>';
+                    return;
+                }
+                
+                // Initialize lazy loader
+                playlistLoader = new UniversalLazyLoader({
+                    chunkSize: 2,
+                    cacheSize: 10,
+                    items: playlist
+                });
+                
+                // Load first chunk
+                const chunk = await playlistLoader.getChunk(0);
+                displayChunk(chunk);
+                
+                // Show memory stats
+                updateMemoryStats();
+            }
+            
+            function displayChunk(chunk) {
+                if (!chunk) return;
+                
+                playlistContainer.innerHTML = '';
+                
+                // Render items in chunk
+                chunk.items.forEach((item, idx) => {
+                    const itemElement = createPlaylistItem(item, chunk.startIndex + idx);
+                    playlistContainer.appendChild(itemElement);
+                });
+                
+                // Update pagination
+                updatePagination(chunk);
+            }
+            
+            function createPlaylistItem(item, index) {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'playlist-item';
+                if (index === playerState.currentVideoIndex) {
+                    itemElement.classList.add('active');
+                }
+                itemElement.dataset.index = index;
+                
+                const title = item.name || item.title || 'Unknown';
+                const duration = formatDuration(item.duration || 0);
+                const thumbnail = item.logo || item.thumbnail || '';
+                
+                itemElement.innerHTML = `
+                    <div class="playlist-thumbnail" ${thumbnail ? `style="background-image: url('${thumbnail}')"` : ''}></div>
+                    <div class="playlist-info">
+                        <div class="playlist-title">${title}</div>
+                        <div class="playlist-duration">${duration}</div>
+                        <div class="playlist-index">#${index + 1}</div>
+                    </div>
+                `;
+                
+                itemElement.addEventListener('click', () => {
+                    playVideo(item, index);
+                    updateActiveItem(index);
+                });
+                
+                return itemElement;
+            }
+            
+            function updatePagination(chunk) {
+                let html = `<div style="margin-bottom: 10px;">Items ${chunk.startIndex + 1}-${chunk.endIndex} of ${chunk.totalItems}</div>`;
+                
+                if (chunk.hasPrevious || chunk.hasNext) {
+                    html += '<div class="pagination-buttons">';
+                    if (chunk.hasPrevious) {
+                        html += '<button id="prev-chunk-btn">← Previous</button>';
+                    }
+                    if (chunk.hasNext) {
+                        html += '<button id="next-chunk-btn">Next →</button>';
+                    }
+                    html += '</div>';
+                }
+                
+                paginationInfo.innerHTML = html;
+                
+                if (chunk.hasPrevious) {
+                    document.getElementById('prev-chunk-btn')?.addEventListener('click', async () => {
+                        const prevChunk = await playlistLoader.previousChunk();
+                        if (prevChunk) displayChunk(prevChunk);
+                    });
+                }
+                
+                if (chunk.hasNext) {
+                    document.getElementById('next-chunk-btn')?.addEventListener('click', async () => {
+                        const nextChunk = await playlistLoader.nextChunk();
+                        if (nextChunk) displayChunk(nextChunk);
+                    });
+                }
+            }
+            
+            function updateMemoryStats() {
+                if (!playlistLoader) return;
+                const stats = playlistLoader.getStatistics();
+                memoryStats.innerHTML = `
+                    <div class="memory-stats-item">Total: ${stats.totalItems} items</div>
+                    <div class="memory-stats-item">Cached: ${stats.cachedChunks} chunks</div>
+                    <div class="memory-stats-item">Memory: ${stats.estimatedMemory.total}</div>
+                `;
+            }
+            
+            function updateActiveItem(index) {
+                document.querySelectorAll('.playlist-item').forEach(el => {
+                    el.classList.remove('active');
+                });
+                const activeEl = document.querySelector(`.playlist-item[data-index="${index}"]`);
+                if (activeEl) activeEl.classList.add('active');
+                playerState.currentVideoIndex = index;
+            }
+            
+            function playVideo(item, index) {
+                playerState.currentVideoIndex = index;
+                updateInfoBar(`Playing: ${item.name || item.title || 'Unknown'}`);
+                
+                const url = item.url || '';
+                if (url) {
+                    videoPlayer.src = url;
+                    videoPlayer.play().catch(err => {
+                        console.error('Playback error:', err);
+                        updateInfoBar('Error loading video');
+                    });
+                }
+            }
+            
+            function updateInfoBar(message) {
+                if (playerState.showInfoBar) {
+                    infoBar.textContent = message;
+                    infoBar.classList.add('show');
+                    setTimeout(() => infoBar.classList.remove('show'), 3000);
+                }
+            }
+            
+            function formatDuration(seconds) {
+                if (!seconds || seconds < 0) return '0:00';
+                const mins = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${mins}:${secs.toString().padStart(2, '0')}`;
+            }
+            
+            // Event Listeners
+            playlistToggle.addEventListener('click', () => {
+                leftSidebar.classList.toggle('open');
+                dimOverlay.classList.toggle('active');
+                playlistToggle.classList.toggle('active');
+                settingsToggle.classList.remove('active');
+                rightSidebar.classList.remove('open');
+            });
+            
+            settingsToggle.addEventListener('click', () => {
+                rightSidebar.classList.toggle('open');
+                dimOverlay.classList.toggle('active');
+                settingsToggle.classList.toggle('active');
+                playlistToggle.classList.remove('active');
+                leftSidebar.classList.remove('open');
+            });
+            
+            closeLeftSidebar.addEventListener('click', () => {
+                leftSidebar.classList.remove('open');
+                dimOverlay.classList.remove('active');
+                playlistToggle.classList.remove('active');
+            });
+            
+            closeRightSidebar.addEventListener('click', () => {
+                rightSidebar.classList.remove('open');
+                dimOverlay.classList.remove('active');
+                settingsToggle.classList.remove('active');
+            });
+            
+            dimOverlay.addEventListener('click', () => {
+                leftSidebar.classList.remove('open');
+                rightSidebar.classList.remove('open');
+                dimOverlay.classList.remove('active');
+                playlistToggle.classList.remove('active');
+                settingsToggle.classList.remove('active');
+            });
+            
+            // Video Controls
+            playPauseBtn.addEventListener('click', () => {
+                if (videoPlayer.paused) {
+                    videoPlayer.play();
+                } else {
+                    videoPlayer.pause();
+                }
+            });
+            
+            videoPlayer.addEventListener('play', () => {
+                playerState.isPlaying = true;
+            });
+            
+            videoPlayer.addEventListener('pause', () => {
+                playerState.isPlaying = false;
+            });
+            
+            videoPlayer.addEventListener('timeupdate', () => {
+                playerState.currentTime = videoPlayer.currentTime;
+                playerState.duration = videoPlayer.duration;
+                
+                const percentage = (videoPlayer.currentTime / videoPlayer.duration) * 100;
+                progress.style.width = percentage + '%';
+                timeDisplay.textContent = `${formatDuration(videoPlayer.currentTime)} / ${formatDuration(videoPlayer.duration)}`;
+            });
+            
+            progressBar.addEventListener('click', (e) => {
+                const rect = progressBar.getBoundingClientRect();
+                const percent = (e.clientX - rect.left) / rect.width;
+                videoPlayer.currentTime = percent * videoPlayer.duration;
+            });
+            
+            volumeBtn.addEventListener('click', () => {
+                videoPlayer.muted = !videoPlayer.muted;
+                playerState.isMuted = videoPlayer.muted;
+                volumeBtn.innerHTML = videoPlayer.muted ? '<i data-feather="volume-x"></i>' : '<i data-feather="volume-2"></i>';
+                if (typeof feather !== 'undefined') feather.replace();
+            });
+            
+            fullscreenBtn.addEventListener('click', () => {
+                if (videoPlayer.requestFullscreen) {
+                    videoPlayer.requestFullscreen();
+                } else if (videoPlayer.webkitRequestFullscreen) {
+                    videoPlayer.webkitRequestFullscreen();
+                }
+            });
+            
+            // Settings
+            autoplayToggle.addEventListener('change', () => {
+                playerState.autoplay = autoplayToggle.checked;
+                videoPlayer.autoplay = playerState.autoplay;
+            });
+            
+            loopToggle.addEventListener('change', () => {
+                playerState.loop = loopToggle.checked;
+            });
+            
+            infobarToggle.addEventListener('change', () => {
+                playerState.showInfoBar = infobarToggle.checked;
+            });
+            
+            // Initialize
+            await initializePlaylist();
+        });
+    </script>
+</body>
+</html>
