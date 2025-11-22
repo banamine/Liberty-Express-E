@@ -58,6 +58,9 @@ class VideoPlayerWorkbench(tk.Toplevel):
         self.vlc_available = VLC_AVAILABLE
         self.playback_timer = None
         
+        # Register cleanup on close
+        self.protocol("WM_DELETE_WINDOW", self._cleanup_vlc)
+        
         if self.vlc_available:
             try:
                 self.vlc_instance = vlc.Instance('--no-xlib')
@@ -2382,3 +2385,16 @@ File Path: {video['filepath']}
                 )
             except Exception as e:
                 messagebox.showerror("Export Failed", f"Could not export TV Guide:\n{e}")
+    
+    def _cleanup_vlc(self):
+        """Cleanup VLC resources before closing window"""
+        try:
+            if self.vlc_player:
+                self.vlc_player.stop()
+                self.vlc_player = None
+            if self.vlc_instance:
+                self.vlc_instance = None
+        except Exception as e:
+            print(f"Error cleaning up VLC: {e}")
+        finally:
+            self.destroy()

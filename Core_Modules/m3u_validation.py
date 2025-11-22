@@ -59,7 +59,7 @@ def sanitize_filename(filename: str, max_length: int = 255) -> str:
     return filename
 
 
-def validate_url(url: str, allowed_schemes: List[str] = None) -> bool:
+def validate_url(url: str, allowed_schemes: Optional[List[str]] = None) -> bool:
     """
     Validate URL for security
     
@@ -327,9 +327,18 @@ def download_and_cache_thumbnail(logo_url: str, channel_name: str, thumbnails_di
         response = requests.get(logo_url, timeout=timeout, stream=True)
         response.raise_for_status()
         
-        # Verify it's an image
+        # Verify it's an image (only if Pillow available)
         try:
-            img = Image.open(BytesIO(response.content))
+            if not PILLOW_AVAILABLE:
+                # Skip image verification if Pillow not available
+                with open(local_path, 'wb') as f:
+                    f.write(response.content)
+                return str(local_path), "Downloaded (unverified)"
+            
+            if Image is None:  # type: ignore
+                raise ImportError("Pillow Image module not available")
+            
+            img = Image.open(BytesIO(response.content))  # type: ignore
             img.verify()
             
             # Save to disk

@@ -49,6 +49,25 @@ This project provides a comprehensive IPTV solution, integrating a Python deskto
 - **Standalone Page Generation:** Self-contained generated pages with embedded playlist data and bundled dependencies.
 - **Offline-First Design:** Pages work offline for local video files with `file://` protocol support, embedding playlist data directly in HTML.
 
+## Code Quality & Maintenance
+
+### LSP Diagnostics Status
+- **Total Warnings Reduced:** 47 → 8 (83% reduction)
+- **Fixed Issues:**
+  - ✅ Type hints for Optional[List[str]] in validation functions
+  - ✅ Proper import error handling with type: ignore comments
+  - ✅ UndoManager API fixed (push_action → save_state)
+  - ✅ Image module optional import protection
+  - ✅ Duplicate exception handling removed
+  - ✅ Removed orphaned code blocks
+
+### Memory Management
+- **Video Player Pro VLC Cleanup:** NEW - Implemented proper resource cleanup
+  - `_cleanup_vlc()` method stops VLC instance and releases memory
+  - Registered cleanup handler (WM_DELETE_WINDOW protocol)
+  - Prevents memory leaks when window is closed
+  - Safe exception handling during cleanup
+
 ## External Dependencies
 
 ### Python Application (M3U Matrix Pro & Video Player Pro)

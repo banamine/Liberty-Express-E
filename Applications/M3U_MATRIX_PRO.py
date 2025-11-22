@@ -48,22 +48,33 @@ from Core_Modules.utils.helpers import (
 from Core_Modules.gui.components import ButtonFactory, DialogFactory, ProgressManager, TreeviewManager
 from Core_Modules.ffprobe_validator import validate_m3u_quick
 
+# Initialize generators as None - will be set in try/except
+NexusTVPageGenerator = None
+WebIPTVGenerator = None
+SimplePlayerGenerator = None
+RumbleChannelGenerator = None
+MultiChannelGenerator = None
+BufferTVGenerator = None
+ClassicTVGenerator = None
+PAGE_GENERATOR_AVAILABLE = False
+
 # Optional imports - only needed for advanced features
 try:
     if getattr(sys, 'frozen', False):
-        from page_generator_fix import fix_page_generator_paths, get_output_directory
-        fixed_module = fix_page_generator_paths()
-        if fixed_module:
-            NexusTVPageGenerator = fixed_module.NexusTVPageGenerator
-            WebIPTVGenerator = fixed_module.WebIPTVGenerator
-            SimplePlayerGenerator = fixed_module.SimplePlayerGenerator
-            RumbleChannelGenerator = fixed_module.RumbleChannelGenerator
-            MultiChannelGenerator = fixed_module.MultiChannelGenerator
-            BufferTVGenerator = fixed_module.BufferTVGenerator
-            PAGE_GENERATOR_AVAILABLE = True
-            print("Page generators loaded with executable path fixes")
-        else:
-            raise ImportError("Could not apply path fixes")
+        try:
+            from page_generator_fix import fix_page_generator_paths  # type: ignore
+            fixed_module = fix_page_generator_paths()
+            if fixed_module:
+                NexusTVPageGenerator = fixed_module.NexusTVPageGenerator
+                WebIPTVGenerator = fixed_module.WebIPTVGenerator
+                SimplePlayerGenerator = fixed_module.SimplePlayerGenerator
+                RumbleChannelGenerator = fixed_module.RumbleChannelGenerator
+                MultiChannelGenerator = fixed_module.MultiChannelGenerator
+                BufferTVGenerator = fixed_module.BufferTVGenerator
+                PAGE_GENERATOR_AVAILABLE = True
+                print("Page generators loaded with executable path fixes")
+        except ImportError:
+            pass
     else:
         from Core_Modules.page_generator import (
             NexusTVPageGenerator, WebIPTVGenerator, SimplePlayerGenerator, 
@@ -75,7 +86,7 @@ try:
         
         def get_output_directory(subfolder=""):
             try:
-                from output_manager import get_output_manager
+                from Core_Modules.output_manager import get_output_manager  # type: ignore
                 manager = get_output_manager()
                 if subfolder:
                     return manager.get_page_output_dir(subfolder)
@@ -87,29 +98,12 @@ try:
                     output_dir = output_dir / subfolder
                 output_dir.mkdir(exist_ok=True, parents=True)
                 return output_dir
-            
-except ImportError as e:
+except Exception:
     PAGE_GENERATOR_AVAILABLE = False
-    logging.warning(f"Page generator not available: {e}")
-    
-    def get_output_directory(subfolder=""):
-        try:
-            from output_manager import get_output_manager
-            manager = get_output_manager()
-            if subfolder:
-                return manager.get_page_output_dir(subfolder)
-            else:
-                return manager.pages_dir
-        except ImportError:
-            output_dir = Path("M3U_Matrix_Output") / "generated_pages"
-            if subfolder:
-                output_dir = output_dir / subfolder
-            output_dir.mkdir(exist_ok=True, parents=True)
-            return output_dir
 
 # NDI Output import
 try:
-    from ndi_output import get_ndi_manager
+    from Core_Modules.ndi_output import get_ndi_manager  # type: ignore
     NDI_AVAILABLE = True
 except ImportError as e:
     NDI_AVAILABLE = False
@@ -385,7 +379,7 @@ class M3UMatrix:
                     # Track changes for undo
                     old_channels = self.channels.copy()
                     self.channels.extend(channels)
-                    self.undo_manager.push_action({
+                    self.undo_manager.save_state({
                         'type': 'load',
                         'old_channels': old_channels,
                         'new_channels': self.channels.copy()

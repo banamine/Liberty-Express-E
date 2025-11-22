@@ -40,6 +40,7 @@ class PlaylistValidationResult:
     sample_size: int
     sample_results: List[StreamValidationResult]
     is_healthy: bool  # True if sample indicates all streams are good
+    error_message: Optional[str] = None  # Optional error message
 
 
 class FFprobeValidator:
