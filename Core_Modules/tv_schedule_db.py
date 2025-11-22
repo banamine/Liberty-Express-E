@@ -67,6 +67,8 @@ class TVScheduleDB:
                     name TEXT NOT NULL,
                     start_date DATE NOT NULL,
                     end_date DATE NOT NULL,
+                    enable_looping BOOLEAN DEFAULT 0,
+                    loop_end_date DATE,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
@@ -261,16 +263,17 @@ class TVScheduleDB:
             return success
     
     # Schedule operations
-    def create_schedule(self, name: str, start_date: str, end_date: str) -> int:
+    def create_schedule(self, name: str, start_date: str, end_date: str,
+                       enable_looping: bool = False, loop_end_date: str = None) -> int:
         """Create a new schedule"""
         with self.lock:
             conn = self._get_connection()
             cursor = conn.cursor()
             
             cursor.execute("""
-                INSERT INTO schedules (name, start_date, end_date)
-                VALUES (?, ?, ?)
-            """, (name, start_date, end_date))
+                INSERT INTO schedules (name, start_date, end_date, enable_looping, loop_end_date)
+                VALUES (?, ?, ?, ?, ?)
+            """, (name, start_date, end_date, enable_looping, loop_end_date))
             
             schedule_id = cursor.lastrowid
             conn.commit()

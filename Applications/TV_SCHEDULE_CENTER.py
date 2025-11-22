@@ -17,6 +17,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from Core_Modules.tv_schedule_db import TVScheduleDB
 from Core_Modules.schedule_manager import ScheduleManager
+from Core_Modules.auto_scheduler import AutoScheduler
+from Core_Modules.web_epg_server import WebEPGServer
 
 
 class TVScheduleCenter:
@@ -131,6 +133,30 @@ class TVScheduleCenter:
         tk.Button(
             toolbar, text="📂 Load", command=self.load_schedule,
             bg=self.colors['button_bg'], fg=self.colors['fg'],
+            font=('Arial', 10, 'bold'), padx=15, pady=8
+        ).pack(side='left', padx=5)
+        
+        tk.Button(
+            toolbar, text="📁 Import Folder", command=self.import_folder,
+            bg='#27ae60', fg=self.colors['fg'],
+            font=('Arial', 10, 'bold'), padx=15, pady=8
+        ).pack(side='left', padx=5)
+        
+        tk.Button(
+            toolbar, text="🎬 Auto-Build 24/7", command=self.auto_build_schedule,
+            bg='#e67e22', fg=self.colors['fg'],
+            font=('Arial', 10, 'bold'), padx=15, pady=8
+        ).pack(side='left', padx=5)
+        
+        tk.Button(
+            toolbar, text="📊 Export EPG JSON", command=self.export_web_epg,
+            bg='#8e44ad', fg=self.colors['fg'],
+            font=('Arial', 10, 'bold'), padx=15, pady=8
+        ).pack(side='left', padx=5)
+        
+        tk.Button(
+            toolbar, text="🔄 Rebuild Schedule", command=self.rebuild_schedule,
+            bg='#c0392b', fg=self.colors['fg'],
             font=('Arial', 10, 'bold'), padx=15, pady=8
         ).pack(side='left', padx=5)
         
@@ -940,6 +966,97 @@ class TVScheduleCenter:
         
         messagebox.showinfo("Conflict Check", message)
         self.update_grid_content()
+    
+    def import_folder(self):
+        """Import folder of media files"""
+        folder = filedialog.askdirectory(title="Select folder with media files")
+        if not folder:
+            return
+        
+        scheduler = AutoScheduler()
+        result = scheduler.import_folder(folder, 
+                                        channel_name=Path(folder).name,
+                                        channel_group="Auto Imported")
+        
+        if result['success']:
+            self.load_channels()
+            messagebox.showinfo("Import Complete", 
+                              f"Imported {result['shows_imported']} shows\n"
+                              f"Channel: {result['channel_name']}")
+            self.update_status(f"Imported {result['shows_imported']} shows from {Path(folder).name}")
+        else:
+            messagebox.showerror("Import Error", result.get('message', 'Failed to import'))
+    
+    def auto_build_schedule(self):
+        """Auto-build 24/7 schedule from channel"""
+        if not self.selected_channel_id:
+            messagebox.showwarning("No Channel", "Please select a channel")
+            return
+        
+        scheduler = AutoScheduler()
+        result = scheduler.auto_build_schedule(
+            channel_id=self.selected_channel_id,
+            schedule_name=f"Auto-Generated {datetime.now().strftime('%Y-%m-%d %H:%M')}",
+            start_datetime="now",
+            num_days=30,
+            shuffle=True,
+            enable_looping=True,
+            slot_mode="exact_duration"
+        )
+        
+        if result['success']:
+            self.load_schedules()
+            messagebox.showinfo("Schedule Created", 
+                              f"Created {result['schedule_name']}\n"
+                              f"Scheduled: {result['shows_scheduled']} slots\n"
+                              f"Looping: {result['enable_looping']}")
+            self.update_status(f"Auto-built schedule with {result['shows_scheduled']} slots")
+        else:
+            messagebox.showerror("Schedule Error", result.get('message', 'Failed to create'))
+    
+    def export_web_epg(self):
+        """Export schedule as Web EPG JSON"""
+        if not self.current_schedule_id:
+            messagebox.showwarning("No Schedule", "Please select a schedule")
+            return
+        
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".json",
+            filetypes=[("JSON files", "*.json"), ("All files", "*.*")]
+        )
+        
+        if not file_path:
+            return
+        
+        scheduler = AutoScheduler()
+        result = scheduler.export_web_epg_json(self.current_schedule_id, file_path)
+        
+        if result['success']:
+            messagebox.showinfo("Export Complete",
+                              f"Exported {result['program_count']} programs\n"
+                              f"Saved to: {file_path}")
+            self.update_status(f"Exported {result['program_count']} programs to JSON")
+        else:
+            messagebox.showerror("Export Error", result.get('message', 'Failed to export'))
+    
+    def rebuild_schedule(self):
+        """Rebuild schedule with updated durations"""
+        if not self.current_schedule_id:
+            messagebox.showwarning("No Schedule", "Please select a schedule")
+            return
+        
+        if messagebox.askyesno("Confirm", 
+                              "This will refresh all show durations.\nContinue?"):
+            scheduler = AutoScheduler()
+            result = scheduler.rebuild_schedule(self.current_schedule_id)
+            
+            if result['success']:
+                self.update_grid_content()
+                messagebox.showinfo("Rebuild Complete",
+                                  f"Updated {result['slots_updated']} slots")
+                self.update_status(f"Rebuilt schedule: {result['slots_updated']} slots updated")
+            else:
+                messagebox.showerror("Rebuild Error", result.get('message', 'Failed to rebuild'))
     
     def simulate_viewing(self):
         """Simulate channel switching"""
