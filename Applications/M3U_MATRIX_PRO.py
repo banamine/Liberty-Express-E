@@ -257,25 +257,31 @@ class M3UMatrix:
         buttons_frame = tk.Frame(top_frame, bg="#1a1a1a")
         buttons_frame.grid(row=1, column=0, sticky="ew", padx=10, pady=(0, 10))
 
-        # Create buttons using ButtonFactory
+        # Create buttons using ButtonFactory - organized in 2 rows
         button_configs = [
+            # Row 1 - Primary operations
             ("📂 Open Files", self.open_files, "#F2E1C1"),
             ("💾 Save M3U", self.save_m3u, "#95C77E"),
             ("🔄 Refresh", self.refresh_display, "#FFD700"),
             ("📋 Paste", self.paste, "#87CEEB"),
             ("✂️ Cut", self.cut, "#FFA500"),
+            # Row 2 - Advanced features
             ("🗑️ Delete", self.delete_selected, "#E74C3C"),
             ("🔗 Validate Links", self.validate_links, "#9B59B6"),
             ("📡 EPG Import", self.import_epg, "#3498DB"),
-            ("🎬 CLASSIC TV", self.generate_classic, "#FF0000"),  # YOUR BIG RED BUTTON IS BACK!
+            ("🎬 CLASSIC TV", self.generate_classic, "#FF0000"),
             ("🌐 More Players", self.show_page_generator_menu, "#2ECC71")
         ]
 
+        # Layout buttons in 2 rows (5 per row)
+        buttons_per_row = 5
         for i, (text, command, color) in enumerate(button_configs):
+            row = i // buttons_per_row
+            col = i % buttons_per_row
             btn = ButtonFactory.create_styled_button(
                 buttons_frame, text, command, color, width=14
             )
-            btn.grid(row=0, column=i, padx=3)
+            btn.grid(row=row, column=col, padx=3, pady=3)
 
     def build_middle_frame(self, parent):
         """Build the middle frame with treeview"""
