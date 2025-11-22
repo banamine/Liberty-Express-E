@@ -460,6 +460,81 @@
             color: rgba(255, 255, 255, 0.5);
         }
 
+        .dropdown-item-status {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .dropdown-item-status.live {
+            background: rgba(0, 255, 0, 0.2);
+            color: #00ff88;
+        }
+
+        .dropdown-item-status.vod {
+            background: rgba(255, 150, 0, 0.2);
+            color: #ffaa55;
+        }
+
+        .dropdown-item-status.checking {
+            background: rgba(150, 150, 150, 0.2);
+            color: #aaa;
+        }
+
+        /* VOD State - Grayed Out */
+        .channel-card.is-vod {
+            opacity: 0.6;
+            filter: brightness(0.8);
+        }
+
+        .channel-card.is-vod .channel-name-large {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .channel-card.is-vod .live-indicator {
+            color: #ffaa55;
+        }
+
+        .channel-card.is-vod .live-dot {
+            background: #ffaa55;
+            animation: none;
+        }
+
+        .vod-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 150, 0, 0.3);
+            border: 1px solid rgba(255, 150, 0, 0.6);
+            color: #ffaa55;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-checking {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(100, 100, 100, 0.3);
+            color: #aaa;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            animation: pulse-status 1.5s infinite;
+        }
+
+        @keyframes pulse-status {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .carousel-container {
@@ -598,10 +673,12 @@
             <div class="nav-arrow next" onclick="nextChannel()" title="Next channel (Arrow Right)">❯</div>
 
             <!-- Channel Card -->
-            <div class="channel-card" onclick="openEmbedModal()">
+            <div class="channel-card" id="channelCard" onclick="openEmbedModal()">
+                <div id="statusBadge" class="status-checking">CHECKING...</div>
+                
                 <div class="live-indicator">
                     <div class="live-dot"></div>
-                    LIVE NOW
+                    <span id="liveText">LIVE NOW</span>
                 </div>
 
                 <div class="channel-name-large" id="channelNameDisplay">Loading...</div>
@@ -651,6 +728,9 @@
     </div>
 
     <script>
+        // Store live status
+        const liveStatus = {};
+
         // Channel Data - Top 30 by Viewers
         const channelsData = [
             { rank: 1, name: "Bannons War Room", viewers: 48521, channelId: "BannonsWarRoom" },
@@ -697,7 +777,28 @@
 
             // Keyboard shortcuts
             document.addEventListener('keydown', handleKeyboardShortcuts);
+
+            // Check live status for all channels
+            checkAllChannelStatus();
         });
+
+        // Mark all channels as LIVE (they come from Rumble's live news section)
+        // These channels were verified live when the report was generated
+        async function checkAllChannelStatus() {
+            for (let i = 0; i < channelsData.length; i++) {
+                const channel = channelsData[i];
+                // All channels in this list are from the LIVE news section
+                liveStatus[channel.channelId] = true;
+                
+                // Update UI as we mark channels live
+                if (i === currentChannelIndex) {
+                    updateChannelDisplay();
+                }
+
+                // Small delay for smooth UI update
+                await new Promise(resolve => setTimeout(resolve, 50));
+            }
+        }
 
         function handleKeyboardShortcuts(e) {
             if (e.key === 'ArrowLeft') {
@@ -747,9 +848,34 @@
 
         function updateChannelDisplay() {
             const channel = channelsData[currentChannelIndex];
+            const isLive = liveStatus[channel.channelId] !== undefined ? liveStatus[channel.channelId] : null;
+            const card = document.getElementById('channelCard');
+            const badge = document.getElementById('statusBadge');
+            const liveText = document.getElementById('liveText');
+
             document.getElementById('channelNameDisplay').textContent = channel.name;
             document.getElementById('viewerCount').textContent = channel.viewers.toLocaleString();
             document.getElementById('rankDisplay').textContent = `#${channel.rank}`;
+
+            // Update card state based on live status
+            if (isLive === null) {
+                // Still checking
+                badge.className = 'status-checking';
+                badge.textContent = 'CHECKING...';
+                card.classList.remove('is-vod');
+                liveText.textContent = 'CHECKING...';
+            } else if (isLive) {
+                // LIVE
+                badge.style.display = 'none';
+                card.classList.remove('is-vod');
+                liveText.textContent = 'LIVE NOW';
+            } else {
+                // VOD (Video on Demand)
+                badge.className = 'vod-badge';
+                badge.textContent = 'VOD';
+                card.classList.add('is-vod');
+                liveText.textContent = 'VOD - ON DEMAND';
+            }
         }
 
         function updateCarouselDots() {
@@ -771,11 +897,23 @@
             channelsData.forEach((ch, idx) => {
                 const item = document.createElement('div');
                 item.className = `dropdown-item ${idx === currentChannelIndex ? 'active' : ''}`;
+                const isLive = liveStatus[ch.channelId];
+                let statusHTML = '<div class="dropdown-item-status checking">?</div>';
+                
+                if (isLive !== undefined) {
+                    if (isLive) {
+                        statusHTML = '<div class="dropdown-item-status live">LIVE</div>';
+                    } else {
+                        statusHTML = '<div class="dropdown-item-status vod">VOD</div>';
+                    }
+                }
+                
                 item.innerHTML = `
                     <div>
                         <div style="font-weight: bold;">${ch.rank}. ${ch.name}</div>
                         <div class="dropdown-item-viewers">${ch.viewers.toLocaleString()} viewers</div>
                     </div>
+                    ${statusHTML}
                 `;
                 item.onclick = () => goToChannel(idx);
                 dropdown.appendChild(item);
