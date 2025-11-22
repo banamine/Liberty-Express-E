@@ -257,6 +257,176 @@ class ConflictDetector:
         return conflicts
 
 
+class ScheduleAlgorithm:
+    """Auto-fill calendar with video playlists using Fisher-Yates shuffle and cooldown enforcement"""
+    
+    @staticmethod
+    def fisher_yates_shuffle(items: List[str]) -> List[str]:
+        """Fisher-Yates shuffle for unbiased randomization
+        
+        Returns shuffled copy of items list
+        """
+        import random
+        result = items.copy()
+        for i in range(len(result) - 1, 0, -1):
+            j = random.randint(0, i)
+            result[i], result[j] = result[j], result[i]
+        return result
+    
+    @staticmethod
+    def create_schedule_slots(start_time: datetime, duration_hours: int, slot_duration_minutes: int = 30) -> List[Dict[str, datetime]]:
+        """Create calendar slots for scheduling
+        
+        Args:
+            start_time: Start datetime for schedule
+            duration_hours: Total duration to schedule (hours)
+            slot_duration_minutes: Duration of each slot (minutes)
+        
+        Returns:
+            List of slots with start/end times
+        """
+        slots = []
+        current = start_time
+        end_time = start_time + timedelta(hours=duration_hours)
+        
+        while current < end_time:
+            slot_end = current + timedelta(minutes=slot_duration_minutes)
+            if slot_end > end_time:
+                slot_end = end_time
+            
+            slots.append({
+                "start": current,
+                "end": slot_end,
+                "duration_minutes": slot_duration_minutes
+            })
+            current = slot_end
+        
+        return slots
+    
+    @staticmethod
+    def auto_fill_schedule(playlist_links: List[str], 
+                          slots: List[Dict[str, datetime]], 
+                          cooldown_hours: int = 48,
+                          shuffle: bool = True) -> Dict[str, Any]:
+        """Auto-fill calendar with playlist links, enforcing cooldown
+        
+        Args:
+            playlist_links: List of video URLs (1-10,000)
+            slots: Calendar slots to fill
+            cooldown_hours: Minimum hours between same video plays (default 48)
+            shuffle: Whether to shuffle playlist order
+        
+        Returns:
+            Scheduled calendar with logs
+        """
+        
+        # Shuffle playlist if requested
+        if shuffle:
+            shuffled_links = ScheduleAlgorithm.fisher_yates_shuffle(playlist_links)
+        else:
+            shuffled_links = playlist_links.copy()
+        
+        # Track last played timestamp for cooldown enforcement
+        last_played = {}  # video_url -> last_played_datetime
+        scheduled_events = []
+        scheduling_log = {
+            "total_links": len(playlist_links),
+            "total_slots": len(slots),
+            "scheduled": 0,
+            "skipped_cooldown": 0,
+            "decisions": []
+        }
+        
+        link_index = 0
+        slot_index = 0
+        
+        while slot_index < len(slots):
+            slot = slots[slot_index]
+            
+            # Find next available video respecting cooldown
+            attempts = 0
+            max_attempts = len(shuffled_links)  # Prevent infinite loops
+            found_video = False
+            
+            while attempts < max_attempts:
+                if link_index >= len(shuffled_links):
+                    link_index = 0  # Wrap around playlist
+                
+                video_url = shuffled_links[link_index]
+                
+                # Check cooldown
+                if video_url in last_played:
+                    last_play = last_played[video_url]
+                    cooldown_end = last_play + timedelta(hours=cooldown_hours)
+                    
+                    if slot['start'] < cooldown_end:
+                        # Still in cooldown, skip this video
+                        scheduling_log["decisions"].append({
+                            "slot": slot_index,
+                            "video": video_url,
+                            "action": "skip_cooldown",
+                            "slot_start": slot['start'].isoformat(),
+                            "last_played": last_play.isoformat(),
+                            "cooldown_end": cooldown_end.isoformat()
+                        })
+                        scheduling_log["skipped_cooldown"] += 1
+                        link_index += 1
+                        attempts += 1
+                        continue
+                
+                # Video is available - schedule it
+                event = {
+                    "slot_index": slot_index,
+                    "video_url": video_url,
+                    "start": slot['start'].isoformat(),
+                    "end": slot['end'].isoformat(),
+                    "duration_minutes": slot['duration_minutes']
+                }
+                scheduled_events.append(event)
+                last_played[video_url] = slot['start']
+                
+                scheduling_log["decisions"].append({
+                    "slot": slot_index,
+                    "video": video_url,
+                    "action": "scheduled",
+                    "slot_start": slot['start'].isoformat()
+                })
+                scheduling_log["scheduled"] += 1
+                
+                link_index += 1
+                found_video = True
+                break
+            
+            if not found_video:
+                # Could not find any video (all in cooldown) - fill with first available
+                video_url = shuffled_links[0]
+                event = {
+                    "slot_index": slot_index,
+                    "video_url": video_url,
+                    "start": slot['start'].isoformat(),
+                    "end": slot['end'].isoformat(),
+                    "duration_minutes": slot['duration_minutes'],
+                    "warning": "all_videos_in_cooldown"
+                }
+                scheduled_events.append(event)
+                scheduling_log["decisions"].append({
+                    "slot": slot_index,
+                    "video": video_url,
+                    "action": "forced_schedule_cooldown_override",
+                    "reason": "all_videos_in_cooldown"
+                })
+                scheduling_log["scheduled"] += 1
+            
+            slot_index += 1
+        
+        return {
+            "status": "success",
+            "scheduled_events": scheduled_events,
+            "log": scheduling_log,
+            "coverage": f"{(scheduling_log['scheduled'] / len(slots) * 100):.1f}%"
+        }
+
+
 class M3UMatrixPro:
     def __init__(self, base_dir="."):
         self.base_dir = Path(base_dir)
@@ -805,6 +975,26 @@ class M3UMatrixPro:
         except Exception as e:
             return {"status": "error", "message": str(e)}
 
+    def schedule_playlist(self, playlist_links: List[str], start_time: datetime, 
+                         duration_hours: int, slot_minutes: int = 30,
+                         cooldown_hours: int = 48, shuffle: bool = True) -> Dict[str, Any]:
+        """Auto-fill calendar with playlist links using Fisher-Yates shuffle and cooldown enforcement"""
+        try:
+            # Create calendar slots
+            slots = ScheduleAlgorithm.create_schedule_slots(start_time, duration_hours, slot_minutes)
+            
+            # Run auto-fill algorithm
+            result = ScheduleAlgorithm.auto_fill_schedule(
+                playlist_links, 
+                slots, 
+                cooldown_hours=cooldown_hours, 
+                shuffle=shuffle
+            )
+            
+            return result
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
     def get_system_info(self) -> Dict[str, Any]:
         """Get system information"""
         playlists = len(self.config.get("playlists", []))
@@ -848,6 +1038,7 @@ if __name__ == "__main__":
     parser.add_argument('--export-schedule-xml', nargs=2, metavar=('SCHEDULE_ID', 'OUTPUT_FILE'), help='Export schedule to TVGuide XML')
     parser.add_argument('--export-schedule-json', nargs=2, metavar=('SCHEDULE_ID', 'OUTPUT_FILE'), help='Export schedule to JSON')
     parser.add_argument('--export-all-xml', metavar='OUTPUT_FILE', help='Export all schedules to TVGuide XML')
+    parser.add_argument('--schedule-playlist', nargs=4, metavar=('PLAYLIST_JSON', 'START_TIME', 'HOURS', 'OUTPUT_FILE'), help='Auto-fill schedule with playlist links')
     
     args = parser.parse_args()
     matrix = M3UMatrixPro()
@@ -878,6 +1069,18 @@ if __name__ == "__main__":
         print(json.dumps(matrix.export_schedule_json(args.export_schedule_json[0], args.export_schedule_json[1]), indent=2))
     elif args.export_all_xml:
         print(json.dumps(matrix.export_all_schedules_xml(args.export_all_xml), indent=2))
+    elif args.schedule_playlist:
+        playlist = json.loads(args.schedule_playlist[0])
+        start_dt = TimestampParser.parse_iso8601(args.schedule_playlist[1])
+        if start_dt:
+            hours = int(args.schedule_playlist[2])
+            output = args.schedule_playlist[3]
+            result = matrix.schedule_playlist(playlist, start_dt, hours)
+            with open(output, 'w') as f:
+                json.dump(result, f, indent=2)
+            print(json.dumps({"status": "success", "output": output, "scheduled": result.get("log", {}).get("scheduled")}, indent=2))
+        else:
+            print(json.dumps({"status": "error", "message": "Invalid start time"}, indent=2))
     else:
         print("ScheduleFlow M3U Matrix Pro v2.1.0 - CLI Tool")
         print("Use --help for available commands")
