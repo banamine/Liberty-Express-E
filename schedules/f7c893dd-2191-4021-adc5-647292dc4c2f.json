@@ -1,0 +1,35 @@
+{
+  "id": "f7c893dd-2191-4021-adc5-647292dc4c2f",
+  "name": "test_complete_flow",
+  "source": "json",
+  "filepath": "/tmp/test_complete_flow.json",
+  "imported": "2025-11-22T22:42:09.587843+00:00",
+  "events": [
+    {
+      "title": "News Hour",
+      "start": "2025-11-23T14:00:00Z",
+      "end": "2025-11-23T15:00:00Z"
+    },
+    {
+      "title": "Talk Show",
+      "start": "2025-11-23T15:00:00Z",
+      "end": "2025-11-23T17:00:00Z"
+    }
+  ],
+  "metadata": {
+    "total_imported": 3,
+    "duplicates_removed": 1,
+    "conflicts_detected": 0,
+    "unique_events": 2
+  },
+  "warnings": {
+    "duplicates": [
+      {
+        "title": "News Hour",
+        "start": "2025-11-23T14:00:00Z",
+        "end": "2025-11-23T15:00:00Z"
+      }
+    ],
+    "conflicts": []
+  }
+}

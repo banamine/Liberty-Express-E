@@ -11,15 +11,90 @@
     - Do not make changes to the `Sample Playlists/` folder.
     - Do not make changes to the `M3U_MATRIX_README.md` file.
     - Ensure all changes are well-documented within the code.
+- **Code Audit:** Under-claim, never hallucinate. Verify before claiming functionality works.
 
-## Fixed Issues (Nov 22, Session 2, Round 2)
-### ✅ CONTROL HUB WIRED UP - NOW FUNCTIONAL
-- **Problem:** Interactive_hub had UI but no backend - buttons didn't do anything
-- **Solution:** Created complete integration layer
-  - **M3U_Matrix_Pro.py** - Full desktop Python app with file operations
-  - **API Endpoints** - Added to Node server: `/api/pages`, `/api/save-playlist`, `/api/config`, `/api/system-info`
-  - **Frontend Wiring** - Interactive_hub functions now call real API endpoints that save/load files
-- **Result:** Dashboard now ACTUALLY creates schedules, imports playlists, exports data, lists pages
+## Fixed Issues & Implementation (Nov 22, Session 3)
+### ✅ PRODUCTION-READY IMPORT/EXPORT/SCHEDULE SYSTEM
+**Status:** COMPLETE with full validation, UTC normalization, duplicate detection, conflict detection
+
+#### What Was Implemented:
+1. **Schedule Validators** - XML/JSON schema validation with error reporting
+   - Validates root elements, event structure, required fields
+   - Detects malformed XML (rejects parse errors)
+   - Validates JSON schema (checks object structure, required fields)
+
+2. **Timestamp Parser** - ISO 8601 parsing with UTC normalization
+   - Parses formats: 2025-11-22T10:00:00Z, 2025-11-22T10:00:00-05:00, 2025-11-22T10:00:00+01:00
+   - Converts all timezones to UTC
+   - Returns consistent ISO 8601 UTC strings (e.g., 2025-11-22T15:00:00Z)
+
+3. **Duplicate Detector** - Cryptographic hash-based detection
+   - Uses MD5(title:start_time) for duplicate identification
+   - Detects exact duplicates (same title + same start time)
+   - Removes duplicates from imported schedules, reports count
+
+4. **Conflict Detector** - Overlapping timeslot detection
+   - Detects all overlapping event pairs
+   - Returns conflict details (event indices, titles, start/end times)
+   - Reports conflicts in import result
+
+5. **Import Functions**
+   - `import_schedule_xml(filepath)` - Import TVGuide XML with validation
+   - `import_schedule_json(filepath)` - Import schedule JSON with validation
+   - `import_m3u(filepath)` - Import M3U playlists (simple format)
+   - All return: schedule_id, events_imported, duplicates_removed, conflicts_detected
+
+6. **API Endpoints**
+   - `POST /api/import-schedule` - Trigger import (XML or JSON)
+   - `GET /api/schedules` - List all imported schedules with validation metadata
+   - `GET /api/playlists` - List all playlists
+   - All endpoints call Python backend via subprocess
+
+#### Audit Test Results (Nov 22, 2025):
+✅ **Test 1: Malformed XML Rejection**
+- Input: Incomplete XML (missing closing tags)
+- Expected: Parse error, error status
+- Result: PASS - Returns `{"status":"error","type":"parse_error",...}`
+
+✅ **Test 2: Timezone Normalization**
+- Input: 3 events in different timezones (-05:00, +01:00, Z)
+- Expected: All times converted to UTC
+- Result: PASS - 2025-11-22T10:00:00-05:00 → 2025-11-22T15:00:00Z, 2025-11-22T10:00:00+01:00 → 2025-11-22T09:00:00Z
+
+✅ **Test 3: Duplicate Detection**
+- Input: 3 events (1 duplicate: "Morning Show" imported twice with same start time)
+- Expected: 1 duplicate removed, returned in warnings
+- Result: PASS - `"duplicates_removed": 1, "warnings": {"duplicates": [...]}` with event data
+
+✅ **Bonus Test 4: Conflict Detection**
+- Input: 2 overlapping events (Morning Show 15:00-17:00, Afternoon Special 14:00-16:00)
+- Expected: Overlap detected
+- Result: PASS - `"conflicts_detected": 1` with event pair details
+
+#### Files Created/Modified:
+- **M3U_Matrix_Pro.py** (v2.1.0)
+  - Added: TimestampParser, ScheduleValidator, DuplicateDetector, ConflictDetector classes
+  - Added: `import_schedule_xml()`, `import_schedule_json()`, `_extract_xml_event()` methods
+  - All using Python stdlib only (xml.etree.ElementTree, datetime, hashlib, uuid)
+  - CLI arguments: `--import-schedule-xml FILE`, `--import-schedule-json FILE`
+  - Removed Flask dependency (was failing)
+
+- **api_server.js**
+  - Added: `/api/import-schedule` (POST)
+  - Added: `/api/schedules` (GET)
+  - Added: `/api/playlists` (GET)
+  - All call Python backend via subprocess spawn
+
+- **Schedules Storage**
+  - Each imported schedule saved to `schedules/{schedule_id}.json`
+  - Metadata includes: total_imported, duplicates_removed, conflicts_detected
+  - Warnings stored: duplicate events, conflict pairs with full details
+
+#### Known Limitations:
+- No conflict resolution (auto-merge, time-shift, etc.) - only detection
+- No XSD validation for XML (uses loose schema validation)
+- No database (uses JSON files in filesystem)
+- No UI for viewing/editing conflict details (data is stored, awaiting UI)
 
 ## System Architecture
 
@@ -35,6 +110,7 @@ The project features various UI/UX designs tailored for specific player types:
 - **Keyboard Command Center:** Features a user-friendly interface with category filtering, search, preset configuration, and persistent settings.
 - **ScheduleFlow Carousel:** Responsive UI with a live clock, dots navigator, and fullscreen support.
 - **M3U Scheduler:** Drag-and-drop interface for 24-hour planning with visual feedback.
+- **Interactive Hub:** Control dashboard with bubble navigation for managing playlists, schedules, exports, and players.
 
 ### Technical Implementations
 - **Core Scheduling Logic:** Intelligent drag-and-drop scheduling with 1-minute precision, auto-filler system for gap management, category balancing for content rotation, multi-week planning with recurring events.
@@ -47,6 +123,7 @@ The project features various UI/UX designs tailored for specific player types:
 - **Auto-Deployment:** Integration with `Core_Modules/github_deploy.py` for automated pushing of generated web pages to a specified GitHub repository.
 - **Rumble Integration:** Utilizes iframe embedding, automatic URL detection, and oEmbed API for metadata retrieval.
 - **NDI Output Control Center:** For NDI stream management in the Python desktop application.
+- **Schedule Validation Engine:** Production-ready import/export with XML/JSON schema validation, timestamp parsing, timezone normalization, duplicate detection, and conflict detection.
 
 ### Feature Specifications
 - **ScheduleFlow:** Core M3U parsing, channel validation, EPG fetching, settings management, error handling, XSS prevention, URL validation, Rumble URL detection, Navigation Hub integration, and NDI Output Control Center.
@@ -54,6 +131,7 @@ The project features various UI/UX designs tailored for specific player types:
 - **Multi-Channel Viewer:** Advanced multi-viewing with grid layout selector, smart audio management, configurable rotation scheduler, and focus mode.
 - **Buffer TV:** Buffering optimization, numeric keypad, adjustable load timeout/retry delay, automatic retry, TV Guide, and quick category access.
 - **Advanced Player Controls:** Includes features like skip forward/backward (10s, 20s, 30s, 1m), full-range volume control, fullscreen toggle, multi-screen grid viewing (up to 6 videos), auto-hiding control bars, timestamp-based video clipping, and screenshot capture.
+- **Import/Export/Schedule System:** XML/JSON validation, ISO 8601 timestamp parsing with UTC normalization, MD5-based duplicate detection, overlapping timeslot detection, comprehensive error reporting.
 - **Audit Report:** Generates a comprehensive report detailing test coverage, function status, code quality, and cleanup.
 
 ### System Design Choices
@@ -63,6 +141,7 @@ The project features various UI/UX designs tailored for specific player types:
 - **Local Persistence:** Data is persisted using JSON files for desktop apps and `localStorage` for web apps.
 - **Automated Deployments:** Configured for Replit Autoscale deployment and GitHub Pages.
 - **Standalone Page Generation:** Self-contained generated pages with embedded playlist data and bundled dependencies for offline functionality.
+- **Production-Ready Validation:** All imports validated against schema, timestamps normalized to UTC, duplicates detected via cryptographic hashing, conflicts detected via interval overlap detection.
 
 ## External Dependencies
 
@@ -74,6 +153,7 @@ The project features various UI/UX designs tailored for specific player types:
 - **FFmpeg:** For video processing, metadata extraction, and screenshot generation.
 - **VLC Media Player:** For embedded video playback.
 - **Rumble oEmbed API:** Public API for fetching video metadata.
+- **Python stdlib only for import/export:** xml.etree.ElementTree, datetime, hashlib, uuid, json, pathlib (NO Flask, NO external dependencies)
 
 ### Web Applications (All Player Templates)
 - **npx serve:** (Optional) For static file serving during development/testing.
@@ -81,3 +161,23 @@ The project features various UI/UX designs tailored for specific player types:
 - **dash.js:** For DASH (Dynamic Adaptive Streaming over HTTP) playback.
 - **Feather Icons:** For scalable vector icons.
 - **System Fonts:** Standard browser fonts used for text rendering.
+
+## API Endpoints (ScheduleFlow v2.1.0)
+
+### System Management
+- `GET /api/system-info` - Returns version, page count, platform info
+- `GET /api/pages` - Lists all generated HTML player pages
+
+### Playlists (M3U Format)
+- `GET /api/playlists` - Lists all imported playlists
+- `POST /api/save-playlist` - Save playlist items to M3U file
+
+### Schedules (XML/JSON)
+- `GET /api/schedules` - Lists all imported schedules with validation metadata
+- `POST /api/import-schedule` - Import schedule from XML/JSON file with validation
+
+### Configuration
+- `GET /api/config` - Retrieve current configuration
+- `POST /api/config` - Update configuration
+
+All API endpoints return JSON with status field and detailed error messages.

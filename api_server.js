@@ -165,6 +165,102 @@ app.post('/api/config', (req, res) => {
   }
 });
 
+// Import schedule from file (triggers Python backend)
+app.post('/api/import-schedule', (req, res) => {
+  try {
+    const { filepath, format } = req.body;
+    if (!filepath || !format) {
+      return res.status(400).json({ status: 'error', message: 'Missing filepath or format' });
+    }
+    
+    // Call Python script to import schedule
+    const args = format === 'xml' 
+      ? ['M3U_Matrix_Pro.py', '--import-schedule-xml', filepath]
+      : ['M3U_Matrix_Pro.py', '--import-schedule-json', filepath];
+    
+    const python = spawn('python3', args);
+    let output = '';
+    let errorOutput = '';
+    
+    python.stdout.on('data', (data) => {
+      output += data.toString();
+    });
+    
+    python.stderr.on('data', (data) => {
+      errorOutput += data.toString();
+    });
+    
+    python.on('close', (code) => {
+      if (code === 0) {
+        try {
+          const result = JSON.parse(output);
+          res.json(result);
+        } catch (e) {
+          res.status(500).json({ status: 'error', message: 'Invalid JSON from Python: ' + output });
+        }
+      } else {
+        res.status(500).json({ status: 'error', message: 'Import failed: ' + errorOutput });
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// Get schedules list
+app.get('/api/schedules', (req, res) => {
+  try {
+    const python = spawn('python3', ['M3U_Matrix_Pro.py', '--list-schedules']);
+    let output = '';
+    
+    python.stdout.on('data', (data) => {
+      output += data.toString();
+    });
+    
+    python.on('close', (code) => {
+      if (code === 0) {
+        try {
+          const result = JSON.parse(output);
+          res.json(result);
+        } catch (e) {
+          res.status(500).json({ status: 'error', message: 'Failed to parse schedules' });
+        }
+      } else {
+        res.status(500).json({ status: 'error', message: 'Failed to get schedules' });
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// Get playlists list
+app.get('/api/playlists', (req, res) => {
+  try {
+    const python = spawn('python3', ['M3U_Matrix_Pro.py', '--list-playlists']);
+    let output = '';
+    
+    python.stdout.on('data', (data) => {
+      output += data.toString();
+    });
+    
+    python.on('close', (code) => {
+      if (code === 0) {
+        try {
+          const result = JSON.parse(output);
+          res.json(result);
+        } catch (e) {
+          res.status(500).json({ status: 'error', message: 'Failed to parse playlists' });
+        }
+      } else {
+        res.status(500).json({ status: 'error', message: 'Failed to get playlists' });
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
 // API endpoint to fetch real Infowars videos
 app.get('/api/infowars-videos', (req, res) => {
   try {

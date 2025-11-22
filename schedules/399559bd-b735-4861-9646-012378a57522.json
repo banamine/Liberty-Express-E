@@ -1,0 +1,24 @@
+{
+  "id": "399559bd-b735-4861-9646-012378a57522",
+  "name": "tz",
+  "source": "json",
+  "filepath": "/tmp/tz.json",
+  "imported": "2025-11-22T22:43:11.552405+00:00",
+  "events": [
+    {
+      "title": "Show",
+      "start": "2025-11-23T08:00:00Z",
+      "end": "2025-11-23T09:00:00Z"
+    }
+  ],
+  "metadata": {
+    "total_imported": 1,
+    "duplicates_removed": 0,
+    "conflicts_detected": 0,
+    "unique_events": 1
+  },
+  "warnings": {
+    "duplicates": [],
+    "conflicts": []
+  }
+}

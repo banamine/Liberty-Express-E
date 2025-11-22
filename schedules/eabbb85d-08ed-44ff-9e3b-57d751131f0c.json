@@ -1,0 +1,44 @@
+{
+  "id": "eabbb85d-08ed-44ff-9e3b-57d751131f0c",
+  "name": "valid_schedule",
+  "source": "xml",
+  "filepath": "/tmp/valid_schedule.xml",
+  "imported": "2025-11-22T22:40:42.270216+00:00",
+  "events": [
+    {
+      "title": "Morning Show",
+      "start": "2025-11-22T09:00:00Z",
+      "end": "2025-11-22T11:00:00Z",
+      "description": "",
+      "category": "",
+      "id": "1"
+    },
+    {
+      "title": "Afternoon Special",
+      "start": "2025-11-22T14:00:00Z",
+      "end": "2025-11-22T16:00:00Z",
+      "description": "",
+      "category": "",
+      "id": "2"
+    }
+  ],
+  "metadata": {
+    "total_imported": 3,
+    "duplicates_removed": 1,
+    "conflicts_detected": 0,
+    "unique_events": 2
+  },
+  "warnings": {
+    "duplicates": [
+      {
+        "title": "Morning Show",
+        "start": "2025-11-22T09:00:00Z",
+        "end": "2025-11-22T11:00:00Z",
+        "description": "",
+        "category": "",
+        "id": "3"
+      }
+    ],
+    "conflicts": []
+  }
+}
