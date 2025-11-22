@@ -261,29 +261,83 @@
             bottom: 20px;
             width: 320px;
             max-width: 95vw;
+            max-height: 90vh;
             background: linear-gradient(135deg, rgba(20, 25, 50, 0.95), rgba(30, 35, 60, 0.95));
             border-radius: 15px;
-            padding: 15px;
+            padding: 0;
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
             border: 2px solid rgba(0, 255, 255, 0.3);
             transform-style: preserve-3d;
             z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
 
         .right-panel-header {
-            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             color: #00ffff;
-            margin-bottom: 15px;
             font-size: 13px;
             cursor: move;
-            padding: 8px;
-            border-radius: 8px;
+            padding: 12px 15px;
+            border-radius: 15px 15px 0 0;
             transition: background 0.3s ease;
             user-select: none;
+            background: rgba(0, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+            flex-shrink: 0;
         }
 
         .right-panel-header:hover {
             background: rgba(0, 255, 255, 0.1);
+        }
+
+        .minimize-btn {
+            background: rgba(255, 100, 100, 0.3);
+            border: 1px solid rgba(255, 100, 100, 0.5);
+            color: #ff6464;
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .minimize-btn:hover {
+            background: rgba(255, 100, 100, 0.5);
+            transform: scale(1.1);
+        }
+
+        .right-panel-content {
+            padding: 15px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            flex: 1;
+            scroll-behavior: smooth;
+        }
+
+        .right-panel-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .right-panel-content::-webkit-scrollbar-track {
+            background: rgba(0, 255, 255, 0.05);
+            border-radius: 3px;
+        }
+
+        .right-panel-content::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.3), rgba(255, 0, 255, 0.3));
+            border-radius: 3px;
+        }
+
+        .right-panel-content::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.5), rgba(255, 0, 255, 0.5));
         }
 
         .numpad-title {
@@ -668,10 +722,11 @@
 
     <!-- Numeric Keypad -->
     <div class="numpad-container" id="rightPanel">
-        <div class="right-panel-header" style="color: #00ffff; font-size: 14px; font-weight: bold; margin-bottom: 15px; text-align: center; cursor: move; user-select: none; padding: 10px; border-radius: 8px; background: rgba(0, 255, 255, 0.1); border: 1px solid rgba(0, 255, 255, 0.3);">
-            ⌨️ ScheduleFlow Advanced Options
+        <div class="right-panel-header" id="panelHeader">
+            <span>⌨️ ScheduleFlow Advanced Options</span>
+            <button class="minimize-btn" id="minimizeBtn" onclick="toggleMinimize()" title="Double-click header to toggle">−</button>
         </div>
-        <div class="right-panel-content">
+        <div class="right-panel-content" id="panelContent">
         <div class="numpad-title">Quick Jump & Execute</div>
         <!-- Quick Playlist Input -->
         <div style="margin-bottom: 15px;">
@@ -1392,33 +1447,75 @@
             isDragging = false;
         }
         
-        function minimizeKeyboard() {
-            const container = document.getElementById('rightPanel');
-            const header = container.querySelector('.right-panel-header');
-            const content = container.querySelector('.right-panel-content');
-            
+        function toggleMinimize() {
             isMinimized = !isMinimized;
+            const content = document.getElementById('panelContent');
+            const btn = document.getElementById('minimizeBtn');
+            
             if (isMinimized) {
                 content.style.display = 'none';
-                header.style.cursor = 'pointer';
-                header.innerHTML = '⌨️ ScheduleFlow Advanced Options';
-                showNotification('Keyboard minimized - Click header to expand', 'info');
+                btn.textContent = '+';
+                btn.title = 'Expand';
+                showNotification('Panel minimized', 'info');
             } else {
                 content.style.display = 'block';
-                header.style.cursor = 'move';
-                showNotification('Keyboard expanded', 'info');
+                btn.textContent = '−';
+                btn.title = 'Minimize';
+                showNotification('Panel expanded', 'info');
             }
         }
         
-        // Toggle minimize on header double-click
+        // Setup drag and drop
         document.addEventListener('DOMContentLoaded', () => {
-            const header = document.querySelector('.right-panel-header');
+            const header = document.getElementById('panelHeader');
+            const container = document.getElementById('rightPanel');
+            
             if (header) {
-                header.addEventListener('dblclick', minimizeKeyboard);
-                header.addEventListener('mousedown', startDrag);
+                // Drag on header
+                header.addEventListener('mousedown', (e) => {
+                    // Don't drag if clicking the button
+                    if (e.target.closest('.minimize-btn')) return;
+                    
+                    isDragging = true;
+                    const rect = container.getBoundingClientRect();
+                    dragX = e.clientX - rect.left;
+                    dragY = e.clientY - rect.top;
+                    container.style.right = 'auto';
+                    container.style.bottom = 'auto';
+                });
             }
-            document.addEventListener('mousemove', drag);
-            document.addEventListener('mouseup', stopDrag);
+            
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                const container = document.getElementById('rightPanel');
+                if (!container) return;
+                
+                containerX = e.clientX - dragX;
+                containerY = e.clientY - dragY;
+                
+                // Snap to grid (20px)
+                containerX = Math.round(containerX / 20) * 20;
+                containerY = Math.round(containerY / 20) * 20;
+                
+                // Keep within bounds
+                const minX = 10;
+                const maxX = window.innerWidth - 340;
+                const minY = 10;
+                const maxY = window.innerHeight - 50;
+                
+                containerX = Math.max(minX, Math.min(maxX, containerX));
+                containerY = Math.max(minY, Math.min(maxY, containerY));
+                
+                container.style.left = containerX + 'px';
+                container.style.top = containerY + 'px';
+                container.style.position = 'fixed';
+                container.style.right = 'auto';
+                container.style.bottom = 'auto';
+            });
+            
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
         });
 
         // Add animation keyframes
