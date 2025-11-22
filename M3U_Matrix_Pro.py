@@ -169,81 +169,22 @@ class M3UMatrixPro:
         return {"status": "success", "message": "All configurations cleared"}
 
 
-# API Endpoints for web integration
-def get_api_server():
-    """Start a local API server for the web UI"""
-    from flask import Flask, request, jsonify
-    
-    app = Flask(__name__)
-    matrix = M3UMatrixPro()
-    
-    @app.route('/api/playlists', methods=['GET'])
-    def list_playlists():
-        return jsonify(matrix.get_playlists())
-    
-    @app.route('/api/schedules', methods=['GET'])
-    def list_schedules():
-        return jsonify(matrix.get_schedules())
-    
-    @app.route('/api/pages', methods=['GET'])
-    def list_pages():
-        return jsonify(matrix.list_generated_pages())
-    
-    @app.route('/api/system-info', methods=['GET'])
-    def system_info():
-        return jsonify(matrix.get_system_info())
-    
-    @app.route('/api/import-m3u', methods=['POST'])
-    def import_playlist():
-        data = request.json
-        result = matrix.import_m3u(data.get('filepath'))
-        return jsonify(result)
-    
-    @app.route('/api/create-schedule', methods=['POST'])
-    def create_schedule():
-        data = request.json
-        result = matrix.create_schedule(data.get('name'), data.get('items', []))
-        return jsonify(result)
-    
-    @app.route('/api/export-m3u', methods=['POST'])
-    def export_playlist():
-        data = request.json
-        result = matrix.export_m3u(data.get('items', []), data.get('output_path'))
-        return jsonify(result)
-    
-    @app.route('/api/export-caspar', methods=['POST'])
-    def export_caspar():
-        data = request.json
-        result = matrix.export_to_caspar(data.get('schedule', []), data.get('output_path'))
-        return jsonify(result)
-    
-    @app.route('/api/clear-all', methods=['POST'])
-    def clear_all():
-        return jsonify(matrix.clear_config())
-    
-    return app
-
-
 if __name__ == "__main__":
     import argparse
     
-    parser = argparse.ArgumentParser(description="ScheduleFlow M3U Matrix Pro")
-    parser.add_argument('--server', action='store_true', help='Start Flask API server')
-    parser.add_argument('--port', type=int, default=5001, help='API server port')
+    parser = argparse.ArgumentParser(description="ScheduleFlow M3U Matrix Pro - CLI Control Tool")
     parser.add_argument('--info', action='store_true', help='Show system info')
     parser.add_argument('--import-m3u', metavar='FILE', help='Import M3U playlist')
     parser.add_argument('--list-playlists', action='store_true', help='List all playlists')
     parser.add_argument('--list-schedules', action='store_true', help='List all schedules')
     parser.add_argument('--list-pages', action='store_true', help='List generated pages')
+    parser.add_argument('--export-m3u', nargs=2, metavar=('ITEMS_JSON', 'OUTPUT_FILE'), help='Export items to M3U file')
+    parser.add_argument('--export-caspar', nargs=2, metavar=('SCHEDULE_JSON', 'OUTPUT_FILE'), help='Export schedule to CasparCG XML')
     
     args = parser.parse_args()
     matrix = M3UMatrixPro()
     
-    if args.server:
-        print(f"🚀 Starting ScheduleFlow API server on port {args.port}...")
-        app = get_api_server()
-        app.run(host='127.0.0.1', port=args.port, debug=False)
-    elif args.info:
+    if args.info:
         print(json.dumps(matrix.get_system_info(), indent=2))
     elif args.import_m3u:
         print(json.dumps(matrix.import_m3u(args.import_m3u), indent=2))
@@ -253,11 +194,19 @@ if __name__ == "__main__":
         print(json.dumps(matrix.get_schedules(), indent=2))
     elif args.list_pages:
         print(json.dumps(matrix.list_generated_pages(), indent=2))
+    elif args.export_m3u:
+        items = json.loads(args.export_m3u[0])
+        print(json.dumps(matrix.export_m3u(items, args.export_m3u[1]), indent=2))
+    elif args.export_caspar:
+        schedule = json.loads(args.export_caspar[0])
+        print(json.dumps(matrix.export_to_caspar(schedule, args.export_caspar[1]), indent=2))
     else:
-        print("ScheduleFlow M3U Matrix Pro v2.0.0")
+        print("ScheduleFlow M3U Matrix Pro v2.0.0 - CLI Tool")
         print("Use --help for available commands")
         print("\nQuick start:")
-        print("  python M3U_Matrix_Pro.py --info              # Show system info")
-        print("  python M3U_Matrix_Pro.py --list-pages        # List generated pages")
-        print("  python M3U_Matrix_Pro.py --import-m3u FILE   # Import playlist")
-        print("  python M3U_Matrix_Pro.py --server --port 5001 # Start API server")
+        print("  python M3U_Matrix_Pro.py --info                    # Show system info")
+        print("  python M3U_Matrix_Pro.py --list-pages              # List all generated pages")
+        print("  python M3U_Matrix_Pro.py --list-playlists          # List imported playlists")
+        print("  python M3U_Matrix_Pro.py --import-m3u FILE         # Import M3U playlist")
+        print("  python M3U_Matrix_Pro.py --list-schedules          # List created schedules")
+        print("\nNote: Web API available at http://localhost:5000/api/*")
