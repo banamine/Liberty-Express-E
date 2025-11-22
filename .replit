@@ -17,15 +17,15 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Web Server"
+args = "ScheduleFlow API Server"
 
 [[workflows.workflow]]
-name = "Web Server"
+name = "ScheduleFlow API Server"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npx serve -l 5000 --no-clipboard"
+args = "node api_server.js"
 waitForPort = 5000
 
 [workflows.workflow.metadata]
@@ -34,14 +34,6 @@ outputType = "webview"
 [[ports]]
 localPort = 5000
 externalPort = 80
-
-[[ports]]
-localPort = 33789
-externalPort = 3000
-
-[[ports]]
-localPort = 34727
-externalPort = 3001
 
 [deployment]
 deploymentTarget = "autoscale"
