@@ -7,18 +7,19 @@ const fs = require('fs');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Enable CORS for API endpoints
+// Middleware
+app.use(express.json());
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, DELETE');
   res.header('Access-Control-Allow-Headers', 'Content-Type');
+  res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
   next();
 });
 
 // Middleware to serve .html files when no extension is provided
 app.use((req, res, next) => {
   if (!path.extname(req.path)) {
-    // Try to serve as .html if no extension
     const htmlPath = path.join(__dirname, 'generated_pages', req.path + '.html');
     if (fs.existsSync(htmlPath)) {
       return res.sendFile(htmlPath);
@@ -65,6 +66,104 @@ function fetchHttp(url) {
     });
   });
 }
+
+// ========== SCHEDULEFLOW API ENDPOINTS ==========
+
+// Get system info
+app.get('/api/system-info', (req, res) => {
+  try {
+    const pagesDir = path.join(__dirname, 'generated_pages');
+    let pageCount = 0;
+    if (fs.existsSync(pagesDir)) {
+      pageCount = fs.readdirSync(pagesDir).filter(f => f.endsWith('.html')).length;
+    }
+    
+    res.json({
+      status: 'success',
+      version: '2.0.0',
+      platform: 'Web & Desktop',
+      pages_generated: pageCount,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// List all generated pages
+app.get('/api/pages', (req, res) => {
+  try {
+    const pagesDir = path.join(__dirname, 'generated_pages');
+    const pages = [];
+    
+    if (fs.existsSync(pagesDir)) {
+      fs.readdirSync(pagesDir).forEach(file => {
+        if (file.endsWith('.html')) {
+          const filePath = path.join(pagesDir, file);
+          const stat = fs.statSync(filePath);
+          pages.push({
+            name: file,
+            path: `/generated_pages/${file}`,
+            size: stat.size,
+            modified: stat.mtime.toISOString()
+          });
+        }
+      });
+    }
+    
+    res.json({ status: 'success', pages, count: pages.length });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// Save a new playlist to file
+app.post('/api/save-playlist', (req, res) => {
+  try {
+    const { filename, items } = req.body;
+    if (!filename || !items) {
+      return res.status(400).json({ status: 'error', message: 'Missing filename or items' });
+    }
+    
+    let m3uContent = '#EXTM3U\n';
+    items.forEach(item => {
+      m3uContent += `#EXTINF:-1,${item.label || 'Item'}\n${item.url}\n`;
+    });
+    
+    const filepath = path.join(__dirname, `${filename}.m3u`);
+    fs.writeFileSync(filepath, m3uContent);
+    
+    res.json({ status: 'success', path: filepath, items: items.length });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// Get configuration
+app.get('/api/config', (req, res) => {
+  try {
+    const configPath = path.join(__dirname, 'm3u_matrix_settings.json');
+    if (fs.existsSync(configPath)) {
+      const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+      res.json({ status: 'success', config });
+    } else {
+      res.json({ status: 'success', config: { playlists: [], schedules: [] } });
+    }
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// Save configuration
+app.post('/api/config', (req, res) => {
+  try {
+    const configPath = path.join(__dirname, 'm3u_matrix_settings.json');
+    fs.writeFileSync(configPath, JSON.stringify(req.body, null, 2));
+    res.json({ status: 'success', message: 'Configuration saved' });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
 
 // API endpoint to fetch real Infowars videos
 app.get('/api/infowars-videos', (req, res) => {
