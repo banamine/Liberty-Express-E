@@ -415,6 +415,25 @@
             background: linear-gradient(135deg, rgba(27, 174, 96, 0.7), rgba(46, 204, 113, 0.7));
         }
 
+        /* Drawer Overlay - Prevents interaction with main keyboard when drawer is open */
+        .drawer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0);
+            display: none;
+            z-index: 14000;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .drawer-overlay.active {
+            display: block;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
         /* Info Drawer */
         .info-drawer {
             position: fixed;
@@ -588,6 +607,9 @@
         </div>
     </div>
 
+    <!-- Drawer Overlay - Click to close drawer -->
+    <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+
     <!-- Info Drawer -->
     <div class="info-drawer" id="infoDrawer">
         <div class="drawer-close" onclick="closeDrawer()">×</div>
@@ -713,10 +735,12 @@
             document.getElementById('drawerShortcut').textContent = key.shortcut;
             document.getElementById('drawerDescription').textContent = `Press key ${key.id} or click button to execute`;
             document.getElementById('infoDrawer').classList.add('active');
+            document.getElementById('drawerOverlay').classList.add('active');
         }
 
         function closeDrawer() {
             document.getElementById('infoDrawer').classList.remove('active');
+            document.getElementById('drawerOverlay').classList.remove('active');
         }
 
         // ========== SETTINGS ==========
