@@ -1,0 +1,123 @@
+{
+  "metadata": {
+    "generated": "2025-11-19 14:05:41",
+    "total_channels": 11,
+    "app_version": "M3U Matrix Pro v4.0",
+    "format": "M3U Matrix JSON Export"
+  },
+  "channels": [
+    {
+      "uuid": "538fcd0a-051b-4cdc-a33a-0520335b8e96",
+      "number": 1,
+      "name": "?pub=4",
+      "url": "https://rumble.com/embed/v6yvch6/?pub=4",
+      "logo": "",
+      "group": "Imported",
+      "tvg_id": "",
+      "custom_tags": {}
+    },
+    {
+      "uuid": "67aab6a9-deef-42b8-adf1-e46d2ab62955",
+      "number": 2,
+      "name": "?pub=4",
+      "url": "https://rumble.com/embed/v64cgzd/?pub=4",
+      "logo": "",
+      "group": "Imported",
+      "tvg_id": "",
+      "custom_tags": {}
+    },
+    {
+      "uuid": "a0988635-6c30-4f96-a74a-f3110938c424",
+      "number": 3,
+      "name": "?pub=4",
+      "url": "https://rumble.com/embed/v6ykv1w/?pub=4",
+      "logo": "",
+      "group": "Imported",
+      "tvg_id": "",
+      "custom_tags": {}
+    },
+    {
+      "uuid": "0b2edc80-c1c9-4a1e-ad5a-47508306579a",
+      "number": 4,
+      "name": "?pub=4",
+      "url": "https://rumble.com/embed/v6vljk2/?pub=4",
+      "logo": "",
+      "group": "Imported",
+      "tvg_id": "",
+      "custom_tags": {}
+    },
+    {
+      "uuid": "e0471fe8-44a5-4219-92f4-200bb9977b76",
+      "number": 5,
+      "name": "?pub=4",
+      "url": "https://rumble.com/embed/v6zs3g2/?pub=4",
+      "logo": "",
+      "group": "Imported",
+      "tvg_id": "",
+      "custom_tags": {}
+    },
+    {
+      "uuid": "ed1c8a36-576f-4222-a7b8-6bbb0d97f3a5",
+      "number": 6,
+      "name": "?pub=4",
+      "url": "https://rumble.com/embed/v6zqz8m/?pub=4",
+      "logo": "",
+      "group": "Imported",
+      "tvg_id": "",
+      "custom_tags": {}
+    },
+    {
+      "uuid": "06570417-052a-4aee-b053-b96c6d0526e0",
+      "number": 7,
+      "name": "?pub=4",
+      "url": "https://rumble.com/embed/v6ve0rg/?pub=4",
+      "logo": "",
+      "group": "Imported",
+      "tvg_id": "",
+      "custom_tags": {}
+    },
+    {
+      "uuid": "3c8dacec-743f-4aa7-aa62-795676f96080",
+      "number": 8,
+      "name": "?pub=4",
+      "url": "https://rumble.com/embed/v5xwnen/?pub=4",
+      "logo": "",
+      "group": "Imported",
+      "tvg_id": "",
+      "custom_tags": {}
+    },
+    {
+      "uuid": "6f557d7d-f9a8-4cf3-b8c0-35f5a498543f",
+      "number": 9,
+      "name": "?pub=4",
+      "url": "https://rumble.com/embed/v6zjh4i/?pub=4",
+      "logo": "",
+      "group": "Imported",
+      "tvg_id": "",
+      "custom_tags": {}
+    },
+    {
+      "uuid": "8841146b-f38f-42d2-b5ae-9ccab9a7ab50",
+      "number": 10,
+      "name": "?pub=4",
+      "url": "https://rumble.com/embed/v6zqu04/?pub=4",
+      "logo": "",
+      "group": "Imported",
+      "tvg_id": "",
+      "custom_tags": {}
+    },
+    {
+      "uuid": "d01e2154-d90c-44ad-a4a5-66a12142c4f5",
+      "number": 11,
+      "name": "?pub=4",
+      "url": "https://rumble.com/embed/v6z64xa/?pub=4",
+      "logo": "",
+      "group": "Imported",
+      "tvg_id": "",
+      "custom_tags": {}
+    }
+  ],
+  "groups": {
+    "Imported": 11
+  }
+}

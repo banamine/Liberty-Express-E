@@ -1,0 +1,19 @@
+2025-11-19 12:40:22,777 - INFO - M3U Matrix started successfully
+2025-11-19 12:40:32,979 - INFO - Parsed 75 channels from M3U: color movies.m3u
+2025-11-19 12:45:22,798 - INFO - Autosaved to backups\autosave_20251119_124522.m3u
+2025-11-19 12:49:57,390 - INFO - Parsed 43 channels from M3U: 90s movies.m3u
+2025-11-19 12:49:57,444 - INFO - Parsed 1601 channels from M3U: BIG WESTERN ZONE.m3u
+2025-11-19 12:49:57,449 - INFO - Parsed 105 channels from M3U: Taxi.m3u
+2025-11-19 12:50:22,810 - INFO - Autosaved to backups\autosave_20251119_125022.m3u
+2025-11-19 13:46:22,841 - INFO - Autosaved to backups\autosave_20251119_134622.m3u
+2025-11-19 13:53:15,203 - ERROR - Error opening Rumble Browser: No module named 'ui'
+Traceback (most recent call last):
+  File "C:\Users\banamine\Videos\M3U MATRIX ALL IN ONE\Liberty-Express-\Core_Modules\M3U_MATRIX_PRO.py", line 3541, in open_rumble_browser
+    from ui.rumble_category_browser import RumbleCategoryBrowser
+ModuleNotFoundError: No module named 'ui'
+2025-11-19 13:58:19,761 - ERROR - Error opening Rumble Browser: No module named 'ui'
+Traceback (most recent call last):
+  File "C:\Users\banamine\Videos\M3U MATRIX ALL IN ONE\Liberty-Express-\Core_Modules\M3U_MATRIX_PRO.py", line 3541, in open_rumble_browser
+    from ui.rumble_category_browser import RumbleCategoryBrowser
+ModuleNotFoundError: No module named 'ui'
+2025-11-19 14:06:03,920 - ERROR - Failed to start M3U Matrix: can't invoke "wm" command: application has been destroyed
