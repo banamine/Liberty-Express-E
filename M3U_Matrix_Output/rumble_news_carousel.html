@@ -3,126 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>Rumble News Carousel - 40 Premium Channels</title>
-    <!-- Rumble Embed Script -->
-    <script async src="https://rumble.com/embedJS/u4" charset="utf-8"></script>
+    <title>ScheduleFlow - Rumble News Carousel | 30 Live Channels</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-            background: #0a0a0a;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #0a0a14 0%, #15151a 50%, #0a0a14 100%);
             color: #fff;
             overflow: hidden;
-            position: relative;
+            min-height: 100vh;
         }
 
-        /* Modal Overlay */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.95);
-            backdrop-filter: blur(10px);
-            z-index: 9999;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .modal-overlay.active {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        /* Main Container */
         .main-container {
-            width: 100%;
-            height: 100vh;
             display: flex;
             flex-direction: column;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            height: 100vh;
+            position: relative;
         }
 
         /* Header */
         .header {
+            background: rgba(0, 0, 0, 0.5);
+            border-bottom: 1px solid rgba(255, 69, 0, 0.2);
+            padding: 15px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 30px;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 69, 0, 0.3);
             z-index: 100;
+            backdrop-filter: blur(10px);
         }
 
         .logo {
-            font-size: 24px;
+            font-size: 18px;
             font-weight: bold;
-            background: linear-gradient(135deg, #ff4500, #ff6347);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
             display: flex;
-            align-items: center;
-            gap: 10px;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .logo > span:last-child {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
         }
 
         .header-controls {
             display: flex;
-            gap: 15px;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
 
         .btn {
             padding: 8px 16px;
-            background: rgba(255, 69, 0, 0.2);
-            border: 1px solid rgba(255, 69, 0, 0.5);
-            border-radius: 8px;
+            background: rgba(255, 69, 0, 0.15);
+            border: 1px solid rgba(255, 69, 0, 0.4);
             color: #ff6347;
+            border-radius: 6px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
+            transition: all 0.2s ease;
+            white-space: nowrap;
         }
 
         .btn:hover {
-            background: rgba(255, 69, 0, 0.3);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(255, 69, 0, 0.3);
+            background: rgba(255, 69, 0, 0.25);
+            border-color: rgba(255, 69, 0, 0.6);
         }
 
-        /* Clock Display */
+        /* Clock Overlay */
         .clock-overlay {
             position: absolute;
             top: 20px;
-            right: 30px;
-            z-index: 101;
-            background: rgba(0, 0, 0, 0.6);
-            padding: 10px 20px;
-            border-radius: 10px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            right: 20px;
+            background: rgba(10, 10, 20, 0.9);
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 69, 0, 0.2);
+            z-index: 50;
+            text-align: right;
         }
 
         .clock-time {
-            font-size: 24px;
+            font-size: 18px;
             font-weight: 300;
-            letter-spacing: 2px;
-            color: #fff;
-            text-shadow: 0 0 10px rgba(255, 69, 0, 0.5);
+            letter-spacing: 1px;
+            color: #ff6347;
         }
 
         .clock-date {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.7);
-            margin-top: 5px;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 3px;
         }
 
         /* Carousel Container */
@@ -132,70 +109,131 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 30px 60px;
+            padding: 30px;
             overflow: hidden;
         }
 
-        /* Video Player Wrapper - Channel Card */
-        .video-wrapper {
+        /* Channel Card */
+        .channel-card {
             position: relative;
             width: 100%;
-            max-width: 700px;
+            max-width: 650px;
             background: linear-gradient(135deg, rgba(40, 60, 80, 0.6) 0%, rgba(20, 40, 60, 0.7) 100%);
             border-radius: 16px;
             overflow: hidden;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
             border: 1px solid rgba(255, 69, 0, 0.2);
-            aspect-ratio: auto;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 60px 40px;
             text-align: center;
-            gap: 25px;
-            min-height: 500px;
-        }
-
-        .video-iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
-        /* Channel Info Overlay */
-        .channel-info {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
-            padding: 20px;
-            transform: translateY(100%);
-            transition: transform 0.3s ease;
-        }
-
-        .video-wrapper:hover .channel-info {
-            transform: translateY(0);
-        }
-
-        .channel-name {
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .channel-stats {
-            display: flex;
             gap: 20px;
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.8);
+            min-height: 450px;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
 
-        .stat-item {
+        .channel-card:hover {
+            border-color: rgba(255, 69, 0, 0.4);
+            box-shadow: 0 10px 50px rgba(255, 69, 0, 0.15);
+        }
+
+        /* Live Indicator */
+        .live-indicator {
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 10px;
+            color: #ff4500;
+            font-weight: bold;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .live-dot {
+            width: 12px;
+            height: 12px;
+            background: #ff4500;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.15); }
+        }
+
+        /* Channel Name */
+        .channel-name-large {
+            font-size: 44px;
+            font-weight: bold;
+            color: #fff;
+            letter-spacing: 0.5px;
+            word-break: break-word;
+        }
+
+        /* Stats */
+        .channel-stats {
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stat-icon {
+            font-size: 28px;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Watch Button */
+        .watch-btn {
+            margin-top: 10px;
+            padding: 14px 36px;
+            background: linear-gradient(135deg, #ff4500, #ff6347);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .watch-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(255, 69, 0, 0.4);
+        }
+
+        /* Help Text */
+        .help-text {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 15px;
         }
 
         /* Navigation Arrows */
@@ -203,8 +241,8 @@
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
-            width: 60px;
-            height: 60px;
+            width: 50px;
+            height: 50px;
             background: rgba(255, 69, 0, 0.2);
             border: 2px solid rgba(255, 69, 0, 0.5);
             border-radius: 50%;
@@ -214,6 +252,8 @@
             cursor: pointer;
             transition: all 0.3s ease;
             z-index: 50;
+            color: #ff6347;
+            font-size: 24px;
         }
 
         .nav-arrow:hover {
@@ -221,219 +261,13 @@
             transform: translateY(-50%) scale(1.1);
         }
 
-        .nav-arrow.prev {
-            left: 20px;
-        }
+        .nav-arrow.prev { left: 20px; }
+        .nav-arrow.next { right: 20px; }
 
-        .nav-arrow.next {
-            right: 20px;
-        }
-
-        .nav-arrow svg {
-            width: 24px;
-            height: 24px;
-            fill: #ff6347;
-        }
-
-        /* Video Controls Bar */
-        .controls-bar {
-            position: absolute;
-            bottom: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(10px);
-            padding: 15px;
-            border-radius: 12px;
-            display: flex;
-            gap: 15px;
-            z-index: 60;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .video-wrapper:hover .controls-bar {
-            opacity: 1;
-        }
-
-        .control-btn {
-            width: 40px;
-            height: 40px;
-            background: rgba(255, 69, 0, 0.2);
-            border: 1px solid rgba(255, 69, 0, 0.5);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .control-btn:hover {
-            background: rgba(255, 69, 0, 0.4);
-            transform: scale(1.1);
-        }
-
-        .control-btn svg {
-            width: 20px;
-            height: 20px;
-            fill: #ff6347;
-        }
-
-        /* Slide Menu */
-        .slide-menu {
-            position: fixed;
-            top: 0;
-            left: -400px;
-            width: 400px;
-            height: 100vh;
-            background: linear-gradient(135deg, #1a1a2e, #0f0f23);
-            box-shadow: 5px 0 20px rgba(0, 0, 0, 0.8);
-            transition: left 0.3s ease;
-            z-index: 200;
-            overflow-y: auto;
-        }
-
-        .slide-menu.active {
-            left: 0;
-        }
-
-        .menu-header {
-            padding: 20px;
-            background: rgba(255, 69, 0, 0.1);
-            border-bottom: 1px solid rgba(255, 69, 0, 0.3);
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        .menu-title {
-            font-size: 20px;
-            font-weight: bold;
-            color: #ff6347;
-            margin-bottom: 15px;
-        }
-
-        .search-box {
-            width: 100%;
-            padding: 10px;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 69, 0, 0.3);
-            border-radius: 8px;
-            color: #fff;
-            font-size: 14px;
-        }
-
-        .search-box::placeholder {
-            color: rgba(255, 255, 255, 0.5);
-        }
-
-        .channel-list {
-            padding: 20px;
-        }
-
-        .channel-item {
-            padding: 15px;
-            background: rgba(255, 69, 0, 0.05);
-            border: 1px solid rgba(255, 69, 0, 0.2);
-            border-radius: 10px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .channel-item:hover {
-            background: rgba(255, 69, 0, 0.15);
-            transform: translateX(5px);
-        }
-
-        .channel-item.active {
-            background: rgba(255, 69, 0, 0.3);
-            border-color: #ff6347;
-        }
-
-        .channel-item-name {
-            font-size: 16px;
-            font-weight: 500;
-            margin-bottom: 5px;
-        }
-
-        .channel-item-info {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        /* Clip Controls */
-        .clip-controls {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.9);
-            backdrop-filter: blur(10px);
-            padding: 20px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 69, 0, 0.3);
-            z-index: 150;
-            display: none;
-        }
-
-        .clip-controls.active {
-            display: block;
-        }
-
-        .clip-header {
-            font-size: 16px;
-            font-weight: bold;
-            color: #ff6347;
-            margin-bottom: 15px;
-        }
-
-        .clip-times {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .time-input {
-            flex: 1;
-            padding: 8px;
-            background: rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(255, 69, 0, 0.3);
-            border-radius: 6px;
-            color: #fff;
-            font-size: 14px;
-        }
-
-        .clip-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .clip-btn {
-            flex: 1;
-            padding: 10px;
-            background: linear-gradient(135deg, #ff4500, #ff6347);
-            border: none;
-            border-radius: 8px;
-            color: #fff;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .clip-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(255, 69, 0, 0.4);
-        }
-
-        .clip-btn.cancel {
-            background: linear-gradient(135deg, #555, #777);
-        }
-
-        /* Channel Carousel Dots */
+        /* Carousel Dots */
         .carousel-dots {
             position: absolute;
-            bottom: 20px;
+            bottom: 30px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
@@ -444,192 +278,16 @@
         .dot {
             width: 10px;
             height: 10px;
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 69, 0, 0.3);
             border-radius: 50%;
             cursor: pointer;
             transition: all 0.3s ease;
         }
 
         .dot.active {
-            background: #ff6347;
-            transform: scale(1.3);
-        }
-
-        /* Loading Spinner */
-        .loading-spinner {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 50px;
-            height: 50px;
-            border: 3px solid rgba(255, 69, 0, 0.3);
-            border-top: 3px solid #ff6347;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: translate(-50%, -50%) rotate(0deg); }
-            100% { transform: translate(-50%, -50%) rotate(360deg); }
-        }
-
-        /* Share Modal */
-        .share-modal {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: linear-gradient(135deg, #1a1a2e, #0f0f23);
-            padding: 30px;
-            border-radius: 15px;
-            border: 1px solid rgba(255, 69, 0, 0.3);
-            z-index: 300;
-            display: none;
-            min-width: 400px;
-        }
-
-        .share-modal.active {
-            display: block;
-        }
-
-        .share-title {
-            font-size: 20px;
-            font-weight: bold;
-            color: #ff6347;
-            margin-bottom: 20px;
-        }
-
-        .share-url {
-            width: 100%;
-            padding: 12px;
-            background: rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(255, 69, 0, 0.3);
-            border-radius: 8px;
-            color: #fff;
-            font-size: 14px;
-            margin-bottom: 15px;
-        }
-
-        .share-buttons {
-            display: flex;
-            gap: 10px;
-        }
-
-        .share-btn {
-            flex: 1;
-            padding: 10px;
-            background: rgba(255, 69, 0, 0.2);
-            border: 1px solid rgba(255, 69, 0, 0.5);
-            border-radius: 8px;
-            color: #ff6347;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .share-btn:hover {
-            background: rgba(255, 69, 0, 0.3);
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .carousel-container {
-                padding: 15px;
-            }
-
-            .video-wrapper {
-                max-width: 100%;
-                padding: 40px 30px;
-                min-height: 400px;
-                gap: 15px;
-            }
-
-            .video-wrapper div[style*="font-size: 48px"] {
-                font-size: 36px !important;
-            }
-
-            .carousel-container > div[style*="max-width: 700px"] {
-                max-width: 100%;
-            }
-
-            .slide-menu {
-                width: 100%;
-                left: -100%;
-            }
-
-            .nav-arrow {
-                width: 50px;
-                height: 50px;
-                left: 10px;
-            }
-
-            .nav-arrow.next {
-                right: 10px;
-            }
-
-            .controls-bar {
-                bottom: 60px;
-                padding: 10px;
-            }
-
-            .control-btn {
-                width: 35px;
-                height: 35px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .video-wrapper {
-                padding: 30px 20px;
-                min-height: 350px;
-            }
-
-            .video-wrapper div[style*="font-size: 48px"] {
-                font-size: 28px !important;
-            }
-
-            .video-wrapper div[style*="font-size: 24px"] {
-                font-size: 18px !important;
-            }
-
-            .nav-arrow {
-                width: 45px;
-                height: 45px;
-            }
-
-            .header {
-                flex-direction: column;
-                gap: 10px;
-                padding: 10px 15px;
-            }
-
-            .header-controls {
-                flex-wrap: wrap;
-                gap: 8px;
-            }
-
-            .btn {
-                padding: 6px 12px;
-                font-size: 12px;
-            }
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.3);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, #ff4500, #ff6347);
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #ff6347;
+            background: #ff4500;
+            width: 30px;
+            border-radius: 5px;
         }
 
         /* Embedded Video Modal */
@@ -652,10 +310,15 @@
             display: flex;
         }
 
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
         .embed-modal-content {
-            width: 90%;
+            width: 95%;
             max-width: 1200px;
-            height: 85%;
+            height: 90%;
             display: flex;
             flex-direction: column;
             background: rgba(10, 10, 10, 0.95);
@@ -669,40 +332,63 @@
             justify-content: space-between;
             align-items: center;
             padding: 20px;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.6);
             border-bottom: 1px solid rgba(255, 69, 0, 0.2);
         }
 
         .embed-modal-header h2 {
             margin: 0;
             color: #ff6347;
-            font-size: 28px;
+            font-size: 24px;
+            flex: 1;
         }
 
-        .embed-close-btn {
+        .modal-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .modal-btn {
+            padding: 8px 14px;
             background: rgba(255, 69, 0, 0.2);
             border: 1px solid rgba(255, 69, 0, 0.5);
             color: #ff6347;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+
+        .modal-btn:hover {
+            background: rgba(255, 69, 0, 0.3);
+        }
+
+        .modal-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .close-btn {
             width: 40px;
             height: 40px;
+            padding: 0;
             border-radius: 50%;
-            font-size: 24px;
-            cursor: pointer;
-            transition: all 0.2s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-
-        .embed-close-btn:hover {
-            background: rgba(255, 69, 0, 0.4);
-            transform: scale(1.1);
+            font-size: 20px;
         }
 
         .embed-container {
             flex: 1;
             overflow: auto;
             padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
         }
 
         .embed-container iframe {
@@ -712,13 +398,171 @@
             border-radius: 8px;
         }
 
-        .embed-footer {
-            padding: 15px 20px;
-            background: rgba(0, 0, 0, 0.3);
-            border-top: 1px solid rgba(255, 69, 0, 0.2);
+        .embed-fallback {
             text-align: center;
-            font-size: 14px;
             color: rgba(255, 255, 255, 0.7);
+        }
+
+        .embed-fallback a {
+            color: #ff6347;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .embed-fallback a:hover {
+            text-decoration: underline;
+        }
+
+        /* Channel Dropdown */
+        .channel-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 20px;
+            background: rgba(10, 10, 20, 0.98);
+            border: 1px solid rgba(255, 69, 0, 0.3);
+            border-radius: 8px;
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 100;
+            min-width: 250px;
+            box-shadow: 0 5px 30px rgba(0, 0, 0, 0.8);
+            margin-top: 5px;
+        }
+
+        .channel-dropdown.active {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 1px solid rgba(255, 69, 0, 0.1);
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .dropdown-item:hover {
+            background: rgba(255, 69, 0, 0.15);
+        }
+
+        .dropdown-item.active {
+            background: rgba(255, 69, 0, 0.25);
+            color: #ff4500;
+            font-weight: bold;
+        }
+
+        .dropdown-item-viewers {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .carousel-container {
+                padding: 15px;
+            }
+
+            .channel-card {
+                max-width: 100%;
+                padding: 40px 25px;
+                min-height: 380px;
+            }
+
+            .channel-name-large {
+                font-size: 32px;
+            }
+
+            .channel-stats {
+                gap: 30px;
+            }
+
+            .nav-arrow {
+                width: 45px;
+                height: 45px;
+            }
+
+            .header-controls {
+                gap: 8px;
+            }
+
+            .btn {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .channel-card {
+                padding: 30px 20px;
+                min-height: 320px;
+                gap: 15px;
+            }
+
+            .channel-name-large {
+                font-size: 24px;
+            }
+
+            .channel-stats {
+                gap: 20px;
+            }
+
+            .stat-icon {
+                font-size: 22px;
+            }
+
+            .stat-value {
+                font-size: 14px;
+            }
+
+            .nav-arrow {
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 10px;
+                padding: 12px 15px;
+            }
+
+            .header-controls {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .clock-overlay {
+                top: 65px;
+                right: 10px;
+                font-size: 12px;
+            }
+
+            .watch-btn {
+                padding: 10px 24px;
+                font-size: 14px;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #ff4500, #ff6347);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ff6347;
         }
     </style>
 </head>
@@ -728,13 +572,11 @@
         <!-- Header -->
         <header class="header">
             <div class="logo">
-                📰 Rumble News Carousel
-                <span style="font-size: 14px; color: rgba(255, 255, 255, 0.7);">40 Premium Channels</span>
+                📰 ScheduleFlow Rumble News
+                <span>30 Premium News Channels - Live Streams</span>
             </div>
             <div class="header-controls">
-                <button class="btn" onclick="toggleMenu()">📋 Channels</button>
-                <button class="btn" onclick="toggleClipMode()">✂️ Clip Mode</button>
-                <button class="btn" onclick="shareCurrentChannel()">🔗 Share</button>
+                <button class="btn" onclick="toggleChannelList()">📋 All Channels</button>
                 <button class="btn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
                 <button class="btn" onclick="window.close()">✕ Close</button>
             </div>
@@ -746,100 +588,43 @@
             <div class="clock-date" id="clockDate">Loading...</div>
         </div>
 
+        <!-- Channel Dropdown -->
+        <div class="channel-dropdown" id="channelDropdown"></div>
+
         <!-- Carousel Container -->
         <div class="carousel-container">
             <!-- Navigation Arrows -->
-            <div class="nav-arrow prev" onclick="previousChannel()">
-                <svg viewBox="0 0 24 24"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg>
-            </div>
-            <div class="nav-arrow next" onclick="nextChannel()">
-                <svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
-            </div>
+            <div class="nav-arrow prev" onclick="previousChannel()" title="Previous channel (Arrow Left)">❮</div>
+            <div class="nav-arrow next" onclick="nextChannel()" title="Next channel (Arrow Right)">❯</div>
 
-            <!-- Video Player Wrapper - Channel Card -->
-            <div class="video-wrapper" onclick="openChannelWindow()" style="cursor: pointer;">
-                <!-- Live Indicator -->
-                <div style="display: flex; align-items: center; gap: 12px; color: #ff4500; font-weight: bold; font-size: 16px; text-transform: uppercase; letter-spacing: 2px;">
-                    <div style="width: 14px; height: 14px; background: #ff4500; border-radius: 50%; animation: pulse 2s infinite;"></div>
+            <!-- Channel Card -->
+            <div class="channel-card" onclick="openEmbedModal()">
+                <div class="live-indicator">
+                    <div class="live-dot"></div>
                     LIVE NOW
                 </div>
-                
-                <!-- Large Channel Name -->
-                <div style="font-size: 48px; font-weight: bold; color: #fff; letter-spacing: 1px;" id="channelNameLarge">Channel</div>
-                
-                <!-- Channel Stats -->
-                <div style="display: flex; justify-content: center; gap: 40px; width: 100%; flex-wrap: wrap; color: rgba(255,255,255,0.8); font-size: 15px;">
-                    <div style="display: flex; flex-direction: column; align-items: center;">
-                        <span style="font-size: 24px; margin-bottom: 8px;">👥</span>
-                        <span id="followerCount" style="font-weight: bold;">0</span>
-                        <span style="font-size: 13px; color: rgba(255,255,255,0.6);">Followers</span>
+
+                <div class="channel-name-large" id="channelNameDisplay">Loading...</div>
+
+                <div class="channel-stats">
+                    <div class="stat">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-value" id="viewerCount">0</div>
+                        <div class="stat-label">Viewers</div>
                     </div>
-                    <div style="display: flex; flex-direction: column; align-items: center;">
-                        <span style="font-size: 24px; margin-bottom: 8px;">📊</span>
-                        <span id="viewCount" style="font-weight: bold;">0</span>
-                        <span style="font-size: 13px; color: rgba(255,255,255,0.6);">Views</span>
-                    </div>
-                </div>
-                
-                <!-- Click Button -->
-                <div style="margin-top: 20px; padding: 16px 40px; background: linear-gradient(135deg, #ff4500, #ff6347); color: white; border: none; border-radius: 50px; font-size: 18px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; display: inline-block; white-space: nowrap;">
-                    👁️ WATCH NOW
-                </div>
-                
-                <!-- Help Text -->
-                <div style="font-size: 14px; color: rgba(255,255,255,0.6); margin-top: 20px;">
-                    ← Swipe or use arrows to browse all 39 channels →
-                </div>
-                
-                <style>
-                    @keyframes pulse {
-                        0%, 100% { opacity: 1; transform: scale(1); }
-                        50% { opacity: 0.7; transform: scale(1.2); }
-                    }
-                </style>
-                
-                <!-- Channel Info -->
-                <div class="channel-info">
-                    <div class="channel-name" id="channelName">Loading...</div>
-                    <div class="channel-stats">
-                        <div class="stat-item">
-                            <span>👥</span>
-                            <span id="followerCount">0</span> followers
-                        </div>
-                        <div class="stat-item">
-                            <span>🔴</span>
-                            <span id="liveStatus">LIVE</span>
-                        </div>
-                        <div class="stat-item">
-                            <span>📊</span>
-                            <span id="viewCount">0</span> views
-                        </div>
+                    <div class="stat">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-value" id="rankDisplay">#1</div>
+                        <div class="stat-label">Rank</div>
                     </div>
                 </div>
 
-                <!-- Video Controls Bar -->
-                <div class="controls-bar">
-                    <button class="control-btn" onclick="skipBackward(10)" title="Skip -10s">
-                        <svg viewBox="0 0 24 24"><path d="M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z"/></svg>
-                    </button>
-                    <button class="control-btn" onclick="skipBackward(30)" title="Skip -30s">
-                        <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
-                    </button>
-                    <button class="control-btn" onclick="togglePlay()" title="Play/Pause">
-                        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                    </button>
-                    <button class="control-btn" onclick="skipForward(30)" title="Skip +30s">
-                        <svg viewBox="0 0 24 24"><path d="M12 5V1l5 5-5 5V7c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6h2c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8z"/></svg>
-                    </button>
-                    <button class="control-btn" onclick="skipForward(60)" title="Skip +60s">
-                        <svg viewBox="0 0 24 24"><path d="M13 3v6l4-4-4-4zm0 18V9l-8.5 6L13 21z"/></svg>
-                    </button>
-                    <button class="control-btn" onclick="markClipStart()" title="Mark Clip Start">
-                        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
-                    </button>
-                    <button class="control-btn" onclick="markClipEnd()" title="Mark Clip End">
-                        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10H7v-2h10v2z"/></svg>
-                    </button>
+                <button class="watch-btn">
+                    👁️ WATCH NOW
+                </button>
+
+                <div class="help-text">
+                    ← Use arrows or keyboard to browse • Click to watch →
                 </div>
             </div>
 
@@ -848,494 +633,208 @@
         </div>
     </div>
 
-    <!-- Slide Menu -->
-    <div class="slide-menu" id="slideMenu">
-        <div class="menu-header">
-            <div class="menu-title">📰 News Channels</div>
-            <input type="text" class="search-box" placeholder="Search channels..." id="channelSearch" onkeyup="filterChannels()">
-        </div>
-        <div class="channel-list" id="channelList"></div>
-    </div>
-
-    <!-- Clip Controls -->
-    <div class="clip-controls" id="clipControls">
-        <div class="clip-header">✂️ Create Clip</div>
-        <div class="clip-times">
-            <input type="text" class="time-input" id="clipStart" placeholder="Start (0:00)">
-            <input type="text" class="time-input" id="clipEnd" placeholder="End (0:00)">
-        </div>
-        <div class="clip-actions">
-            <button class="clip-btn" onclick="createClip()">Create Clip</button>
-            <button class="clip-btn cancel" onclick="cancelClip()">Cancel</button>
-        </div>
-    </div>
-
-    <!-- Share Modal -->
-    <div class="share-modal" id="shareModal">
-        <div class="share-title">🔗 Share Channel</div>
-        <input type="text" class="share-url" id="shareUrl" readonly>
-        <div class="share-buttons">
-            <button class="share-btn" onclick="copyShareUrl()">📋 Copy</button>
-            <button class="share-btn" onclick="closeShareModal()">✕ Close</button>
-        </div>
-    </div>
-
     <!-- Embedded Video Modal -->
     <div class="embed-modal" id="embedModal">
         <div class="embed-modal-content">
             <div class="embed-modal-header">
-                <h2 id="embedChannelName">Channel</h2>
-                <button onclick="closeEmbedModal()" class="embed-close-btn">✕</button>
+                <h2 id="modalChannelName">Channel</h2>
+                <div class="modal-controls">
+                    <button class="modal-btn" onclick="previousChannelInModal()" title="Previous (←)">← PREV</button>
+                    <button class="modal-btn" onclick="nextChannelInModal()" title="Next (→)">NEXT →</button>
+                    <button class="modal-btn close-btn" onclick="closeEmbedModal()" title="Close (Esc)">✕</button>
+                </div>
             </div>
             <div class="embed-container" id="embedContainer">
-                <!-- iframe will be inserted here -->
-            </div>
-            <div class="embed-footer">
-                <p>Click the video to watch on Rumble.com • Use arrow keys to navigate channels</p>
+                <div style="text-align: center; color: rgba(255,255,255,0.7);">Loading...</div>
             </div>
         </div>
     </div>
 
     <script>
-        // Rumble News Channels Database (39 channels using channel URLs instead of video IDs)
-        const channels = [
-            // Top News Networks
-            { id: 'infowars', name: 'InfoWars', url: 'https://rumble.com/infowars/latest', followers: '2.1M', category: 'Alternative News' },
-            { id: 'newsmaxtv', name: 'Newsmax TV', url: 'https://rumble.com/newsmaxtv/latest', followers: '1.2M', category: 'Conservative News' },
-            { id: 'oannofficial', name: 'OANN', url: 'https://rumble.com/oannofficial/latest', followers: '937K', category: 'Conservative News' },
-            { id: 'rsbn', name: 'RSBN', url: 'https://rumble.com/rsbn/latest', followers: '1.8M', category: 'Political Coverage' },
-            { id: 'stevebannon', name: 'Steve Bannon War Room', url: 'https://rumble.com/stevebannon/latest', followers: '1.1M', category: 'Political Analysis' },
-            { id: 'louderwithcrowder', name: 'Steven Crowder', url: 'https://rumble.com/louderwithcrowder/latest', followers: '2.3M', category: 'Political Commentary' },
-            { id: 'realamericasvoice', name: 'Real Americas Voice', url: 'https://rumble.com/realamericasvoice/latest', followers: '890K', category: 'News Network' },
-            { id: 'seanhannity', name: 'Sean Hannity', url: 'https://rumble.com/seanhannity/latest', followers: '1.4M', category: 'Political Talk' },
-            { id: 'benshapiro', name: 'Ben Shapiro', url: 'https://rumble.com/benshapiro/latest', followers: '1.2M', category: 'Political Analysis' },
-            
-            // Independent Journalists
-            { id: 'redacted', name: 'Redacted News', url: 'https://rumble.com/redacted/latest', followers: '2.8M', category: 'Independent News' },
-            { id: 'glenn.greenwald', name: 'Glenn Greenwald', url: 'https://rumble.com/glenn.greenwald/latest', followers: '650K', category: 'Investigative Journalism' },
-            { id: 'charliekirk', name: 'Charlie Kirk', url: 'https://rumble.com/charliekirk/latest', followers: '1.5M', category: 'Conservative Movement' },
-            { id: 'timcast', name: 'Tim Pool', url: 'https://rumble.com/timcast/latest', followers: '1.9M', category: 'Independent Commentary' },
-            { id: 'russellbrand', name: 'Russell Brand', url: 'https://rumble.com/russellbrand/latest', followers: '1.7M', category: 'Alternative Media' },
-            
-            // Political Commentators
-            { id: 'tuckercarlson', name: 'Tucker Carlson', url: 'https://rumble.com/tuckercarlson/latest', followers: '2.5M', category: 'Political Commentary' },
-            { id: 'dineshdsouza', name: 'Dinesh DSouza', url: 'https://rumble.com/dineshdsouza/latest', followers: '980K', category: 'Political Documentary' },
-            { id: 'candaceowens', name: 'Candace Owens', url: 'https://rumble.com/candaceowens/latest', followers: '1.3M', category: 'Conservative Commentary' },
-            { id: 'mwalsh', name: 'Matt Walsh', url: 'https://rumble.com/mwalsh/latest', followers: '890K', category: 'Conservative Analysis' },
-            { id: 'michaelknowles', name: 'Michael Knowles', url: 'https://rumble.com/michaelknowles/latest', followers: '750K', category: 'Political Commentary' },
-            
-            // Alternative Media
-            { id: 'projectveritas', name: 'Project Veritas', url: 'https://rumble.com/projectveritas/latest', followers: '1.6M', category: 'Investigative Journalism' },
-            { id: 'rebelnews', name: 'Rebel News', url: 'https://rumble.com/rebelnews/latest', followers: '1.1M', category: 'Independent News' },
-            { id: 'thegatewaygundit', name: 'The Gateway Pundit', url: 'https://rumble.com/thegatewaygundit/latest', followers: '820K', category: 'Alternative News' },
-            { id: 'epochtimes', name: 'Epoch Times', url: 'https://rumble.com/epochtimes/latest', followers: '1.4M', category: 'Independent Media' },
-            { id: 'ntd', name: 'NTD News', url: 'https://rumble.com/ntd/latest', followers: '980K', category: 'Global News' },
-            
-            // Specialty Shows
-            { id: 'lindell', name: 'LindellTV', url: 'https://rumble.com/lindell/latest', followers: '670K', category: 'Political Platform' },
-            { id: 'patriotnewsoutlet', name: 'Patriot News Outlet', url: 'https://rumble.com/patriotnewsoutlet/latest', followers: '540K', category: 'Conservative News' },
-            { id: 'x22report', name: 'X22 Report', url: 'https://rumble.com/x22report/latest', followers: '890K', category: 'Economic Analysis' },
-            { id: 'andweknow', name: 'And We Know', url: 'https://rumble.com/andweknow/latest', followers: '720K', category: 'Alternative Analysis' },
-            { id: 'saltycracker', name: 'Salty Cracker', url: 'https://rumble.com/saltycracker/latest', followers: '650K', category: 'Political Satire' },
-            
-            // International
-            { id: 'rt', name: 'RT News', url: 'https://rumble.com/rt/latest', followers: '450K', category: 'International News' },
-            { id: 'skynewsaustralia', name: 'Sky News Australia', url: 'https://rumble.com/skynewsaustralia/latest', followers: '780K', category: 'Australian News' },
-            { id: 'gbnewsonline', name: 'GB News', url: 'https://rumble.com/gbnewsonline/latest', followers: '560K', category: 'British News' },
-            { id: 'rebelnewscanada', name: 'Rebel News Canada', url: 'https://rumble.com/rebelnewscanada/latest', followers: '890K', category: 'Canadian News' },
-            { id: 'truenorthnews', name: 'True North', url: 'https://rumble.com/truenorthnews/latest', followers: '420K', category: 'Canadian Media' },
-            
-            // Podcasts & Shows
-            { id: 'thequartering', name: 'The Quartering', url: 'https://rumble.com/thequartering/latest', followers: '980K', category: 'Pop Culture Politics' },
-            { id: 'timcastirl', name: 'Timcast IRL', url: 'https://rumble.com/timcastirl/latest', followers: '1.3M', category: 'News Analysis' },
-            { id: 'rubinreport', name: 'The Rubin Report', url: 'https://rumble.com/rubinreport/latest', followers: '870K', category: 'Political Talk' },
-            { id: 'vivafrei', name: 'Viva Frei', url: 'https://rumble.com/vivafrei/latest', followers: '760K', category: 'Legal Analysis' }
+        // Channel Data - Top 30 by Viewers
+        const channelsData = [
+            { rank: 1, name: "Bannons War Room", viewers: 48521, channelId: "BannonsWarRoom" },
+            { rank: 2, name: "The Dan Bongino Show", viewers: 41283, channelId: "DanBonginoShow" },
+            { rank: 3, name: "Steven Crowder", viewers: 38901, channelId: "StevenCrowder" },
+            { rank: 4, name: "The Alex Jones Show", viewers: 32104, channelId: "AlexJonesShow" },
+            { rank: 5, name: "Viva Frei", viewers: 29876, channelId: "VivaFrei" },
+            { rank: 6, name: "Red Pill News", viewers: 25442, channelId: "RedPillNews" },
+            { rank: 7, name: "And We Know", viewers: 23108, channelId: "AndWeKnow" },
+            { rank: 8, name: "Real Americas Voice", viewers: 21987, channelId: "RealAmericasVoice" },
+            { rank: 9, name: "The Gateway Pundit", viewers: 19554, channelId: "GatewayPundit" },
+            { rank: 10, name: "OANN", viewers: 18203, channelId: "OANN" },
+            { rank: 11, name: "Newsmax", viewers: 16789, channelId: "Newsmax" },
+            { rank: 12, name: "Tim Pool", viewers: 15432, channelId: "TimPool" },
+            { rank: 13, name: "The Quartering", viewers: 14267, channelId: "TheQuartering" },
+            { rank: 14, name: "Mark Dice", viewers: 13045, channelId: "MarkDice" },
+            { rank: 15, name: "Next News Network", viewers: 11892, channelId: "NextNewsNetwork" },
+            { rank: 16, name: "The David Knight Show", viewers: 10987, channelId: "DavidKnightShow" },
+            { rank: 17, name: "SGT Report", viewers: 9876, channelId: "SGTReport" },
+            { rank: 18, name: "Conservative Daily", viewers: 8765, channelId: "ConservativeDaily" },
+            { rank: 19, name: "Bannon's War Room Clips", viewers: 7654, channelId: "BannonsWarRoomClips" },
+            { rank: 20, name: "The Info Warrior", viewers: 6543, channelId: "InfoWarrior" },
+            { rank: 21, name: "Sarah Westall", viewers: 5432, channelId: "SarahWestall" },
+            { rank: 22, name: "Truth & Art TV", viewers: 4321, channelId: "TruthArtTV" },
+            { rank: 23, name: "X22 Report", viewers: 3210, channelId: "X22Report" },
+            { rank: 24, name: "USA Watchdog", viewers: 2109, channelId: "USAWatchdog" },
+            { rank: 25, name: "The Last Refuge", viewers: 1987, channelId: "TheLastRefuge" },
+            { rank: 26, name: "Conservative Momma", viewers: 1876, channelId: "ConservativeMomma" },
+            { rank: 27, name: "The Political Insider", viewers: 1765, channelId: "PoliticalInsider" },
+            { rank: 28, name: "Western Journal", viewers: 1654, channelId: "WesternJournal" },
+            { rank: 29, name: "PJ Media", viewers: 1543, channelId: "PJMedia" },
+            { rank: 30, name: "Townhall Media", viewers: 1432, channelId: "TownhallMedia" }
         ];
 
-        // State variables
         let currentChannelIndex = 0;
-        let isClipMode = false;
-        let clipStartTime = null;
-        let clipEndTime = null;
-        let isMenuOpen = false;
-        let isLoading = false;
-        let activeChannels = new Set();
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            initializeCarousel();
+        document.addEventListener('DOMContentLoaded', function() {
+            updateChannelDisplay();
+            updateCarouselDots();
+            buildChannelDropdown();
             updateClock();
-            loadChannel(0);
-            renderChannelList();
-            renderCarouselDots();
-            setupKeyboardShortcuts();
             setInterval(updateClock, 1000);
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', handleKeyboardShortcuts);
         });
 
-        // Initialize carousel
-        function initializeCarousel() {
-            // Preload first 3 channels for smooth navigation
-            for (let i = 0; i < Math.min(3, channels.length); i++) {
-                preloadChannel(i);
+        function handleKeyboardShortcuts(e) {
+            if (e.key === 'ArrowLeft') {
+                previousChannel();
+            } else if (e.key === 'ArrowRight') {
+                nextChannel();
+            } else if (e.key === 'Escape') {
+                closeEmbedModal();
+            } else if (e.key >= '1' && e.key <= '9') {
+                const index = parseInt(e.key) - 1;
+                if (index < channelsData.length) {
+                    currentChannelIndex = index;
+                    updateChannelDisplay();
+                    updateCarouselDots();
+                }
             }
         }
 
-        // Update clock
+        function nextChannel() {
+            currentChannelIndex = (currentChannelIndex + 1) % channelsData.length;
+            updateChannelDisplay();
+            updateCarouselDots();
+        }
+
+        function previousChannel() {
+            currentChannelIndex = (currentChannelIndex - 1 + channelsData.length) % channelsData.length;
+            updateChannelDisplay();
+            updateCarouselDots();
+        }
+
+        function nextChannelInModal() {
+            nextChannel();
+            loadEmbedModal();
+        }
+
+        function previousChannelInModal() {
+            previousChannel();
+            loadEmbedModal();
+        }
+
+        function goToChannel(index) {
+            currentChannelIndex = index;
+            updateChannelDisplay();
+            updateCarouselDots();
+            closeChannelList();
+        }
+
+        function updateChannelDisplay() {
+            const channel = channelsData[currentChannelIndex];
+            document.getElementById('channelNameDisplay').textContent = channel.name;
+            document.getElementById('viewerCount').textContent = channel.viewers.toLocaleString();
+            document.getElementById('rankDisplay').textContent = `#${channel.rank}`;
+        }
+
+        function updateCarouselDots() {
+            const dotsContainer = document.getElementById('carouselDots');
+            dotsContainer.innerHTML = '';
+            
+            for (let i = 0; i < channelsData.length; i++) {
+                const dot = document.createElement('div');
+                dot.className = `dot ${i === currentChannelIndex ? 'active' : ''}`;
+                dot.onclick = () => goToChannel(i);
+                dotsContainer.appendChild(dot);
+            }
+        }
+
+        function buildChannelDropdown() {
+            const dropdown = document.getElementById('channelDropdown');
+            dropdown.innerHTML = '';
+            
+            channelsData.forEach((ch, idx) => {
+                const item = document.createElement('div');
+                item.className = `dropdown-item ${idx === currentChannelIndex ? 'active' : ''}`;
+                item.innerHTML = `
+                    <div>
+                        <div style="font-weight: bold;">${ch.rank}. ${ch.name}</div>
+                        <div class="dropdown-item-viewers">${ch.viewers.toLocaleString()} viewers</div>
+                    </div>
+                `;
+                item.onclick = () => goToChannel(idx);
+                dropdown.appendChild(item);
+            });
+        }
+
+        function toggleChannelList() {
+            const dropdown = document.getElementById('channelDropdown');
+            dropdown.classList.toggle('active');
+        }
+
+        function closeChannelList() {
+            document.getElementById('channelDropdown').classList.remove('active');
+        }
+
+        function openEmbedModal() {
+            document.getElementById('embedModal').classList.add('active');
+            loadEmbedModal();
+        }
+
+        function closeEmbedModal() {
+            document.getElementById('embedModal').classList.remove('active');
+        }
+
+        function loadEmbedModal() {
+            const channel = channelsData[currentChannelIndex];
+            const container = document.getElementById('embedContainer');
+            
+            document.getElementById('modalChannelName').textContent = channel.name;
+            
+            const embedUrl = `https://rumble.com/embed/c/${channel.channelId}/?pub=4`;
+            container.innerHTML = `
+                <iframe 
+                    src="${embedUrl}" 
+                    frameborder="0" 
+                    allowfullscreen
+                    style="width: 100%; height: 100%; border: none; border-radius: 8px;">
+                </iframe>
+            `;
+        }
+
         function updateClock() {
             const now = new Date();
             const time = now.toLocaleTimeString('en-US', { hour12: false });
-            const date = now.toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-            });
+            const date = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
             
             document.getElementById('clockTime').textContent = time;
             document.getElementById('clockDate').textContent = date;
         }
 
-        // Load channel - opens in new window since Rumble blocks iframe embedding
-        function loadChannel(index) {
-            if (isLoading) return;
-            
-            currentChannelIndex = index;
-            const channel = channels[index];
-            
-            // Update channel info
-            document.getElementById('channelName').textContent = channel.name;
-            document.getElementById('channelNameLarge').textContent = channel.name;
-            document.getElementById('followerCount').textContent = channel.followers;
-            document.getElementById('viewCount').textContent = Math.floor(Math.random() * 100000);
-            
-            // Update active states
-            updateChannelList();
-            updateCarouselDots();
-            
-            // Preload adjacent channels
-            if (index > 0) preloadChannel(index - 1);
-            if (index < channels.length - 1) preloadChannel(index + 1);
-        }
-        
-        // Open channel in embedded modal - try iframe method
-        function openChannelWindow() {
-            const channel = channels[currentChannelIndex];
-            const channelId = channel.id;
-            
-            // Get the channel page URL (e.g., https://rumble.com/infowars/)
-            const channelBaseUrl = channel.url.replace('/latest', '');
-            
-            // Update modal header with channel name
-            document.getElementById('embedChannelName').textContent = channel.name;
-            
-            // Clear previous embed
-            const embedContainer = document.getElementById('embedContainer');
-            embedContainer.innerHTML = '';
-            
-            // Try to create iframe embed (Rumble sometimes allows this)
-            const iframeHtml = `<iframe class="rumble" width="100%" height="100%" src="https://rumble.com/embed/${channelId}/?pub=scheduleflow" frameborder="0" allowfullscreen></iframe>`;
-            embedContainer.innerHTML = iframeHtml;
-            
-            // Show modal
-            document.getElementById('embedModal').classList.add('active');
-            
-            // Fallback: if iframe fails after 3 seconds, provide link
-            setTimeout(() => {
-                if (embedContainer.querySelector('iframe') && !embedContainer.querySelector('iframe').contentWindow) {
-                    embedContainer.innerHTML = `
-                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: rgba(255,255,255,0.8); text-align: center;">
-                            <div style="font-size: 48px; margin-bottom: 20px;">🔴 LIVE STREAM</div>
-                            <h3 style="margin-bottom: 30px; font-size: 24px;">Direct embed not available</h3>
-                            <p style="margin-bottom: 30px; font-size: 16px;">Click below to watch ${channel.name} on Rumble.com</p>
-                            <a href="${channel.url}" target="_blank" style="
-                                padding: 15px 40px;
-                                background: linear-gradient(135deg, #ff4500, #ff6347);
-                                color: white;
-                                border: none;
-                                border-radius: 50px;
-                                font-size: 18px;
-                                font-weight: bold;
-                                cursor: pointer;
-                                text-decoration: none;
-                                display: inline-block;
-                                transition: all 0.2s ease;
-                            " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                                👆 OPEN IN NEW WINDOW
-                            </a>
-                        </div>
-                    `;
-                }
-            }, 3000);
-        }
-
-        // Close embedded video modal
-        function closeEmbedModal() {
-            document.getElementById('embedModal').classList.remove('active');
-            document.getElementById('embedContainer').innerHTML = '';
-        }
-
-        // Close modal when pressing Escape
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && document.getElementById('embedModal').classList.contains('active')) {
-                closeEmbedModal();
-            }
-        });
-
-        // Preload channel (lazy loading)
-        function preloadChannel(index) {
-            if (activeChannels.has(index)) return;
-            
-            // Keep only 3 channels active at a time
-            if (activeChannels.size >= 3) {
-                const toRemove = Array.from(activeChannels).find(i => 
-                    Math.abs(i - currentChannelIndex) > 1
-                );
-                if (toRemove !== undefined) {
-                    activeChannels.delete(toRemove);
-                }
-            }
-            
-            activeChannels.add(index);
-        }
-
-        // Navigation functions
-        function previousChannel() {
-            const newIndex = currentChannelIndex > 0 ? currentChannelIndex - 1 : channels.length - 1;
-            loadChannel(newIndex);
-        }
-
-        function nextChannel() {
-            const newIndex = currentChannelIndex < channels.length - 1 ? currentChannelIndex + 1 : 0;
-            loadChannel(newIndex);
-        }
-
-        // Skip functions
-        function skipBackward(seconds) {
-            console.log(`Skip backward ${seconds} seconds`);
-            // This would require iframe API access
-        }
-
-        function skipForward(seconds) {
-            console.log(`Skip forward ${seconds} seconds`);
-            // This would require iframe API access
-        }
-
-        function togglePlay() {
-            console.log('Toggle play/pause');
-            // This would require iframe API access
-        }
-
-        // Clip functions
-        function toggleClipMode() {
-            isClipMode = !isClipMode;
-            const clipControls = document.getElementById('clipControls');
-            clipControls.classList.toggle('active', isClipMode);
-        }
-
-        function markClipStart() {
-            const now = new Date();
-            clipStartTime = now.toLocaleTimeString();
-            document.getElementById('clipStart').value = clipStartTime;
-            console.log('Clip start marked:', clipStartTime);
-        }
-
-        function markClipEnd() {
-            const now = new Date();
-            clipEndTime = now.toLocaleTimeString();
-            document.getElementById('clipEnd').value = clipEndTime;
-            console.log('Clip end marked:', clipEndTime);
-        }
-
-        function createClip() {
-            const start = document.getElementById('clipStart').value;
-            const end = document.getElementById('clipEnd').value;
-            
-            if (!start || !end) {
-                alert('Please mark both start and end times');
-                return;
-            }
-            
-            const clipData = {
-                channel: channels[currentChannelIndex].name,
-                url: channels[currentChannelIndex].url,
-                start: start,
-                end: end,
-                timestamp: new Date().toISOString()
-            };
-            
-            console.log('Creating clip:', clipData);
-            
-            // Save to localStorage
-            const clips = JSON.parse(localStorage.getItem('rumbleClips') || '[]');
-            clips.push(clipData);
-            localStorage.setItem('rumbleClips', JSON.stringify(clips));
-            
-            alert(`Clip created for ${clipData.channel}\nFrom ${start} to ${end}`);
-            cancelClip();
-        }
-
-        function cancelClip() {
-            isClipMode = false;
-            document.getElementById('clipControls').classList.remove('active');
-            document.getElementById('clipStart').value = '';
-            document.getElementById('clipEnd').value = '';
-            clipStartTime = null;
-            clipEndTime = null;
-        }
-
-        // Menu functions
-        function toggleMenu() {
-            isMenuOpen = !isMenuOpen;
-            const menu = document.getElementById('slideMenu');
-            menu.classList.toggle('active', isMenuOpen);
-        }
-
-        function renderChannelList() {
-            const list = document.getElementById('channelList');
-            list.innerHTML = channels.map((channel, index) => `
-                <div class="channel-item ${index === currentChannelIndex ? 'active' : ''}" 
-                     onclick="selectChannel(${index})" data-index="${index}">
-                    <div class="channel-item-name">${channel.name}</div>
-                    <div class="channel-item-info">${channel.category} • ${channel.followers}</div>
-                </div>
-            `).join('');
-        }
-
-        function selectChannel(index) {
-            loadChannel(index);
-            toggleMenu();
-        }
-
-        function updateChannelList() {
-            const items = document.querySelectorAll('.channel-item');
-            items.forEach((item, index) => {
-                item.classList.toggle('active', index === currentChannelIndex);
-            });
-        }
-
-        function filterChannels() {
-            const search = document.getElementById('channelSearch').value.toLowerCase();
-            const items = document.querySelectorAll('.channel-item');
-            
-            items.forEach(item => {
-                const name = item.querySelector('.channel-item-name').textContent.toLowerCase();
-                const info = item.querySelector('.channel-item-info').textContent.toLowerCase();
-                const visible = name.includes(search) || info.includes(search);
-                item.style.display = visible ? 'block' : 'none';
-            });
-        }
-
-        // Carousel dots
-        function renderCarouselDots() {
-            const container = document.getElementById('carouselDots');
-            const maxDots = 10;
-            const totalDots = Math.min(channels.length, maxDots);
-            
-            container.innerHTML = '';
-            for (let i = 0; i < totalDots; i++) {
-                const dot = document.createElement('div');
-                dot.className = 'dot';
-                dot.onclick = () => loadChannel(i);
-                container.appendChild(dot);
-            }
-            
-            updateCarouselDots();
-        }
-
-        function updateCarouselDots() {
-            const dots = document.querySelectorAll('.dot');
-            dots.forEach((dot, index) => {
-                dot.classList.toggle('active', index === currentChannelIndex % dots.length);
-            });
-        }
-
-        // Share functions
-        function shareCurrentChannel() {
-            const channel = channels[currentChannelIndex];
-            const shareUrl = `${window.location.origin}/rumble/${channel.id}`;
-            
-            document.getElementById('shareUrl').value = shareUrl;
-            document.getElementById('shareModal').classList.add('active');
-        }
-
-        function copyShareUrl() {
-            const input = document.getElementById('shareUrl');
-            input.select();
-            document.execCommand('copy');
-            alert('Link copied to clipboard!');
-        }
-
-        function closeShareModal() {
-            document.getElementById('shareModal').classList.remove('active');
-        }
-
-        // Fullscreen
         function toggleFullscreen() {
             if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen();
+                document.documentElement.requestFullscreen().catch(err => {
+                    alert(`Error attempting to enable fullscreen: ${err.message}`);
+                });
             } else {
                 document.exitFullscreen();
             }
         }
-
-        // Keyboard shortcuts
-        function setupKeyboardShortcuts() {
-            document.addEventListener('keydown', (e) => {
-                switch(e.key) {
-                    case 'ArrowLeft':
-                        previousChannel();
-                        break;
-                    case 'ArrowRight':
-                        nextChannel();
-                        break;
-                    case ' ':
-                        e.preventDefault();
-                        togglePlay();
-                        break;
-                    case 'f':
-                    case 'F':
-                        toggleFullscreen();
-                        break;
-                    case 'c':
-                    case 'C':
-                        toggleClipMode();
-                        break;
-                    case 'm':
-                    case 'M':
-                        toggleMenu();
-                        break;
-                    case 'Escape':
-                        if (isMenuOpen) toggleMenu();
-                        if (isClipMode) cancelClip();
-                        if (document.fullscreenElement) document.exitFullscreen();
-                        break;
-                    case '1':
-                    case '2':
-                    case '3':
-                    case '4':
-                    case '5':
-                    case '6':
-                    case '7':
-                    case '8':
-                    case '9':
-                        const index = parseInt(e.key) - 1;
-                        if (index < channels.length) loadChannel(index);
-                        break;
-                }
-            });
-        }
-
-        // Auto-rotate channels (optional)
-        function startAutoRotate(interval = 300000) { // 5 minutes
-            setInterval(() => {
-                if (!isClipMode && !isMenuOpen) {
-                    nextChannel();
-                }
-            }, interval);
-        }
-
-        // Optional: Start auto-rotate
-        // startAutoRotate();
     </script>
 </body>
 </html>
