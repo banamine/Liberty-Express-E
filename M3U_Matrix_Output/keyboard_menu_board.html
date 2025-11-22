@@ -26,11 +26,10 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) rotateX(10deg);
-            width: calc(100% - 350px);
-            max-width: 900px;
+            width: 900px;
+            max-width: 90vw;
             min-width: 500px;
             max-height: 85vh;
-            margin-right: 20px;
             background: linear-gradient(135deg, rgba(20, 25, 50, 0.95), rgba(30, 35, 60, 0.95));
             border-radius: 25px;
             padding: 30px;
@@ -40,6 +39,12 @@
             transform-style: preserve-3d;
             overflow-y: auto;
             z-index: 100;
+            transition: transform 0.3s ease;
+        }
+
+        /* Shift keyboard left when drawer is open */
+        .keyboard-container.drawer-open {
+            transform: translate(calc(-50% - 175px), -50%) rotateX(10deg);
         }
 
         .keyboard-container::-webkit-scrollbar {
@@ -736,11 +741,13 @@
             document.getElementById('drawerDescription').textContent = `Press key ${key.id} or click button to execute`;
             document.getElementById('infoDrawer').classList.add('active');
             document.getElementById('drawerOverlay').classList.add('active');
+            document.getElementById('keyboardContainer').classList.add('drawer-open');
         }
 
         function closeDrawer() {
             document.getElementById('infoDrawer').classList.remove('active');
             document.getElementById('drawerOverlay').classList.remove('active');
+            document.getElementById('keyboardContainer').classList.remove('drawer-open');
         }
 
         // ========== SETTINGS ==========
