@@ -64,7 +64,7 @@ try:
         else:
             raise ImportError("Could not apply path fixes")
     else:
-        from page_generator import (
+        from Core_Modules.page_generator import (
             NexusTVPageGenerator, WebIPTVGenerator, SimplePlayerGenerator, 
             RumbleChannelGenerator, MultiChannelGenerator, BufferTVGenerator,
             ClassicTVGenerator
