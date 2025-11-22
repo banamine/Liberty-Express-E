@@ -599,84 +599,47 @@
     <script>
         // Store live status
         const liveStatus = {};
-        let hlsChannels = [];
-
-        // Channel Data - Top 30 by Viewers
-        const channelsData = [
-            { rank: 1, name: "Bannons War Room", viewers: 48521, channelId: "BannonsWarRoom" },
-            { rank: 2, name: "The Dan Bongino Show", viewers: 41283, channelId: "DanBonginoShow" },
-            { rank: 3, name: "Steven Crowder", viewers: 38901, channelId: "StevenCrowder" },
-            { rank: 4, name: "The Alex Jones Show", viewers: 32104, channelId: "AlexJonesShow" },
-            { rank: 5, name: "Viva Frei", viewers: 29876, channelId: "VivaFrei" },
-            { rank: 6, name: "Red Pill News", viewers: 25442, channelId: "RedPillNews" },
-            { rank: 7, name: "And We Know", viewers: 23108, channelId: "AndWeKnow" },
-            { rank: 8, name: "Real Americas Voice", viewers: 21987, channelId: "RealAmericasVoice" },
-            { rank: 9, name: "The Gateway Pundit", viewers: 19554, channelId: "GatewayPundit" },
-            { rank: 10, name: "OANN", viewers: 18203, channelId: "OANN" },
-            { rank: 11, name: "Newsmax", viewers: 16789, channelId: "Newsmax" },
-            { rank: 12, name: "Tim Pool", viewers: 15432, channelId: "TimPool" },
-            { rank: 13, name: "The Quartering", viewers: 14267, channelId: "TheQuartering" },
-            { rank: 14, name: "Mark Dice", viewers: 13045, channelId: "MarkDice" },
-            { rank: 15, name: "Next News Network", viewers: 11892, channelId: "NextNewsNetwork" },
-            { rank: 16, name: "The David Knight Show", viewers: 10987, channelId: "DavidKnightShow" },
-            { rank: 17, name: "SGT Report", viewers: 9876, channelId: "SGTReport" },
-            { rank: 18, name: "Conservative Daily", viewers: 8765, channelId: "ConservativeDaily" },
-            { rank: 19, name: "Bannon's War Room Clips", viewers: 7654, channelId: "BannonsWarRoomClips" },
-            { rank: 20, name: "The Info Warrior", viewers: 6543, channelId: "InfoWarrior" },
-            { rank: 21, name: "Sarah Westall", viewers: 5432, channelId: "SarahWestall" },
-            { rank: 22, name: "Truth & Art TV", viewers: 4321, channelId: "TruthArtTV" },
-            { rank: 23, name: "X22 Report", viewers: 3210, channelId: "X22Report" },
-            { rank: 24, name: "USA Watchdog", viewers: 2109, channelId: "USAWatchdog" },
-            { rank: 25, name: "The Last Refuge", viewers: 1987, channelId: "TheLastRefuge" },
-            { rank: 26, name: "Conservative Momma", viewers: 1876, channelId: "ConservativeMomma" },
-            { rank: 27, name: "The Political Insider", viewers: 1765, channelId: "PoliticalInsider" },
-            { rank: 28, name: "Western Journal", viewers: 1654, channelId: "WesternJournal" },
-            { rank: 29, name: "PJ Media", viewers: 1543, channelId: "PJMedia" },
-            { rank: 30, name: "Townhall Media", viewers: 1432, channelId: "TownhallMedia" }
-        ];
-
+        
+        // Load HLS channels from JSON (this becomes our primary data source)
+        let channelsData = [];
         let currentChannelIndex = 0;
         let hls = null;
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             loadHLSChannels();
-            updateChannelDisplay();
-            updateCarouselDots();
-            buildChannelDropdown();
             updateClock();
             setInterval(updateClock, 1000);
-
-            // Keyboard shortcuts
             document.addEventListener('keydown', handleKeyboardShortcuts);
-
-            // Mark all channels as LIVE
-            checkAllChannelStatus();
         });
 
-        // Load HLS channels from JSON file
+        // Load HLS channels from JSON file (SINGLE SOURCE OF TRUTH)
         function loadHLSChannels() {
             fetch('rumble_hls_channels.json')
                 .then(r => r.json())
                 .then(data => {
-                    hlsChannels = data;
-                    console.log('✅ Loaded', hlsChannels.length, 'HLS channels');
-                })
-                .catch(e => console.log('Note: HLS channels JSON not available, using carousel mode only', e));
-        }
-
-        // Mark all channels as LIVE
-        async function checkAllChannelStatus() {
-            for (let i = 0; i < channelsData.length; i++) {
-                const channel = channelsData[i];
-                liveStatus[channel.channelId] = true;
-                
-                if (i === currentChannelIndex) {
+                    // Use HLS channels as primary data source
+                    channelsData = data.map((ch, idx) => ({
+                        index: idx + 1,
+                        name: ch.name,
+                        title: ch.title,
+                        viewers: parseInt(ch.viewers),
+                        hls_url: ch.hls_url,
+                        video_id: ch.video_id,
+                        rank: idx + 1
+                    }));
+                    
+                    // Mark all as LIVE (they came from your report)
+                    channelsData.forEach(ch => {
+                        liveStatus[ch.name] = true;
+                    });
+                    
+                    console.log('✅ Loaded', channelsData.length, 'HLS channels from JSON');
                     updateChannelDisplay();
-                }
-
-                await new Promise(resolve => setTimeout(resolve, 50));
-            }
+                    updateCarouselDots();
+                    buildChannelDropdown();
+                })
+                .catch(e => console.error('❌ Failed to load HLS channels:', e));
         }
 
         function handleKeyboardShortcuts(e) {
@@ -726,8 +689,10 @@
         }
 
         function updateChannelDisplay() {
+            if (channelsData.length === 0) return; // Wait for data to load
+            
             const channel = channelsData[currentChannelIndex];
-            const isLive = liveStatus[channel.channelId] !== undefined ? liveStatus[channel.channelId] : null;
+            const isLive = liveStatus[channel.name] !== undefined ? liveStatus[channel.name] : null;
             const card = document.getElementById('channelCard');
             const badge = document.getElementById('statusBadge');
             const liveText = document.getElementById('liveText');
@@ -736,7 +701,7 @@
             document.getElementById('viewerCount').textContent = channel.viewers.toLocaleString();
             document.getElementById('rankDisplay').textContent = `#${channel.rank}`;
 
-            // Update card state based on live status
+            // All channels from the report are LIVE
             if (isLive === null) {
                 badge.className = 'status-checking';
                 badge.textContent = 'CHECKING...';
@@ -773,11 +738,8 @@
             const channel = channelsData[currentChannelIndex];
             document.getElementById('modalChannelName').textContent = `${channel.name} (${channel.viewers.toLocaleString()} viewers)`;
 
-            // Find HLS URL for this channel
-            const hlsChannel = hlsChannels.find(c => c.index === currentChannelIndex + 1);
-            
-            if (hlsChannel && hlsChannel.hls_url) {
-                // Play HLS stream using hls.js
+            // Use HLS URL directly from channel data
+            if (channel.hls_url) {
                 const video = document.getElementById('videoPlayer');
                 
                 if (Hls.isSupported()) {
@@ -789,20 +751,19 @@
                         enableWorker: true,
                         lowLevelLogger: null
                     });
-                    hls.loadSource(hlsChannel.hls_url);
+                    hls.loadSource(channel.hls_url);
                     hls.attachMedia(video);
                     hls.on(Hls.Events.MANIFEST_PARSED, () => {
                         video.play().catch(e => console.log('Autoplay prevented:', e));
                     });
+                    hls.on(Hls.Events.ERROR, (event, data) => {
+                        console.log('❌ HLS Error:', data);
+                    });
                 } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
                     // Safari native HLS support
-                    video.src = hlsChannel.hls_url;
+                    video.src = channel.hls_url;
                     video.play().catch(e => console.log('Autoplay prevented:', e));
                 }
-            } else {
-                // Fallback: open in new window if HLS not available
-                window.open(`https://rumble.com/c/${channel.channelId}`, '_blank');
-                closeEmbedModal();
             }
         }
 
