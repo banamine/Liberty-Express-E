@@ -23,6 +23,10 @@ This project delivers a comprehensive IPTV solution, combining a Python desktop 
 - **Auto-Scheduling**: 5 features operational (folder/M3U import, 24/7 auto-build, shuffle/loop, JSON export)
 - **Web EPG Server**: 3 HTTP endpoints live (/now.json, /schedules, /epg)
 - **Web Players**: 11 templates + Control Hub with 16+ buttons
+- **Professional Landing Page** (NEW - Nov 22): 
+  - Live at `/generated_pages/` with hero section, 8 specialized player cards, sample channels grid, platform stats
+  - Fully wired navigation: Landing Page ↔ Control Hub ↔ Download PRO
+  - All player launch buttons connected and functional
 - **Production Status**: Ready for Phase 3 (Jan 6 deadline)
 
 ## System Architecture
