@@ -1,0 +1,108 @@
+Here’s a technical specification for your software’s interactive_hub import/export/schedule functions, written for an expert engineer to audit, test, and implement. I’ll break it down into testable claims, expected behaviors, and edge cases—with a focus on ruthless validation of each claim.
+
+1. Core Requirements: Import/Export/Schedule Functions
+A. Import Function
+Claim:
+"The import function ingests TVGuide XML/JS schedule data and populates the hub calendar."
+Technical Breakdown:
+
+Input: XML or JS file (e.g., tvguide.xml or schedule.js) containing:
+
+Show titles
+Timestamps (start/end)
+Metadata (e.g., genre, duration, unique IDs)
+
+Process:
+
+Parse input file → validate schema (e.g., XML against XSD, JS against expected object structure).
+Map fields to calendar events (e.g., title → event.name, start_time → event.start).
+Handle conflicts (e.g., overlapping timeslots, duplicate IDs).
+
+Output:
+
+Events added to hub calendar database (e.g., SQLite/PostgreSQL).
+Log of imported entries (success/failure).
+
+Audit Questions:
+
+Does the parser reject malformed XML/JS? (Test: Inject invalid data.)
+Are timestamps normalized to UTC? (Test: Import schedules from different time zones.)
+Are duplicates detected? (Test: Import the same show twice.)
+
+B. Export Function
+Claim:
+"The export function outputs the hub calendar as XML/JS for external use."
+Technical Breakdown:
+
+Input: User-selected date range or filter (e.g., "export November 2025").
+Process:
+
+Query calendar database → serialize to XML/JS.
+Validate output schema (e.g., XML should match TVGuide XSD).
+
+Output:
+
+File download (e.g., hub_schedule_2025-11.xml).
+Log of exported entries.
+
+Audit Questions:
+
+Does the exported XML/JS match the input schema? (Test: Diff against schema.)
+Are all calendar events included? (Test: Export after importing 10,000 entries.)
+Is the output human-readable? (Test: Open in a text editor.)
+
+C. Schedule Function
+Claim:
+"The schedule function auto-fills the calendar with playlists, balancing 1–10,000 links to avoid replays (48-hour minimum cooldown)."
+Technical Breakdown:
+
+Input:
+
+Playlist (1–10,000 video links).
+User-defined rules (e.g., "no replays <48h", "shuffle order").
+
+Process:
+
+Algorithm:
+
+Shuffle: Randomize playlist order (e.g., Fisher-Yates shuffle).
+Distribute: Spread links across calendar slots (daily/weekly/monthly).
+Cooldown: Enforce 48-hour gap between repeats (track last_played timestamp).
+
+Calendar Integration:
+
+Create events with video links as metadata.
+Auto-fill empty slots with next available video.
+
+
+Output:
+
+Calendar populated with scheduled videos.
+Log of scheduling decisions (e.g., "Video X skipped: replay within 48h").
+
+Audit Questions:
+
+Does the shuffle avoid bias? (Test: Run 1,000 iterations; check for uniformity.)
+Is the 48-hour cooldown enforced? (Test: Schedule the same video twice in 24h.)
+Does auto-fill handle partial playlists? (Test: Schedule 1,000 links into 500 slots.)
+
+2. Calendar Integration
+Claim:
+"Scheduled events appear on the hub calendar and sync with user-created playlists."
+Technical Breakdown:
+
+Data Flow:
+
+User uploads playlist → schedule function processes → calendar updates.
+User edits playlist → calendar re-syncs (e.g., via webhook or cron job).
+
+UI/UX:
+
+Calendar displays video titles, durations, and cooldown status.
+"Select" button triggers playlist loop (order: shuffled or user-defined).
+
+Audit Questions:
+
+Does the calendar update in real-time? (Test: Edit playlist; verify calendar.)
+Are cooldowns visible in the UI? (Test: Hover over a scheduled video.)
+Does the loop respect user-defined order? (Test: Playlist A→B→C vs. shuffled C→A→B.)

@@ -356,6 +356,53 @@ app.post('/api/export-all-schedules-xml', (req, res) => {
   }
 });
 
+// Schedule playlist with auto-fill
+app.post('/api/schedule-playlist', (req, res) => {
+  try {
+    const { links, start_time, duration_hours, cooldown_hours, shuffle } = req.body;
+    
+    if (!links || !Array.isArray(links) || links.length === 0) {
+      return res.status(400).json({ status: 'error', message: 'No video links provided' });
+    }
+    if (!start_time) {
+      return res.status(400).json({ status: 'error', message: 'Start time required' });
+    }
+    
+    // Call Python scheduler
+    const scheduleData = JSON.stringify({
+      links: links,
+      start_time: start_time,
+      duration_hours: duration_hours || 24,
+      cooldown_hours: cooldown_hours || 48,
+      shuffle: shuffle !== false
+    });
+    
+    const outputFile = path.join(__dirname, `schedule_${Date.now()}.json`);
+    const python = spawn('python3', ['M3U_Matrix_Pro.py', '--schedule-playlist', 
+      JSON.stringify(links), start_time, String(duration_hours || 24), outputFile]);
+    
+    let output = '';
+    python.stdout.on('data', (data) => {
+      output += data.toString();
+    });
+    
+    python.on('close', (code) => {
+      if (code === 0) {
+        try {
+          const result = JSON.parse(output);
+          res.json(result);
+        } catch (e) {
+          res.status(500).json({ status: 'error', message: 'Failed to parse schedule result' });
+        }
+      } else {
+        res.status(500).json({ status: 'error', message: 'Schedule failed' });
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
 // API endpoint to fetch real Infowars videos
 app.get('/api/infowars-videos', (req, res) => {
   try {
