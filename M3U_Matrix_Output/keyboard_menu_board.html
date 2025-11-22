@@ -897,7 +897,9 @@
             { id: 'simple_player', name: 'SIMPLE PLAYER', icon: '▶️', category: 'generate', color: '#FF69B4', 
               description: 'Clean simple video player', shortcut: null, toolbar: 'Quick Generate' },
             { id: 'web_iptv', name: 'WEB IPTV', icon: '🌍', category: 'generate', color: '#00CED1', 
-              description: 'Web-based IPTV player', shortcut: null, toolbar: 'Quick Generate' }
+              description: 'Web-based IPTV player', shortcut: null, toolbar: 'Quick Generate' },
+            { id: 'rumble_news', name: 'RUMBLE NEWS', icon: '📰', category: 'special', color: '#FF4500', 
+              description: '40-channel Rumble news carousel with clipping', shortcut: null, toolbar: 'Quick Generate' }
         ];
 
         // Initialize variables
@@ -1266,6 +1268,13 @@
             
             // Here you would integrate with M3U Matrix API
             // For now, we'll simulate the action
+            
+            // Handle special Rumble News function
+            if (func.id === 'rumble_news') {
+                window.open('/generated_pages/rumble_news_carousel.html', '_blank');
+                return;
+            }
+            
             switch(func.category) {
                 case 'file':
                     if (func.id === 'new_file') {
