@@ -4,13 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src * data: blob:; media-src *; connect-src *;">
-    <title>NEXUS TV - Channel Selector</title>
+    <title>M3U Matrix - IPTV Streaming Platform</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
-            font-family: 'Segoe UI', 'Arial Black', 'Impact', sans-serif;
-            font-weight: 700;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
             background: linear-gradient(135deg, #0a0a0f 0%, #1a0a2e 50%, #0a0a0f 100%);
             color: #fff;
             min-height: 100vh;
@@ -24,9 +23,9 @@
             width: 100%;
             height: 100%;
             background: 
-                radial-gradient(circle at 20% 50%, rgba(0, 243, 255, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(255, 0, 255, 0.1) 0%, transparent 50%);
-            animation: bgPulse 10s ease-in-out infinite;
+                radial-gradient(circle at 20% 50%, rgba(0, 243, 255, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 0, 255, 0.08) 0%, transparent 50%);
+            animation: bgPulse 15s ease-in-out infinite;
             z-index: 0;
         }
         
@@ -45,16 +44,16 @@
         
         header {
             text-align: center;
-            margin-bottom: 60px;
-            padding: 30px;
-            background: rgba(0, 0, 0, 0.5);
+            margin-bottom: 80px;
+            padding: 50px 40px;
+            background: rgba(0, 0, 0, 0.4);
             border: 2px solid #00f3ff;
             border-radius: 20px;
-            box-shadow: 0 0 40px rgba(0, 243, 255, 0.3);
+            box-shadow: 0 0 40px rgba(0, 243, 255, 0.2);
         }
         
         h1 {
-            font-size: 4em;
+            font-size: 3.5em;
             font-weight: 900;
             background: linear-gradient(90deg, #00f3ff, #ff00ff, #00f3ff);
             background-size: 200% auto;
@@ -62,8 +61,7 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
             animation: gradient 3s linear infinite;
-            text-shadow: 0 0 30px rgba(0, 243, 255, 0.5);
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
         
         @keyframes gradient {
@@ -72,21 +70,40 @@
         }
         
         .subtitle {
-            font-size: 1.2em;
+            font-size: 1.3em;
             color: #00f3ff;
             text-transform: uppercase;
             letter-spacing: 3px;
+            margin-bottom: 10px;
         }
         
-        .channels-grid {
+        .tagline {
+            font-size: 1em;
+            color: #aaa;
+            margin-top: 15px;
+            font-style: italic;
+        }
+        
+        .section-title {
+            font-size: 2.2em;
+            color: #00f3ff;
+            margin: 60px 0 40px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-bottom: 2px solid #ff00ff;
+            padding-bottom: 15px;
+        }
+        
+        .players-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 30px;
-            padding: 20px;
+            margin-bottom: 60px;
         }
         
-        .channel-card {
-            background: rgba(0, 0, 0, 0.6);
+        .player-card {
+            background: rgba(0, 0, 0, 0.5);
             border: 2px solid #00f3ff;
             border-radius: 15px;
             padding: 30px;
@@ -95,9 +112,11 @@
             cursor: pointer;
             position: relative;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
         
-        .channel-card::before {
+        .player-card::before {
             content: '';
             position: absolute;
             top: -50%;
@@ -109,41 +128,40 @@
             transition: all 0.5s;
         }
         
-        .channel-card:hover {
-            transform: translateY(-10px);
+        .player-card:hover {
+            transform: translateY(-8px);
             border-color: #ff00ff;
-            box-shadow: 0 0 40px rgba(255, 0, 255, 0.5);
+            box-shadow: 0 0 40px rgba(255, 0, 255, 0.4);
         }
         
-        .channel-card:hover::before {
+        .player-card:hover::before {
             left: 100%;
         }
         
-        .channel-icon {
-            font-size: 3em;
-            margin-bottom: 20px;
-            background: linear-gradient(90deg, #00f3ff, #ff00ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .player-icon {
+            font-size: 3.5em;
+            margin-bottom: 15px;
         }
         
-        .channel-name {
-            font-size: 1.5em;
+        .player-name {
+            font-size: 1.6em;
             font-weight: 700;
             margin-bottom: 10px;
             color: #fff;
         }
         
-        .channel-info {
-            font-size: 0.9em;
-            color: #888;
-            margin-bottom: 15px;
+        .player-desc {
+            font-size: 0.95em;
+            color: #aaa;
+            margin-bottom: 20px;
+            flex-grow: 1;
+            line-height: 1.5;
         }
         
-        .watch-btn {
+        .launch-btn {
             display: inline-block;
             background: linear-gradient(90deg, #00f3ff, #ff00ff);
-            color: #fff;
+            color: #000;
             padding: 12px 30px;
             border-radius: 25px;
             text-decoration: none;
@@ -151,30 +169,80 @@
             transition: all 0.3s;
             border: none;
             cursor: pointer;
+            font-size: 0.95em;
         }
         
-        .watch-btn:hover {
+        .launch-btn:hover {
             transform: scale(1.05);
-            box-shadow: 0 0 20px rgba(0, 243, 255, 0.8);
+            box-shadow: 0 0 25px rgba(0, 243, 255, 0.8);
         }
         
         .stats {
             text-align: center;
-            margin-top: 50px;
-            padding: 20px;
+            margin-top: 80px;
+            padding: 40px;
             background: rgba(0, 0, 0, 0.5);
             border-radius: 15px;
-            border: 1px solid #00f3ff;
+            border: 2px solid #00f3ff;
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.2);
         }
         
         .stats h3 {
             color: #00f3ff;
-            font-size: 1.3em;
-            margin-bottom: 10px;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         
-        .stats p {
-            color: #888;
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin-top: 20px;
+        }
+        
+        .stat-item {
+            padding: 20px;
+            background: rgba(0, 243, 255, 0.05);
+            border: 1px solid #00f3ff;
+            border-radius: 10px;
+        }
+        
+        .stat-number {
+            font-size: 2.5em;
+            color: #00f3ff;
+            font-weight: 900;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.2em;
+            }
+            
+            .section-title {
+                font-size: 1.6em;
+            }
+            
+            .players-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            header {
+                padding: 30px 20px;
+            }
+            
+            .subtitle {
+                font-size: 1em;
+            }
         }
     </style>
 </head>
@@ -183,78 +251,126 @@
     
     <div class="container">
         <header>
-            <h1>📺 NEXUS TV</h1>
-            <p class="subtitle">Choose Your Channel</p>
+            <h1>🎬 M3U MATRIX</h1>
+            <p class="subtitle">IPTV Streaming Platform</p>
+            <p class="tagline">Unified Entertainment Across All Devices • 24/7 Streaming Solutions</p>
         </header>
         
-        <div class="channels-grid" id="channelsGrid">
-            <!-- Channels will be inserted here -->
+        <div class="section-title">🎮 Available Players</div>
+        
+        <div class="players-grid" id="playersGrid">
+            <!-- Players will be dynamically inserted here -->
         </div>
         
         <div class="stats">
-            <h3><i class="fas fa-broadcast-tower"></i> Network Status</h3>
-            <p><span id="channelCount">0</span> channels available • 24/7 streaming</p>
+            <h3>📊 Platform Statistics</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number" id="playerCount">0</div>
+                    <div class="stat-label">Active Players</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">Streaming</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">RSS</div>
+                    <div class="stat-label">Feed Support</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">∞</div>
+                    <div class="stat-label">Channels</div>
+                </div>
+            </div>
+            <p style="margin-top: 30px; color: #aaa; font-size: 0.9em;">Powered by M3U Matrix All-In-One Platform</p>
         </div>
     </div>
     
     <script>
-        const channels = [
+        const players = [
             {
-                        "name": "Test <script>alert(\"XSS\")</script> Channel",
-                        "file": "test1.html",
-                        "programs": 10
+                name: "Infowars Extravaganza",
+                icon: "🔴",
+                desc: "Advanced RSS-fed player with multi-screen viewing (2x2 or 2x3), skip controls (10s/20s/30s/1m), volume slider, fullscreen, video clipping with timestamps, and screenshot capture.",
+                link: "infowars_extravaganza_daily.html"
             },
             {
-                        "name": "Safe & Normal Channel",
-                        "file": "test2.html",
-                        "programs": 20
+                name: "NEXUS TV",
+                icon: "🎭",
+                desc: "24-hour auto-scheduled streaming with neon cyberpunk aesthetic. Dynamic content scheduling, favorites system, and offline support with IndexedDB persistence.",
+                link: "nexus_tv/index.html"
+            },
+            {
+                name: "Buffer TV",
+                icon: "📺",
+                desc: "TV player with advanced buffering controls. Numeric keypad navigation, adjustable load timeout, automatic retry, TV Guide overlay, and quick category access.",
+                link: "buffer_tv/index.html"
+            },
+            {
+                name: "Multi-Channel Viewer",
+                icon: "🎯",
+                desc: "Grid-based player supporting 1-6 simultaneous channels. Smart audio management, focus mode, configurable rotation scheduler, and keyboard shortcuts.",
+                link: "multi_channel/index.html"
+            },
+            {
+                name: "Web IPTV",
+                icon: "▶️",
+                desc: "Sequential channel playback with group-based organization. Clean, responsive interface with shuffle/sequential modes and mobile optimization.",
+                link: "web_iptv/index.html"
+            },
+            {
+                name: "Simple Player",
+                icon: "🎬",
+                desc: "Minimalist HTML5 video player. HLS/DASH stream support, sequential and shuffle playback modes, responsive design for all devices.",
+                link: "simple_player/index.html"
+            },
+            {
+                name: "Rumble Channel",
+                icon: "🟣",
+                desc: "Specialized player for Rumble videos with automatic URL detection. Secure iframe embedding, oEmbed metadata fetching, and offline storage.",
+                link: "rumble_channel/index.html"
+            },
+            {
+                name: "Interactive Control Hub",
+                icon: "🎛️",
+                desc: "Central management dashboard for all players. Generate custom players, manage playlists, view deployment status, and access GitHub Pages.",
+                link: "interactive_hub.html"
             }
-];
+        ];
         
-        const grid = document.getElementById('channelsGrid');
-        const channelCount = document.getElementById('channelCount');
+        const grid = document.getElementById('playersGrid');
+        const playerCount = document.getElementById('playerCount');
         
-        channels.forEach((channel, index) => {
+        players.forEach((player) => {
             const card = document.createElement('div');
-            card.className = 'channel-card';
+            card.className = 'player-card';
             
-            // Create channel icon
-            const iconDiv = document.createElement('div');
-            iconDiv.className = 'channel-icon';
-            const icon = document.createElement('i');
-            icon.className = 'fas fa-tv';
-            iconDiv.appendChild(icon);
+            const icon = document.createElement('div');
+            icon.className = 'player-icon';
+            icon.textContent = player.icon;
             
-            // Create channel name
-            const nameDiv = document.createElement('div');
-            nameDiv.className = 'channel-name';
-            nameDiv.textContent = channel.name;
+            const name = document.createElement('div');
+            name.className = 'player-name';
+            name.textContent = player.name;
             
-            // Create channel info
-            const infoDiv = document.createElement('div');
-            infoDiv.className = 'channel-info';
-            infoDiv.textContent = channel.programs + ' programs available';
+            const desc = document.createElement('div');
+            desc.className = 'player-desc';
+            desc.textContent = player.desc;
             
-            // Create watch button
-            const watchBtn = document.createElement('a');
-            watchBtn.href = channel.file;
-            watchBtn.className = 'watch-btn';
-            const playIcon = document.createElement('i');
-            playIcon.className = 'fas fa-play';
-            watchBtn.appendChild(playIcon);
-            const btnText = document.createTextNode(' Watch Now');
-            watchBtn.appendChild(btnText);
+            const btn = document.createElement('a');
+            btn.href = player.link;
+            btn.className = 'launch-btn';
+            btn.textContent = '▶ Launch';
             
-            // Append all elements to card
-            card.appendChild(iconDiv);
-            card.appendChild(nameDiv);
-            card.appendChild(infoDiv);
-            card.appendChild(watchBtn);
+            card.appendChild(icon);
+            card.appendChild(name);
+            card.appendChild(desc);
+            card.appendChild(btn);
             
             grid.appendChild(card);
         });
         
-        channelCount.textContent = channels.length;
+        playerCount.textContent = players.length;
     </script>
 </body>
 </html>
