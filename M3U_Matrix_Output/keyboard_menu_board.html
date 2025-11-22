@@ -648,7 +648,11 @@
     </div>
 
     <!-- Numeric Keypad -->
-    <div class="numpad-container">
+    <div class="numpad-container" id="rightPanel">
+        <div class="right-panel-header" style="color: #00ffff; font-size: 14px; font-weight: bold; margin-bottom: 15px; text-align: center; cursor: move; user-select: none; padding: 10px; border-radius: 8px; background: rgba(0, 255, 255, 0.1); border: 1px solid rgba(0, 255, 255, 0.3);">
+            ⌨️ ScheduleFlow Advanced Options
+        </div>
+        <div class="right-panel-content">
         <div class="numpad-title">Quick Jump & Execute</div>
         <!-- Quick Playlist Input -->
         <div style="margin-bottom: 15px;">
@@ -678,14 +682,29 @@
             <div class="numpad-key" data-num="clear">C</div>
             <div class="numpad-key" data-num="enter" style="background: linear-gradient(135deg, #27ae60, #2ecc71); grid-column: span 3;">ENTER</div>
         </div>
-        <!-- Back to M3U Matrix Button -->
-        <button onclick="backToMatrix()" 
-                style="width: 100%; margin-top: 15px; padding: 10px; 
-                       background: linear-gradient(135deg, #e74c3c, #ff5555); 
+        <!-- Navigation Buttons -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
+            <button onclick="backToMatrix()" 
+                    style="padding: 10px; background: linear-gradient(135deg, #3498db, #2980b9); 
+                           border: none; border-radius: 10px; color: white; 
+                           cursor: pointer; font-weight: bold; font-size: 12px;">
+                ⬅️ Back to Index
+            </button>
+            <button onclick="window.open('/generated_pages/interactive_hub.html', '_self')" 
+                    style="padding: 10px; background: linear-gradient(135deg, #9b59b6, #8e44ad); 
+                           border: none; border-radius: 10px; color: white; 
+                           cursor: pointer; font-weight: bold; font-size: 12px;">
+                🎛️ Control Hub
+            </button>
+        </div>
+        <button onclick="window.open('https://github.com/banamine/Liberty-Express-/blob/main/M3U_Matrix_Pro.py', '_blank')" 
+                style="width: 100%; margin-top: 10px; padding: 10px; 
+                       background: linear-gradient(135deg, #27ae60, #229954); 
                        border: none; border-radius: 10px; color: white; 
-                       cursor: pointer; font-weight: bold; font-size: 14px;">
-            🏠 Back to M3U Matrix
+                       cursor: pointer; font-weight: bold; font-size: 12px;">
+            🐍 Python GUI Builder
         </button>
+        </div>
     </div>
 
     <!-- Settings Modal -->
@@ -1290,10 +1309,77 @@
             }
         }
 
-        // Back to M3U Matrix
+        // Back to Index
         function backToMatrix() {
-            window.location.href = '/M3U_Matrix_Output/generated_pages/index.html';
+            window.location.href = '/generated_pages/index.html';
         }
+        
+        // Keyboard board container drag and drop
+        let isDragging = false;
+        let dragX = 0;
+        let dragY = 0;
+        let containerX = 0;
+        let containerY = 0;
+        let isMinimized = false;
+        
+        function startDrag(e) {
+            if (isMinimized) return;
+            const container = document.getElementById('rightPanel');
+            isDragging = true;
+            dragX = e.clientX - container.getBoundingClientRect().left;
+            dragY = e.clientY - container.getBoundingClientRect().top;
+        }
+        
+        function drag(e) {
+            if (!isDragging) return;
+            const container = document.getElementById('rightPanel');
+            containerX = e.clientX - dragX;
+            containerY = e.clientY - dragY;
+            
+            // Snap to grid (20px)
+            containerX = Math.round(containerX / 20) * 20;
+            containerY = Math.round(containerY / 20) * 20;
+            
+            // Keep within bounds
+            containerX = Math.max(10, Math.min(window.innerWidth - 320, containerX));
+            containerY = Math.max(10, Math.min(window.innerHeight - 100, containerY));
+            
+            container.style.position = 'fixed';
+            container.style.left = containerX + 'px';
+            container.style.top = containerY + 'px';
+            container.style.zIndex = 10000;
+        }
+        
+        function stopDrag() {
+            isDragging = false;
+        }
+        
+        function minimizeKeyboard() {
+            const container = document.getElementById('rightPanel');
+            const header = container.querySelector('.right-panel-header');
+            const content = container.querySelector('.right-panel-content');
+            
+            isMinimized = !isMinimized;
+            if (isMinimized) {
+                content.style.display = 'none';
+                header.style.cursor = 'pointer';
+                header.innerHTML = '⌨️ ScheduleFlow Advanced Options';
+                showNotification('Keyboard minimized - Click header to expand', 'info');
+            } else {
+                content.style.display = 'block';
+                header.style.cursor = 'move';
+                showNotification('Keyboard expanded', 'info');
+            }
+        }
+        
+        // Toggle minimize on header double-click
+        document.addEventListener('DOMContentLoaded', () => {
+            const header = document.querySelector('.right-panel-header');
+            header?.addEventListener('dblclick', minimizeKeyboard);
+            header?.addEventListener('mousedown', startDrag);
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', stopDrag);
+        });
 
         // Add animation keyframes
         const style = document.createElement('style');
