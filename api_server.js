@@ -30,6 +30,9 @@ app.use((req, res, next) => {
 // Serve static files from generated_pages at /generated_pages route
 app.use('/generated_pages', express.static('generated_pages'));
 
+// Serve static files from M3U_Matrix_Output
+app.use('/M3U_Matrix_Output', express.static('M3U_Matrix_Output'));
+
 // Also serve from root for compatibility
 app.use(express.static('generated_pages'));
 
