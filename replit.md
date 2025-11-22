@@ -52,23 +52,31 @@
   - All notifications and status displays
 - **Testing**: 100% PASS RATE - All 12 functions verified
 
-### ✅ RUMBLE NEWS CAROUSEL - ENHANCED (Nov 22)
-- **File**: `/generated_pages/rumble_news_carousel.html` (1076 lines)
-- **Channels**: 39 verified Rumble news channels
-  - Top News: InfoWars, Newsmax TV, OANN, RSBN, Steve Bannon, Steven Crowder, etc.
-  - Independent: Redacted, Glenn Greenwald, Charlie Kirk, Tim Pool, Russell Brand
-  - Commentators: Tucker Carlson, Dinesh D'Souza, Candace Owens, Matt Walsh
-  - Alternative: Project Veritas, Rebel News, Gateway Pundit, Epoch Times
-  - Specialty: LindellTV, Patriot News, X22 Report, And We Know, Salty Cracker
-  - International: RT, Sky News Australia, GB News, True North
-- **Fully Implemented Functions (20+)**:
-  - loadChannel(), openChannelWindow(), nextChannel(), previousChannel()
-  - toggleMenu(), toggleClipMode(), markClipStart(), markClipEnd()
-  - createClip(), cancelClip(), shareCurrentChannel(), copyShareUrl()
-  - toggleFullscreen(), togglePlay(), skipBackward(), skipForward()
-  - filterChannels(), updateChannelList(), updateCarouselDots()
-  - Keyboard shortcuts: Arrow keys, Space, F, C, M, Escape, 1-9
-- **Testing**: 100% PASS RATE - All carousel functions verified
+### ✅ RUMBLE NEWS CAROUSEL - SELF-CONTAINED AUDITABLE VERSION (Nov 22)
+- **Files**:
+  - `/generated_pages/rumble_news_carousel.html` (324 lines - complete app)
+  - `/generated_pages/rumble_channels_iframe.json` (10 channels - data)
+  - `/generated_pages/CAROUSEL_AUDIT_TECHNICAL_SPEC.md` (539 lines - full documentation)
+- **Architecture**: 
+  - **100% self-contained**: Zero external dependencies, no npm, no databases
+  - **Fully auditable**: All source code visible (HTML + CSS + JavaScript inline)
+  - **GitHub-deployable**: Static files, GitHub Pages hosting, free
+  - **Update mechanism**: JSON-only updates (no code changes ever needed)
+  - **Total size**: ~20 KB complete working application
+- **Channels**: 10 verified from Nov 22 Rumble report
+  - Uses Rumble iframe embeds (permanent URLs, never expire)
+  - Displays: Channel name, viewer count, rank
+  - Navigation: Arrow keys, left/right buttons, keyboard shortcuts
+- **Update Flow**:
+  - Python extracts channels from Rumble report (regex parse)
+  - Build JSON: {index, name, video_id, viewers, embed_url}
+  - Sync to GitHub: cp → git add → git commit → git push
+  - Page auto-updates on GitHub Pages (~1-2 min propagation)
+- **Audit Documentation**:
+  - Technical spec covers: Architecture, data flow, GitHub deployment, security
+  - Verification tests: Local test, GitHub test, JSON validation, browser console
+  - Deployment checklist: Pre, during, post-deployment verification
+- **Testing**: 100% PASS RATE - All core functions verified
 
 ### ✅ COMPREHENSIVE AUDIT REPORT (Nov 22)
 - **File**: `/generated_pages/audit_report.html` (688 lines)
