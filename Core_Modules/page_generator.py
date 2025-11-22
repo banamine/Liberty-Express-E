@@ -190,6 +190,32 @@ def sanitize_directory_name(name):
 
 
 class NexusTVPageGenerator:
+    """
+    NEXUS TV Page Generator - 24-hour scheduled playback
+    Now with offline support: embedded playlist data for file:// protocol compatibility
+    """
+    def parse_m3u_to_channels_simple(self, m3u_content):
+        """Extract channel data from M3U for embedded offline support"""
+        channels = []
+        lines = m3u_content.strip().split('\n')
+        i = 0
+        while i < len(lines):
+            line = lines[i].strip()
+            if line.startswith('#EXTINF'):
+                channel = {}
+                name_match = re.search(r',(.+)$', line)
+                channel['name'] = clean_title(name_match.group(1)) if name_match else 'Unknown'
+                logo_match = re.search(r'tvg-logo="([^"]*)"', line)
+                channel['logo'] = logo_match.group(1) if logo_match else ''
+                group_match = re.search(r'group-title="([^"]*)"', line)
+                channel['group'] = group_match.group(1) if group_match else 'Other'
+                if i + 1 < len(lines) and not lines[i + 1].startswith('#'):
+                    channel['url'] = lines[i + 1].strip()
+                    channels.append(channel)
+                    i += 1
+            i += 1
+        return channels
+    
     def __init__(self, template_path=None):
         if template_path is None:
             # Use PyInstaller-compatible template path
@@ -456,6 +482,11 @@ class NexusTVPageGenerator:
             '<title>NEXUS TV - Classic Movies Channel</title>',
             f'<title>NEXUS TV - {channel_name}</title>'
         )
+        
+        # Extract channels for embedded data (offline support)
+        embedded_channels = self.parse_m3u_to_channels_simple(m3u_content)
+        channels_json = json.dumps(embedded_channels, indent=2, ensure_ascii=False)
+        modified_html = modified_html.replace('{{EMBEDDED_CHANNELS}}', channels_json)
         
         # Replace HUB_LINK with correct relative path
         # Since nexus_tv pages are in generated_pages/nexus_tv/[channel]/player.html

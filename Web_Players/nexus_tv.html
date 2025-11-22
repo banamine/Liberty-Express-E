@@ -2229,7 +2229,9 @@
         // MODE MANAGEMENT
         // =====================================================================
         let currentMode = 'schedule'; // 'schedule' or 'live'
-        let liveChannels = [];
+        // Embedded playlist data for offline support (will be injected by page_generator)
+        const embeddedChannels = {{EMBEDDED_CHANNELS}};
+        let liveChannels = embeddedChannels && embeddedChannels.length > 0 ? embeddedChannels : [];
         let currentLiveChannel = null;
         let favoriteChannels = [];
         let channelHistory = [];
@@ -2307,19 +2309,34 @@
             } else if (input) {
                 // Load from URL or content
                 if (input.startsWith('http')) {
-                    // It's a URL
+                    // Try to fetch URL (may fail with file:// protocol - fallback to embedded data)
                     fetch(input)
                         .then(r => r.text())
                         .then(content => {
                             parseM3U(content);
                             addToHistory(input, 'url');
                         })
-                        .catch(err => showNotification('Failed to load playlist: ' + err.message, 'error'));
+                        .catch(err => {
+                            // If fetch fails, use embedded channels
+                            if (liveChannels.length > 0) {
+                                showNotification('Using embedded playlist (fetch failed)', 'warning');
+                                closeLiveDialog('m3u-load-dialog');
+                            } else {
+                                showNotification('Failed to load playlist: ' + err.message, 'error');
+                            }
+                        });
                 } else {
                     // It's content
                     parseM3U(input);
                     addToHistory('Pasted content', 'paste');
                 }
+            } else if (liveChannels.length > 0) {
+                // Use embedded channels if no input provided
+                showNotification('Using embedded playlist', 'success');
+                displayChannels(liveChannels);
+                document.getElementById('live-playlist-name').textContent = `${liveChannels.length} channels loaded`;
+                closeLiveDialog('m3u-load-dialog');
+                return;
             } else {
                 showNotification('Please provide a URL, file, or M3U content', 'warning');
                 return;
