@@ -107,7 +107,7 @@ class TVScheduleDB:
     
     # Channel operations
     def add_channel(self, name: str, description: str = "", 
-                   group: str = "", logo_url: str = "") -> int:
+                   group: str = "", logo_url: str = "") -> Optional[int]:
         """Add a new channel to the database"""
         with self.lock:
             conn = self._get_connection()
@@ -167,7 +167,7 @@ class TVScheduleDB:
     # Show operations
     def add_show(self, channel_id: int, name: str, duration_minutes: int,
                  description: str = "", genre: str = "", rating: str = "",
-                 thumbnail_url: str = "", metadata: Dict = None) -> int:
+                 thumbnail_url: str = "", metadata: Optional[Dict] = None) -> Optional[int]:
         """Add a new show to the database"""
         with self.lock:
             conn = self._get_connection()
@@ -264,7 +264,7 @@ class TVScheduleDB:
     
     # Schedule operations
     def create_schedule(self, name: str, start_date: str, end_date: str,
-                       enable_looping: bool = False, loop_end_date: str = None) -> int:
+                       enable_looping: bool = False, loop_end_date: Optional[str] = None) -> int:
         """Create a new schedule"""
         with self.lock:
             conn = self._get_connection()

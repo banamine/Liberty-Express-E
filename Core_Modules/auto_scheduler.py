@@ -39,9 +39,12 @@ class AutoScheduler:
             return {'success': False, 'message': 'Folder not found', 'shows_imported': 0}
         
         # Create channel
-        channel_id = self.db.add_channel(channel_name, 
+        channel_id = self.db.add_channel(channel_name or "Unknown Channel", 
                                          description=f"Auto-imported from {folder_path}",
                                          group=channel_group)
+        
+        if not channel_id:
+            return {'success': False, 'message': 'Failed to create channel', 'shows_imported': 0}
         
         shows_imported = 0
         files = []
@@ -65,7 +68,7 @@ class AutoScheduler:
                     name=file_path.stem,
                     duration_minutes=duration,
                     description=f"From {file_path.parent.name}",
-                    metadata=json.dumps({"file_path": str(file_path)})
+                    metadata={"file_path": str(file_path)}
                 )
                 shows_imported += 1
             except Exception as e:
@@ -95,12 +98,15 @@ class AutoScheduler:
             return {'success': False, 'message': 'M3U file not found', 'shows_imported': 0}
         
         if not channel_name:
-            channel_name = m3u_file.stem
+            channel_name = m3u_file.stem or "M3U Channel"
         
         # Create channel
         channel_id = self.db.add_channel(channel_name,
                                         description=f"Imported from {m3u_file.name}",
                                         group="M3U Imports")
+        
+        if not channel_id:
+            return {'success': False, 'message': 'Failed to create channel', 'shows_imported': 0}
         
         shows_imported = 0
         
@@ -123,7 +129,7 @@ class AutoScheduler:
                                 channel_id=channel_id,
                                 name=show_name,
                                 duration_minutes=duration,
-                                metadata=json.dumps({"url": next_line, "from_m3u": m3u_file.name})
+                                metadata={"url": next_line, "from_m3u": m3u_file.name}
                             )
                             shows_imported += 1
                         except StopIteration:
@@ -171,12 +177,12 @@ class AutoScheduler:
         end_dt = start_dt + timedelta(days=num_days)
         
         # Create schedule
-        schedule_id = self.db.add_schedule(
+        schedule_id = self.db.create_schedule(
             name=schedule_name,
             start_date=start_dt.strftime("%Y-%m-%d"),
             end_date=end_dt.strftime("%Y-%m-%d"),
             enable_looping=enable_looping,
-            loop_end_date=None if enable_looping else end_dt.strftime("%Y-%m-%d")
+            loop_end_date="" if enable_looping else end_dt.strftime("%Y-%m-%d")
         )
         
         # Get shows for channel
@@ -219,7 +225,7 @@ class AutoScheduler:
                 show_id=show['show_id'],
                 start_time=current_time.strftime("%Y-%m-%d %H:%M:%S"),
                 end_time=slot_end.strftime("%Y-%m-%d %H:%M:%S"),
-                is_repeat=1
+                is_repeat=True
             )
             
             shows_scheduled += 1
@@ -367,6 +373,8 @@ class AutoScheduler:
                 epg_json['file_path'] = output_path
             except Exception as e:
                 epg_json['error'] = str(e)
+        else:
+            epg_json['file_path'] = ""
         
         return epg_json
     

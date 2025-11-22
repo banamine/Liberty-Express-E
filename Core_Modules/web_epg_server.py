@@ -7,6 +7,7 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 import json
 import threading
 from datetime import datetime
+from typing import Optional
 from urllib.parse import urlparse, parse_qs
 from Core_Modules.tv_schedule_db import TVScheduleDB
 
@@ -14,7 +15,7 @@ from Core_Modules.tv_schedule_db import TVScheduleDB
 class EPGHandler(BaseHTTPRequestHandler):
     """HTTP handler for EPG requests"""
     
-    db = None  # Will be set by server
+    db: Optional[TVScheduleDB] = None  # Will be set by server
     
     def do_GET(self):
         """Handle GET requests"""
@@ -57,6 +58,9 @@ class EPGHandler(BaseHTTPRequestHandler):
         now = datetime.now()
         
         # Get all time slots for this channel
+        if not self.db:
+            self.send_json_response({"error": "Database not initialized"}, 500)
+            return
         slots = self.db.get_time_slots(schedule_id)
         
         # Filter by channel and find current/upcoming
@@ -94,7 +98,7 @@ class EPGHandler(BaseHTTPRequestHandler):
         if current:
             # Include current + next 5
             upcoming_idx = programs.index(current)
-            programs = [programs[upcoming_idx]] + programs[upcoming_idx+1:upstream_idx+6]
+            programs = [programs[upcoming_idx]] + programs[upcoming_idx+1:upcoming_idx+6]
         else:
             # Just take next 6
             programs = programs[:6]
@@ -112,6 +116,9 @@ class EPGHandler(BaseHTTPRequestHandler):
     
     def handle_schedules(self, params):
         """Get all available schedules"""
+        if not self.db:
+            self.send_json_response({"error": "Database not initialized"}, 500)
+            return
         schedules = self.db.get_schedules()
         
         response = {
@@ -148,6 +155,10 @@ class EPGHandler(BaseHTTPRequestHandler):
             return
         
         # Get schedule details
+        if not self.db:
+            self.send_json_response({"error": "Database not initialized"}, 500)
+            return
+        
         schedules = self.db.get_schedules()
         schedule = next((s for s in schedules if s['schedule_id'] == schedule_id), None)
         
@@ -212,7 +223,7 @@ class EPGHandler(BaseHTTPRequestHandler):
     
     def _get_show_name(self, show_id):
         """Get show name from ID"""
-        if not show_id:
+        if not show_id or not self.db:
             return "Unknown"
         try:
             shows = self.db.get_shows()
@@ -223,6 +234,9 @@ class EPGHandler(BaseHTTPRequestHandler):
     
     def _get_channel(self, channel_id):
         """Get channel details"""
+        if not self.db:
+            return {"id": channel_id, "name": f"Channel {channel_id}", "description": ""}
+        
         try:
             channels = self.db.get_channels()
             channel = next((c for c in channels if c['channel_id'] == channel_id), None)
@@ -268,12 +282,11 @@ class WebEPGServer:
     
     def get_now_json(self, channel_id: int, schedule_id: int) -> dict:
         """Get current/next programs (local method)"""
-        handler = EPGHandler
-        # Manually call handler method
-        params = {'channel': [str(channel_id)], 'schedule': [str(schedule_id)]}
+        if not EPGHandler.db:
+            return {'error': 'Database not initialized'}
         
         now = datetime.now()
-        slots = handler.db.get_time_slots(schedule_id)
+        slots = EPGHandler.db.get_time_slots(schedule_id)
         
         relevant_slots = [s for s in slots if s['channel_id'] == channel_id]
         programs = []
@@ -302,7 +315,7 @@ class WebEPGServer:
         
         if current:
             upcoming_idx = programs.index(current)
-            programs = [programs[upcoming_idx]] + programs[upcoming_idx+1:upstream_idx+6]
+            programs = [programs[upcoming_idx]] + programs[upcoming_idx+1:upcoming_idx+6]
         else:
             programs = programs[:6]
         
@@ -316,7 +329,7 @@ class WebEPGServer:
     
     def _get_show_name(self, show_id):
         """Get show name"""
-        if not show_id:
+        if not show_id or not EPGHandler.db:
             return "Unknown"
         try:
             shows = EPGHandler.db.get_shows()
