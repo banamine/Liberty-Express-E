@@ -66,11 +66,19 @@ class InfowarsExtravaganzaGenerator:
     Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
     RSS Feed: https://rss.infowars.com/hourly/InfowarsHourlyVideo.xml
     Features: 
-    - Auto-refresh every hour
+    - Skip Forward/Backward: 10s, 20s, 30s, 1 minute
+    - Volume Control: Full-range slider with percentage display
+    - Fullscreen Toggle: Click to enter/exit fullscreen mode
+    - Multi-Screen Viewing: 2x2 grid (4 videos) or 2x3 grid (6 videos)
+    - Auto-Hiding Transparent Controls: Fade after 10 seconds inactivity
+    - Timestamp Display: Current time, video progress with status bar
+    - Video Clipping: Mark start/end times with timestamps
+    - Screenshot Capture: Save frames with timestamp data
     - 6 videos per page pagination
     - Red/Black/Yellow theme
     - Date/time overlays
     - Responsive design
+    - Mobile-friendly touch controls
 -->
 """
             content = content.replace('<!DOCTYPE html>', f'<!DOCTYPE html>{metadata_comment}')

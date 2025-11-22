@@ -48,6 +48,7 @@ This project delivers a comprehensive IPTV solution, combining a Python desktop 
 - **Lazy Loading & Memory Optimization:** Implemented via `LazyPlaylistLoader` (Python) and `UniversalLazyLoader` (JavaScript) to load only 2 items at a time with background pre-loading and caching. Achieves significant memory reduction (e.g., 50x) and instant UI responsiveness for large playlists.
 - **GitHub Auto-Deployment:** Integration with `Core_Modules/github_deploy.py` for automated pushing of generated web pages to a specified GitHub repository (`Liberty-Express-`) and `main` branch. Triggered after page generation, copying files to a "Ready Made" folder, creating a timestamped commit, and providing real-time deployment status.
 - **Control Hub Enhancements:** Integrated "Performance Player" button and generator option, lazy loading for reduced memory footprint in the hub, enhanced inline help documentation, pop-out workbench functionality for all player types, and a new "From GitHub" filter tab to display and open deployed GitHub Pages.
+- **Infowars Extravaganza (Advanced):** Red/black/yellow theme with advanced playback controls: skip forward/backward (10s, 20s, 30s, 1m), full-range volume slider, fullscreen toggle, multi-screen grid viewing (2x2 or 2x3 up to 6 videos), auto-hiding transparent control bar after 10s inactivity, timestamp-based video clipping with start/end markers, and screenshot capture with PC save functionality.
 
 ### Feature Specifications
 - **M3U MATRIX PRO:** Core M3U parsing, channel validation, EPG fetching, settings management, error handling, security (XSS prevention, URL validation), Rumble URL detection, Navigation Hub integration, Rumble Category Browser, and NDI Output Control Center.
@@ -55,6 +56,7 @@ This project delivers a comprehensive IPTV solution, combining a Python desktop 
 - **Rumble Channel:** Specialized player with automatic URL normalization, metadata fetching, secure iframe embedding, and standalone page generation.
 - **Multi-Channel Viewer:** Advanced multi-viewing with grid layout selector, smart audio management, configurable rotation scheduler, focus mode, and play/pause/mute functions.
 - **Buffer TV:** TV player with buffering optimization, numeric keypad, adjustable load timeout/retry delay, automatic retry, TV Guide, and quick category access.
+- **Infowars Extravaganza (NEW):** Advanced RSS-fed player with skip controls (10s/20s/30s/1m forward/backward), volume slider with percentage display, fullscreen toggle, multi-screen grid viewing (2x2 or 2x3 layouts up to 6 simultaneous videos), transparent control bar with auto-hide after 10s inactivity, progress bar with timestamp display, video clipping with start/end timestamps, and screenshot capture functionality for PC save.
 - **Auto-Thumbnail System:** Integrated across all player templates, capturing screenshots during playback and storing them in IndexedDB.
 
 ### System Design Choices
