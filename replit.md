@@ -64,11 +64,28 @@
 - [x] Test 4: 48-Hour Cooldown - **PASS** (50 videos, 100 slots, enforced correctly)
 - [x] Test 5: Empty Playlist - **PASS** (0% coverage, graceful handling)
 
+**Cooldown Mechanism Fixes (Nov 22, 2025):**
+- [x] FIX 1: CooldownManager class - Persistent cooldown history (load/save to JSON)
+- [x] FIX 2: CooldownValidator class - Validate schedules for cooldown violations
+- [x] FIX 3: auto_fill_schedule() - Now uses persistent cooldown manager
+- [x] FIX 4: M3UMatrixPro initialization - Creates cooldown manager instance
+- [x] FIX 5: Comprehensive edge case tests - 29/29 tests passing
+  - Persistence across sessions ✓
+  - Exact 48-hour boundary ✓
+  - Day transitions (23:59 → 00:01) ✓
+  - Multiple repeats ✓
+  - Save/load cycles ✓
+  - Validation and conflict detection ✓
+  - Concurrent videos ✓
+  - Override handling ✓
+
 **Core Features Validated:**
 - [x] Schema validation (XML/JSON) - PASS
 - [x] UTC normalization (3 timezones) - PASS
 - [x] Duplicate detection (MD5) - PASS
 - [x] Conflict detection (overlaps) - PASS
+- [x] Cooldown persistence - PASS
+- [x] Cooldown boundary conditions - PASS
 - [x] Human-readable exports - PASS
 - [x] Round-trip integrity - PASS
 - [x] Error logging & messages - PASS

@@ -18,6 +18,123 @@ from datetime import datetime, timezone, timedelta
 from typing import List, Dict, Any, Tuple, Optional
 
 
+class CooldownManager:
+    """Manage persistent cooldown history across sessions"""
+    
+    def __init__(self, history_file: str = "schedules/cooldown_history.json"):
+        self.history_file = Path(history_file)
+        self.history_file.parent.mkdir(exist_ok=True)
+        self.load_history()
+    
+    def load_history(self):
+        """Load cooldown history from file"""
+        self.last_played = {}
+        if self.history_file.exists():
+            try:
+                with open(self.history_file, 'r') as f:
+                    data = json.load(f)
+                    # Convert ISO strings back to datetime
+                    for video_url, timestamp_str in data.items():
+                        try:
+                            dt = datetime.fromisoformat(timestamp_str)
+                            if dt.tzinfo is None:
+                                dt = dt.replace(tzinfo=timezone.utc)
+                            self.last_played[video_url] = dt
+                        except (ValueError, TypeError):
+                            pass
+            except (json.JSONDecodeError, IOError):
+                self.last_played = {}
+    
+    def save_history(self):
+        """Save cooldown history to file"""
+        data = {}
+        for video_url, dt in self.last_played.items():
+            # Convert to ISO string
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            else:
+                dt = dt.astimezone(timezone.utc)
+            data[video_url] = dt.isoformat()
+        
+        with open(self.history_file, 'w') as f:
+            json.dump(data, f, indent=2)
+    
+    def update_play_time(self, video_url: str, play_time: datetime):
+        """Record that a video was played at a given time"""
+        if play_time.tzinfo is None:
+            play_time = play_time.replace(tzinfo=timezone.utc)
+        else:
+            play_time = play_time.astimezone(timezone.utc)
+        self.last_played[video_url] = play_time
+        self.save_history()
+    
+    def is_in_cooldown(self, video_url: str, check_time: datetime, cooldown_hours: int = 48) -> bool:
+        """Check if video is in cooldown period"""
+        if video_url not in self.last_played:
+            return False
+        
+        last_play = self.last_played[video_url]
+        if check_time.tzinfo is None:
+            check_time = check_time.replace(tzinfo=timezone.utc)
+        else:
+            check_time = check_time.astimezone(timezone.utc)
+        
+        cooldown_end = last_play + timedelta(hours=cooldown_hours)
+        return check_time < cooldown_end
+    
+    def get_cooldown_end_time(self, video_url: str, cooldown_hours: int = 48) -> Optional[datetime]:
+        """Get when cooldown expires for a video"""
+        if video_url not in self.last_played:
+            return None
+        
+        last_play = self.last_played[video_url]
+        return last_play + timedelta(hours=cooldown_hours)
+
+
+class CooldownValidator:
+    """Validate schedule compliance with cooldown constraints"""
+    
+    @staticmethod
+    def validate_schedule_cooldown(events: List[Dict[str, Any]], 
+                                   cooldown_manager: CooldownManager,
+                                   cooldown_hours: int = 48) -> Tuple[bool, List[Dict[str, str]]]:
+        """
+        Validate that a schedule doesn't violate cooldown constraints
+        
+        Returns: (is_valid, violations)
+        violations: list of {video_url, conflict_time, cooldown_end_time}
+        """
+        violations = []
+        
+        # Sort events by start time
+        sorted_events = sorted(events, key=lambda e: datetime.fromisoformat(e['start'].replace('Z', '+00:00')))
+        
+        for event in sorted_events:
+            video_url = event.get('video_url') or event.get('url')
+            start_str = event.get('start')
+            
+            if not video_url or not start_str:
+                continue
+            
+            try:
+                start_time = datetime.fromisoformat(start_str.replace('Z', '+00:00'))
+                if start_time.tzinfo is None:
+                    start_time = start_time.replace(tzinfo=timezone.utc)
+                
+                if cooldown_manager.is_in_cooldown(video_url, start_time, cooldown_hours):
+                    cooldown_end = cooldown_manager.get_cooldown_end_time(video_url, cooldown_hours)
+                    violations.append({
+                        "video_url": video_url,
+                        "scheduled_time": start_str,
+                        "cooldown_end_time": cooldown_end.isoformat() if cooldown_end else "Unknown"
+                    })
+            except (ValueError, TypeError, AttributeError):
+                # Skip events with invalid timestamps
+                pass
+        
+        return len(violations) == 0, violations
+
+
 class TimestampParser:
     """Parse and normalize timestamps to UTC"""
     
@@ -307,7 +424,8 @@ class ScheduleAlgorithm:
     def auto_fill_schedule(playlist_links: List[str], 
                           slots: List[Dict[str, datetime]], 
                           cooldown_hours: int = 48,
-                          shuffle: bool = True) -> Dict[str, Any]:
+                          shuffle: bool = True,
+                          cooldown_manager: Optional['CooldownManager'] = None) -> Dict[str, Any]:
         """Auto-fill calendar with playlist links, enforcing cooldown
         
         Args:
@@ -315,10 +433,15 @@ class ScheduleAlgorithm:
             slots: Calendar slots to fill
             cooldown_hours: Minimum hours between same video plays (default 48)
             shuffle: Whether to shuffle playlist order
+            cooldown_manager: Optional persistent cooldown manager (creates temp one if None)
         
         Returns:
             Scheduled calendar with logs
         """
+        
+        # Use provided cooldown manager or create temporary one
+        if cooldown_manager is None:
+            cooldown_manager = CooldownManager()
         
         # Shuffle playlist if requested
         if shuffle:
@@ -326,8 +449,6 @@ class ScheduleAlgorithm:
         else:
             shuffled_links = playlist_links.copy()
         
-        # Track last played timestamp for cooldown enforcement
-        last_played = {}  # video_url -> last_played_datetime
         scheduled_events = []
         scheduling_log = {
             "total_links": len(playlist_links),
@@ -354,25 +475,21 @@ class ScheduleAlgorithm:
                 
                 video_url = shuffled_links[link_index]
                 
-                # Check cooldown
-                if video_url in last_played:
-                    last_play = last_played[video_url]
-                    cooldown_end = last_play + timedelta(hours=cooldown_hours)
-                    
-                    if slot['start'] < cooldown_end:
-                        # Still in cooldown, skip this video
-                        scheduling_log["decisions"].append({
-                            "slot": slot_index,
-                            "video": video_url,
-                            "action": "skip_cooldown",
-                            "slot_start": slot['start'].isoformat(),
-                            "last_played": last_play.isoformat(),
-                            "cooldown_end": cooldown_end.isoformat()
-                        })
-                        scheduling_log["skipped_cooldown"] += 1
-                        link_index += 1
-                        attempts += 1
-                        continue
+                # Check cooldown using persistent manager
+                if cooldown_manager.is_in_cooldown(video_url, slot['start'], cooldown_hours):
+                    cooldown_end = cooldown_manager.get_cooldown_end_time(video_url, cooldown_hours)
+                    # Still in cooldown, skip this video
+                    scheduling_log["decisions"].append({
+                        "slot": slot_index,
+                        "video": video_url,
+                        "action": "skip_cooldown",
+                        "slot_start": slot['start'].isoformat(),
+                        "cooldown_end": cooldown_end.isoformat() if cooldown_end else "Unknown"
+                    })
+                    scheduling_log["skipped_cooldown"] += 1
+                    link_index += 1
+                    attempts += 1
+                    continue
                 
                 # Video is available - schedule it
                 event = {
@@ -383,7 +500,7 @@ class ScheduleAlgorithm:
                     "duration_minutes": slot['duration_minutes']
                 }
                 scheduled_events.append(event)
-                last_played[video_url] = slot['start']
+                cooldown_manager.update_play_time(video_url, slot['start'])
                 
                 scheduling_log["decisions"].append({
                     "slot": slot_index,
@@ -434,6 +551,7 @@ class M3UMatrixPro:
         self.generated_dir = self.base_dir / "generated_pages"
         self.schedules_dir = self.base_dir / "schedules"
         self.schedules_dir.mkdir(exist_ok=True)
+        self.cooldown_manager = CooldownManager(str(self.schedules_dir / "cooldown_history.json"))
         self.load_config()
 
     def load_config(self):
