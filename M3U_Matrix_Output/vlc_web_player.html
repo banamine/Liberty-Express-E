@@ -214,7 +214,7 @@
 
         async function loadPlaylist() {
             try {
-                const response = await fetch('scheduleflow_vlc.m3u');
+                const response = await fetch('scheduleflow_hls.m3u');
                 const text = await response.text();
                 parseM3U(text);
                 document.getElementById('status').textContent = `✅ ${playlist.length} channels ready`;
