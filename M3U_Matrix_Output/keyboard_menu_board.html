@@ -688,6 +688,21 @@
         </button>
     </div>
 
+    <!-- Settings Modal -->
+    <div class="settings-modal" id="settingsModal">
+        <div class="settings-content">
+            <h2 class="settings-title">⌨️ Preset Configuration</h2>
+            <p style="color: #8892b0; margin-bottom: 20px;">Assign functions to number keys 0-9</p>
+            <div class="preset-grid" id="presetGrid">
+                <!-- Presets will be generated here -->
+            </div>
+            <div class="settings-footer">
+                <button class="settings-btn settings-cancel" onclick="closeSettings()">Cancel</button>
+                <button class="settings-btn settings-save" onclick="savePresets()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Information Drawer -->
     <div class="info-drawer" id="infoDrawer">
         <div class="drawer-close" onclick="closeDrawer()">×</div>
@@ -714,35 +729,20 @@
         </div>
 
         <div class="drawer-section">
-            <div class="drawer-label">Button Color</div>
-            <div class="drawer-value" id="drawerColor">-</div>
-        </div>
-
-        <div class="drawer-section">
             <div class="drawer-label">Toolbar Position</div>
             <div class="drawer-value" id="drawerPosition">-</div>
         </div>
 
         <div class="drawer-section">
-            <div class="drawer-label">Quick Access Number</div>
+            <div class="drawer-label">Preset Number</div>
             <div class="drawer-value" id="drawerNumber">-</div>
         </div>
-    </div>
 
-    <!-- Settings Modal -->
-    <div class="settings-modal" id="settingsModal">
-        <div class="settings-content">
-            <h2 class="settings-title">Configure Preset Numbers (0-9)</h2>
-            <p style="color: #8892b0; margin-bottom: 20px;">
-                Assign functions to number keys for instant access. Press any number on your keyboard or numpad to jump to that function.
-            </p>
-            <div class="preset-grid" id="presetGrid">
-                <!-- Preset options will be generated here -->
-            </div>
-            <div class="settings-footer">
-                <button class="settings-btn settings-cancel" onclick="closeSettings()">Cancel</button>
-                <button class="settings-btn settings-save" onclick="savePresets()">Save Presets</button>
-            </div>
+        <div class="drawer-section">
+            <div class="drawer-label">Color</div>
+            <div class="drawer-value" id="drawerColor">-</div>
+        </div>
+
         </div>
     </div>
 
