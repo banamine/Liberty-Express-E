@@ -257,14 +257,33 @@
         /* Numeric Keypad */
         .numpad-container {
             position: fixed;
-            right: 30px;
-            bottom: 30px;
+            right: 20px;
+            bottom: 20px;
+            width: 320px;
+            max-width: 95vw;
             background: linear-gradient(135deg, rgba(20, 25, 50, 0.95), rgba(30, 35, 60, 0.95));
-            border-radius: 20px;
-            padding: 20px;
+            border-radius: 15px;
+            padding: 15px;
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
             border: 2px solid rgba(0, 255, 255, 0.3);
             transform-style: preserve-3d;
+            z-index: 10000;
+        }
+
+        .right-panel-header {
+            text-align: center;
+            color: #00ffff;
+            margin-bottom: 15px;
+            font-size: 13px;
+            cursor: move;
+            padding: 8px;
+            border-radius: 8px;
+            transition: background 0.3s ease;
+            user-select: none;
+        }
+
+        .right-panel-header:hover {
+            background: rgba(0, 255, 255, 0.1);
         }
 
         .numpad-title {
@@ -1324,15 +1343,21 @@
         
         function startDrag(e) {
             if (isMinimized) return;
-            const container = document.getElementById('rightPanel');
+            const container = document.querySelector('.numpad-container');
+            if (!container) return;
             isDragging = true;
-            dragX = e.clientX - container.getBoundingClientRect().left;
-            dragY = e.clientY - container.getBoundingClientRect().top;
+            const rect = container.getBoundingClientRect();
+            dragX = e.clientX - rect.left;
+            dragY = e.clientY - rect.top;
+            container.style.right = 'auto';
+            container.style.bottom = 'auto';
         }
         
         function drag(e) {
             if (!isDragging) return;
-            const container = document.getElementById('rightPanel');
+            const container = document.querySelector('.numpad-container');
+            if (!container) return;
+            
             containerX = e.clientX - dragX;
             containerY = e.clientY - dragY;
             
@@ -1340,14 +1365,18 @@
             containerX = Math.round(containerX / 20) * 20;
             containerY = Math.round(containerY / 20) * 20;
             
-            // Keep within bounds
-            containerX = Math.max(10, Math.min(window.innerWidth - 320, containerX));
-            containerY = Math.max(10, Math.min(window.innerHeight - 100, containerY));
+            // Keep within bounds (accounting for 320px width)
+            const minX = 10;
+            const maxX = window.innerWidth - 340;
+            const minY = 10;
+            const maxY = window.innerHeight - 50;
             
-            container.style.position = 'fixed';
+            containerX = Math.max(minX, Math.min(maxX, containerX));
+            containerY = Math.max(minY, Math.min(maxY, containerY));
+            
             container.style.left = containerX + 'px';
             container.style.top = containerY + 'px';
-            container.style.zIndex = 10000;
+            container.style.position = 'fixed';
         }
         
         function stopDrag() {
@@ -1375,8 +1404,10 @@
         // Toggle minimize on header double-click
         document.addEventListener('DOMContentLoaded', () => {
             const header = document.querySelector('.right-panel-header');
-            header?.addEventListener('dblclick', minimizeKeyboard);
-            header?.addEventListener('mousedown', startDrag);
+            if (header) {
+                header.addEventListener('dblclick', minimizeKeyboard);
+                header.addEventListener('mousedown', startDrag);
+            }
             document.addEventListener('mousemove', drag);
             document.addEventListener('mouseup', stopDrag);
         });
