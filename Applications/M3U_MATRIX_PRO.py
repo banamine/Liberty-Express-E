@@ -268,7 +268,9 @@ class M3UMatrix:
             ("🔗 Validate Links", self.validate_links, "#9B59B6"),
             ("🎬 FFprobe Check", self.validate_with_ffprobe, "#00FFFF"),
             ("📡 EPG Import", self.import_epg, "#3498DB"),
-            ("🎬 CLASSIC TV", self.generate_classic, "#FF0000")
+            ("🎬 CLASSIC TV", self.generate_classic, "#FF0000"),
+            # Row 3 - New Schedule Center
+            ("📅 TV Schedule Center", self.open_schedule_center, "#2ECC71")
         ]
 
         # Layout buttons in 2 rows (5 per row)
@@ -1209,6 +1211,35 @@ Sample Details:
         
         self.root.after(300000, autosave)
 
+    def open_schedule_center(self):
+        """Open the TV Schedule Center application"""
+        try:
+            import subprocess
+            import sys
+            from pathlib import Path
+            
+            # Get the path to TV_SCHEDULE_CENTER.py
+            schedule_center_path = Path(__file__).parent / "TV_SCHEDULE_CENTER.py"
+            
+            if not schedule_center_path.exists():
+                messagebox.showerror("Not Found", "TV Schedule Center not found. Please ensure TV_SCHEDULE_CENTER.py is in the Applications folder.")
+                return
+            
+            # Launch TV Schedule Center in a new process
+            if sys.platform.startswith('win'):
+                # Windows
+                subprocess.Popen([sys.executable, str(schedule_center_path)], 
+                               creationflags=subprocess.CREATE_NEW_CONSOLE)
+            else:
+                # Linux/Mac
+                subprocess.Popen([sys.executable, str(schedule_center_path)])
+            
+            self.update_status("Launched TV Schedule Center")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to launch TV Schedule Center: {e}")
+            messagebox.showerror("Launch Error", f"Failed to launch TV Schedule Center:\n{str(e)}")
+    
     def safe_exit(self):
         """Safely exit the application"""
         if self.dirty and self.channels:
