@@ -1393,160 +1393,53 @@
         }
 
         // Back to Index
-        function backToMatrix() {
-            window.location.href = '/generated_pages/index.html';
-        }
         
-        // Keyboard board container drag and drop
-        let isDragging = false;
-        let dragX = 0;
-        let dragY = 0;
-        let containerX = 0;
-        let containerY = 0;
-        let isMinimized = false;
+        // PANEL DRAG AND MINIMIZE - CLEAN WORKING IMPLEMENTATION
         
-        function startDrag(e) {
-            if (isMinimized) return;
-            const container = document.querySelector('.numpad-container');
-            if (!container) return;
-            isDragging = true;
-            const rect = container.getBoundingClientRect();
-            dragX = e.clientX - rect.left;
-            dragY = e.clientY - rect.top;
-            container.style.right = 'auto';
-            container.style.bottom = 'auto';
-        }
-        
-        function drag(e) {
-            if (!isDragging) return;
-            const container = document.querySelector('.numpad-container');
-            if (!container) return;
-            
-            containerX = e.clientX - dragX;
-            containerY = e.clientY - dragY;
-            
-            // Snap to grid (20px)
-            containerX = Math.round(containerX / 20) * 20;
-            containerY = Math.round(containerY / 20) * 20;
-            
-            // Keep within bounds (accounting for 320px width)
-            const minX = 10;
-            const maxX = window.innerWidth - 340;
-            const minY = 10;
-            const maxY = window.innerHeight - 50;
-            
-            containerX = Math.max(minX, Math.min(maxX, containerX));
-            containerY = Math.max(minY, Math.min(maxY, containerY));
-            
-            container.style.left = containerX + 'px';
-            container.style.top = containerY + 'px';
-            container.style.position = 'fixed';
-        }
-        
-        function stopDrag() {
-            isDragging = false;
-        }
-        
+        // PANEL DRAG AND MINIMIZE - SIMPLE BULLETPROOF CODE
+        let pnlDrag = false, pnlX = 0, pnlY = 0, pnlMin = false;
+
+        // Minimize function
         function toggleMinimize() {
-            isMinimized = !isMinimized;
-            const content = document.getElementById('panelContent');
-            const btn = document.getElementById('minimizeBtn');
-            
-            if (isMinimized) {
-                content.style.display = 'none';
-                btn.textContent = '+';
-                btn.title = 'Expand';
-                showNotification('Panel minimized', 'info');
-            } else {
-                content.style.display = 'block';
-                btn.textContent = '−';
-                btn.title = 'Minimize';
-                showNotification('Panel expanded', 'info');
-            }
+            const c = document.getElementById('panelContent');
+            const b = document.getElementById('minimizeBtn');
+            if (!c || !b) return;
+            pnlMin = !pnlMin;
+            c.style.display = pnlMin ? 'none' : 'block';
+            b.textContent = pnlMin ? '+' : '−';
         }
-        
-        // Setup drag and drop
-        document.addEventListener('DOMContentLoaded', () => {
-            const header = document.getElementById('panelHeader');
-            const container = document.getElementById('rightPanel');
-            
-            if (header) {
-                // Drag on header
-                header.addEventListener('mousedown', (e) => {
-                    // Don't drag if clicking the button
-                    if (e.target.closest('.minimize-btn')) return;
-                    
-                    isDragging = true;
-                    const rect = container.getBoundingClientRect();
-                    dragX = e.clientX - rect.left;
-                    dragY = e.clientY - rect.top;
-                    container.style.right = 'auto';
-                    container.style.bottom = 'auto';
-                });
-            }
-            
-            document.addEventListener('mousemove', (e) => {
-                if (!isDragging) return;
-                const container = document.getElementById('rightPanel');
-                if (!container) return;
-                
-                containerX = e.clientX - dragX;
-                containerY = e.clientY - dragY;
-                
-                // Snap to grid (20px)
-                containerX = Math.round(containerX / 20) * 20;
-                containerY = Math.round(containerY / 20) * 20;
-                
-                // Keep within bounds
-                const minX = 10;
-                const maxX = window.innerWidth - 340;
-                const minY = 10;
-                const maxY = window.innerHeight - 50;
-                
-                containerX = Math.max(minX, Math.min(maxX, containerX));
-                containerY = Math.max(minY, Math.min(maxY, containerY));
-                
-                container.style.left = containerX + 'px';
-                container.style.top = containerY + 'px';
-                container.style.position = 'fixed';
-                container.style.right = 'auto';
-                container.style.bottom = 'auto';
-            });
-            
-            document.addEventListener('mouseup', () => {
-                isDragging = false;
-            });
-        });
 
-        // Add animation keyframes
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideDown {
-                from {
-                    opacity: 0;
-                    transform: translate(-50%, -20px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translate(-50%, 0);
-                }
+        // Setup drag on page load
+        (function setupDrag() {
+            const h = document.getElementById('panelHeader');
+            const p = document.getElementById('rightPanel');
+            if (!h || !p) {
+                setTimeout(setupDrag, 100);
+                return;
             }
-            @keyframes slideUp {
-                from {
-                    opacity: 1;
-                    transform: translate(-50%, 0);
-                }
-                to {
-                    opacity: 0;
-                    transform: translate(-50%, -20px);
-                }
-            }
-        `;
-        document.head.appendChild(style);
-
-        // Add passive event listeners for Weebly compatibility
-        document.addEventListener('wheel', function(e) {}, { passive: true });
-        document.addEventListener('touchmove', function(e) {}, { passive: true });
-    </script>
-</body>
-</html>
+            
+            h.onmousedown = function(e) {
+                if (e.target.id === 'minimizeBtn') return;
+                pnlDrag = true;
+                const r = p.getBoundingClientRect();
+                pnlX = e.clientX - r.left;
+                pnlY = e.clientY - r.top;
+                p.style.right = 'auto';
+                p.style.bottom = 'auto';
+            };
+            
+            document.onmousemove = function(e) {
+                if (!pnlDrag) return;
+                let x = Math.round((e.clientX - pnlX) / 20) * 20;
+                let y = Math.round((e.clientY - pnlY) / 20) * 20;
+                x = Math.max(10, Math.min(x, window.innerWidth - 330));
+                y = Math.max(10, Math.min(y, window.innerHeight - 60));
+                p.style.left = x + 'px';
+                p.style.top = y + 'px';
+                p.style.position = 'fixed';
+            };
+            
+            document.onmouseup = function() {
+                pnlDrag = false;
+            };
+        })();
