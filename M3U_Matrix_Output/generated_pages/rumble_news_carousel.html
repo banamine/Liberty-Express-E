@@ -600,9 +600,13 @@
             </div>
 
             <!-- Video Player Wrapper -->
-            <div class="video-wrapper">
+            <div class="video-wrapper" onclick="openChannelWindow()" style="cursor: pointer; display: flex; align-items: center; justify-content: center;">
                 <div class="loading-spinner" id="loadingSpinner"></div>
-                <iframe id="videoFrame" class="video-iframe" allowfullscreen></iframe>
+                <div style="text-align: center; color: rgba(255,255,255,0.8); pointer-events: none;">
+                    <div style="font-size: 48px; margin-bottom: 20px;">🔴 LIVE</div>
+                    <div style="font-size: 24px; margin-bottom: 10px;" id="channelNameLarge">Channel</div>
+                    <div style="font-size: 14px; color: rgba(255,255,255,0.6); margin-bottom: 30px;">Click to open channel in new window</div>
+                </div>
                 
                 <!-- Channel Info -->
                 <div class="channel-info">
@@ -687,61 +691,59 @@
     </div>
 
     <script>
-        // Rumble News Channels Database (40 channels)
+        // Rumble News Channels Database (39 channels using channel URLs instead of video IDs)
         const channels = [
             // Top News Networks
-            { id: 'v4e0mce', name: 'InfoWars', url: 'https://rumble.com/embed/v4e0mce/', followers: '2.1M', category: 'Alternative News' },
-            { id: 'v2rakly', name: 'Dan Bongino Show', url: 'https://rumble.com/embed/v2rakly/', followers: '3.5M', category: 'Political Commentary' },
-            { id: 'v3dqzx5', name: 'Newsmax TV', url: 'https://rumble.com/embed/v3dqzx5/', followers: '1.2M', category: 'Conservative News' },
-            { id: 'v3jhqp1', name: 'OANN', url: 'https://rumble.com/embed/v3jhqp1/', followers: '937K', category: 'Conservative News' },
-            { id: 'v2n6qha', name: 'RSBN', url: 'https://rumble.com/embed/v2n6qha/', followers: '1.8M', category: 'Political Coverage' },
-            { id: 'v3lz5hl', name: 'Steve Bannon War Room', url: 'https://rumble.com/embed/v3lz5hl/', followers: '1.1M', category: 'Political Analysis' },
-            { id: 'v2m9av6', name: 'Steven Crowder', url: 'https://rumble.com/embed/v2m9av6/', followers: '2.3M', category: 'Political Commentary' },
-            { id: 'v3q98ly', name: 'Real Americas Voice', url: 'https://rumble.com/embed/v3q98ly/', followers: '890K', category: 'News Network' },
-            { id: 'v3kzrx9', name: 'Sean Hannity', url: 'https://rumble.com/embed/v3kzrx9/', followers: '1.4M', category: 'Political Talk' },
-            { id: 'v2pq7m8', name: 'Ben Shapiro', url: 'https://rumble.com/embed/v2pq7m8/', followers: '1.2M', category: 'Political Analysis' },
+            { id: 'infowars', name: 'InfoWars', url: 'https://rumble.com/infowars/latest', followers: '2.1M', category: 'Alternative News' },
+            { id: 'newsmaxtv', name: 'Newsmax TV', url: 'https://rumble.com/newsmaxtv/latest', followers: '1.2M', category: 'Conservative News' },
+            { id: 'oannofficial', name: 'OANN', url: 'https://rumble.com/oannofficial/latest', followers: '937K', category: 'Conservative News' },
+            { id: 'rsbn', name: 'RSBN', url: 'https://rumble.com/rsbn/latest', followers: '1.8M', category: 'Political Coverage' },
+            { id: 'stevebannon', name: 'Steve Bannon War Room', url: 'https://rumble.com/stevebannon/latest', followers: '1.1M', category: 'Political Analysis' },
+            { id: 'louderwithcrowder', name: 'Steven Crowder', url: 'https://rumble.com/louderwithcrowder/latest', followers: '2.3M', category: 'Political Commentary' },
+            { id: 'realamericasvoice', name: 'Real Americas Voice', url: 'https://rumble.com/realamericasvoice/latest', followers: '890K', category: 'News Network' },
+            { id: 'seanhannity', name: 'Sean Hannity', url: 'https://rumble.com/seanhannity/latest', followers: '1.4M', category: 'Political Talk' },
+            { id: 'benshapiro', name: 'Ben Shapiro', url: 'https://rumble.com/benshapiro/latest', followers: '1.2M', category: 'Political Analysis' },
             
             // Independent Journalists
-            { id: 'v3m8p2q', name: 'Redacted News', url: 'https://rumble.com/embed/v3m8p2q/', followers: '2.8M', category: 'Independent News' },
-            { id: 'v2xk9pl', name: 'Glenn Greenwald', url: 'https://rumble.com/embed/v2xk9pl/', followers: '650K', category: 'Investigative Journalism' },
-            { id: 'v3n7w2m', name: 'Charlie Kirk', url: 'https://rumble.com/embed/v3n7w2m/', followers: '1.5M', category: 'Conservative Movement' },
-            { id: 'v3p2m8k', name: 'Tim Pool', url: 'https://rumble.com/embed/v3p2m8k/', followers: '1.9M', category: 'Independent Commentary' },
-            { id: 'v2y8n3p', name: 'Russell Brand', url: 'https://rumble.com/embed/v2y8n3p/', followers: '1.7M', category: 'Alternative Media' },
+            { id: 'redacted', name: 'Redacted News', url: 'https://rumble.com/redacted/latest', followers: '2.8M', category: 'Independent News' },
+            { id: 'glenn.greenwald', name: 'Glenn Greenwald', url: 'https://rumble.com/glenn.greenwald/latest', followers: '650K', category: 'Investigative Journalism' },
+            { id: 'charliekirk', name: 'Charlie Kirk', url: 'https://rumble.com/charliekirk/latest', followers: '1.5M', category: 'Conservative Movement' },
+            { id: 'timcast', name: 'Tim Pool', url: 'https://rumble.com/timcast/latest', followers: '1.9M', category: 'Independent Commentary' },
+            { id: 'russellbrand', name: 'Russell Brand', url: 'https://rumble.com/russellbrand/latest', followers: '1.7M', category: 'Alternative Media' },
             
             // Political Commentators
-            { id: 'v3k9m2l', name: 'Tucker Carlson', url: 'https://rumble.com/embed/v3k9m2l/', followers: '2.5M', category: 'Political Commentary' },
-            { id: 'v3m2p8n', name: 'Dinesh DSouza', url: 'https://rumble.com/embed/v3m2p8n/', followers: '980K', category: 'Political Documentary' },
-            { id: 'v2n8k3m', name: 'Candace Owens', url: 'https://rumble.com/embed/v2n8k3m/', followers: '1.3M', category: 'Conservative Commentary' },
-            { id: 'v3l8p2m', name: 'Matt Walsh', url: 'https://rumble.com/embed/v3l8p2m/', followers: '890K', category: 'Conservative Analysis' },
-            { id: 'v2m9k3n', name: 'Michael Knowles', url: 'https://rumble.com/embed/v2m9k3n/', followers: '750K', category: 'Political Commentary' },
+            { id: 'tuckercarlson', name: 'Tucker Carlson', url: 'https://rumble.com/tuckercarlson/latest', followers: '2.5M', category: 'Political Commentary' },
+            { id: 'dineshdsouza', name: 'Dinesh DSouza', url: 'https://rumble.com/dineshdsouza/latest', followers: '980K', category: 'Political Documentary' },
+            { id: 'candaceowens', name: 'Candace Owens', url: 'https://rumble.com/candaceowens/latest', followers: '1.3M', category: 'Conservative Commentary' },
+            { id: 'mwalsh', name: 'Matt Walsh', url: 'https://rumble.com/mwalsh/latest', followers: '890K', category: 'Conservative Analysis' },
+            { id: 'michaelknowles', name: 'Michael Knowles', url: 'https://rumble.com/michaelknowles/latest', followers: '750K', category: 'Political Commentary' },
             
             // Alternative Media
-            { id: 'v3n2m8k', name: 'Project Veritas', url: 'https://rumble.com/embed/v3n2m8k/', followers: '1.6M', category: 'Investigative Journalism' },
-            { id: 'v2p8m3n', name: 'Rebel News', url: 'https://rumble.com/embed/v2p8m3n/', followers: '1.1M', category: 'Independent News' },
-            { id: 'v3k8n2m', name: 'The Gateway Pundit', url: 'https://rumble.com/embed/v3k8n2m/', followers: '820K', category: 'Alternative News' },
-            { id: 'v2n3m8k', name: 'Epoch Times', url: 'https://rumble.com/embed/v2n3m8k/', followers: '1.4M', category: 'Independent Media' },
-            { id: 'v3m8k2n', name: 'NTD News', url: 'https://rumble.com/embed/v3m8k2n/', followers: '980K', category: 'Global News' },
+            { id: 'projectveritas', name: 'Project Veritas', url: 'https://rumble.com/projectveritas/latest', followers: '1.6M', category: 'Investigative Journalism' },
+            { id: 'rebelnews', name: 'Rebel News', url: 'https://rumble.com/rebelnews/latest', followers: '1.1M', category: 'Independent News' },
+            { id: 'thegatewaygundit', name: 'The Gateway Pundit', url: 'https://rumble.com/thegatewaygundit/latest', followers: '820K', category: 'Alternative News' },
+            { id: 'epochtimes', name: 'Epoch Times', url: 'https://rumble.com/epochtimes/latest', followers: '1.4M', category: 'Independent Media' },
+            { id: 'ntd', name: 'NTD News', url: 'https://rumble.com/ntd/latest', followers: '980K', category: 'Global News' },
             
             // Specialty Shows
-            { id: 'v2k8m3n', name: 'LindellTV', url: 'https://rumble.com/embed/v2k8m3n/', followers: '670K', category: 'Political Platform' },
-            { id: 'v3n8k2m', name: 'Patriot News Outlet', url: 'https://rumble.com/embed/v3n8k2m/', followers: '540K', category: 'Conservative News' },
-            { id: 'v2m3n8k', name: 'X22 Report', url: 'https://rumble.com/embed/v2m3n8k/', followers: '890K', category: 'Economic Analysis' },
-            { id: 'v3k2n8m', name: 'And We Know', url: 'https://rumble.com/embed/v3k2n8m/', followers: '720K', category: 'Alternative Analysis' },
-            { id: 'v2n8m3k', name: 'Salty Cracker', url: 'https://rumble.com/embed/v2n8m3k/', followers: '650K', category: 'Political Satire' },
+            { id: 'lindell', name: 'LindellTV', url: 'https://rumble.com/lindell/latest', followers: '670K', category: 'Political Platform' },
+            { id: 'patriotnewsoutlet', name: 'Patriot News Outlet', url: 'https://rumble.com/patriotnewsoutlet/latest', followers: '540K', category: 'Conservative News' },
+            { id: 'x22report', name: 'X22 Report', url: 'https://rumble.com/x22report/latest', followers: '890K', category: 'Economic Analysis' },
+            { id: 'andweknow', name: 'And We Know', url: 'https://rumble.com/andweknow/latest', followers: '720K', category: 'Alternative Analysis' },
+            { id: 'saltycracker', name: 'Salty Cracker', url: 'https://rumble.com/saltycracker/latest', followers: '650K', category: 'Political Satire' },
             
             // International
-            { id: 'v3m2k8n', name: 'RT News', url: 'https://rumble.com/embed/v3m2k8n/', followers: '450K', category: 'International News' },
-            { id: 'v2k3n8m', name: 'Sky News Australia', url: 'https://rumble.com/embed/v2k3n8m/', followers: '780K', category: 'Australian News' },
-            { id: 'v3n8m2k', name: 'GB News', url: 'https://rumble.com/embed/v3n8m2k/', followers: '560K', category: 'British News' },
-            { id: 'v2m8n3k', name: 'Rebel News Canada', url: 'https://rumble.com/embed/v2m8n3k/', followers: '890K', category: 'Canadian News' },
-            { id: 'v3k8m2n', name: 'True North', url: 'https://rumble.com/embed/v3k8m2n/', followers: '420K', category: 'Canadian Media' },
+            { id: 'rt', name: 'RT News', url: 'https://rumble.com/rt/latest', followers: '450K', category: 'International News' },
+            { id: 'skynewsaustralia', name: 'Sky News Australia', url: 'https://rumble.com/skynewsaustralia/latest', followers: '780K', category: 'Australian News' },
+            { id: 'gbnewsonline', name: 'GB News', url: 'https://rumble.com/gbnewsonline/latest', followers: '560K', category: 'British News' },
+            { id: 'rebelnewscanada', name: 'Rebel News Canada', url: 'https://rumble.com/rebelnewscanada/latest', followers: '890K', category: 'Canadian News' },
+            { id: 'truenorthnews', name: 'True North', url: 'https://rumble.com/truenorthnews/latest', followers: '420K', category: 'Canadian Media' },
             
             // Podcasts & Shows
-            { id: 'v2n3k8m', name: 'Louder with Crowder', url: 'https://rumble.com/embed/v2n3k8m/', followers: '2.1M', category: 'Comedy Politics' },
-            { id: 'v3m8n2k', name: 'The Quartering', url: 'https://rumble.com/embed/v3m8n2k/', followers: '980K', category: 'Pop Culture Politics' },
-            { id: 'v2k8n3m', name: 'Timcast IRL', url: 'https://rumble.com/embed/v2k8n3m/', followers: '1.3M', category: 'News Analysis' },
-            { id: 'v3n2k8m', name: 'The Rubin Report', url: 'https://rumble.com/embed/v3n2k8m/', followers: '870K', category: 'Political Talk' },
-            { id: 'v2m8k3n', name: 'Viva Frei', url: 'https://rumble.com/embed/v2m8k3n/', followers: '760K', category: 'Legal Analysis' }
+            { id: 'thequartering', name: 'The Quartering', url: 'https://rumble.com/thequartering/latest', followers: '980K', category: 'Pop Culture Politics' },
+            { id: 'timcastirl', name: 'Timcast IRL', url: 'https://rumble.com/timcastirl/latest', followers: '1.3M', category: 'News Analysis' },
+            { id: 'rubinreport', name: 'The Rubin Report', url: 'https://rumble.com/rubinreport/latest', followers: '870K', category: 'Political Talk' },
+            { id: 'vivafrei', name: 'Viva Frei', url: 'https://rumble.com/vivafrei/latest', followers: '760K', category: 'Legal Analysis' }
         ];
 
         // State variables
@@ -787,23 +789,16 @@
             document.getElementById('clockDate').textContent = date;
         }
 
-        // Load channel
+        // Load channel - opens in new window since Rumble blocks iframe embedding
         function loadChannel(index) {
             if (isLoading) return;
-            isLoading = true;
-            
-            const spinner = document.getElementById('loadingSpinner');
-            spinner.style.display = 'block';
             
             currentChannelIndex = index;
             const channel = channels[index];
             
-            // Update iframe
-            const iframe = document.getElementById('videoFrame');
-            iframe.src = channel.url + '?autoplay=2';
-            
             // Update channel info
             document.getElementById('channelName').textContent = channel.name;
+            document.getElementById('channelNameLarge').textContent = channel.name;
             document.getElementById('followerCount').textContent = channel.followers;
             document.getElementById('viewCount').textContent = Math.floor(Math.random() * 100000);
             
@@ -814,12 +809,12 @@
             // Preload adjacent channels
             if (index > 0) preloadChannel(index - 1);
             if (index < channels.length - 1) preloadChannel(index + 1);
-            
-            // Hide spinner after load
-            setTimeout(() => {
-                spinner.style.display = 'none';
-                isLoading = false;
-            }, 1000);
+        }
+        
+        // Open channel in new window when clicked
+        function openChannelWindow() {
+            const channel = channels[currentChannelIndex];
+            window.open(channel.url, '_blank');
         }
 
         // Preload channel (lazy loading)
