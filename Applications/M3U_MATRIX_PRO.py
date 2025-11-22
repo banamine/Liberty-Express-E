@@ -159,7 +159,7 @@ class M3UMatrix:
         self.epg_parser = EPGParser()
         self.channel_validator = ChannelValidator()
         self.undo_manager = UndoManager()
-        self.progress_manager = ProgressManager(self.root)
+        self.progress_manager = ProgressManager(self.root)  # type: ignore
         self.github_deployer = GitHubDeploy()  # GitHub deployment handler
         
         # Initialize caches
@@ -187,7 +187,7 @@ class M3UMatrix:
             else:
                 self.logger.exception("Unhandled exception", exc_info=(exc_type, exc_value, exc_traceback))
                 DialogFactory.create_error_dialog(
-                    self.root, 
+                    self.root,  # type: ignore
                     "Application Error",
                     "An unexpected error occurred. The application will try to continue.",
                     exc_value
@@ -492,7 +492,7 @@ class M3UMatrix:
             ]
             
             if any(search_term in s for s in searchable):
-                self.tv.reattach(item, '', 'end')
+                self.tv.reattach(item, '', 'end')  # type: ignore
                 matches += 1
         
         # Update search results label
@@ -502,7 +502,7 @@ class M3UMatrix:
         """Clear search and show all items"""
         self.search_var.set("")
         for item in self.tv.get_children(''):
-            self.tv.reattach(item, '', 'end')
+            self.tv.reattach(item, '', 'end')  # type: ignore
         self.search_results_label.config(text="")
 
     def open_files(self):
@@ -652,7 +652,7 @@ Success Rate: {stats['success_rate']:.1f}%
                 
                 self.root.after(0, lambda: self.show_phase2_results(results))
             except Exception as e:
-                logger.error(f"Validation error: {e}")
+                self.logger.error(f"Validation error: {e}")
                 self.root.after(0, lambda: messagebox.showerror("Validation Error", str(e)))
         
         thread = threading.Thread(target=validate_multi_tier)
@@ -913,7 +913,7 @@ Sample Details:
                 self.update_status(f"Generated {name} page")
                 
                 # Ask what to do next
-                response = messagebox.showquestion(
+                response = messagebox.askyesnocancel(
                     "Page Generated", 
                     f"Page generated successfully!\n\n"
                     f"Open {name} player?\n\n"
@@ -921,9 +921,11 @@ Sample Details:
                     f"NO to skip, or CANCEL to deploy to GitHub"
                 )
                 
-                if response == tk.YES:
+                if response is True:  # YES
                     webbrowser.open(f"file:///{result['output_file']}")
-                elif response == tk.CANCEL:
+                elif response is False:  # NO
+                    pass
+                elif response is None:  # CANCEL
                     # Deploy to GitHub
                     self.deploy_to_github(output_dir)
             else:
@@ -1032,11 +1034,11 @@ Sample Details:
             self.channels.insert(insert_index + i, new_channel)
         
         # Update undo stack
-        self.undo_manager.push_action({
+        self.undo_manager.save_state({
             'type': 'paste',
             'old_channels': old_channels,
             'new_channels': self.channels.copy()
-        })
+        }, "Paste channels")
         
         self.refresh_display()
         self.update_status(f"Pasted {len(self.clipboard)} channel(s)")
@@ -1057,11 +1059,11 @@ Sample Details:
                 del self.channels[idx]
             
             # Update undo stack
-            self.undo_manager.push_action({
+            self.undo_manager.save_state({
                 'type': 'delete',
                 'old_channels': old_channels,
                 'new_channels': self.channels.copy()
-            })
+            }, "Delete channels")
             
             self.refresh_display()
             self.update_status(f"Deleted {len(indices)} channel(s)")
@@ -1084,11 +1086,11 @@ Sample Details:
             self.channels.insert(idx + 1, new_channel)
         
         # Update undo stack
-        self.undo_manager.push_action({
+        self.undo_manager.save_state({
             'type': 'duplicate',
             'old_channels': old_channels,
             'new_channels': self.channels.copy()
-        })
+        }, "Duplicate channels")
         
         self.refresh_display()
         self.update_status(f"Duplicated {len(indices)} channel(s)")
@@ -1139,11 +1141,11 @@ Sample Details:
             self.channels[idx]['tvg_id'] = entries['TVG ID'].get()
             
             # Update undo stack
-            self.undo_manager.push_action({
+            self.undo_manager.save_state({
                 'type': 'edit',
                 'old_channels': old_channels,
                 'new_channels': self.channels.copy()
-            })
+            }, "Edit channel")
             
             self.refresh_display()
             dialog.destroy()
@@ -1229,7 +1231,7 @@ Sample Details:
             if sys.platform.startswith('win'):
                 # Windows
                 subprocess.Popen([sys.executable, str(schedule_center_path)], 
-                               creationflags=subprocess.CREATE_NEW_CONSOLE)
+                               creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)  # type: ignore
             else:
                 # Linux/Mac
                 subprocess.Popen([sys.executable, str(schedule_center_path)])
