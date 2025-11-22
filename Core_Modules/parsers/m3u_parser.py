@@ -10,7 +10,8 @@ from urllib.parse import unquote
 import requests
 from datetime import datetime
 
-from ..models.channel import Channel, ChannelDict, ChannelUtils
+# Import models - works with sys.path injection in Core_Modules
+from models.channel import Channel, ChannelDict, ChannelUtils
 
 
 class M3UParser:
