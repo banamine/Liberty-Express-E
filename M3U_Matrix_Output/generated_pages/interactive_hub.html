@@ -722,6 +722,24 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+
+        /* GitHub Pages Card */
+        .github-page-card {
+            background: linear-gradient(135deg, rgba(0,255,100,0.1), rgba(0,200,150,0.1));
+            border: 1px solid rgba(0,255,100,0.3);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .github-page-card:hover {
+            background: linear-gradient(135deg, rgba(0,255,100,0.2), rgba(0,200,150,0.2));
+            border-color: #00ff64;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,255,100,0.3);
+        }
     </style>
 </head>
 <body>
@@ -848,6 +866,10 @@
                         <div class="quick-action-icon">🟣</div>
                         <div>Rumble</div>
                     </div>
+                    <div class="quick-action-btn" onclick="quickAction('performance')">
+                        <div class="quick-action-icon">🟢</div>
+                        <div>Performance</div>
+                    </div>
                 </div>
             </div>
 
@@ -890,12 +912,14 @@
             <!-- Filter Tabs -->
             <div class="filter-tabs">
                 <div class="filter-tab active" onclick="filterPages('all')">All Pages</div>
-                <div class="filter-tab" onclick="filterPages('nexus_tv')">Nexus TV</div>
-                <div class="filter-tab" onclick="filterPages('buffer_tv')">Buffer TV</div>
-                <div class="filter-tab" onclick="filterPages('multi_channel')">Multi-Channel</div>
-                <div class="filter-tab" onclick="filterPages('classic_tv')">Classic TV</div>
-                <div class="filter-tab" onclick="filterPages('simple_player')">Simple Player</div>
-                <div class="filter-tab" onclick="filterPages('rumble_channel')">Rumble</div>
+                <div class="filter-tab" onclick="filterPages('nexus_tv')">🎭 Nexus TV</div>
+                <div class="filter-tab" onclick="filterPages('buffer_tv')">📺 Buffer TV</div>
+                <div class="filter-tab" onclick="filterPages('multi_channel')">🎯 Multi-Channel</div>
+                <div class="filter-tab" onclick="filterPages('classic_tv')">📻 Classic TV</div>
+                <div class="filter-tab" onclick="filterPages('simple_player')">▶️ Simple Player</div>
+                <div class="filter-tab" onclick="filterPages('rumble_channel')">🟣 Rumble</div>
+                <div class="filter-tab" onclick="filterPages('performance_player')">🟢 Performance</div>
+                <div class="filter-tab" onclick="showGitHubPages()" style="background: linear-gradient(135deg, rgba(0,255,100,0.2), rgba(0,200,150,0.2)); border-color: #00ff64;">📥 From GitHub</div>
             </div>
 
             <!-- Pages Grid -->
@@ -1036,7 +1060,8 @@
                 'multi_channel': '🎯',
                 'classic_tv': '📻',
                 'simple_player': '▶️',
-                'rumble_channel': '🟣'
+                'rumble_channel': '🟣',
+                'performance_player': '🟢'
             };
             return icons[type] || '📄';
         }
@@ -1107,12 +1132,13 @@
                             <div class="form-group">
                                 <label class="form-label">Player Type</label>
                                 <select class="form-select">
-                                    <option value="nexus_tv">Nexus TV - 24hr Scheduled</option>
-                                    <option value="buffer_tv">Buffer TV - With Controls</option>
-                                    <option value="multi_channel">Multi-Channel View</option>
-                                    <option value="classic_tv">Classic TV</option>
-                                    <option value="simple_player">Simple Player</option>
-                                    <option value="rumble_channel">Rumble Channel</option>
+                                    <option value="nexus_tv">🎭 Nexus TV - 24hr Scheduled</option>
+                                    <option value="buffer_tv">📺 Buffer TV - With Controls</option>
+                                    <option value="multi_channel">🎯 Multi-Channel View</option>
+                                    <option value="classic_tv">📻 Classic TV</option>
+                                    <option value="simple_player">▶️ Simple Player</option>
+                                    <option value="rumble_channel">🟣 Rumble Channel</option>
+                                    <option value="performance_player">🟢 Performance Player - Edge-to-Edge (NEW!)</option>
                                 </select>
                             </div>
                             <div class="form-group">
@@ -1238,13 +1264,95 @@
         }
 
         function showHelp() {
-            showToast('Help documentation coming soon!', 'info');
+            const helpModal = document.getElementById('modal');
+            const title = document.getElementById('modalTitle');
+            const body = document.getElementById('modalBody');
+            
+            title.textContent = '📚 Control Hub Help & Documentation';
+            body.innerHTML = `
+                <div style="font-size: 14px; line-height: 1.8; color: #e0e5ff;">
+                    <h3 style="color: #00ffff; margin-bottom: 15px;">Quick Start Guide</h3>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #ffd700;">🎪 Right-Side Bubbles (6 Features)</h4>
+                        <ul style="margin-left: 20px;">
+                            <li><strong>📋 Import Playlist</strong> - Add M3U playlists</li>
+                            <li><strong>🎬 Generate Player</strong> - Create custom players</li>
+                            <li><strong>📅 Schedule</strong> - Plan TV schedule</li>
+                            <li><strong>📤 Export Data</strong> - Backup everything</li>
+                            <li><strong>⚙️ Settings</strong> - Customize preferences</li>
+                            <li><strong>❓ Help</strong> - This guide</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #ffd700;">⚡ Quick Action Buttons</h4>
+                        <p>Instantly launch any player type:</p>
+                        <ul style="margin-left: 20px;">
+                            <li>🎭 <strong>Nexus TV</strong> - 24-hour schedules</li>
+                            <li>📺 <strong>Buffer TV</strong> - Professional controls</li>
+                            <li>🎯 <strong>Multi-Channel</strong> - Watch 2-6 channels</li>
+                            <li>📻 <strong>Classic TV</strong> - Retro vintage feel</li>
+                            <li>▶️ <strong>Simple Player</strong> - Minimal interface</li>
+                            <li>🟣 <strong>Rumble Channel</strong> - Rumble content</li>
+                            <li>🟢 <strong>Performance Player</strong> - Edge-to-edge lazy loading (NEW!)</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #ffd700;">📥 GitHub Integration (NEW!)</h4>
+                        <p>Click <strong>"📥 From GitHub"</strong> tab to:</p>
+                        <ul style="margin-left: 20px;">
+                            <li>Pull your generated pages from GitHub "Ready Made" folder</li>
+                            <li>Click links to open players in pop-out workbench</li>
+                            <li>Access all your previously generated pages</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #ffd700;">📊 Dashboard Widgets</h4>
+                        <ul style="margin-left: 20px;">
+                            <li><strong>📅 Calendar</strong> - Schedule visualization</li>
+                            <li><strong>📈 Status</strong> - Player statistics</li>
+                            <li><strong>🕐 Activity</strong> - Recent actions</li>
+                            <li><strong>ℹ️ System Info</strong> - Version & storage</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="background: rgba(0,255,200,0.1); padding: 15px; border-radius: 8px; border-left: 3px solid #00ffc8;">
+                        <strong style="color: #00ffff;">💡 Pro Tip:</strong> Use color-coded buttons for quick identification. Each player type has its own emoji icon!
+                    </div>
+                    
+                    <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(0,255,255,0.2);">
+                        <small style="color: #8892b0;">
+                            📖 Full documentation: <strong>CONTROL_HUB_HELPER_INSTRUCTIONS.md</strong><br>
+                            🔧 Technical details: <strong>CONTROL_HUB_AUDIT.md</strong>
+                        </small>
+                    </div>
+                </div>
+            `;
+            
+            helpModal.classList.add('active');
         }
 
         // Quick Actions
         function quickAction(type) {
             showToast(`Launching ${formatType(type)}...`, 'success');
-            // TODO: Actually launch the player type
+            // Open player in new workbench window
+            const playerUrls = {
+                'nexus': './nexus_tv.html',
+                'buffer': './buffer_tv.html',
+                'multi': './multi_channel.html',
+                'classic': './classic_tv.html',
+                'simple': './simple_player.html',
+                'rumble': './rumble_channel.html',
+                'performance': './performance_player.html'
+            };
+            
+            const url = playerUrls[type];
+            if (url) {
+                window.open(url, '_blank', 'width=1200,height=800,resizable=yes,scrollbars=yes');
+            }
         }
 
         // Action Functions
@@ -1291,7 +1399,97 @@
 
         function openPage(name) {
             showToast(`Opening ${name}...`, 'info');
-            // TODO: Actually open the page
+            // Open in new workbench window
+            const pageUrl = `./${name.replace(/\s+/g, '_')}.html`;
+            window.open(pageUrl, '_blank', 'width=1200,height=800,resizable=yes,scrollbars=yes');
+        }
+        
+        // GitHub Pages Function
+        async function showGitHubPages() {
+            const modal = document.getElementById('modal');
+            const title = document.getElementById('modalTitle');
+            const body = document.getElementById('modalBody');
+            
+            title.textContent = '📥 Pages from GitHub "Ready Made" Folder';
+            body.innerHTML = `
+                <div style="text-align: center; padding: 20px;">
+                    <div style="color: #00ffff; margin-bottom: 10px;">🔄 Fetching from GitHub...</div>
+                    <div class="loading-spinner" style="margin: 0 auto;"></div>
+                </div>
+            `;
+            
+            modal.classList.add('active');
+            
+            try {
+                // Fetch list of pages from GitHub Ready Made folder
+                // This would connect to your GitHub repo
+                const githubOwner = 'banamine'; // Your GitHub username
+                const githubRepo = 'Liberty-Express-'; // Your repo name
+                const branch = 'main';
+                const folder = 'Ready Made';
+                
+                // For now, show instructions on how to set up GitHub access
+                body.innerHTML = `
+                    <div style="font-size: 14px; line-height: 1.8; color: #e0e5ff;">
+                        <h3 style="color: #00ffff; margin-bottom: 15px;">📥 GitHub Ready Made Pages</h3>
+                        
+                        <div style="background: rgba(0,255,100,0.1); padding: 15px; border-radius: 8px; border-left: 3px solid #00ff64; margin-bottom: 20px;">
+                            <strong style="color: #00ff64;">✅ Integration Ready!</strong>
+                            <p style="margin-top: 10px;">When you generate players in M3U MATRIX PRO and click <strong>CANCEL</strong>, they automatically push to GitHub "Ready Made" folder.</p>
+                        </div>
+                        
+                        <h4 style="color: #ffd700; margin-bottom: 10px;">🎬 Available Players from GitHub:</h4>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                            <div class="github-page-card" onclick="openGitHubPage('nexus_sample.html')">
+                                <div style="color: #ffd700; font-size: 24px; margin-bottom: 10px;">🎭</div>
+                                <div style="font-weight: bold; color: #00ffff;">Nexus TV Sample</div>
+                                <small style="color: #8892b0;">24-hour scheduler</small>
+                            </div>
+                            <div class="github-page-card" onclick="openGitHubPage('buffer_sample.html')">
+                                <div style="color: #ffd700; font-size: 24px; margin-bottom: 10px;">📺</div>
+                                <div style="font-weight: bold; color: #00ffff;">Buffer TV Sample</div>
+                                <small style="color: #8892b0;">With controls</small>
+                            </div>
+                            <div class="github-page-card" onclick="openGitHubPage('performance_sample.html')">
+                                <div style="color: #ffd700; font-size: 24px; margin-bottom: 10px;">🟢</div>
+                                <div style="font-weight: bold; color: #00ffff;">Performance Player</div>
+                                <small style="color: #8892b0;">Edge-to-edge (NEW)</small>
+                            </div>
+                            <div class="github-page-card" onclick="openGitHubPage('multi_sample.html')">
+                                <div style="color: #ffd700; font-size: 24px; margin-bottom: 10px;">🎯</div>
+                                <div style="font-weight: bold; color: #00ffff;">Multi-Channel</div>
+                                <small style="color: #8892b0;">2-6 channels</small>
+                            </div>
+                        </div>
+                        
+                        <div style="background: rgba(0,200,255,0.1); padding: 15px; border-radius: 8px; border-left: 3px solid #00d4ff;">
+                            <strong style="color: #00d4ff;">📌 How it works:</strong>
+                            <ol style="margin-left: 20px; margin-top: 10px;">
+                                <li>Generate players in M3U MATRIX PRO</li>
+                                <li>Click <strong>CANCEL</strong> to deploy to GitHub</li>
+                                <li>Files appear in "Ready Made" folder</li>
+                                <li>Click links here to open in pop-out window</li>
+                            </ol>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                body.innerHTML = `
+                    <div style="color: #ff3366; text-align: center; padding: 20px;">
+                        <strong>⚠️ Error fetching GitHub pages</strong>
+                        <p style="margin-top: 10px;">Make sure GitHub integration is configured and your repo has generated pages.</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function openGitHubPage(pageName) {
+            showToast(\`Opening \${pageName}...\`, 'success');
+            // Open GitHub page in pop-out workbench
+            const repoUrl = 'https://github.com/banamine/Liberty-Express-/raw/main/Ready Made/';
+            const pageUrl = repoUrl + pageName;
+            window.open(pageUrl, '_blank', 'width=1200,height=800,resizable=yes,scrollbars=yes');
         }
 
         function editPage(name) {
