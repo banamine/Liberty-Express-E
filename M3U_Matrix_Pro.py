@@ -26,6 +26,11 @@ class M3UMatrixPro:
                 self.config = json.load(f)
         else:
             self.config = {"playlists": [], "schedules": [], "exports": []}
+        
+        # Ensure required keys exist (for backward compatibility)
+        for key in ["playlists", "schedules", "exports"]:
+            if key not in self.config:
+                self.config[key] = []
 
     def save_config(self):
         """Save configuration to JSON"""
