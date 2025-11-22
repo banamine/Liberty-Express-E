@@ -132,19 +132,29 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 40px;
+            padding: 30px 60px;
+            overflow: hidden;
         }
 
-        /* Video Player Wrapper */
+        /* Video Player Wrapper - Channel Card */
         .video-wrapper {
             position: relative;
             width: 100%;
-            max-width: 1200px;
-            aspect-ratio: 16/9;
-            background: #000;
-            border-radius: 12px;
+            max-width: 700px;
+            background: linear-gradient(135deg, rgba(40, 60, 80, 0.6) 0%, rgba(20, 40, 60, 0.7) 100%);
+            border-radius: 16px;
             overflow: hidden;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 69, 0, 0.2);
+            aspect-ratio: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 40px;
+            text-align: center;
+            gap: 25px;
+            min-height: 500px;
         }
 
         .video-iframe {
@@ -524,7 +534,22 @@
         /* Responsive */
         @media (max-width: 768px) {
             .carousel-container {
-                padding: 20px;
+                padding: 15px;
+            }
+
+            .video-wrapper {
+                max-width: 100%;
+                padding: 40px 30px;
+                min-height: 400px;
+                gap: 15px;
+            }
+
+            .video-wrapper div[style*="font-size: 48px"] {
+                font-size: 36px !important;
+            }
+
+            .carousel-container > div[style*="max-width: 700px"] {
+                max-width: 100%;
             }
 
             .slide-menu {
@@ -533,8 +558,13 @@
             }
 
             .nav-arrow {
-                width: 40px;
-                height: 40px;
+                width: 50px;
+                height: 50px;
+                left: 10px;
+            }
+
+            .nav-arrow.next {
+                right: 10px;
             }
 
             .controls-bar {
@@ -545,6 +575,42 @@
             .control-btn {
                 width: 35px;
                 height: 35px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .video-wrapper {
+                padding: 30px 20px;
+                min-height: 350px;
+            }
+
+            .video-wrapper div[style*="font-size: 48px"] {
+                font-size: 28px !important;
+            }
+
+            .video-wrapper div[style*="font-size: 24px"] {
+                font-size: 18px !important;
+            }
+
+            .nav-arrow {
+                width: 45px;
+                height: 45px;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 10px;
+                padding: 10px 15px;
+            }
+
+            .header-controls {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .btn {
+                padding: 6px 12px;
+                font-size: 12px;
             }
         }
 
@@ -690,19 +756,45 @@
                 <svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
             </div>
 
-            <!-- Video Player Wrapper -->
-            <div class="video-wrapper" onclick="openChannelWindow()" style="cursor: pointer; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(40, 60, 80, 0.8) 0%, rgba(20, 40, 60, 0.9) 100%);">
-                <div class="loading-spinner" id="loadingSpinner"></div>
-                <div style="text-align: center; color: rgba(255,255,255,0.9); pointer-events: none; z-index: 2;">
-                    <div style="font-size: 80px; margin-bottom: 30px; animation: pulse 2s infinite;">🔴</div>
-                    <div style="font-size: 32px; font-weight: bold; margin-bottom: 15px; letter-spacing: 2px;" id="channelNameLarge">Channel</div>
-                    <div style="font-size: 16px; color: rgba(255,255,255,0.7); margin-bottom: 40px; font-weight: 500;">STREAMING LIVE</div>
-                    <div style="font-size: 18px; color: #00ff88; margin-bottom: 40px; padding: 15px 30px; background: rgba(0, 255, 136, 0.1); border: 2px solid #00ff88; border-radius: 50px; display: inline-block; font-weight: bold;">👆 CLICK TO VIEW CHANNEL</div>
+            <!-- Video Player Wrapper - Channel Card -->
+            <div class="video-wrapper" onclick="openChannelWindow()" style="cursor: pointer;">
+                <!-- Live Indicator -->
+                <div style="display: flex; align-items: center; gap: 12px; color: #ff4500; font-weight: bold; font-size: 16px; text-transform: uppercase; letter-spacing: 2px;">
+                    <div style="width: 14px; height: 14px; background: #ff4500; border-radius: 50%; animation: pulse 2s infinite;"></div>
+                    LIVE NOW
                 </div>
+                
+                <!-- Large Channel Name -->
+                <div style="font-size: 48px; font-weight: bold; color: #fff; letter-spacing: 1px;" id="channelNameLarge">Channel</div>
+                
+                <!-- Channel Stats -->
+                <div style="display: flex; justify-content: center; gap: 40px; width: 100%; flex-wrap: wrap; color: rgba(255,255,255,0.8); font-size: 15px;">
+                    <div style="display: flex; flex-direction: column; align-items: center;">
+                        <span style="font-size: 24px; margin-bottom: 8px;">👥</span>
+                        <span id="followerCount" style="font-weight: bold;">0</span>
+                        <span style="font-size: 13px; color: rgba(255,255,255,0.6);">Followers</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; align-items: center;">
+                        <span style="font-size: 24px; margin-bottom: 8px;">📊</span>
+                        <span id="viewCount" style="font-weight: bold;">0</span>
+                        <span style="font-size: 13px; color: rgba(255,255,255,0.6);">Views</span>
+                    </div>
+                </div>
+                
+                <!-- Click Button -->
+                <div style="margin-top: 20px; padding: 16px 40px; background: linear-gradient(135deg, #ff4500, #ff6347); color: white; border: none; border-radius: 50px; font-size: 18px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; display: inline-block; white-space: nowrap;">
+                    👁️ WATCH NOW
+                </div>
+                
+                <!-- Help Text -->
+                <div style="font-size: 14px; color: rgba(255,255,255,0.6); margin-top: 20px;">
+                    ← Swipe or use arrows to browse all 39 channels →
+                </div>
+                
                 <style>
                     @keyframes pulse {
                         0%, 100% { opacity: 1; transform: scale(1); }
-                        50% { opacity: 0.7; transform: scale(1.1); }
+                        50% { opacity: 0.7; transform: scale(1.2); }
                     }
                 </style>
                 
