@@ -600,13 +600,20 @@
             </div>
 
             <!-- Video Player Wrapper -->
-            <div class="video-wrapper" onclick="openChannelWindow()" style="cursor: pointer; display: flex; align-items: center; justify-content: center;">
+            <div class="video-wrapper" onclick="openChannelWindow()" style="cursor: pointer; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(40, 60, 80, 0.8) 0%, rgba(20, 40, 60, 0.9) 100%);">
                 <div class="loading-spinner" id="loadingSpinner"></div>
-                <div style="text-align: center; color: rgba(255,255,255,0.8); pointer-events: none;">
-                    <div style="font-size: 48px; margin-bottom: 20px;">🔴 LIVE</div>
-                    <div style="font-size: 24px; margin-bottom: 10px;" id="channelNameLarge">Channel</div>
-                    <div style="font-size: 14px; color: rgba(255,255,255,0.6); margin-bottom: 30px;">Click to open channel in new window</div>
+                <div style="text-align: center; color: rgba(255,255,255,0.9); pointer-events: none; z-index: 2;">
+                    <div style="font-size: 80px; margin-bottom: 30px; animation: pulse 2s infinite;">🔴</div>
+                    <div style="font-size: 32px; font-weight: bold; margin-bottom: 15px; letter-spacing: 2px;" id="channelNameLarge">Channel</div>
+                    <div style="font-size: 16px; color: rgba(255,255,255,0.7); margin-bottom: 40px; font-weight: 500;">STREAMING LIVE</div>
+                    <div style="font-size: 18px; color: #00ff88; margin-bottom: 40px; padding: 15px 30px; background: rgba(0, 255, 136, 0.1); border: 2px solid #00ff88; border-radius: 50px; display: inline-block; font-weight: bold;">👆 CLICK TO VIEW CHANNEL</div>
                 </div>
+                <style>
+                    @keyframes pulse {
+                        0%, 100% { opacity: 1; transform: scale(1); }
+                        50% { opacity: 0.7; transform: scale(1.1); }
+                    }
+                </style>
                 
                 <!-- Channel Info -->
                 <div class="channel-info">
