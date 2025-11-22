@@ -290,7 +290,7 @@
             border-radius: 5px;
         }
 
-        /* Embedded Video Modal */
+        /* HLS Video Modal */
         .embed-modal {
             display: none;
             position: fixed;
@@ -298,8 +298,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.95);
-            backdrop-filter: blur(15px);
+            background: rgba(0, 0, 0, 0.98);
             z-index: 10000;
             align-items: center;
             justify-content: center;
@@ -391,26 +390,10 @@
             background: #000;
         }
 
-        .embed-container iframe {
+        #videoPlayer {
             width: 100%;
             height: 100%;
-            border: none;
             border-radius: 8px;
-        }
-
-        .embed-fallback {
-            text-align: center;
-            color: rgba(255, 255, 255, 0.7);
-        }
-
-        .embed-fallback a {
-            color: #ff6347;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        .embed-fallback a:hover {
-            text-decoration: underline;
         }
 
         /* Channel Dropdown */
@@ -474,16 +457,6 @@
             color: #00ff88;
         }
 
-        .dropdown-item-status.vod {
-            background: rgba(255, 150, 0, 0.2);
-            color: #ffaa55;
-        }
-
-        .dropdown-item-status.checking {
-            background: rgba(150, 150, 150, 0.2);
-            color: #aaa;
-        }
-
         /* VOD State - Grayed Out */
         .channel-card.is-vod {
             opacity: 0.6;
@@ -523,139 +496,32 @@
             top: 20px;
             right: 20px;
             background: rgba(100, 100, 100, 0.3);
+            border: 1px solid rgba(150, 150, 150, 0.6);
             color: #aaa;
             padding: 6px 12px;
             border-radius: 20px;
             font-size: 11px;
-            animation: pulse-status 1.5s infinite;
-        }
-
-        @keyframes pulse-status {
-            0%, 100% { opacity: 0.7; }
-            50% { opacity: 1; }
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .carousel-container {
-                padding: 15px;
-            }
-
-            .channel-card {
-                max-width: 100%;
-                padding: 40px 25px;
-                min-height: 380px;
-            }
-
-            .channel-name-large {
-                font-size: 32px;
-            }
-
-            .channel-stats {
-                gap: 30px;
-            }
-
-            .nav-arrow {
-                width: 45px;
-                height: 45px;
-            }
-
-            .header-controls {
-                gap: 8px;
-            }
-
-            .btn {
-                padding: 6px 12px;
-                font-size: 12px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .channel-card {
-                padding: 30px 20px;
-                min-height: 320px;
-                gap: 15px;
-            }
-
-            .channel-name-large {
-                font-size: 24px;
-            }
-
-            .channel-stats {
-                gap: 20px;
-            }
-
-            .stat-icon {
-                font-size: 22px;
-            }
-
-            .stat-value {
-                font-size: 14px;
-            }
-
-            .nav-arrow {
-                width: 40px;
-                height: 40px;
-                font-size: 18px;
-            }
-
-            .header {
-                flex-direction: column;
-                gap: 10px;
-                padding: 12px 15px;
-            }
-
-            .header-controls {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .clock-overlay {
-                top: 65px;
-                right: 10px;
-                font-size: 12px;
-            }
-
-            .watch-btn {
-                padding: 10px 24px;
-                font-size: 14px;
-            }
-        }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.3);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, #ff4500, #ff6347);
-            border-radius: 3px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #ff6347;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            animation: pulse 1s infinite;
         }
     </style>
 </head>
 <body>
-    <!-- Main Container -->
     <div class="main-container">
         <!-- Header -->
-        <header class="header">
+        <div class="header">
             <div class="logo">
-                📰 ScheduleFlow Rumble News
+                <span>📺 ScheduleFlow Rumble News</span>
                 <span>30 Premium News Channels - Live Streams</span>
             </div>
             <div class="header-controls">
-                <button class="btn" onclick="toggleChannelList()">📋 All Channels</button>
+                <button class="btn" onclick="toggleChannelList()">⚙️ All Channels</button>
                 <button class="btn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
-                <button class="btn" onclick="window.close()">✕ Close</button>
+                <button class="btn" onclick="closeCarousel()">✕ Close</button>
             </div>
-        </header>
+        </div>
 
         <!-- Clock Overlay -->
         <div class="clock-overlay">
@@ -663,40 +529,33 @@
             <div class="clock-date" id="clockDate">Loading...</div>
         </div>
 
-        <!-- Channel Dropdown -->
-        <div class="channel-dropdown" id="channelDropdown"></div>
-
         <!-- Carousel Container -->
         <div class="carousel-container">
-            <!-- Navigation Arrows -->
-            <div class="nav-arrow prev" onclick="previousChannel()" title="Previous channel (Arrow Left)">❮</div>
-            <div class="nav-arrow next" onclick="nextChannel()" title="Next channel (Arrow Right)">❯</div>
-
             <!-- Channel Card -->
             <div class="channel-card" id="channelCard" onclick="openEmbedModal()">
-                <div id="statusBadge" class="status-checking">CHECKING...</div>
-                
+                <div id="statusBadge"></div>
+
                 <div class="live-indicator">
-                    <div class="live-dot"></div>
-                    <span id="liveText">LIVE NOW</span>
+                    <span class="live-dot"></span>
+                    <span id="liveText">CHECKING...</span>
                 </div>
 
-                <div class="channel-name-large" id="channelNameDisplay">Loading...</div>
+                <h1 class="channel-name-large" id="channelNameDisplay">Loading...</h1>
 
                 <div class="channel-stats">
                     <div class="stat">
-                        <div class="stat-icon">👥</div>
-                        <div class="stat-value" id="viewerCount">0</div>
-                        <div class="stat-label">Viewers</div>
+                        <span class="stat-icon">👥</span>
+                        <span class="stat-value" id="viewerCount">0</span>
+                        <span class="stat-label">Viewers</span>
                     </div>
                     <div class="stat">
-                        <div class="stat-icon">📊</div>
-                        <div class="stat-value" id="rankDisplay">#1</div>
-                        <div class="stat-label">Rank</div>
+                        <span class="stat-icon">📊</span>
+                        <span class="stat-value" id="rankDisplay">#1</span>
+                        <span class="stat-label">Rank</span>
                     </div>
                 </div>
 
-                <button class="watch-btn">
+                <button class="watch-btn" onclick="openEmbedModal(); return false;">
                     👁️ WATCH NOW
                 </button>
 
@@ -705,31 +564,42 @@
                 </div>
             </div>
 
+            <!-- Navigation Arrows -->
+            <span class="nav-arrow prev" onclick="previousChannel()">❮</span>
+            <span class="nav-arrow next" onclick="nextChannel()">❯</span>
+
             <!-- Carousel Dots -->
             <div class="carousel-dots" id="carouselDots"></div>
+
+            <!-- Channel Dropdown -->
+            <div class="channel-dropdown" id="channelDropdown"></div>
         </div>
     </div>
 
-    <!-- Embedded Video Modal -->
+    <!-- HLS Video Modal -->
     <div class="embed-modal" id="embedModal">
         <div class="embed-modal-content">
             <div class="embed-modal-header">
-                <h2 id="modalChannelName">Channel</h2>
+                <h2 id="modalChannelName">Channel Name</h2>
                 <div class="modal-controls">
-                    <button class="modal-btn" onclick="previousChannelInModal()" title="Previous (←)">← PREV</button>
-                    <button class="modal-btn" onclick="nextChannelInModal()" title="Next (→)">NEXT →</button>
-                    <button class="modal-btn close-btn" onclick="closeEmbedModal()" title="Close (Esc)">✕</button>
+                    <button class="modal-btn" onclick="previousChannelInModal()" title="Previous Channel">← Prev</button>
+                    <button class="modal-btn" onclick="nextChannelInModal()" title="Next Channel">Next →</button>
+                    <button class="modal-btn close-btn" onclick="closeEmbedModal()" title="Close">✕</button>
                 </div>
             </div>
-            <div class="embed-container" id="embedContainer">
-                <div style="text-align: center; color: rgba(255,255,255,0.7);">Loading...</div>
+            <div class="embed-container">
+                <video id="videoPlayer" controls style="width: 100%; height: 100%; max-width: 1000px;"></video>
             </div>
         </div>
     </div>
 
+    <!-- HLS.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    
     <script>
         // Store live status
         const liveStatus = {};
+        let hlsChannels = [];
 
         // Channel Data - Top 30 by Viewers
         const channelsData = [
@@ -766,9 +636,11 @@
         ];
 
         let currentChannelIndex = 0;
+        let hls = null;
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
+            loadHLSChannels();
             updateChannelDisplay();
             updateCarouselDots();
             buildChannelDropdown();
@@ -778,24 +650,31 @@
             // Keyboard shortcuts
             document.addEventListener('keydown', handleKeyboardShortcuts);
 
-            // Check live status for all channels
+            // Mark all channels as LIVE
             checkAllChannelStatus();
         });
 
-        // Mark all channels as LIVE (they come from Rumble's live news section)
-        // These channels were verified live when the report was generated
+        // Load HLS channels from JSON file
+        function loadHLSChannels() {
+            fetch('rumble_hls_channels.json')
+                .then(r => r.json())
+                .then(data => {
+                    hlsChannels = data;
+                    console.log('✅ Loaded', hlsChannels.length, 'HLS channels');
+                })
+                .catch(e => console.log('Note: HLS channels JSON not available, using carousel mode only', e));
+        }
+
+        // Mark all channels as LIVE
         async function checkAllChannelStatus() {
             for (let i = 0; i < channelsData.length; i++) {
                 const channel = channelsData[i];
-                // All channels in this list are from the LIVE news section
                 liveStatus[channel.channelId] = true;
                 
-                // Update UI as we mark channels live
                 if (i === currentChannelIndex) {
                     updateChannelDisplay();
                 }
 
-                // Small delay for smooth UI update
                 await new Promise(resolve => setTimeout(resolve, 50));
             }
         }
@@ -859,32 +738,81 @@
 
             // Update card state based on live status
             if (isLive === null) {
-                // Still checking
                 badge.className = 'status-checking';
                 badge.textContent = 'CHECKING...';
                 card.classList.remove('is-vod');
                 liveText.textContent = 'CHECKING...';
             } else if (isLive) {
-                // LIVE
                 badge.style.display = 'none';
                 card.classList.remove('is-vod');
                 liveText.textContent = 'LIVE NOW';
             } else {
-                // VOD (Video on Demand)
                 badge.className = 'vod-badge';
                 badge.textContent = 'VOD';
                 card.classList.add('is-vod');
-                liveText.textContent = 'VOD - ON DEMAND';
+                liveText.textContent = 'VOD';
+            }
+        }
+
+        function openEmbedModal() {
+            document.getElementById('embedModal').classList.add('active');
+            loadEmbedModal();
+        }
+
+        function closeEmbedModal() {
+            document.getElementById('embedModal').classList.remove('active');
+            if (hls) {
+                hls.destroy();
+                hls = null;
+            }
+            const video = document.getElementById('videoPlayer');
+            video.src = '';
+        }
+
+        function loadEmbedModal() {
+            const channel = channelsData[currentChannelIndex];
+            document.getElementById('modalChannelName').textContent = `${channel.name} (${channel.viewers.toLocaleString()} viewers)`;
+
+            // Find HLS URL for this channel
+            const hlsChannel = hlsChannels.find(c => c.index === currentChannelIndex + 1);
+            
+            if (hlsChannel && hlsChannel.hls_url) {
+                // Play HLS stream using hls.js
+                const video = document.getElementById('videoPlayer');
+                
+                if (Hls.isSupported()) {
+                    if (hls) {
+                        hls.destroy();
+                    }
+                    hls = new Hls({
+                        debug: false,
+                        enableWorker: true,
+                        lowLevelLogger: null
+                    });
+                    hls.loadSource(hlsChannel.hls_url);
+                    hls.attachMedia(video);
+                    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                        video.play().catch(e => console.log('Autoplay prevented:', e));
+                    });
+                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    // Safari native HLS support
+                    video.src = hlsChannel.hls_url;
+                    video.play().catch(e => console.log('Autoplay prevented:', e));
+                }
+            } else {
+                // Fallback: open in new window if HLS not available
+                window.open(`https://rumble.com/c/${channel.channelId}`, '_blank');
+                closeEmbedModal();
             }
         }
 
         function updateCarouselDots() {
             const dotsContainer = document.getElementById('carouselDots');
             dotsContainer.innerHTML = '';
-            
+
             for (let i = 0; i < channelsData.length; i++) {
                 const dot = document.createElement('div');
-                dot.className = `dot ${i === currentChannelIndex ? 'active' : ''}`;
+                dot.className = 'dot' + (i === currentChannelIndex ? ' active' : '');
                 dot.onclick = () => goToChannel(i);
                 dotsContainer.appendChild(dot);
             }
@@ -893,29 +821,18 @@
         function buildChannelDropdown() {
             const dropdown = document.getElementById('channelDropdown');
             dropdown.innerHTML = '';
-            
-            channelsData.forEach((ch, idx) => {
+
+            channelsData.forEach((channel, index) => {
                 const item = document.createElement('div');
-                item.className = `dropdown-item ${idx === currentChannelIndex ? 'active' : ''}`;
-                const isLive = liveStatus[ch.channelId];
-                let statusHTML = '<div class="dropdown-item-status checking">?</div>';
+                item.className = 'dropdown-item' + (index === currentChannelIndex ? ' active' : '');
                 
-                if (isLive !== undefined) {
-                    if (isLive) {
-                        statusHTML = '<div class="dropdown-item-status live">LIVE</div>';
-                    } else {
-                        statusHTML = '<div class="dropdown-item-status vod">VOD</div>';
-                    }
-                }
-                
+                const status = liveStatus[channel.channelId] ? 'LIVE' : 'VOD';
                 item.innerHTML = `
-                    <div>
-                        <div style="font-weight: bold;">${ch.rank}. ${ch.name}</div>
-                        <div class="dropdown-item-viewers">${ch.viewers.toLocaleString()} viewers</div>
-                    </div>
-                    ${statusHTML}
+                    <span>${channel.name}<br><span class="dropdown-item-viewers">${channel.viewers.toLocaleString()} viewers</span></span>
+                    <span class="dropdown-item-status ${liveStatus[channel.channelId] ? 'live' : ''}">${status}</span>
                 `;
-                item.onclick = () => goToChannel(idx);
+                
+                item.onclick = () => goToChannel(index);
                 dropdown.appendChild(item);
             });
         }
@@ -929,38 +846,27 @@
             document.getElementById('channelDropdown').classList.remove('active');
         }
 
-        function openEmbedModal() {
-            const channel = channelsData[currentChannelIndex];
-            const channelUrl = `https://rumble.com/c/${channel.channelId}`;
-            // Open Rumble channel in new window/tab
-            window.open(channelUrl, '_blank');
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`Error attempting to enable fullscreen: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
         }
 
-        function closeEmbedModal() {
-            document.getElementById('embedModal').classList.remove('active');
-        }
-
-        function loadEmbedModal() {
-            // Not used anymore - opening in new window instead
+        function closeCarousel() {
+            window.close();
         }
 
         function updateClock() {
             const now = new Date();
             const time = now.toLocaleTimeString('en-US', { hour12: false });
-            const date = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+            const date = now.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
             
             document.getElementById('clockTime').textContent = time;
             document.getElementById('clockDate').textContent = date;
-        }
-
-        function toggleFullscreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    alert(`Error attempting to enable fullscreen: ${err.message}`);
-                });
-            } else {
-                document.exitFullscreen();
-            }
         }
     </script>
 </body>
