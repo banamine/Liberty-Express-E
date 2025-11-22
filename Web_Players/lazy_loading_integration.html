@@ -1,0 +1,256 @@
+<!-- 
+    Lazy Loading Integration Template
+    Drop this into any player that has EMBEDDED_PLAYLIST or playlistData
+    Provides 2-item chunked loading with automatic pre-fetch
+-->
+
+<script>
+// =============================================================================
+// UNIVERSAL LAZY LOADER - Copy of lazy_loading.js for inline use
+// =============================================================================
+class UniversalLazyLoader {
+    constructor(config = {}) {
+        this.chunkSize = config.chunkSize || 2;
+        this.cacheSize = config.cacheSize || 10;
+        this.cache = new Map();
+        this.currentIndex = 0;
+        this.totalItems = config.totalItems || 0;
+        this.items = config.items || [];
+        this.isLoading = false;
+        this.searchCache = new Map();
+        this.preloadQueue = [];
+    }
+
+    async getChunk(startIndex = 0) {
+        if (this.isLoading) return this.getFromCache(startIndex);
+        this.isLoading = true;
+        try {
+            const cacheKey = `chunk_${startIndex}`;
+            if (this.cache.has(cacheKey)) {
+                this.isLoading = false;
+                return this.cache.get(cacheKey);
+            }
+            const endIndex = Math.min(startIndex + this.chunkSize, this.items.length);
+            const items = this.items.slice(startIndex, endIndex);
+            const chunk = {
+                items: items,
+                startIndex: startIndex,
+                endIndex: endIndex,
+                totalItems: this.items.length,
+                hasNext: endIndex < this.items.length,
+                hasPrevious: startIndex > 0,
+                chunkIndex: Math.floor(startIndex / this.chunkSize)
+            };
+            this.cacheChunk(cacheKey, chunk);
+            setTimeout(() => this.preloadNext(startIndex), 100);
+            this.isLoading = false;
+            return chunk;
+        } catch (error) {
+            console.error('Failed to load chunk:', error);
+            this.isLoading = false;
+            return null;
+        }
+    }
+
+    cacheChunk(key, chunk) {
+        this.cache.set(key, chunk);
+        if (this.cache.size > this.cacheSize) {
+            const firstKey = Array.from(this.cache.keys())[0];
+            this.cache.delete(firstKey);
+        }
+    }
+
+    getFromCache(startIndex) {
+        const cacheKey = `chunk_${startIndex}`;
+        return this.cache.get(cacheKey) || null;
+    }
+
+    preloadNext(currentIndex) {
+        const nextIndex = currentIndex + this.chunkSize;
+        if (nextIndex < this.items.length) {
+            const cacheKey = `chunk_${nextIndex}`;
+            if (!this.cache.has(cacheKey)) {
+                this.preloadQueue.push(nextIndex);
+                if (!this.isPreloading) this.processPreloadQueue();
+            }
+        }
+    }
+
+    async processPreloadQueue() {
+        if (this.preloadQueue.length === 0) return;
+        this.isPreloading = true;
+        const nextIndex = this.preloadQueue.shift();
+        try {
+            const endIndex = Math.min(nextIndex + this.chunkSize, this.items.length);
+            const items = this.items.slice(nextIndex, endIndex);
+            const chunk = {
+                items: items,
+                startIndex: nextIndex,
+                endIndex: endIndex,
+                totalItems: this.items.length,
+                hasNext: endIndex < this.items.length,
+                hasPrevious: nextIndex > 0,
+                preloaded: true
+            };
+            const cacheKey = `chunk_${nextIndex}`;
+            this.cacheChunk(cacheKey, chunk);
+            if (this.preloadQueue.length > 0) {
+                setTimeout(() => this.processPreloadQueue(), 50);
+            } else {
+                this.isPreloading = false;
+            }
+        } catch (error) {
+            console.error('Preload error:', error);
+            this.isPreloading = false;
+        }
+    }
+
+    getItem(index) {
+        if (index >= 0 && index < this.items.length) return this.items[index];
+        return null;
+    }
+
+    search(query) {
+        if (query.length === 0) return [];
+        if (this.searchCache.has(query)) return this.searchCache.get(query);
+        const queryLower = query.toLowerCase();
+        const results = [];
+        for (let i = 0; i < this.items.length; i++) {
+            const item = this.items[i];
+            const searchStr = JSON.stringify(item).toLowerCase();
+            if (searchStr.includes(queryLower)) {
+                results.push({ ...item, originalIndex: i });
+            }
+        }
+        this.searchCache.set(query, results);
+        if (this.searchCache.size > 20) {
+            const firstKey = Array.from(this.searchCache.keys())[0];
+            this.searchCache.delete(firstKey);
+        }
+        return results;
+    }
+
+    async goToIndex(index) {
+        const chunkStart = Math.floor(index / this.chunkSize) * this.chunkSize;
+        return await this.getChunk(chunkStart);
+    }
+
+    async nextChunk() {
+        const nextIndex = this.currentIndex + this.chunkSize;
+        if (nextIndex < this.items.length) {
+            this.currentIndex = nextIndex;
+            return await this.getChunk(nextIndex);
+        }
+        return null;
+    }
+
+    async previousChunk() {
+        const prevIndex = Math.max(0, this.currentIndex - this.chunkSize);
+        this.currentIndex = prevIndex;
+        return await this.getChunk(prevIndex);
+    }
+
+    getStatistics() {
+        return {
+            totalItems: this.items.length,
+            cachedChunks: this.cache.size,
+            cacheSize: this.cacheSize,
+            chunkSize: this.chunkSize,
+            estimatedMemory: {
+                items: `${(this.items.length * 0.5).toFixed(2)} KB`,
+                cache: `${(this.cache.size * 2).toFixed(2)} KB`,
+                total: `${((this.cache.size * 2) + (this.items.length * 0.5)).toFixed(2)} KB`
+            }
+        };
+    }
+
+    clearCache() {
+        this.cache.clear();
+        this.searchCache.clear();
+        this.preloadQueue = [];
+    }
+
+    reset() {
+        this.currentIndex = 0;
+        this.clearCache();
+    }
+}
+
+// =============================================================================
+// IMPLEMENTATION EXAMPLES
+// =============================================================================
+
+/*
+// Example 1: Initialize with embedded playlist
+document.addEventListener('DOMContentLoaded', async () => {
+    // Assuming EMBEDDED_PLAYLIST exists in the page
+    const loader = new UniversalLazyLoader({
+        chunkSize: 2,
+        cacheSize: 10,
+        items: typeof EMBEDDED_PLAYLIST !== 'undefined' ? EMBEDDED_PLAYLIST : []
+    });
+
+    // Load first chunk
+    const chunk = await loader.getChunk(0);
+    console.log('Loaded items:', chunk.items.length);
+    
+    // Use the items...
+    chunk.items.forEach(item => {
+        // Render item
+    });
+});
+
+// Example 2: Search with caching
+function searchPlaylist(query) {
+    const results = window.playlistLoader.search(query);
+    return results;
+}
+
+// Example 3: Navigate
+async function goToNextPage() {
+    const chunk = await window.playlistLoader.nextChunk();
+    if (chunk) {
+        // Update UI with new chunk
+    }
+}
+
+// Example 4: Memory statistics
+function logMemoryUsage() {
+    const stats = window.playlistLoader.getStatistics();
+    console.log('Memory usage:', stats.estimatedMemory);
+    return stats;
+}
+*/
+</script>
+
+<style>
+/* Optional: Styles for lazy loading indicators */
+.lazy-loading {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #00f3ff;
+    animation: pulse-dot 1s infinite;
+}
+
+@keyframes pulse-dot {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+}
+
+.chunk-info {
+    font-size: 12px;
+    color: #00f3ff;
+    opacity: 0.7;
+}
+
+.memory-stats {
+    font-size: 10px;
+    color: #39ff14;
+    margin-top: 10px;
+    padding: 5px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 3px;
+}
+</style>
