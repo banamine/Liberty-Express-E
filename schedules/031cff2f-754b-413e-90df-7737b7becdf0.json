@@ -1,0 +1,67 @@
+{
+  "id": "031cff2f-754b-413e-90df-7737b7becdf0",
+  "name": "sample_schedule",
+  "source": "xml",
+  "filepath": "demo_data/sample_schedule.xml",
+  "imported": "2025-11-23T01:26:17.108890+00:00",
+  "events": [
+    {
+      "title": "Morning News",
+      "start": "2025-11-24T08:00:00Z",
+      "end": "2025-11-24T09:00:00Z",
+      "description": "",
+      "category": "News",
+      "id": "c24904e9-7eb9-45ad-846f-bd2a94be9695"
+    },
+    {
+      "title": "Live Talk Show",
+      "start": "2025-11-24T10:00:00Z",
+      "end": "2025-11-24T11:00:00Z",
+      "description": "",
+      "category": "Entertainment",
+      "id": "da77717c-6ac8-40a0-b209-a7b4268e143e"
+    },
+    {
+      "title": "Cooking Show",
+      "start": "2025-11-24T12:00:00Z",
+      "end": "2025-11-24T13:00:00Z",
+      "description": "",
+      "category": "Lifestyle",
+      "id": "4ddd1bcb-59d7-46bb-8781-4b44ecad3a9c"
+    },
+    {
+      "title": "Evening News",
+      "start": "2025-11-24T18:00:00Z",
+      "end": "2025-11-24T19:00:00Z",
+      "description": "",
+      "category": "News",
+      "id": "c73c360d-726a-4818-96ef-cea257eaa0fb"
+    },
+    {
+      "title": "Prime Time Drama",
+      "start": "2025-11-24T20:00:00Z",
+      "end": "2025-11-24T21:00:00Z",
+      "description": "",
+      "category": "Drama",
+      "id": "6524968b-32bf-4cf1-8039-bc8475176621"
+    },
+    {
+      "title": "Late Night Show",
+      "start": "2025-11-24T23:00:00Z",
+      "end": "2025-11-25T00:00:00Z",
+      "description": "",
+      "category": "Entertainment",
+      "id": "361b73f6-6f79-4895-b58e-02c36ef18547"
+    }
+  ],
+  "metadata": {
+    "total_imported": 6,
+    "duplicates_removed": 0,
+    "conflicts_detected": 0,
+    "unique_events": 6
+  },
+  "warnings": {
+    "duplicates": [],
+    "conflicts": []
+  }
+}
