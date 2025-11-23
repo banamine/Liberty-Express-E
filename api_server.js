@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const https = require('https');
 const path = require('path');
@@ -7,19 +9,69 @@ const TaskQueue = require('./task_queue');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const ADMIN_API_KEY = process.env.ADMIN_API_KEY || 'change_me_to_your_secret_key';
+const MAX_UPLOAD_SIZE = parseInt(process.env.MAX_UPLOAD_SIZE || '52428800');
 
 // Process pool: limit concurrent Python processes to 4 (prevents OOM)
 const pythonQueue = new TaskQueue(4);
 
 // Middleware
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, DELETE');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
   next();
 });
+
+// ========== SECURITY MIDDLEWARE ==========
+
+// Admin API key validation middleware
+const validateAdminKey = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).json({ 
+      status: 'error', 
+      message: 'Missing Authorization header. Use: Authorization: Bearer YOUR_API_KEY' 
+    });
+  }
+
+  const parts = authHeader.split(' ');
+  if (parts.length !== 2 || parts[0] !== 'Bearer') {
+    return res.status(401).json({ 
+      status: 'error', 
+      message: 'Invalid Authorization format. Use: Bearer YOUR_API_KEY' 
+    });
+  }
+
+  const apiKey = parts[1];
+  if (apiKey !== ADMIN_API_KEY) {
+    return res.status(401).json({ 
+      status: 'error', 
+      message: 'Unauthorized: Invalid API key' 
+    });
+  }
+
+  next();
+};
+
+// File size limit middleware
+const checkFileSize = (req, res, next) => {
+  if (req.file && req.file.size > MAX_UPLOAD_SIZE) {
+    return res.status(413).json({
+      status: 'error',
+      message: `File too large. Maximum size: ${(MAX_UPLOAD_SIZE / 1024 / 1024).toFixed(2)}MB`
+    });
+  }
+  if (req.body && typeof req.body === 'string' && req.body.length > MAX_UPLOAD_SIZE) {
+    return res.status(413).json({
+      status: 'error',
+      message: `Content too large. Maximum size: ${(MAX_UPLOAD_SIZE / 1024 / 1024).toFixed(2)}MB`
+    });
+  }
+  next();
+};
 
 // Middleware to serve .html files when no extension is provided
 app.use((req, res, next) => {
@@ -175,8 +227,8 @@ app.post('/api/config', async (req, res) => {
   }
 });
 
-// Import schedule from file (triggers Python backend)
-app.post('/api/import-schedule', async (req, res) => {
+// Import schedule from file (triggers Python backend) - with size limit check
+app.post('/api/import-schedule', checkFileSize, async (req, res) => {
   try {
     const { filepath, format } = req.body;
     if (!filepath || !format) {
@@ -319,6 +371,55 @@ app.get('/api/queue-stats', (req, res) => {
     processPool: stats,
     timestamp: new Date().toISOString()
   });
+});
+
+// ========== ADMIN OPERATIONS (Protected with API Key) ==========
+
+// Delete a schedule (ADMIN ONLY)
+app.delete('/api/schedule/:id', validateAdminKey, async (req, res) => {
+  try {
+    const scheduleId = req.params.id;
+    
+    if (!scheduleId) {
+      return res.status(400).json({ 
+        status: 'error', 
+        message: 'Schedule ID required' 
+      });
+    }
+
+    const output = await pythonQueue.execute(['M3U_Matrix_Pro.py', '--delete-schedule', scheduleId]);
+    const result = JSON.parse(output);
+    res.json(result);
+
+  } catch (error) {
+    res.status(500).json({ 
+      status: 'error', 
+      message: error.message 
+    });
+  }
+});
+
+// Delete all schedules (SUPER ADMIN ONLY - requires confirmation)
+app.delete('/api/all-schedules', validateAdminKey, async (req, res) => {
+  try {
+    // Require extra confirmation in body
+    if (req.body.confirm !== 'DELETE_ALL_SCHEDULES') {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Confirmation required. Send { "confirm": "DELETE_ALL_SCHEDULES" } in request body'
+      });
+    }
+
+    const output = await pythonQueue.execute(['M3U_Matrix_Pro.py', '--delete-all-schedules']);
+    const result = JSON.parse(output);
+    res.json(result);
+
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: error.message
+    });
+  }
 });
 
 // Default route
