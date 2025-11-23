@@ -1,12 +1,15 @@
 const express = require('express');
 const https = require('https');
-const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs').promises;
 const fsSync = require('fs');  // Keep for existsSync only
+const TaskQueue = require('./task_queue');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Process pool: limit concurrent Python processes to 4 (prevents OOM)
+const pythonQueue = new TaskQueue(4);
 
 // Middleware
 app.use(express.json());
@@ -68,34 +71,6 @@ function fetchHttp(url) {
   });
 }
 
-// Helper function to spawn Python process (returns Promise)
-function spawnPython(args) {
-  return new Promise((resolve, reject) => {
-    const python = spawn('python3', args);
-    let output = '';
-    let errorOutput = '';
-
-    python.stdout.on('data', (data) => {
-      output += data.toString();
-    });
-
-    python.stderr.on('data', (data) => {
-      errorOutput += data.toString();
-    });
-
-    python.on('close', (code) => {
-      if (code === 0) {
-        resolve(output);
-      } else {
-        reject(new Error(errorOutput || `Process exited with code ${code}`));
-      }
-    });
-
-    python.on('error', (error) => {
-      reject(error);
-    });
-  });
-}
 
 // ========== SCHEDULEFLOW API ENDPOINTS (All Async) ==========
 
@@ -212,7 +187,7 @@ app.post('/api/import-schedule', async (req, res) => {
       ? ['M3U_Matrix_Pro.py', '--import-schedule-xml', filepath]
       : ['M3U_Matrix_Pro.py', '--import-schedule-json', filepath];
     
-    const output = await spawnPython(args);
+    const output = await pythonQueue.execute(args);
     const result = JSON.parse(output);
     res.json(result);
   } catch (error) {
@@ -223,7 +198,7 @@ app.post('/api/import-schedule', async (req, res) => {
 // Get schedules list
 app.get('/api/schedules', async (req, res) => {
   try {
-    const output = await spawnPython(['M3U_Matrix_Pro.py', '--list-schedules']);
+    const output = await pythonQueue.execute(['M3U_Matrix_Pro.py', '--list-schedules']);
     const result = JSON.parse(output);
     res.json(result);
   } catch (error) {
@@ -234,7 +209,7 @@ app.get('/api/schedules', async (req, res) => {
 // Get playlists list
 app.get('/api/playlists', async (req, res) => {
   try {
-    const output = await spawnPython(['M3U_Matrix_Pro.py', '--list-playlists']);
+    const output = await pythonQueue.execute(['M3U_Matrix_Pro.py', '--list-playlists']);
     const result = JSON.parse(output);
     res.json(result);
   } catch (error) {
@@ -251,7 +226,7 @@ app.post('/api/export-schedule-xml', async (req, res) => {
     }
     
     const outputFile = path.join(__dirname, filename || `schedule_${schedule_id}.xml`);
-    const output = await spawnPython(['M3U_Matrix_Pro.py', '--export-schedule-xml', schedule_id, outputFile]);
+    const output = await pythonQueue.execute(['M3U_Matrix_Pro.py', '--export-schedule-xml', schedule_id, outputFile]);
     const result = JSON.parse(output);
     res.json(result);
   } catch (error) {
@@ -268,7 +243,7 @@ app.post('/api/export-schedule-json', async (req, res) => {
     }
     
     const outputFile = path.join(__dirname, filename || `schedule_${schedule_id}.json`);
-    const output = await spawnPython(['M3U_Matrix_Pro.py', '--export-schedule-json', schedule_id, outputFile]);
+    const output = await pythonQueue.execute(['M3U_Matrix_Pro.py', '--export-schedule-json', schedule_id, outputFile]);
     const result = JSON.parse(output);
     res.json(result);
   } catch (error) {
@@ -281,7 +256,7 @@ app.post('/api/export-all-schedules-xml', async (req, res) => {
   try {
     const filename = req.body.filename || 'all_schedules.xml';
     const outputFile = path.join(__dirname, filename);
-    const output = await spawnPython(['M3U_Matrix_Pro.py', '--export-all-xml', outputFile]);
+    const output = await pythonQueue.execute(['M3U_Matrix_Pro.py', '--export-all-xml', outputFile]);
     const result = JSON.parse(output);
     res.json(result);
   } catch (error) {
@@ -302,7 +277,7 @@ app.post('/api/schedule-playlist', async (req, res) => {
     }
     
     const outputFile = path.join(__dirname, `schedule_${Date.now()}.json`);
-    const output = await spawnPython(['M3U_Matrix_Pro.py', '--schedule-playlist', 
+    const output = await pythonQueue.execute(['M3U_Matrix_Pro.py', '--schedule-playlist', 
       JSON.stringify(links), start_time, String(duration_hours || 24), outputFile]);
     
     const result = JSON.parse(output);
@@ -315,7 +290,7 @@ app.post('/api/schedule-playlist', async (req, res) => {
 // API endpoint to fetch external videos
 app.get('/api/infowars-videos', async (req, res) => {
   try {
-    const output = await spawnPython(['infowars_fetcher.py']);
+    const output = await pythonQueue.execute(['infowars_fetcher.py']);
     
     // Find JSON in output (skip print statements)
     const jsonMatch = output.match(/\{[\s\S]*\}/);
@@ -334,6 +309,16 @@ app.get('/api/infowars-videos', async (req, res) => {
       error: error.message
     });
   }
+});
+
+// Queue statistics endpoint (for monitoring process pool)
+app.get('/api/queue-stats', (req, res) => {
+  const stats = pythonQueue.getStats();
+  res.json({
+    status: 'success',
+    processPool: stats,
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Default route
@@ -361,22 +346,31 @@ app.use((req, res) => {
 
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`
-╔════════════════════════════════════════════════╗
-║   ScheduleFlow API Server Running (ASYNC)      ║
-║                                                ║
-║   API Endpoint:                                ║
-║   http://localhost:${PORT}/api/system-info      ║
-║                                                ║
-║   Static Files:                                ║
-║   http://localhost:${PORT}/generated_pages/    ║
-╚════════════════════════════════════════════════╝
+╔═══════════════════════════════════════════════════════╗
+║   ScheduleFlow API Server Running                    ║
+║   ✓ Async I/O: Enabled                               ║
+║   ✓ Process Pool: 4 concurrent Python processes      ║
+║                                                       ║
+║   API Endpoints:                                     ║
+║   • http://localhost:${PORT}/api/system-info         ║
+║   • http://localhost:${PORT}/api/queue-stats         ║
+║                                                       ║
+║   Static Files:                                      ║
+║   • http://localhost:${PORT}/generated_pages/        ║
+╚═══════════════════════════════════════════════════════╝
   `);
 });
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
+  console.log('[Server] Shutting down gracefully...');
+  
+  // Clear any pending queue tasks
+  const cleared = pythonQueue.clearQueue('Server shutting down');
+  console.log(`[Server] Cleared ${cleared} pending tasks`);
+  
   server.close(() => {
-    console.log('Server terminated gracefully');
+    console.log('[Server] ✓ Terminated gracefully');
     process.exit(0);
   });
 });
