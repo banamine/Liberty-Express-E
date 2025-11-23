@@ -205,6 +205,52 @@ app.get('/api/system-version', (req, res) => {
   });
 });
 
+// Version check endpoint - check GitHub for latest release
+app.get('/api/version-check', async (req, res) => {
+  try {
+    // For now, return mock data (Phase 2.1 will add real GitHub API)
+    // In production, this would call: https://api.github.com/repos/owner/repo/releases/latest
+    res.json({
+      status: 'success',
+      current_version: '2.0.0',
+      latest_version: '2.1.0',
+      has_update: true,
+      release_notes: 'Version 2.1.0 includes version-check endpoint, update UI, and auto-webhook support',
+      release_date: '2025-12-01',
+      download_url: 'https://github.com/your-repo/releases/tag/v2.1.0'
+    });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// Update from GitHub endpoint - admin only
+app.post('/api/update-from-github', validateAdminKey, async (req, res) => {
+  try {
+    console.log('[Update] Starting update from GitHub');
+    
+    // Phase 2: Execute actual git pull + npm install + restart
+    // For Phase 1 testing, we'll simulate the process
+    
+    res.json({
+      status: 'success',
+      message: 'Update process started',
+      from_version: '2.0.0',
+      to_version: '2.1.0',
+      timestamp: new Date().toISOString(),
+      notes: 'System will restart in 30 seconds to complete update'
+    });
+    
+    // In production Phase 2, schedule restart:
+    // setTimeout(() => { server.close(); process.exit(0); }, 30000);
+  } catch (error) {
+    res.status(500).json({ 
+      status: 'error', 
+      message: error.message 
+    });
+  }
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   const stats = pythonQueue.getStats();
