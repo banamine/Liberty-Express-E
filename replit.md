@@ -56,10 +56,68 @@
 
 **Output:** `stripped_media/MASTER_PLAYLIST.m3u` (playable in VLC, MPC-HC, any player)
 
-## System Architecture
+## System Architecture: Hub-and-Spoke Model
+
+### Core Truth: M3U_MATRIX_PRO.py Is The Central Hub
+M3U_MATRIX_PRO.py is the **singular source of truth** for all system state and operations. It's the "heart under the hood" that wires the entire project together. It can operate in two modes:
+
+**Mode 1: Advanced Mode (GUI)**
+- Tkinter interface for direct user interaction
+- Content creators, developers, and power users
+- Visual feedback, real-time editing
+- Full feature access
+
+**Mode 2: Silent Background Mode (Daemon)**
+- Headless operation (no GUI window)
+- Controlled via REST API, Control Dashboard, Numeric Keypad
+- 24/7 broadcast operations, non-developer operators
+- Lightweight, scriptable, automation-ready
 
 ### Wiring Diagram: How Components Connect
-The system operates with a Browser/Frontend interacting via HTTP/REST with an Express API Server. The API server spawns Python CLI processes for each operation, managed by a task queue limiting concurrency to 4 processes. These short-lived Python processes interact with the filesystem for JSON data and logs. This design emphasizes isolation, with each operation independent to prevent cascading failures.
+```
+M3U_MATRIX_PRO.py (Hub)
+    ├─ Input: GUI (Advanced) / API (Silent) / Keypad / Dashboard
+    ├─ Processing: M3U parsing, scheduling, exports
+    ├─ State: JSON configs, M3U files
+    └─ Output: Generated pages, API responses, file updates
+         ↓
+    Consumer Applications
+         ├─ scheduleflow_carousel.html (video playback)
+         ├─ NEXUS TV, Buffer TV, etc. (players)
+         ├─ api_server.js (REST endpoints)
+         └─ Control Dashboard (operator UI)
+```
+
+All commands flow through M3U_MATRIX_PRO.py's methods. Whether via GUI click, API call, keypad press, or scheduled task, the system always updates through the central hub, ensuring consistency and single point of truth for all state.
+
+### How to Run Each Mode
+
+**Advanced Mode (GUI):**
+```bash
+python src/videos/M3U_MATRIX_PRO.py
+# or simply double-click M3U_MATRIX_PRO.py (desktop)
+```
+- Tkinter window opens
+- Direct visual control
+- For: Content creators, developers, power users
+
+**Silent Background Mode (Daemon):**
+```bash
+python src/videos/M3U_MATRIX_PRO.py --headless
+# or as background service: nohup python src/videos/M3U_MATRIX_PRO.py --headless &
+```
+- No GUI window
+- 24/7 continuous operation
+- Controlled via REST API, web dashboard, numeric keypad
+- For: Broadcast centers, automated operations, non-technical operators
+- Logging: `src/videos/logs/m3u_matrix.log`
+
+**Help:**
+```bash
+python src/videos/M3U_MATRIX_PRO.py --help
+```
+
+See `HEADLESS_MODE_IMPLEMENTATION.md` for complete technical details.
 
 ### UI/UX Decisions
 The project incorporates a modern design for ScheduleFlow with a professional blue accent. Other components feature diverse aesthetics, including a neon cyberpunk theme for NEXUS TV, a minimalist UI for Simple Player, a purple gradient for Rumble Channel, a grid-based viewer for Multi-Channel Viewer, and a blue-to-red gradient with a numeric keypad and TV Guide overlay for Buffer TV. The Interactive Hub uses bubble navigation for managing playlists, schedules, and exports.

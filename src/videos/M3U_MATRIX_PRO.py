@@ -11,6 +11,7 @@ import sys
 import logging
 from pathlib import Path
 import uuid
+import argparse
 
 # Calculate project root and add to sys.path
 # M3U_MATRIX_PRO.py is in src/videos/, so go up 2 levels to project root
@@ -181,14 +182,10 @@ socket.setdefaulttimeout(7)
 
 class M3UMatrix:
 
-    def __init__(self):
-        self.root = TkinterDnD.Tk()
-        self.root.title(
-            "M3U MATRIX PRO • DRAG & DROP M3U FILES • DOUBLE-CLICK TO OPEN")
-        self.root.geometry("1600x950")
-        self.root.minsize(1300, 800)
-        self.root.configure(bg="#121212")
-
+    def __init__(self, headless=False):
+        self.headless = headless
+        self.root = None  # Will be initialized only in GUI mode
+        
         # Set working directory to application folder
         os.chdir(Path(__file__).parent)
 
@@ -219,11 +216,26 @@ class M3UMatrix:
 
         self.setup_error_handling()
         self.load_settings()
-        self.build_ui()
-        self.load_tv_guide()
-        self.start_autosave()
-        self.logger.info("M3U Matrix started successfully")
-        self.root.mainloop()
+        
+        # Initialize GUI only in non-headless mode
+        if not self.headless:
+            self.root = TkinterDnD.Tk()
+            self.root.title(
+                "M3U MATRIX PRO • DRAG & DROP M3U FILES • DOUBLE-CLICK TO OPEN")
+            self.root.geometry("1600x950")
+            self.root.minsize(1300, 800)
+            self.root.configure(bg="#121212")
+            
+            self.build_ui()
+            self.load_tv_guide()
+            self.start_autosave()
+            self.logger.info("M3U Matrix started successfully (GUI mode)")
+            self.root.mainloop()
+        else:
+            # Headless mode: initialize only core systems
+            self.load_tv_guide()
+            self.start_autosave()
+            self.logger.info("M3U Matrix started successfully (Headless mode)")
 
     def setup_error_handling(self):
         """Setup comprehensive error handling"""
@@ -7202,11 +7214,56 @@ Coverage: {(total_slots / total_channels):.1f}x per show
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="M3U Matrix Pro - Playlist Manager & ScheduleFlow Engine",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python M3U_MATRIX_PRO.py              # Run in Advanced Mode (GUI)
+  python M3U_MATRIX_PRO.py --headless   # Run in Silent Background Mode (Daemon)
+  python M3U_MATRIX_PRO.py --help       # Show this help message
+        """)
+    
+    parser.add_argument(
+        '--headless',
+        action='store_true',
+        help='Run in headless mode (daemon for API control, no GUI)'
+    )
+    
+    parser.add_argument(
+        '--version',
+        action='version',
+        version='M3U Matrix Pro v2.0.0'
+    )
+    
+    args = parser.parse_args()
+    
     try:
-        app = M3UMatrix()
-        app.root.protocol("WM_DELETE_WINDOW", app.safe_exit)
+        if args.headless:
+            # Silent Background Mode (Daemon)
+            logging.info("Starting M3U Matrix Pro in HEADLESS mode")
+            app = M3UMatrix(headless=True)
+            logging.info("M3U Matrix Pro is running in headless mode")
+            logging.info("Control via: REST API, Control Dashboard, Numeric Keypad")
+            logging.info("Process ID: %d", os.getpid())
+            
+            # Keep the process alive
+            try:
+                while True:
+                    threading.Event().wait(1)
+            except KeyboardInterrupt:
+                logging.info("Received interrupt signal, shutting down...")
+                if hasattr(app, 'safe_exit'):
+                    app.safe_exit()
+        else:
+            # Advanced Mode (GUI)
+            logging.info("Starting M3U Matrix Pro in ADVANCED (GUI) mode")
+            app = M3UMatrix(headless=False)
+            if app.root:
+                app.root.protocol("WM_DELETE_WINDOW", app.safe_exit)
     except Exception as e:
-        logging.error(f"Failed to start M3U Matrix: {e}")
-        messagebox.showerror("Startup Error",
-                             f"Failed to start application: {e}")
+        logging.error(f"Failed to start M3U Matrix: {e}", exc_info=True)
+        if not args.headless:
+            messagebox.showerror("Startup Error",
+                                 f"Failed to start application: {e}")
 
