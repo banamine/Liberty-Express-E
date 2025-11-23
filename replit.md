@@ -1,7 +1,7 @@
 # ScheduleFlow - Modern Playout Scheduler for 24/7 Broadcasting
 
 ## Overview
-**ScheduleFlow** is a professional-grade playout scheduler for 24/7 broadcasting, designed for campus TV stations, hotels, YouTube live channels, and local broadcasters. It offers intelligent drag-and-drop scheduling, an auto-filler system, category balancing, multi-week planning with recurring events, and professional export to industry-standard playout engines (e.g., CasparCG, OBS, vMix). The system includes a REST API for remote control and a web-based dashboard, built for unattended operation to deliver continuous video content.
+**ScheduleFlow** is a professional-grade playout scheduler for 24/7 broadcasting, designed for various applications including campus TV stations, hotels, YouTube live channels, and local broadcasters. Its primary purpose is to provide unattended, continuous video content delivery through intelligent drag-and-drop scheduling, an auto-filler system, category balancing, and multi-week planning with recurring events. The system includes a REST API for remote control and a web-based dashboard, offering professional export capabilities to industry-standard playout engines (e.g., CasparCG, OBS, vMix).
 
 ## User Preferences
 - **Communication Style:** Please use clear, simple language and avoid overly technical jargon where possible.
@@ -16,17 +16,20 @@
 
 ## System Architecture
 
+### Wiring Diagram: How Components Connect
+The system operates with a Browser/Frontend interacting via HTTP/REST with an Express API Server. The API server spawns Python CLI processes for each operation, managed by a task queue limiting concurrency to 4 processes. These short-lived Python processes interact with the filesystem for JSON data and logs. This design emphasizes isolation, with each operation independent to prevent cascading failures.
+
 ### UI/UX Decisions
-The project features a clean, modern design for ScheduleFlow with a professional blue accent. Other components utilize diverse aesthetics, including a neon cyberpunk theme for NEXUS TV, a minimalist UI for Simple Player, a purple gradient for Rumble Channel, and a grid-based viewer for Multi-Channel Viewer. Buffer TV employs a blue-to-red gradient with a numeric keypad and TV Guide overlay. The Interactive Hub uses bubble navigation for managing playlists, schedules, and exports.
+The project incorporates a modern design for ScheduleFlow with a professional blue accent. Other components feature diverse aesthetics, including a neon cyberpunk theme for NEXUS TV, a minimalist UI for Simple Player, a purple gradient for Rumble Channel, a grid-based viewer for Multi-Channel Viewer, and a blue-to-red gradient with a numeric keypad and TV Guide overlay for Buffer TV. The Interactive Hub uses bubble navigation for managing playlists, schedules, and exports.
 
 ### Technical Implementations
-The core scheduling logic includes intelligent drag-and-drop, auto-filling, category balancing, multi-week planning, and recurring events. Video playback uses native HTML5 video, HLS.js, and DASH.js. Data persistence is handled via `localStorage` for client-side and JSON files for server-side. Video validation involves HTTP 200 checks, FFprobe metadata, and HLS segment validation. Lazy loading is implemented for efficient resource management. The system supports automated GitHub Pages deployment and includes a production-ready validation engine for imports and exports, covering XML/JSON schema validation, timestamp parsing to UTC, duplicate detection (MD5), and conflict detection. A 48-hour cooldown enforcement mechanism prevents repetitive video plays.
+Core scheduling logic includes intelligent drag-and-drop, auto-filling, category balancing, multi-week planning, and recurring events. Video playback is handled by native HTML5 video, HLS.js, and DASH.js. Data persistence uses `localStorage` for client-side and JSON files for server-side. Video validation includes HTTP 200 checks, FFprobe metadata, and HLS segment validation. Lazy loading is implemented for resource efficiency. The system features automated GitHub Pages deployment and a production-ready validation engine for imports and exports, covering schema validation, UTC timestamp parsing, duplicate detection (MD5), and conflict detection. A 48-hour cooldown enforces unique video plays.
 
 ### Feature Specifications
-ScheduleFlow includes M3U parsing, channel validation, EPG fetching, settings management, and NDI Output Control Center integration. NEXUS TV provides dynamic content scheduling and auto-thumbnail generation. The Multi-Channel Viewer offers advanced multi-viewing with smart audio. Buffer TV focuses on buffering optimization and a TV Guide. Advanced player controls include skip functions, volume control, fullscreen toggles, and timestamp-based clipping. The import/export system supports XML (TVGuide format) and JSON, with comprehensive validation and error reporting. The Interactive Hub offers modals for import, schedule, and export, an interactive calendar, and status dashboard.
+ScheduleFlow offers M3U parsing, channel validation, EPG fetching, settings management, and NDI Output Control Center integration. NEXUS TV provides dynamic content scheduling and auto-thumbnail generation. The Multi-Channel Viewer supports advanced multi-viewing with smart audio. Buffer TV focuses on buffering optimization and a TV Guide. Advanced player controls include skip functions, volume control, fullscreen toggles, and timestamp-based clipping. The import/export system supports XML (TVGuide format) and JSON, with comprehensive validation and error reporting. The Interactive Hub features modals for import, schedule, and export, an interactive calendar, and a status dashboard.
 
 ### System Design Choices
-The architecture uses a dual-component design separating playlist management (desktop application) from web-based content consumption. Player templates run as static HTML/CSS/JavaScript files. A central `index.html` serves as a navigation hub. Data is persisted using JSON files for desktop apps and `localStorage` for web apps. The system is configured for Replit Autoscale and GitHub Pages deployment. Standalone pages with embedded playlist data ensure offline functionality. All imports undergo rigorous validation including schema validation, UTC timestamp normalization, and cryptographic hash-based duplicate and conflict detection.
+The architecture follows a dual-component design, separating playlist management (desktop application) from web-based content consumption. Player templates are static HTML/CSS/JavaScript files. A central `index.html` acts as a navigation hub. Data is persisted using JSON files for desktop applications and `localStorage` for web applications. The system is configured for Replit Autoscale and GitHub Pages deployment. Standalone pages with embedded playlist data ensure offline functionality. All imports undergo rigorous validation including schema validation, UTC timestamp normalization, and cryptographic hash-based duplicate and conflict detection.
 
 ## External Dependencies
 
@@ -38,204 +41,10 @@ The architecture uses a dual-component design separating playlist management (de
 - **FFmpeg:** For video processing, metadata, and screenshots.
 - **VLC Media Player:** For embedded video playback.
 - **Rumble oEmbed API:** For fetching video metadata.
-- **Python Standard Library:** (e.g., `xml.etree.ElementTree`, `datetime`, `hashlib`, `uuid`, `json`, `pathlib`) for core functionalities without external library dependencies.
+- **Python Standard Library:** (e.g., `xml.etree.ElementTree`, `datetime`, `hashlib`, `uuid`, `json`, `pathlib`) for core functionalities.
 
 ### Web Applications
 - **HLS.js:** For HLS playback.
 - **dash.js:** For DASH playback.
 - **Feather Icons:** For scalable vector icons.
-- **express-rate-limit:** For API rate limiting (v7+, added November 23, 2025)
-
-## Phase 1 Security Implementation (COMPLETE ✅ - November 23, 2025)
-
-### Implemented Features
-- **API Key Authentication** - validateAdminKey middleware (api_server.js:34-60)
-  - Bearer token validation
-  - ADMIN_API_KEY loaded from environment secrets
-  - 401 responses for unauthorized requests
-  
-- **File Upload Protection** - checkFileSize middleware (api_server.js:63-77)
-  - 50MB maximum file size enforcement
-  - Clear error messages for oversized files
-  - MAX_UPLOAD_SIZE configurable via environment
-  
-- **Protected Admin Endpoints**
-  - DELETE /api/schedule/:id (admin-only)
-  - DELETE /api/all-schedules (admin-only with confirmation)
-  
-- **Configuration Management**
-  - config/api_config.json with full API documentation
-  - Environment variable support via dotenv
-  - ADMIN_API_KEY secret configured in Replit Secrets
-  
-### Test Results (All Passing)
-- ✅ Public endpoints accessible without authentication
-- ✅ DELETE without auth returns 401 Unauthorized
-- ✅ DELETE with invalid key returns 401 Unauthorized
-- ✅ Error messages are clear and actionable
-- ✅ API server running on 0.0.0.0:5000
-
-### Documentation Created (Phase 1)
-- ADMIN_SETUP.md - 5-minute quick start guide with examples
-- PHASE_1_DEPLOYMENT_CHECKLIST.md - Complete implementation checklist
-- PHASE_1_SUMMARY.md - Summary report
-- config/api_config.json - Configuration reference
-
-### Production Readiness (Phase 1 + Critical Fixes)
-- **Security:** 10/10 (API keys, rate limiting, error handling, no stack traces)
-- **Reliability:** 10/10 (Rate limiting, process pool, graceful shutdown, async I/O)
-- **Functionality:** 10/10 (Auto-play fully working, export includes video URLs)
-- **Documentation:** 10/10 (Comprehensive guides and references)
-- **User Experience:** 9/10 (Open access for users, API key for admins, complete workflows)
-
----
-
-## Phase 1 Fixes (November 23, 2025)
-
-### 1. Error Handling Improvements ✅
-**Fixed:** Bad XML/JSON files no longer cause crashes
-- **Improved Messages:** User-friendly errors with context
-- **Added Hints:** Specific suggestions for common mistakes
-- **Error Types:** Separate handling for parse errors, file not found, permission denied
-- **Example Fixes:** Shows users how to fix common XML/JSON syntax errors
-- **File:** M3U_Matrix_Pro.py (lines 647-688, 758-788)
-- **Tested:** Works with malformed input, provides guidance
-
-### 2. Demo Content ✅ FULLY TESTED WITH EDGE CASES
-**Fixed:** Users won't know how to start
-- **Realistic schedules with edge cases:**
-  - `sample_schedule.xml` - Basic 6-video example
-  - `sample_schedule.json` - JSON format alternative
-  - `sample_schedule_conflicts.xml` - Overlapping timeslots (4 conflicts detected)
-  - `sample_schedule_gaps.xml` - Schedule gaps (tests gap handling)
-  - `sample_schedule_midnight.xml` - Midnight boundaries (day transitions)
-  - `sample_schedule_cooldown.xml` - 48-hour cooldown enforcement (6 events)
-- **Real videos:** Google test videos (BigBuckBunny, ElephantsDream, etc.)
-- **Location:** demo_data/ directory (ready to import)
-- **Testing:** All imports successful, conflicts detected, round-trip verified
-- **Evidence:** See REALISTIC_DEMO_TESTING_REPORT.md for full test results
-
-### 3. First Run Guide ✅
-**Fixed:** Users won't know if videos play automatically
-- **FIRST_RUN_GUIDE.md** - 5-minute quick start
-- **Auto-play Explanation:** YES - videos auto-play in players (not dashboard)
-- **Common Workflows:** News schedule, 24/7 loop, YouTube live stream
-- **Sample Data Usage:** Step-by-step import instructions
-- **Troubleshooting:** 5 common issues with solutions
-
-### 4. Offline Mode Docs ✅
-**Fixed:** Assumes always-online
-- **OFFLINE_MODE.md** - Complete offline capabilities guide
-- **What Works:** Importing, exporting, local players, editing schedules
-- **What Needs Internet:** Remote videos, EPG data, cloud sync
-- **Offline Workflow:** Step-by-step local playout setup
-- **Recommendations:** Best practices for 24/7 local operation
-
-### 5. Admin Panel ✅ DEFERRED TO PHASE 2
-**Status:** Decision made - Skip for now (Option C)
-- API key authentication is sufficient for Phase 1
-- Admins can use curl commands or API clients for operations
-- Admin UI will be built in Phase 2 with full RBAC
-- No immediate impact on functionality
-
-### Phase 2 Roadmap (January 31, 2026 Deadline)
-- Role-based access control (editor/viewer/admin)
-- User authentication system
-- Comprehensive audit logging
-- Rate limiting per endpoint
-- GitHub OAuth integration
-- Admin dashboard (if Option B selected)
-
----
-
-## Critical Fixes (November 23, 2025 - Final)
-
-### Fixed Issue #1: Stack Trace Leakage ✅
-**Severity:** HIGH - Information disclosure vulnerability  
-**Fix:** Added JSON error handler middleware (api_server.js:34-45)
-- Malformed JSON now returns safe error message
-- No stack traces or file paths exposed
-- Test: ✅ PASS - Verified with malformed input
-
-### Fixed Issue #2: DDoS Vulnerability (No Rate Limiting) ✅
-**Severity:** CRITICAL - Denial of service risk  
-**Fix:** Installed express-rate-limit, configured in api_server.js:22-29, 48
-- 100 requests per minute per IP
-- Protects all /api/ routes
-- Test: ✅ PASS - 110 requests tested, 10 rate-limited as expected
-
-### Fixed Issue #3: Auto-Play Broken (Missing Video URLs) ✅
-**Severity:** CRITICAL - Core feature non-functional  
-**Fixes:**
-- Enhanced `_extract_xml_event()` to capture videoUrl from imports (M3U_Matrix_Pro.py:837-854)
-- Updated `export_schedule_xml()` to export video URLs (M3U_Matrix_Pro.py:912-915)
-- Updated `export_all_schedules_xml()` for video URLs (M3U_Matrix_Pro.py:1023-1026)
-- Test: ✅ PASS - 6 video URLs exported, players can now play
-
----
-
-## Error Logging Implementation (November 23, 2025 - FINAL) ✅
-
-### Implemented Logging Features
-- **Python Logging:** logging module with FileHandler + StreamHandler
-- **File Location:** logs/scheduleflow.log (timestamps + full context)
-- **API Logging:** Console logs (method, path, status, duration)
-- **CooldownManager:** Logs warnings for bad timestamps, errors for corruption
-- **Imports:** INFO on success, ERROR on all failure modes with stack traces
-- **Exports:** INFO on success, ERROR on failures with stack traces
-- **Corruption Protection:** Creates .corrupt backups before losing data
-
-### Test Results
-- ✅ Log file created successfully
-- ✅ Malformed timestamps logged + visible
-- ✅ Imports logged (success + errors)
-- ✅ Exports logged (success + errors)
-- ✅ Corrupted data protection working
-
----
-
-## Recent Changes Summary (November 23, 2025)
-
-| Feature | Status | Time | Priority |
-|---------|--------|------|----------|
-| Phase 1 Security | ✅ LIVE | 3h | Critical |
-| Error Handling | ✅ ENHANCED | 30min | High |
-| Rate Limiting | ✅ IMPLEMENTED | 1h | Critical |
-| Auto-Play Video URLs | ✅ FIXED | 1.5h | Critical |
-| Error Logging | ✅ IMPLEMENTED | 1.5h | Critical |
-| Demo Content | ✅ COMPLETE | 1h | High |
-| First Run Guide | ✅ COMPLETE | 2h | High |
-| Offline Docs | ✅ COMPLETE | 2h | High |
-
-**Total Effort:** 12 hours completed + All critical fixes deployed
-**Status:** ✅ PRODUCTION READY - All security & error handling issues resolved
-**Error Handling Grade:** A (comprehensive logging, data protection, debuggable)
-
----
-
-## Documentation Files (Current)
-
-### Security & Deployment
-- `ADMIN_SETUP.md` - 5-min admin quick start
-- `PHASE_1_DEPLOYMENT_CHECKLIST.md` - Deployment guide
-- `PHASE_1_SUMMARY.md` - Implementation summary
-- `SECURITY_ASSESSMENT.md` - Full security analysis
-- `FINAL_SECURITY_ROADMAP.md` - Phase 2 security plan
-
-### User Guides
-- `FIRST_RUN_GUIDE.md` - Onboarding (NEW)
-- `OFFLINE_MODE.md` - Offline operation (NEW)
-- `M3U_MATRIX_README.md` - Original documentation
-
-### Configuration
-- `config/api_config.json` - API settings reference
-- `config.json.example` - Example config file
-
-### Demo Data
-- `demo_data/sample_schedule.xml` - Sample XML (NEW)
-- `demo_data/sample_schedule.json` - Sample JSON (NEW)
-
-### Q&A
-- `RUTHLESS_QA_ANSWERS.md` - 37 hard questions answered
-- `SECURITY_ASSESSMENT.md` - Security Q&A
-- `ADDITIONAL_QA_ANSWERS.md` - More answers
+- **express-rate-limit:** For API rate limiting.

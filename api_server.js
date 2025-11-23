@@ -187,6 +187,47 @@ app.get('/api/system-info', async (req, res) => {
   }
 });
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  const stats = pythonQueue.getStats();
+  const healthStatus = {
+    status: stats.activeProcesses < stats.maxConcurrency ? 'healthy' : 'degraded',
+    uptime_ms: process.uptime() * 1000,
+    timestamp: new Date().toISOString(),
+    process_pool: {
+      active: stats.activeProcesses,
+      max: stats.maxConcurrency,
+      utilization_percent: stats.utilizationPercent,
+      queued: stats.queuedTasks
+    }
+  };
+  
+  const statusCode = healthStatus.status === 'healthy' ? 200 : 503;
+  res.status(statusCode).json(healthStatus);
+});
+
+// Queue statistics endpoint
+app.get('/api/queue-stats', (req, res) => {
+  const stats = pythonQueue.getStats();
+  res.json({
+    status: 'success',
+    queue: {
+      active_processes: stats.activeProcesses,
+      queued_tasks: stats.queuedTasks,
+      max_concurrency: stats.maxConcurrency,
+      utilization_percent: stats.utilizationPercent
+    },
+    statistics: {
+      total_processed: stats.totalProcessed,
+      total_queued: stats.totalQueued,
+      total_errors: stats.totalErrors,
+      peak_active: stats.peakActive,
+      peak_queue_size: stats.peakQueueSize
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
 // List all generated pages (FIXED: async directory/stat read)
 app.get('/api/pages', async (req, res) => {
   try {
