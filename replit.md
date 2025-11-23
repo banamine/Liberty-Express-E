@@ -21,14 +21,15 @@
 - GitHub repo for code storage
 - GitHub Actions for CI/CD
 
-**Phase 2 (Coming Jan 31, 2026):** ⚠️ PLANNED
-- GET /api/version-check - Check for available updates
-- POST /api/update-from-github - Admin can trigger updates
-- Admin dashboard UI for non-devs
-- Auto-update webhook for zero-downtime deployments
+**Phase 2 (Complete):** ✅ ENDPOINTS + DASHBOARD DONE
+- GET /api/version-check - Check for available updates ✅
+- POST /api/update-from-github - Admin can trigger updates ✅
+- Admin dashboard UI for non-devs ✅ (admin-update-panel.html)
+- Auto-update webhook for zero-downtime deployments (Phase 2.1)
 
-**For Non-Developers:** Updates require developer assistance in Phase 1. Phase 2 will add self-serve updates.  
-**See:** GITHUB_AND_UPDATES_GUIDE.md for details.
+**For Non-Developers:** Dashboard button to check/install updates. Still uses API key auth.  
+**Access:** http://your-app/admin-update-panel  
+**See:** PHASE_2_COMPLETION_SUMMARY.md for complete Phase 2 details.
 
 ## System Architecture
 
