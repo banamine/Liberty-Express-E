@@ -1,0 +1,65 @@
+#EXTM3U
+#EXT-X-VERSION:3
+#EXT-X-TARGETDURATION:10
+
+# Example M3U Playlist for ScheduleFlow Carousel
+# Works with MP4, HLS, M3U8, and Rumble videos
+
+#EXTINF:574, Big Buck Bunny - Full Movie
+https://commondatastorage.googleapis.com/gtv-videos-library/sample/BigBuckBunny.mp4
+
+#EXTINF:180, Elephant's Dream - Short
+https://commondatastorage.googleapis.com/gtv-videos-library/sample/ElephantsDream.mp4
+
+#EXTINF:597, For Bigger Blazes - Movie
+https://commondatastorage.googleapis.com/gtv-videos-library/sample/ForBiggerBlazes.mp4
+
+#EXTINF:300, Movie Trailer Sample
+https://commondatastorage.googleapis.com/gtv-videos-library/sample/ForBiggerEscapes.mp4
+
+#EXTINF:266, Sintel - Animated Short
+https://commondatastorage.googleapis.com/gtv-videos-library/sample/Sintel.mp4
+
+#EXTINF:120, Teaser 1
+https://commondatastorage.googleapis.com/gtv-videos-library/sample/VolleyballShort.mp4
+
+# ============================================
+# RUMBLE VIDEO EXAMPLES
+# ============================================
+# Use embed links like this:
+# https://rumble.com/embed/VIDEOID/
+# Or direct video URLs if available
+
+#EXTINF:0, Rumble Video Example
+https://rumble.com/embed/v3t4m5f/
+
+# ============================================
+# HLS STREAM EXAMPLES (Live TV, Playlists)
+# ============================================
+# HLS playlists (.m3u8) for streaming content
+
+#EXTINF:0, BBC News (Example HLS)
+https://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/hls/original/llnw/en/audio_aac_lc_128kbps.m3u8
+
+# ============================================
+# LOCAL FILE EXAMPLES (If served from your server)
+# ============================================
+
+#EXTINF:120, Local Video 1
+/videos/my_video_1.mp4
+
+#EXTINF:180, Local Video 2
+/videos/my_video_2.mp4
+
+# ============================================
+# DIRECT MOVIE/SHORT VIDEO LINKS
+# ============================================
+
+#EXTINF:600, Feature Film (Public Domain)
+https://archive.org/download/ElephantsDream/Elephants_Dream_1080p_H.264.mp4
+
+#EXTINF:300, Animated Short (Creative Commons)
+https://www.pexels.com/download/video/3278702/
+
+#EXTINF:240, Short Film Promo
+https://www.sample-videos.com/video321/mp4/720/big_buck_bunny_720p_2mb.mp4
