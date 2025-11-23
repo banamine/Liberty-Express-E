@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M3U Scheduler - ScheduleFlow</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body class="theme-black">
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="logo">⚡ ScheduleFlow</h1>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">Hub</a>
+                <a href="scheduler.html" class="nav-link active">Scheduler</a>
+                <a href="demo.html" class="nav-link">Demo</a>
+                <a href="calendar.html" class="nav-link">Calendar</a>
+                <a href="export.html" class="nav-link">Export</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <h1>M3U Scheduler</h1>
+        <p>Import playlists, auto-schedule with series detection, manage conflicts.</p>
+
+        <section class="scheduler-section">
+            <h2>Import Playlist</h2>
+            <div class="import-section">
+                <textarea id="playlistInput" placeholder="Paste M3U playlist content here...&#10;#EXTM3U&#10;#EXTINF:-1,Show Title&#10;http://example.com/video.mp4" rows="8"></textarea>
+                <button class="btn-primary" onclick="scheduleApp.importPlaylist()">Import</button>
+                <button class="btn-secondary" onclick="scheduleApp.clearAll()">Clear</button>
+            </div>
+        </section>
+
+        <section class="scheduler-section">
+            <h2>Loaded Content</h2>
+            <div id="contentList" class="content-list">
+                <p style="color: #ffff00;">No content loaded yet.</p>
+            </div>
+        </section>
+
+        <section class="scheduler-section">
+            <h2>24-Hour Schedule</h2>
+            <div class="controls">
+                <button class="btn-primary" onclick="scheduleApp.autoSchedule()">Auto-Schedule</button>
+                <button class="btn-secondary" onclick="scheduleApp.clearSchedule()">Clear Schedule</button>
+            </div>
+            <div id="schedule" class="schedule-grid">
+                <!-- Will be populated by JavaScript -->
+            </div>
+        </section>
+
+        <section class="scheduler-section">
+            <h2>Export Options</h2>
+            <div class="controls">
+                <button class="btn-primary" onclick="scheduleApp.exportJSON()">Export as JSON</button>
+                <button class="btn-primary" onclick="scheduleApp.exportM3U()">Export as M3U</button>
+                <button class="btn-secondary" onclick="scheduleApp.copyToClipboard()">Copy Schedule</button>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 ScheduleFlow. All data stored locally.</p>
+    </footer>
+
+    <script>
+        const scheduleApp = {
+            schedule: [],
+            content: [],
+
+            importPlaylist() {
+                const input = document.getElementById('playlistInput').value;
+                if (!input.trim()) {
+                    alert('Please paste M3U content');
+                    return;
+                }
+
+                const lines = input.split('\n').filter(l => l.trim());
+                const items = [];
+                let currentTitle = 'Unknown';
+
+                for (let line of lines) {
+                    if (line.startsWith('#EXTINF')) {
+                        const match = line.match(/,(.*)$/);
+                        if (match) currentTitle = match[1].trim() || 'Unknown';
+                    } else if (line.startsWith('http')) {
+                        items.push({
+                            id: Math.random().toString(36).substr(2, 9),
+                            title: currentTitle,
+                            url: line.trim(),
+                            series: this.detectSeries(currentTitle)
+                        });
+                    }
+                }
+
+                this.content = items;
+                localStorage.setItem('scheduleContent', JSON.stringify(items));
+                this.displayContent();
+                alert(`Imported ${items.length} items`);
+            },
+
+            detectSeries(title) {
+                const seriesMatch = title.match(/S(\d+)E(\d+)|Season (\d+).*Episode (\d+)|(\d+)x(\d+)/i);
+                if (seriesMatch) {
+                    return {
+                        season: parseInt(seriesMatch[1] || seriesMatch[3] || seriesMatch[5]),
+                        episode: parseInt(seriesMatch[2] || seriesMatch[4] || seriesMatch[6])
+                    };
+                }
+                return null;
+            },
+
+            displayContent() {
+                const list = document.getElementById('contentList');
+                if (this.content.length === 0) {
+                    list.innerHTML = '<p style="color: #ffff00;">No content loaded.</p>';
+                    return;
+                }
+
+                list.innerHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Series</th>
+                                <th>URL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${this.content.map(item => `
+                                <tr>
+                                    <td>${item.title}</td>
+                                    <td>${item.series ? `S${item.series.season}E${item.series.episode}` : 'N/A'}</td>
+                                    <td><small>${item.url.substring(0, 50)}...</small></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            },
+
+            autoSchedule() {
+                if (this.content.length === 0) {
+                    alert('Import content first');
+                    return;
+                }
+
+                this.schedule = [];
+                const hoursInDay = 24;
+                const contentPerHour = Math.ceil(this.content.length / hoursInDay);
+                let contentIndex = 0;
+
+                for (let hour = 0; hour < hoursInDay; hour++) {
+                    const item = this.content[contentIndex % this.content.length];
+                    this.schedule.push({
+                        time: `${String(hour).padStart(2, '0')}:00`,
+                        item: item
+                    });
+                    contentIndex++;
+                }
+
+                localStorage.setItem('scheduleData', JSON.stringify(this.schedule));
+                this.displaySchedule();
+                alert('Schedule created');
+            },
+
+            displaySchedule() {
+                const grid = document.getElementById('schedule');
+                if (this.schedule.length === 0) {
+                    grid.innerHTML = '<p style="color: #ffff00;">No schedule yet. Click Auto-Schedule.</p>';
+                    return;
+                }
+
+                grid.innerHTML = this.schedule.map(slot => `
+                    <div class="schedule-slot">
+                        <strong>${slot.time}</strong><br>
+                        ${slot.item.title}
+                    </div>
+                `).join('');
+            },
+
+            exportJSON() {
+                const data = {
+                    content: this.content,
+                    schedule: this.schedule,
+                    exported: new Date().toISOString()
+                };
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                this.downloadFile(blob, 'schedule.json');
+            },
+
+            exportM3U() {
+                let m3u = '#EXTM3U\n';
+                for (let slot of this.schedule) {
+                    m3u += `#EXTINF:-1,${slot.item.title}\n`;
+                    m3u += `${slot.item.url}\n`;
+                }
+                const blob = new Blob([m3u], { type: 'text/plain' });
+                this.downloadFile(blob, 'schedule.m3u');
+            },
+
+            downloadFile(blob, filename) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            },
+
+            copyToClipboard() {
+                const text = this.schedule.map(s => `${s.time} - ${s.item.title}`).join('\n');
+                navigator.clipboard.writeText(text).then(() => {
+                    alert('Schedule copied');
+                });
+            },
+
+            clearSchedule() {
+                this.schedule = [];
+                localStorage.removeItem('scheduleData');
+                this.displaySchedule();
+            },
+
+            clearAll() {
+                this.content = [];
+                this.schedule = [];
+                document.getElementById('playlistInput').value = '';
+                localStorage.clear();
+                this.displayContent();
+                this.displaySchedule();
+            },
+
+            init() {
+                this.content = JSON.parse(localStorage.getItem('scheduleContent') || '[]');
+                this.schedule = JSON.parse(localStorage.getItem('scheduleData') || '[]');
+                this.displayContent();
+                this.displaySchedule();
+            }
+        };
+
+        scheduleApp.init();
+    </script>
+
+    <style>
+        .scheduler-section {
+            margin: 3rem 0;
+            padding: 2rem;
+            border: 2px solid #00ff00;
+            background-color: #1a1a1a;
+        }
+
+        .scheduler-section h2 {
+            color: #ffff00;
+            margin-bottom: 1.5rem;
+        }
+
+        .import-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        textarea {
+            width: 100%;
+            resize: vertical;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .schedule-slot {
+            background-color: #333;
+            border: 1px solid #00ff00;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .schedule-slot:hover {
+            border-color: #ffff00;
+            background-color: rgba(255, 255, 0, 0.1);
+        }
+
+        .content-list {
+            overflow-x: auto;
+        }
+    </style>
+</body>
+</html>
