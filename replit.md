@@ -27,6 +27,7 @@ ScheduleFlow offers M3U parsing, channel validation, EPG fetching, settings mana
 
 **Scheduler Enhancements:**
 - **Universal File Import:** Accepts M3U, JSON, XML, HTML, plain text - any file format containing HTTP/HTTPS links
+- **Smart Title Extraction:** Prioritizes M3U metadata titles; for URLs (especially archive.org), extracts filename and decodes %20/%2D/etc for readable display while preserving original link encoding
 - **Series Detection:** Recognizes formats like "Breaking Bad S01E01", "The Office Season 2 Episode 5", "Show 1x03"
 - **Intelligent Auto-Schedule:** Groups content by series, sorts episodes correctly, uses round-robin distribution to prevent binge-watching, fills 24 hours efficiently
 - **Conflict Detection:** Prevents duplicate episodes, detects time overlaps, identifies out-of-order episodes with visual indicators and auto-fix suggestions
