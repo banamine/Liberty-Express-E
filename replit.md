@@ -147,10 +147,16 @@ node server.js
 ### Build Cleanup & HTML-Only Rebuild
 - **Removed:** All Python backend, FastAPI, Node.js proxy, database dependencies
 - **Created:** Pure HTML5 application with vanilla JavaScript
-- **Files:** 5 HTML pages + CSS + JS utilities
+- **Files:** 7 HTML pages + CSS + JS utilities
 - **Status:** Running on Replit port 5000, ready for GitHub Pages
 - **Theme:** Verified black/green/yellow color scheme across all pages
 - **Testing:** All modules functional and responsive
+
+### New Modules Added
+- **radio.html** - 24/7 internet radio station with music scheduling
+- **test.html** - Comprehensive test dashboard with 30+ automated tests
+- **embed-cheat-sheet.html** - Complete embedding guide for Wix/Weebly
+- **test.js** - Test suite with DOM, localStorage, M3U parsing, scheduling, export, and accessibility tests
 
 ## External Dependencies
 - **Build Time:** None (pure HTML/CSS/JS)
