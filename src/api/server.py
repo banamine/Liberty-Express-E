@@ -25,6 +25,7 @@ from datetime import datetime
 import sys
 import time
 import os
+import uuid
 
 # JSON Logging for structured logs (audit requirement)
 import logging.config
@@ -43,6 +44,8 @@ from core.stripper import StripperManager, MediaExtractor
 from core.progress import ProgressManager
 from core.cache import ResponseCache
 from core.auth import AuthManager
+from core.database import DatabaseManager
+from core.user_manager import UserManager
 
 # Configure structured logging (JSON format for production)
 logging_config = {
@@ -132,16 +135,22 @@ def create_app() -> FastAPI:
     progress_manager = ProgressManager()
     response_cache = ResponseCache(default_ttl=300)
     
+    # Audit Fix: Database & User Management
+    db_manager = DatabaseManager(app_data_dir / "scheduleflow.db")
+    user_manager = UserManager(db_manager)
+    
     # State
-    app.state.channels: List[Channel] = []
-    app.state.current_schedule: Optional[Schedule] = None
-    app.state.validation_results: List[ValidationResult] = []
+    app.state.channels = []
+    app.state.current_schedule = None
+    app.state.validation_results = []
     app.state.is_validating = False
     app.state.version_manager = version_manager
     app.state.backup_manager = backup_manager
     app.state.stripper_manager = stripper_manager
     app.state.progress_manager = progress_manager
     app.state.response_cache = response_cache
+    app.state.db_manager = db_manager
+    app.state.user_manager = user_manager
     
     # ===== UI ROUTES =====
     
@@ -639,6 +648,160 @@ def create_app() -> FastAPI:
             "version": "2.0.0",
             "timestamp": datetime.utcnow().isoformat()
         }
+    
+    # ===== AUDIT FIX: AUTHENTICATION ENDPOINTS =====
+    
+    def get_current_user(request: Request) -> Optional[str]:
+        """Dependency: Extract user from JWT token"""
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return None
+        
+        token = auth_header.replace("Bearer ", "")
+        valid, user_id = app.state.user_manager.verify_token(token)
+        return user_id if valid else None
+    
+    @app.post("/api/auth/register")
+    def register(username: str, email: str, password: str):
+        """Register new user"""
+        try:
+            success, message = app.state.user_manager.register_user(username, email, password)
+            status_code = 201 if success else 400
+            return {"status": "success" if success else "error", "message": message}
+        except Exception as e:
+            logger.error(f"Registration failed: {e}")
+            raise HTTPException(status_code=400, detail=str(e))
+    
+    @app.post("/api/auth/login")
+    def login(username: str, password: str):
+        """Login user and get JWT token"""
+        try:
+            success, user_id, message = app.state.user_manager.authenticate_user(username, password)
+            if not success:
+                raise HTTPException(status_code=401, detail=message)
+            
+            token = app.state.user_manager.create_access_token(user_id)
+            app.state.db_manager.log_action(
+                str(uuid.uuid4()), user_id, "login", "auth", None, 
+                request.client.host if request.client else None
+            )
+            logger.info(f"User {username} logged in")
+            
+            return {
+                "status": "success",
+                "token": token,
+                "user_id": user_id,
+                "message": "Login successful"
+            }
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Login failed: {e}")
+            raise HTTPException(status_code=400, detail=str(e))
+    
+    @app.get("/api/auth/profile")
+    def get_profile(user_id: Optional[str] = Depends(get_current_user)):
+        """Get current user profile"""
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Not authenticated")
+        
+        try:
+            user = app.state.user_manager.get_user_info(user_id)
+            if not user:
+                raise HTTPException(status_code=404, detail="User not found")
+            return {"status": "success", "user": user}
+        except Exception as e:
+            logger.error(f"Failed to get profile: {e}")
+            raise HTTPException(status_code=400, detail=str(e))
+    
+    @app.post("/api/auth/logout")
+    def logout(user_id: Optional[str] = Depends(get_current_user)):
+        """Logout user"""
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Not authenticated")
+        
+        try:
+            app.state.db_manager.log_action(
+                str(uuid.uuid4()), user_id, "logout", "auth", None,
+                request.client.host if request.client else None
+            )
+            logger.info(f"User {user_id} logged out")
+            return {"status": "success", "message": "Logged out successfully"}
+        except Exception as e:
+            logger.error(f"Logout failed: {e}")
+            raise HTTPException(status_code=400, detail=str(e))
+    
+    # ===== USER MANAGEMENT (ADMIN) =====
+    
+    @app.get("/api/users")
+    def list_users(user_id: Optional[str] = Depends(get_current_user)):
+        """List all users (admin only)"""
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Not authenticated")
+        
+        try:
+            user = app.state.user_manager.get_user_info(user_id)
+            if user["role"] != "admin":
+                raise HTTPException(status_code=403, detail="Admin access required")
+            
+            users = app.state.user_manager.list_users()
+            logger.info(f"User listing requested by {user_id}")
+            return {"status": "success", "users": users}
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Failed to list users: {e}")
+            raise HTTPException(status_code=400, detail=str(e))
+    
+    @app.delete("/api/users/{target_user_id}")
+    def delete_user(target_user_id: str, user_id: Optional[str] = Depends(get_current_user)):
+        """Delete user (admin only)"""
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Not authenticated")
+        
+        try:
+            admin_user = app.state.user_manager.get_user_info(user_id)
+            if admin_user["role"] != "admin":
+                raise HTTPException(status_code=403, detail="Admin access required")
+            
+            success, message = app.state.user_manager.delete_user(target_user_id)
+            app.state.db_manager.log_action(
+                str(uuid.uuid4()), user_id, "delete_user", f"user:{target_user_id}", None,
+                request.client.host if request.client else None
+            )
+            logger.info(f"User {target_user_id} deleted by {user_id}")
+            
+            return {"status": "success" if success else "error", "message": message}
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Failed to delete user: {e}")
+            raise HTTPException(status_code=400, detail=str(e))
+    
+    @app.put("/api/users/{target_user_id}/role")
+    def update_user_role(target_user_id: str, role: str, user_id: Optional[str] = Depends(get_current_user)):
+        """Update user role (admin only)"""
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Not authenticated")
+        
+        try:
+            admin_user = app.state.user_manager.get_user_info(user_id)
+            if admin_user["role"] != "admin":
+                raise HTTPException(status_code=403, detail="Admin access required")
+            
+            success, message = app.state.user_manager.update_user_role(target_user_id, role)
+            app.state.db_manager.log_action(
+                str(uuid.uuid4()), user_id, "update_role", f"user:{target_user_id}", f"role: {role}",
+                request.client.host if request.client else None
+            )
+            logger.info(f"User {target_user_id} role updated to {role} by {user_id}")
+            
+            return {"status": "success" if success else "error", "message": message}
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Failed to update role: {e}")
+            raise HTTPException(status_code=400, detail=str(e))
     
     return app
 
