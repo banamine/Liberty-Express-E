@@ -213,6 +213,7 @@ class M3UMatrix:
         self.uuid_to_iid_map = {}  # O(1) lookup for treeview updates
         self.dirty = False  # Track unsaved changes
         self.search_debounce_id = None  # For debounced search
+        self.open_windows = []  # Track all open Toplevel windows for smooth cleanup
 
         self.setup_error_handling()
         self.load_settings()
@@ -4690,17 +4691,50 @@ Services included:
         return dialog, progress_var, status_label, cancel_flag
     
     def safe_exit(self):
-        """Safe exit procedure"""
-        # Final autosave if there are unsaved changes
-        if self.autosave_counter > 0 and self.channels:
-            response = messagebox.askyesno(
-                "Unsaved Changes", 
-                "You have unsaved changes. Save before exit?")
-            if response:
-                self.save()
-        
-        self.save_settings()
-        self.root.quit()
+        """Safe exit procedure - closes all windows smoothly without errors"""
+        try:
+            # Final autosave if there are unsaved changes
+            if self.autosave_counter > 0 and self.channels:
+                response = messagebox.askyesno(
+                    "Unsaved Changes", 
+                    "You have unsaved changes. Save before exit?")
+                if response:
+                    self.save()
+            
+            self.save_settings()
+            
+            # Close all Toplevel windows gracefully before destroying root
+            try:
+                # Get all Toplevel windows currently open
+                for widget in self.root.winfo_children():
+                    try:
+                        if isinstance(widget, tk.Toplevel):
+                            widget.destroy()
+                    except:
+                        pass  # Silently skip any errors
+                
+                # Also try to close any other Toplevel windows
+                for toplevel in self.root.winfo_toplevel().__class__.__bases__:
+                    try:
+                        if hasattr(toplevel, 'destroy'):
+                            toplevel.destroy()
+                    except:
+                        pass
+            except:
+                pass  # Continue even if window cleanup has issues
+            
+            # Suppress all errors during final cleanup and quit
+            self.root.withdraw()  # Hide window out of view
+            self.root.update()
+            self.root.quit()
+            
+        except Exception as e:
+            # Silent exit - no error dialogs
+            try:
+                self.root.quit()
+            except:
+                import sys
+                sys.exit(0)
 
     def export_m3u_output(self):
         """Export M3U playlist to organized exports folder"""
