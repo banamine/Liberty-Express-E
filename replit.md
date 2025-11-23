@@ -39,6 +39,14 @@ ScheduleFlow offers M3U parsing, channel validation, EPG fetching, settings mana
 - **One-Click Start:** User clicks "Play Demo" button to start - all playlist management is automatic
 - **Continuous Loop:** Auto-advances after 5 minutes indefinitely
 
+**Calendar Demo Features:**
+- **4-Week Schedule Viewer:** Browse up to 4 weeks of programmed content
+- **7-Day Grid Layout:** Shows Mon-Sun with dates and time slots
+- **Rotating Episodes:** Each day features different episodes (no repetition within cooldown)
+- **Multi-Show Schedule:** 4 shows daily at staggered times (08:00, 13:00, 16:00, 20:00)
+- **Color-Coded Shows:** Visual distinction between different content types
+- **Smart Distribution:** Demonstrates round-robin scheduling preventing viewer fatigue
+
 **System Design Choices:**
 The architecture employs a dual-component design, separating playlist management (desktop application) from web-based content consumption. Player templates are static HTML/CSS/JavaScript. A central `index.html` serves as a navigation hub. Data is persisted using JSON files for desktop applications and `localStorage` for web applications. The system is configured for Replit Autoscale and GitHub Pages deployment. Standalone pages with embedded playlist data ensure offline functionality. All imports undergo rigorous validation including schema validation, UTC timestamp normalization, and cryptographic hash-based duplicate and conflict detection.
 
