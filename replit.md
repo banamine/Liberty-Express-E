@@ -37,6 +37,49 @@ The architecture employs a dual-component design, separating playlist management
 
 ## Recent Changes (November 2025)
 
+### Session: File Manager Implementation ✅
+**Date:** November 23, 2025 (continued)  
+**Status:** COMPLETE - Full file management system with drag-drop and copy-paste
+
+**Changes Made:**
+1. **Created `/generated_pages/file_manager.html`** (NEW)
+   - File browser with 4 folders: Library, Uploaded, Playlists, Exports
+   - Shows all 7 M3U files with details (name, type, size, path)
+   - Drag-drop upload area (green dashed border, yellow text)
+   - File cards with metadata display
+   - Copy Path button - copies file path to clipboard
+   - Load button - opens scheduler with selected file
+
+2. **Drag-Drop Integration**
+   - Upload area accepts: .m3u, .m3u8, .txt, .json, .xml, .mp4, .mkv, .webm, .avi
+   - Scheduler textarea now accepts drag-drop files
+   - Files automatically load into textarea on drop
+   - Visual feedback (border color change on hover/drag)
+
+3. **Navigation Integration**
+   - File Manager link added to all main pages
+   - Seamless navigation between File Manager and Scheduler
+   - File selection synced via localStorage
+
+**Available Files:**
+- MAYDAY Series (285 KB)
+- Master Cartoons (412 KB)
+- Mission Impossible (198 KB)
+- River Monsters (156 KB)
+- The Sopranos (324 KB)
+- Taxi (89 KB)
+- Hogans Heroes (267 KB)
+
+**Features Delivered:**
+- ✅ Browse files and folders
+- ✅ Open/select files
+- ✅ Drag-drop file upload
+- ✅ Copy file paths (📋 button)
+- ✅ Load files into scheduler (⬆️ button)
+- ✅ Direct drag-drop to scheduler textarea
+- ✅ Black + green + yellow theme
+- ✅ Responsive design
+
 ### Session: Demo Page & Navigation Complete ✅
 **Date:** November 23, 2025  
 **Status:** COMPLETE - Demo page built, all navigation working, system deployment-ready
