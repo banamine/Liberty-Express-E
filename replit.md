@@ -47,6 +47,13 @@ ScheduleFlow offers M3U parsing, channel validation, EPG fetching, settings mana
 - **Color-Coded Shows:** Visual distinction between different content types
 - **Smart Distribution:** Demonstrates round-robin scheduling preventing viewer fatigue
 
+**Local Media Player:**
+- **Custom Playlist Support:** Load user-uploaded MP4, MP3, WMA, and other media files
+- **Media Library Management:** Browse and play through locally stored content
+- **Playback Controls:** Play/pause, next/previous, progress tracking
+- **Playlist Navigation:** Click any item to jump to that track
+- **Keyboard Shortcuts:** Space (play/pause), Arrow keys (next/prev)
+
 **System Design Choices:**
 The architecture employs a dual-component design, separating playlist management (desktop application) from web-based content consumption. Player templates are static HTML/CSS/JavaScript. A central `index.html` serves as a navigation hub. Data is persisted using JSON files for desktop applications and `localStorage` for web applications. The system is configured for Replit Autoscale and GitHub Pages deployment. Standalone pages with embedded playlist data ensure offline functionality. All imports undergo rigorous validation including schema validation, UTC timestamp normalization, and cryptographic hash-based duplicate and conflict detection.
 
