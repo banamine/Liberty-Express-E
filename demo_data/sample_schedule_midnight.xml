@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schedule>
+    <metadata>
+        <title>Edge Case: Midnight Boundaries</title>
+        <description>Tests handling of events crossing midnight (day boundary)</description>
+        <created>2025-11-23T00:00:00Z</created>
+        <test_case>midnight_boundaries</test_case>
+    </metadata>
+    <events>
+        <!-- Event 1: Regular daytime event -->
+        <event>
+            <title>Morning Show</title>
+            <start>2025-11-24T08:00:00Z</start>
+            <end>2025-11-24T09:00:00Z</end>
+            <videoUrl>https://commondatastorage.googleapis.com/gtv-videos-library/sample/BigBuckBunny.mp4</videoUrl>
+            <category>Entertainment</category>
+            <duration>3600</duration>
+        </event>
+        
+        <!-- Event 2: Event ending at exactly midnight -->
+        <event>
+            <title>Late Night Show (Ends at Midnight)</title>
+            <start>2025-11-24T23:00:00Z</start>
+            <end>2025-11-25T00:00:00Z</end>
+            <videoUrl>https://commondatastorage.googleapis.com/gtv-videos-library/sample/ElephantsDream.mp4</videoUrl>
+            <category>Entertainment</category>
+            <duration>3600</duration>
+        </event>
+        
+        <!-- Event 3: Event starting at midnight (next day) -->
+        <event>
+            <title>Midnight Movie (Starts at Midnight)</title>
+            <start>2025-11-25T00:00:00Z</start>
+            <end>2025-11-25T02:00:00Z</end>
+            <videoUrl>https://commondatastorage.googleapis.com/gtv-videos-library/sample/ForBiggerBlazes.mp4</videoUrl>
+            <category>Movies</category>
+            <duration>7200</duration>
+        </event>
+        
+        <!-- Event 4: Event crossing midnight boundary -->
+        <event>
+            <title>Late Late Show (Crosses Midnight)</title>
+            <start>2025-11-25T23:30:00Z</start>
+            <end>2025-11-26T00:30:00Z</end>
+            <videoUrl>https://commondatastorage.googleapis.com/gtv-videos-library/sample/ForBiggerEscapes.mp4</videoUrl>
+            <category>Entertainment</category>
+            <duration>3600</duration>
+        </event>
+    </events>
+</schedule>

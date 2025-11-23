@@ -1,0 +1,67 @@
+{
+  "id": "043d5b12-51a0-416a-a279-223953f94649",
+  "name": "sample_schedule_cooldown",
+  "source": "xml",
+  "filepath": "demo_data/sample_schedule_cooldown.xml",
+  "imported": "2025-11-23T01:28:32.977612+00:00",
+  "events": [
+    {
+      "title": "Big Buck Bunny - First Play",
+      "start": "2025-11-24T08:00:00Z",
+      "end": "2025-11-24T08:10:00Z",
+      "description": "",
+      "category": "Animation",
+      "id": "94cf97db-fd8e-4959-9447-ae164ccce9fe"
+    },
+    {
+      "title": "Big Buck Bunny - Second Play (4h later, violation)",
+      "start": "2025-11-24T12:00:00Z",
+      "end": "2025-11-24T12:10:00Z",
+      "description": "",
+      "category": "Animation",
+      "id": "e4a39c1d-2fd5-4b72-bedb-8733aa381b7b"
+    },
+    {
+      "title": "Big Buck Bunny - Third Play (12h later, violation)",
+      "start": "2025-11-24T20:00:00Z",
+      "end": "2025-11-24T20:10:00Z",
+      "description": "",
+      "category": "Animation",
+      "id": "a8f10bce-7db3-4478-a1a0-575625514bff"
+    },
+    {
+      "title": "Big Buck Bunny - Fourth Play (24h later, violation)",
+      "start": "2025-11-25T08:00:00Z",
+      "end": "2025-11-25T08:10:00Z",
+      "description": "",
+      "category": "Animation",
+      "id": "ecbbab3b-2259-4841-95f5-2a43565d31c9"
+    },
+    {
+      "title": "Big Buck Bunny - Fifth Play (50h later, ALLOWED)",
+      "start": "2025-11-26T10:00:00Z",
+      "end": "2025-11-26T10:10:00Z",
+      "description": "",
+      "category": "Animation",
+      "id": "e2e8ecfd-8364-4ca2-a271-31ca238c38eb"
+    },
+    {
+      "title": "Elephant's Dream - No Conflict",
+      "start": "2025-11-24T09:00:00Z",
+      "end": "2025-11-24T09:10:00Z",
+      "description": "",
+      "category": "Animation",
+      "id": "83861b4c-2b33-416e-af98-d545b61653c5"
+    }
+  ],
+  "metadata": {
+    "total_imported": 6,
+    "duplicates_removed": 0,
+    "conflicts_detected": 0,
+    "unique_events": 6
+  },
+  "warnings": {
+    "duplicates": [],
+    "conflicts": []
+  }
+}

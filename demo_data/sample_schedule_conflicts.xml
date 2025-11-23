@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schedule>
+    <metadata>
+        <title>Edge Case: Overlapping Timeslots</title>
+        <description>Tests conflict detection - overlapping events should be flagged</description>
+        <created>2025-11-23T00:00:00Z</created>
+        <test_case>overlapping_timeslots</test_case>
+    </metadata>
+    <events>
+        <!-- Event 1: 8:00-9:00 -->
+        <event>
+            <title>Morning News (First)</title>
+            <start>2025-11-24T08:00:00Z</start>
+            <end>2025-11-24T09:00:00Z</end>
+            <videoUrl>https://commondatastorage.googleapis.com/gtv-videos-library/sample/BigBuckBunny.mp4</videoUrl>
+            <category>News</category>
+            <duration>3600</duration>
+        </event>
+        
+        <!-- Event 2: 8:30-9:30 (OVERLAPS with Event 1) -->
+        <event>
+            <title>Morning Talk Show (Overlapping)</title>
+            <start>2025-11-24T08:30:00Z</start>
+            <end>2025-11-24T09:30:00Z</end>
+            <videoUrl>https://commondatastorage.googleapis.com/gtv-videos-library/sample/ElephantsDream.mp4</videoUrl>
+            <category>Entertainment</category>
+            <duration>3600</duration>
+        </event>
+        
+        <!-- Event 3: 9:00-10:00 (No overlap, follows Event 1 exactly) -->
+        <event>
+            <title>Cooking Show</title>
+            <start>2025-11-24T09:00:00Z</start>
+            <end>2025-11-24T10:00:00Z</end>
+            <videoUrl>https://commondatastorage.googleapis.com/gtv-videos-library/sample/ForBiggerBlazes.mp4</videoUrl>
+            <category>Lifestyle</category>
+            <duration>3600</duration>
+        </event>
+        
+        <!-- Event 4: 9:15-9:45 (OVERLAPS both Event 1 and 2) -->
+        <event>
+            <title>Breaking News (Triple Overlap)</title>
+            <start>2025-11-24T09:15:00Z</start>
+            <end>2025-11-24T09:45:00Z</end>
+            <videoUrl>https://commondatastorage.googleapis.com/gtv-videos-library/sample/ForBiggerEscapes.mp4</videoUrl>
+            <category>News</category>
+            <duration>1800</duration>
+        </event>
+    </events>
+</schedule>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schedule>
+    <metadata>
+        <title>Edge Case: 48-Hour Cooldown Testing</title>
+        <description>Tests 48-hour cooldown enforcement - same video scheduled too soon</description>
+        <created>2025-11-23T00:00:00Z</created>
+        <test_case>cooldown_violations</test_case>
+    </metadata>
+    <events>
+        <!-- Video A: Day 1, 8:00 -->
+        <event>
+            <title>Big Buck Bunny - First Play</title>
+            <start>2025-11-24T08:00:00Z</start>
+            <end>2025-11-24T08:10:00Z</end>
+            <videoUrl>https://commondatastorage.googleapis.com/gtv-videos-library/sample/BigBuckBunny.mp4</videoUrl>
+            <category>Animation</category>
+            <duration>600</duration>
+        </event>
+        
+        <!-- Video A: Day 1, 12:00 (4 hours later - within cooldown) -->
+        <event>
+            <title>Big Buck Bunny - Second Play (4h later, violation)</title>
+            <start>2025-11-24T12:00:00Z</start>
+            <end>2025-11-24T12:10:00Z</end>
+            <videoUrl>https://commondatastorage.googleapis.com/gtv-videos-library/sample/BigBuckBunny.mp4</videoUrl>
+            <category>Animation</category>
+            <duration>600</duration>
+        </event>
+        
+        <!-- Video A: Day 1, 20:00 (12 hours later - still within cooldown) -->
+        <event>
+            <title>Big Buck Bunny - Third Play (12h later, violation)</title>
+            <start>2025-11-24T20:00:00Z</start>
+            <end>2025-11-24T20:10:00Z</end>
+            <videoUrl>https://commondatastorage.googleapis.com/gtv-videos-library/sample/BigBuckBunny.mp4</videoUrl>
+            <category>Animation</category>
+            <duration>600</duration>
+        </event>
+        
+        <!-- Video A: Day 2, 08:00 (24 hours later - still within cooldown) -->
+        <event>
+            <title>Big Buck Bunny - Fourth Play (24h later, violation)</title>
+            <start>2025-11-25T08:00:00Z</start>
+            <end>2025-11-25T08:10:00Z</end>
+            <videoUrl>https://commondatastorage.googleapis.com/gtv-videos-library/sample/BigBuckBunny.mp4</videoUrl>
+            <category>Animation</category>
+            <duration>600</duration>
+        </event>
+        
+        <!-- Video A: Day 3, 10:00 (50 hours later - ALLOWED, after 48h cooldown) -->
+        <event>
+            <title>Big Buck Bunny - Fifth Play (50h later, ALLOWED)</title>
+            <start>2025-11-26T10:00:00Z</start>
+            <end>2025-11-26T10:10:00Z</end>
+            <videoUrl>https://commondatastorage.googleapis.com/gtv-videos-library/sample/BigBuckBunny.mp4</videoUrl>
+            <category>Animation</category>
+            <duration>600</duration>
+        </event>
+        
+        <!-- Video B: Different video - no cooldown conflict -->
+        <event>
+            <title>Elephant's Dream - No Conflict</title>
+            <start>2025-11-24T09:00:00Z</start>
+            <end>2025-11-24T09:10:00Z</end>
+            <videoUrl>https://commondatastorage.googleapis.com/gtv-videos-library/sample/ElephantsDream.mp4</videoUrl>
+            <category>Animation</category>
+            <duration>600</duration>
+        </event>
+    </events>
+</schedule>

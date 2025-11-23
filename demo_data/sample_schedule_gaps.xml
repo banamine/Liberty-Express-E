@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schedule>
+    <metadata>
+        <title>Edge Case: Schedule Gaps</title>
+        <description>Tests handling of gaps in schedule - periods with no content</description>
+        <created>2025-11-23T00:00:00Z</created>
+        <test_case>schedule_gaps</test_case>
+    </metadata>
+    <events>
+        <!-- Event 1: 8:00-9:00 -->
+        <event>
+            <title>Morning News</title>
+            <start>2025-11-24T08:00:00Z</start>
+            <end>2025-11-24T09:00:00Z</end>
+            <videoUrl>https://commondatastorage.googleapis.com/gtv-videos-library/sample/BigBuckBunny.mp4</videoUrl>
+            <category>News</category>
+            <duration>3600</duration>
+        </event>
+        
+        <!-- GAP: 9:00-11:00 (2 hour gap) -->
+        
+        <!-- Event 2: 11:00-12:00 -->
+        <event>
+            <title>Midday Talk Show</title>
+            <start>2025-11-24T11:00:00Z</start>
+            <end>2025-11-24T12:00:00Z</end>
+            <videoUrl>https://commondatastorage.googleapis.com/gtv-videos-library/sample/ElephantsDream.mp4</videoUrl>
+            <category>Entertainment</category>
+            <duration>3600</duration>
+        </event>
+        
+        <!-- GAP: 12:00-15:00 (3 hour gap) -->
+        
+        <!-- Event 3: 15:00-16:30 -->
+        <event>
+            <title>Afternoon Education</title>
+            <start>2025-11-24T15:00:00Z</start>
+            <end>2025-11-24T16:30:00Z</end>
+            <videoUrl>https://commondatastorage.googleapis.com/gtv-videos-library/sample/ForBiggerBlazes.mp4</videoUrl>
+            <category>Education</category>
+            <duration>5400</duration>
+        </event>
+        
+        <!-- GAP: 16:30-18:00 (1.5 hour gap) -->
+        
+        <!-- Event 4: 18:00-20:00 -->
+        <event>
+            <title>Evening Movie</title>
+            <start>2025-11-24T18:00:00Z</start>
+            <end>2025-11-24T20:00:00Z</end>
+            <videoUrl>https://commondatastorage.googleapis.com/gtv-videos-library/sample/ForBiggerEscapes.mp4</videoUrl>
+            <category>Movies</category>
+            <duration>7200</duration>
+        </event>
+    </events>
+</schedule>
