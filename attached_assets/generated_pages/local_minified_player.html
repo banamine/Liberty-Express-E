@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <title>ScheduleFlow Local Media Player</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #000;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        .player-wrapper {
+            width: 100%;
+            max-width: 1200px;
+            background: #000000;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
+            border: 2px solid rgba(0, 255, 0, 0.2);
+        }
+
+        .player-header {
+            background: rgba(0, 255, 0, 0.05);
+            padding: 12px 20px;
+            border-bottom: 1px solid rgba(0, 255, 0, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .header-left {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .home-btn {
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #00ff00, #ffff00);
+            color: #000;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+            font-size: 0.9em;
+        }
+
+        .home-btn:hover {
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+        }
+
+        .header-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #00ff00;
+        }
+
+        .header-info {
+            color: #ffff00;
+            font-size: 0.85em;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        audio, video {
+            width: 100%;
+            height: auto;
+            display: block;
+            background: #000;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            background: #000000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .video-container:hover .overlay,
+        .overlay.show {
+            opacity: 1;
+        }
+
+        .btn-round {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00ff00, #ffff00);
+            border: none;
+            color: #000;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.4);
+        }
+
+        .btn-round:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.6);
+        }
+
+        .btn-round:active {
+            transform: scale(0.95);
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 10;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(0, 255, 0, 0.2);
+            border-top-color: #00ff00;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .player-controls {
+            background: rgba(0, 255, 0, 0.05);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid rgba(0, 255, 0, 0.2);
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .ctrl-btn {
+            padding: 8px 14px;
+            background: rgba(0, 255, 0, 0.15);
+            border: 1px solid rgba(0, 255, 0, 0.3);
+            color: #00ff00;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85em;
+            transition: all 0.3s;
+        }
+
+        .ctrl-btn:hover {
+            background: rgba(0, 255, 0, 0.3);
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
+        }
+
+        .counter {
+            color: #ffff00;
+            font-size: 0.85em;
+            min-width: 50px;
+            text-align: right;
+        }
+
+        .playlist-section {
+            background: rgba(0, 255, 0, 0.05);
+            border-top: 1px solid rgba(0, 255, 0, 0.2);
+            padding: 15px 20px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .playlist-title {
+            color: #ffff00;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+
+        .playlist-item {
+            padding: 6px 8px;
+            background: rgba(0, 255, 0, 0.1);
+            border-left: 2px solid #00ff00;
+            margin-bottom: 4px;
+            cursor: pointer;
+            border-radius: 3px;
+            transition: all 0.2s;
+            color: #00ff00;
+            font-size: 0.85em;
+        }
+
+        .playlist-item:hover {
+            background: rgba(0, 255, 0, 0.2);
+            border-left-color: #ffff00;
+        }
+
+        .playlist-item.playing {
+            background: rgba(0, 255, 0, 0.25);
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .header-info { display: none; }
+            .btn-round { width: 50px; height: 50px; font-size: 20px; }
+            .ctrl-btn { padding: 6px 10px; font-size: 0.8em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="player-wrapper">
+        <!-- Header -->
+        <div class="player-header">
+            <div class="header-left">
+                <a href="index.html" class="home-btn">🏠 Home</a>
+                <div class="header-title" id="title">Local Media Player</div>
+            </div>
+            <div class="header-info" id="info">0 / 0</div>
+        </div>
+
+        <!-- Media Container -->
+        <div class="video-container" id="mediaContainer">
+            <audio id="media" crossorigin="anonymous" style="display:none;"></audio>
+            <div class="overlay" id="overlay">
+                <button class="btn-round" onclick="togglePlay()" title="Play/Pause">
+                    <span id="playIcon">▶</span>
+                </button>
+            </div>
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <div>Loading...</div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="player-controls">
+            <div class="control-group">
+                <button class="ctrl-btn" onclick="prevMedia()">← Prev</button>
+                <button class="ctrl-btn" onclick="nextMedia()">Next →</button>
+            </div>
+            <div class="counter" id="counter">0 / 0</div>
+        </div>
+
+        <!-- Playlist -->
+        <div class="playlist-section">
+            <div class="playlist-title">📋 Local Playlist</div>
+            <div id="playlistContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        // Local media library - YOUR UPLOADED FILES
+        const library = [
+            { 
+                url: '/attached_assets/09.%20Nonstop%20Medley%20Love%20Songs%2080%27s%2090%27s%20Playlist%20-%20Best%20Slow%20Rock%20Love%20Song%20Nonstop_1763886740201.mp4', 
+                title: 'Nonstop Medley Love Songs 80s 90s'
+            },
+            { 
+                url: '/attached_assets/18.%20Richard%20Marx%20-%20Right%20Here%20Waiting%20(Official%20Music%20Video)_1763886740201.mp4', 
+                title: 'Richard Marx - Right Here Waiting'
+            },
+            { 
+                url: '/attached_assets/Backstreet%20Boys%20-%20Drowning%20(Album%20Version)_1763886740202.mp3', 
+                title: 'Backstreet Boys - Drowning'
+            },
+            { 
+                url: '/attached_assets/Bee%20Gees%20-%20How%20Deep%20Is%20Your%20Love_1763886740202.wma', 
+                title: 'Bee Gees - How Deep Is Your Love'
+            },
+            { 
+                url: '/attached_assets/Chris%20Rea-%20The%20road%20to%20hell%20Lyrics_1763886740202.mp4', 
+                title: 'Chris Rea - The Road to Hell'
+            }
+        ];
+
+        let media = document.getElementById('media');
+        let title = document.getElementById('title');
+        let info = document.getElementById('info');
+        let counter = document.getElementById('counter');
+        let overlay = document.getElementById('overlay');
+        let loading = document.getElementById('loading');
+        let playIcon = document.getElementById('playIcon');
+        let playlistContainer = document.getElementById('playlistContainer');
+
+        let currentIndex = 0;
+        let isPlaying = false;
+
+        function loadMedia(index) {
+            if (index < 0 || index >= library.length) return;
+            
+            currentIndex = index;
+            const m = library[index];
+            
+            media.src = m.url;
+            title.textContent = m.title;
+            updateCounter();
+            updatePlaylist();
+            showLoading(true);
+        }
+
+        function updateCounter() {
+            const text = `${currentIndex + 1} / ${library.length}`;
+            counter.textContent = text;
+            info.textContent = text;
+        }
+
+        function updatePlaylist() {
+            playlistContainer.innerHTML = library.map((item, idx) => `
+                <div class="playlist-item ${idx === currentIndex ? 'playing' : ''}" onclick="loadMedia(${idx}); media.play();">
+                    ${idx + 1}. ${item.title}
+                </div>
+            `).join('');
+        }
+
+        function nextMedia() {
+            if (currentIndex < library.length - 1) {
+                loadMedia(currentIndex + 1);
+                media.play();
+            }
+        }
+
+        function prevMedia() {
+            if (currentIndex > 0) {
+                loadMedia(currentIndex - 1);
+                media.play();
+            }
+        }
+
+        function togglePlay() {
+            if (media.paused) {
+                media.play();
+            } else {
+                media.pause();
+            }
+        }
+
+        function showLoading(show) {
+            loading.style.display = show ? 'flex' : 'none';
+        }
+
+        // Events
+        media.addEventListener('play', () => {
+            isPlaying = true;
+            playIcon.textContent = '⏸';
+            overlay.classList.remove('show');
+        });
+
+        media.addEventListener('pause', () => {
+            isPlaying = false;
+            playIcon.textContent = '▶';
+            overlay.classList.add('show');
+        });
+
+        media.addEventListener('canplay', () => showLoading(false));
+        media.addEventListener('ended', nextMedia);
+
+        media.addEventListener('mouseover', () => overlay.classList.add('show'));
+        media.addEventListener('mouseout', () => {
+            if (!media.paused) setTimeout(() => overlay.classList.remove('show'), 2000);
+        });
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (e.key === ' ') { e.preventDefault(); togglePlay(); }
+            else if (e.key === 'ArrowRight') nextMedia();
+            else if (e.key === 'ArrowLeft') prevMedia();
+        });
+
+        // Initialize
+        loadMedia(0);
+        updatePlaylist();
+    </script>
+</body>
+</html>

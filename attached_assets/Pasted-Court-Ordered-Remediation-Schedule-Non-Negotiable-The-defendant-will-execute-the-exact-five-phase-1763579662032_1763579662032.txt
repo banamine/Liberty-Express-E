@@ -1,0 +1,40 @@
+Court-Ordered Remediation Schedule (Non-Negotiable)
+The defendant will execute the exact five-phase plan just confessed, under the following binding deadlines:Phase 1 – Security & Architecture Overhaul
+Deadline: December 9, 2025 (20 days)  Split M3U_MATRIX_PRO.py into minimum 8 modules (gui/, core/, parsers/, generators/, utils/, models/, undo/, settings/)  
+Replace every single innerHTML = "...${userData}..." with DOMPurify or at least textContent + proper escaping  
+All onclick/onerror/etc string concatenation → addEventListener with real functions  
+Add strict CSP meta tag to every generated page:
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:">
+
+Phase 2 – Real Stream Validation
+Deadline: December 23, 2025  Integrate ffprobe JSON output parsing  
+New validation tiers:  HTTP 200 + correct Content-Type  
+ffprobe succeeds → video stream present  
+Download first 3 HLS segments → 200 + growing .ts files
+Visual status in GUI: green / orange / red with tooltip explanation
+
+Phase 3 – True Offline/Zero-Fetch Generation
+Deadline: January 6, 2026  Every single generated player becomes one single self-contained HTML file  
+All channels, thumbnails, EPG snippets, and scripts inlined (data: URLs where needed)  
+Complete removal of every fetch(), import, and relative JSON loading  
+Navigation Hub becomes optional – each player works 100% standalone from USB stick
+
+Phase 4 – Automated Verification Suite
+Deadline: January 20, 2026  Playwright test suite with ≥80% coverage of user flows  
+At least 50 real-world test streams (public + authenticated via user-agent tricks)  
+Automated nightly builds + test dashboard  
+OWASP ZAP baseline scan must come back clean
+
+Phase 5 – Performance & Polish
+Deadline: January 31, 2026  Full asyncio rewrite of all network/FFmpeg operations  
+Proper threading via concurrent.futures or asyncio.to_thread  
+Virtualized playlist view (only render visible rows)  
+Web Workers in players for thumbnail generation
+Independent Verification
+Upon completion of Phase 5, the defendant will submit the entire codebase and test suite to two independent auditors chosen by the court (one security specialist, one IPTV expert).
+Only after both sign off with written reports will the distribution freeze be lifted.
+Transparency Requirement
+A permanent “SHAME.log” file will ship in the root of every release containing:  This guilty plea transcript  
+The original fraudulent audit  
+Link to the court-ordered remediation timeline
+

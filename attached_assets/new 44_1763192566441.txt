@@ -1,0 +1,237 @@
+1.2 Smart Channel Identity System
+
+Add per-channel UUIDs to eliminate index mismatch bugs.
+
+Used for:
+
+Scheduler
+
+Audit
+
+Editing
+
+Undo/redo1.3 Safe XML / EPG Parser
+
+Replace the “escape everything” sanitizer with a proper tolerant parser.
+
+Supports:
+
+Multiple EPG files
+
+Timezone detection
+
+Fuzzy channel matching 1.4 Undo / Redo System
+
+Use a stack-based command pattern:
+
+undo_stack.append(operation)
+redo_stack.clear()
+
+
+Supports:
+
+Delete
+
+Rename
+
+Reorder
+
+Bulk edit
+
+Deliverables for Phase 1
+
+Cleaned codebase (split modules)
+
+Improved EPG engine
+
+UUID-based channel tracking
+
+Undo/Redo
+
+Faster/more stable audit engine  2.1 New Tab System
+
+Allow multiple playlist tabs:
+
+Drag channels across tabs
+
+Diff/compare mode
+
+Merge playlists
+
+🧭 2.2 Global Search Panel
+
+Search across:
+
+Channels
+
+Groups
+
+EPG entries
+
+Tags
+
+URLs
+
+Persistent result view with quick actions.
+
+🖼 2.3 Modern Thumbnail Browser
+
+Add gallery mode:
+
+Large previews
+
+Bulk-tag channels
+
+Edit logos
+
+Replace/custom upload
+
+🌙 2.4 Light/Dark Theme
+
+Using ttkbootstrap or custom theming.
+User can switch themes instantly.
+
+Deliverables for Phase 2
+
+Multi-tab editing
+
+Global search
+
+Modern gallery/thumbnail pane
+
+Theme engine
+
+Major UI polish 3.2 Smart Duplicate Manager 2.0
+
+Detect duplicates by:
+
+Name similarity
+
+Logo similarity
+
+Same base URL
+
+Same provider signature
+
+Video resolution difference
+
+Offers options:
+
+Keep best
+
+Keep HD only
+
+Keep provider priority
+
+Merge groups 3.3 Auto-Group by Rules
+
+User defines rules:
+
+Example:
+
+If "ESPN" → Group: Sports  
+If resolution >= 1080p → Tag: HD  
+If language = Spanish → Group: Latino
+
+
+System auto-categorizes.
+
+🗳 3.4 Multi-Format Export Engine
+
+Add formats:
+
+JSON export
+
+HLS index map
+
+Kodi PVR XML
+
+HTML + JS standalone player portal
+
+Enigma2 bouquet export
+
+Deliverables for Phase 3
+
+Automatic tasks
+
+Smart duplicate manager
+
+Auto-group rules engine
+
+Advanced export formats 
+Classify channels into:
+
+Sports
+
+News
+
+Movies
+
+Kids
+
+Local
+
+International
+Expand your existing scheduler to:
+
+Genre rotation
+
+Weight-based selection
+
+“Movie Night” templates
+
+Ad insertion
+
+Auto-generate daily program grid
+5.1 Built-in Mini Player
+
+Use python-vlc or mpv.
+
+Features:
+
+Frame-grab (thumbnail) timestamps
+
+Buffer monitor
+
+Codec info
+
+Screenshot tool 
+
+m3u timestamps created across all mp4/mkv/mp3/vbr/ogg / playlists channels 
+Deliverables for Phase 5
+
+Mini player
+7.1 SQLite Metadata Database
+
+Store:
+
+Channels
+
+Quality measurements
+
+Audit history
+
+EPG cache
+
+Logos index
+
+Massive speed boost for large lists.
+7.2 Channel Quality Monitor
+
+Track over time:
+
+Fail count
+
+Video bitrate
+
+Audio codec
+
+Stability score
+
+Graph analytics:
+
+“Top stable channels”
+
+“Most unstable providers”
+
+“Stream uptime”
