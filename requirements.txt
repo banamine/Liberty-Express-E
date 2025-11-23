@@ -1,37 +1,32 @@
-# M3U Matrix Pro - Python Dependencies
 
-# HTTP Requests & API
-requests>=2.31.0
-
-# Image Processing
-Pillow>=10.0.0
-
-# Drag & Drop Support
-tkinterdnd2>=0.4.3
-
-# Optional: Enhanced Features
 beautifulsoup4>=4.12.0  # For HTML parsing (Media Stripper)
+# Drag & Drop Support
+fastapi>=0.104.0
+# HTTP Requests & API
+# Image Processing
 # lxml>=4.9.0             # For XMLTV/EPG parsing
-python-vlc
+# M3U Matrix Pro - Python Dependencies
 numpy
 opencv-python
-pdfplumber
-
-# Week 1: API Layer & Modularization
-fastapi>=0.104.0
-uvicorn>=0.24.0
-pydantic>=2.0.0
-
-# Week 4+: Authentication & Logging (CRITICAL AUDIT FIXES)
-python-jose[cryptography]>=3.3.0
-passlib[bcrypt]>=1.7.4
-python-multipart>=0.0.6
-sqlalchemy>=2.0.0
+# Optional: Enhanced Features
 passlib
-python-jose
-pyyaml>=6.0
-pendulum>=3.0
-selenium>=4.0
+passlib[bcrypt]>=1.7.4
+pdfplumber
 pendulum
+pendulum>=3.0
+Pillow>=10.0.0
+pydantic>=2.0.0
+python-jose
+python-jose[cryptography]>=3.3.0
+python-multipart>=0.0.6
+python-vlc
 pyyaml
+pyyaml>=6.0
+requests>=2.31.0
 selenium
+selenium>=4.0
+sqlalchemy>=2.0.0
+tkinterdnd2>=0.4.3
+uvicorn>=0.24.0
+# Week 1: API Layer & Modularization
+# Week 4+: Authentication & Logging (CRITICAL AUDIT FIXES)

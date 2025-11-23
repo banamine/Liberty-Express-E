@@ -113,6 +113,7 @@ class ConfigManager:
         """
         self.config_path = Path(config_path) if config_path else Path("config/scheduleflow.yaml")
         self.config = self._load_config()
+        self.raw_config = self.config.raw_config  # Expose raw_config directly
     
     def _load_config(self) -> Config:
         """Load configuration from file with fallback to defaults"""
