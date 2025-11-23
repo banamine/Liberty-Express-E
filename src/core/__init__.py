@@ -1,6 +1,21 @@
 """
-M3U Matrix Core Module
-Contains core business logic for playlist management
+ScheduleFlow Core Module - Week 1 Modularization
+
+Core business logic extracted from monolithic M3U_MATRIX_PRO.py
+Handles: scheduling, parsing, validation, file operations
 """
 
-__all__ = ['validators', 'parsers', 'exporters', 'playlist_manager']
+from .models import Channel, Schedule, ScheduleEntry, ValidationResult
+from .scheduler import ScheduleEngine
+from .file_handler import FileHandler
+from .validator import ChannelValidator
+
+__all__ = [
+    'Channel',
+    'Schedule', 
+    'ScheduleEntry',
+    'ValidationResult',
+    'ScheduleEngine',
+    'FileHandler',
+    'ChannelValidator',
+]

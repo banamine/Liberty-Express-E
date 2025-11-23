@@ -588,16 +588,105 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Not found' });
 });
 
+// ========== WEEK 1: FastAPI PROXY ENDPOINTS ==========
+// These endpoints delegate to the Python FastAPI server (http://localhost:5001)
+// This implements the Communication Layer Integration pattern
+
+const axios = require('axios').default;
+const PYTHON_API_URL = 'http://localhost:5001';
+
+// Proxy function for FastAPI calls
+async function proxyToPythonAPI(req, res, pythonEndpoint) {
+  try {
+    const response = await axios({
+      method: req.method,
+      url: `${PYTHON_API_URL}${pythonEndpoint}`,
+      data: req.body,
+      params: req.query,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    res.json(response.data);
+  } catch (error) {
+    console.error(`[FastAPI] Error calling ${pythonEndpoint}:`, error.message);
+    res.status(error.response?.status || 500).json({
+      status: 'error',
+      message: 'FastAPI call failed',
+      detail: error.message
+    });
+  }
+}
+
+// ===== Python API Endpoints (Proxied) =====
+
+// System version
+app.get('/api/system-version', (req, res) => {
+  proxyToPythonAPI(req, res, '/api/system-version');
+});
+
+// Status
+app.get('/api/status', (req, res) => {
+  proxyToPythonAPI(req, res, '/api/status');
+});
+
+// Channels
+app.get('/api/channels', (req, res) => {
+  proxyToPythonAPI(req, res, '/api/channels');
+});
+
+app.post('/api/channels', (req, res) => {
+  proxyToPythonAPI(req, res, '/api/channels');
+});
+
+app.post('/api/channels/import', (req, res) => {
+  const { file_path } = req.body;
+  proxyToPythonAPI(req, res, `/api/channels/import?file_path=${encodeURIComponent(file_path)}`);
+});
+
+// Schedule
+app.get('/api/schedule', (req, res) => {
+  proxyToPythonAPI(req, res, '/api/schedule');
+});
+
+app.post('/api/schedule/create', (req, res) => {
+  const params = new URLSearchParams();
+  if (req.body.show_duration) params.append('show_duration', req.body.show_duration);
+  if (req.body.num_days) params.append('num_days', req.body.num_days);
+  if (req.body.max_consecutive) params.append('max_consecutive', req.body.max_consecutive);
+  proxyToPythonAPI(req, res, `/api/schedule/create?${params}`);
+});
+
+// Validation
+app.post('/api/validate', (req, res) => {
+  proxyToPythonAPI(req, res, '/api/validate');
+});
+
+app.get('/api/validate/results', (req, res) => {
+  proxyToPythonAPI(req, res, '/api/validate/results');
+});
+
+// Export
+app.post('/api/export/m3u', (req, res) => {
+  const { output_path } = req.body;
+  const queryParam = output_path ? `?output_path=${encodeURIComponent(output_path)}` : '';
+  proxyToPythonAPI(req, res, `/api/export/m3u${queryParam}`);
+});
+
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`
 ╔═══════════════════════════════════════════════════════╗
 ║   ScheduleFlow API Server Running                    ║
 ║   ✓ Async I/O: Enabled                               ║
 ║   ✓ Process Pool: 4 concurrent Python processes      ║
+║   ✓ FastAPI Integration: Port 5001                   ║
 ║                                                       ║
 ║   API Endpoints:                                     ║
 ║   • http://localhost:${PORT}/api/system-info         ║
 ║   • http://localhost:${PORT}/api/queue-stats         ║
+║   • http://localhost:${PORT}/api/schedule            ║
+║   • http://localhost:${PORT}/api/channels            ║
+║   • http://localhost:${PORT}/api/validate            ║
 ║                                                       ║
 ║   Static Files:                                      ║
 ║   • http://localhost:${PORT}/generated_pages/        ║

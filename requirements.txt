@@ -16,3 +16,8 @@ python-vlc
 numpy
 opencv-python
 pdfplumber
+
+# Week 1: API Layer & Modularization
+fastapi>=0.104.0
+uvicorn>=0.24.0
+pydantic>=2.0.0
