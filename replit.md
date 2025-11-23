@@ -14,6 +14,22 @@
 - **Code Audit:** Under-claim, never hallucinate. Verify before claiming functionality works.
 - **Documentation Discipline:** **UPDATE DOCUMENTATION WITH EVERY EDIT GOING FORWARD.** This file (replit.md) must reflect current state at all times.
 
+## GitHub & Updates Status (Phase 1 vs 2)
+
+**Phase 1 (Current):** ✅ READY
+- GET /api/system-version - Check current version (2.0.0)
+- GitHub repo for code storage
+- GitHub Actions for CI/CD
+
+**Phase 2 (Coming Jan 31, 2026):** ⚠️ PLANNED
+- GET /api/version-check - Check for available updates
+- POST /api/update-from-github - Admin can trigger updates
+- Admin dashboard UI for non-devs
+- Auto-update webhook for zero-downtime deployments
+
+**For Non-Developers:** Updates require developer assistance in Phase 1. Phase 2 will add self-serve updates.  
+**See:** GITHUB_AND_UPDATES_GUIDE.md for details.
+
 ## System Architecture
 
 ### Wiring Diagram: How Components Connect

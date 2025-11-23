@@ -187,6 +187,24 @@ app.get('/api/system-info', async (req, res) => {
   }
 });
 
+// System version endpoint
+app.get('/api/system-version', (req, res) => {
+  res.json({
+    status: 'success',
+    current_version: '2.0.0',
+    release_date: '2025-11-23',
+    api_version: '2.0',
+    environment: 'production',
+    features: [
+      'schedule_import',
+      'schedule_export',
+      'cooldown_tracking',
+      'conflict_detection',
+      'auto_play'
+    ]
+  });
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   const stats = pythonQueue.getStats();
