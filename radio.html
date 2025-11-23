@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Internet Radio Station - ScheduleFlow</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body class="theme-black">
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="logo">⚡ ScheduleFlow</h1>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">Hub</a>
+                <a href="scheduler.html" class="nav-link">Scheduler</a>
+                <a href="demo.html" class="nav-link">Demo</a>
+                <a href="radio.html" class="nav-link active">Radio</a>
+                <a href="calendar.html" class="nav-link">Calendar</a>
+                <a href="export.html" class="nav-link">Export</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <h1>📻 Internet Radio Station</h1>
+        <p>24/7 continuous music/audio broadcasting with smart scheduling.</p>
+
+        <section class="radio-section">
+            <h2>Station Setup</h2>
+            <div class="config-form">
+                <label>
+                    Station Name:
+                    <input type="text" id="stationName" value="My Radio Station" placeholder="Station name">
+                </label>
+                <label>
+                    Genre:
+                    <select id="genre">
+                        <option>Pop</option>
+                        <option>Rock</option>
+                        <option>Jazz</option>
+                        <option>Classical</option>
+                        <option>Electronic</option>
+                        <option>Hip Hop</option>
+                        <option>Country</option>
+                        <option>Metal</option>
+                    </select>
+                </label>
+                <label>
+                    Description:
+                    <textarea id="description" placeholder="Station description" rows="3"></textarea>
+                </label>
+            </div>
+        </section>
+
+        <section class="radio-section">
+            <h2>Import Music Playlist</h2>
+            <div class="import-section">
+                <textarea id="playlistInput" placeholder="Paste M3U playlist or URLs here...&#10;#EXTM3U&#10;#EXTINF:180,Artist - Song Title&#10;http://example.com/song.mp3" rows="8"></textarea>
+                <button class="btn-primary" onclick="radioApp.importPlaylist()">Import Playlist</button>
+                <button class="btn-secondary" onclick="radioApp.clearPlaylist()">Clear</button>
+            </div>
+        </section>
+
+        <section class="radio-section">
+            <h2>Player</h2>
+            <div class="player-container">
+                <div class="station-info">
+                    <div class="station-name" id="stationDisplay">My Radio Station</div>
+                    <div class="now-playing" id="nowPlaying">No track loaded</div>
+                </div>
+                <audio id="audioPlayer" controls style="width: 100%; margin: 1rem 0;">
+                    <source src="" type="audio/mpeg">
+                </audio>
+                <div class="controls">
+                    <button class="btn-primary" onclick="radioApp.play()">▶ Play</button>
+                    <button class="btn-secondary" onclick="radioApp.pause()">⏸ Pause</button>
+                    <button class="btn-secondary" onclick="radioApp.next()">⏭ Next</button>
+                    <button class="btn-secondary" onclick="radioApp.previous()">⏮ Previous</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="radio-section">
+            <h2>Loaded Tracks</h2>
+            <div id="trackList" class="track-list">
+                <p style="color: #ffff00;">No tracks loaded yet.</p>
+            </div>
+        </section>
+
+        <section class="radio-section">
+            <h2>24-Hour Schedule</h2>
+            <div class="controls">
+                <button class="btn-primary" onclick="radioApp.generateSchedule()">Generate 24-Hour Schedule</button>
+                <button class="btn-secondary" onclick="radioApp.clearSchedule()">Clear Schedule</button>
+            </div>
+            <div id="schedule" class="schedule-grid">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+
+        <section class="radio-section">
+            <h2>Export Broadcasting Config</h2>
+            <div class="controls">
+                <button class="btn-primary" onclick="radioApp.exportM3U()">Export M3U</button>
+                <button class="btn-primary" onclick="radioApp.exportJSON()">Export JSON</button>
+                <button class="btn-secondary" onclick="radioApp.copySchedule()">Copy Schedule</button>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 ScheduleFlow Radio. 24/7 Broadcasting Ready.</p>
+    </footer>
+
+    <script>
+        const radioApp = {
+            playlist: [],
+            schedule: [],
+            currentTrackIndex: 0,
+
+            importPlaylist() {
+                const input = document.getElementById('playlistInput').value;
+                if (!input.trim()) {
+                    alert('Paste playlist content');
+                    return;
+                }
+
+                const lines = input.split('\n').filter(l => l.trim());
+                const tracks = [];
+                let currentTitle = 'Unknown Track';
+                let currentDuration = 0;
+
+                for (let line of lines) {
+                    if (line.startsWith('#EXTINF')) {
+                        const match = line.match(/#EXTINF:(\d+),(.+)/);
+                        if (match) {
+                            currentDuration = parseInt(match[1]);
+                            currentTitle = match[2].trim() || 'Unknown Track';
+                        }
+                    } else if (line.startsWith('http')) {
+                        tracks.push({
+                            id: Math.random().toString(36).substr(2, 9),
+                            title: currentTitle,
+                            url: line.trim(),
+                            duration: currentDuration || 180
+                        });
+                    }
+                }
+
+                this.playlist = tracks;
+                localStorage.setItem('radioPlaylist', JSON.stringify(tracks));
+                this.displayTracks();
+                alert(`Imported ${tracks.length} tracks`);
+            },
+
+            displayTracks() {
+                const list = document.getElementById('trackList');
+                if (this.playlist.length === 0) {
+                    list.innerHTML = '<p style="color: #ffff00;">No tracks loaded.</p>';
+                    return;
+                }
+
+                list.innerHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Title</th>
+                                <th>Duration</th>
+                                <th>URL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${this.playlist.map((t, i) => `
+                                <tr>
+                                    <td>${i + 1}</td>
+                                    <td>${t.title}</td>
+                                    <td>${Math.floor(t.duration / 60)}:${String(t.duration % 60).padStart(2, '0')}</td>
+                                    <td><small>${t.url.substring(0, 40)}...</small></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            },
+
+            generateSchedule() {
+                if (this.playlist.length === 0) {
+                    alert('Import tracks first');
+                    return;
+                }
+
+                this.schedule = [];
+                let trackIndex = 0;
+
+                for (let hour = 0; hour < 24; hour++) {
+                    const track = this.playlist[trackIndex % this.playlist.length];
+                    this.schedule.push({
+                        time: `${String(hour).padStart(2, '0')}:00`,
+                        track: track
+                    });
+                    trackIndex++;
+                }
+
+                localStorage.setItem('radioSchedule', JSON.stringify(this.schedule));
+                this.displaySchedule();
+                alert('24-hour schedule generated');
+            },
+
+            displaySchedule() {
+                const grid = document.getElementById('schedule');
+                if (this.schedule.length === 0) {
+                    grid.innerHTML = '<p style="color: #ffff00;">No schedule yet.</p>';
+                    return;
+                }
+
+                grid.innerHTML = this.schedule.map(slot => `
+                    <div class="schedule-slot">
+                        <strong>${slot.time}</strong><br>
+                        <small>${slot.track.title}</small>
+                    </div>
+                `).join('');
+            },
+
+            play() {
+                if (this.playlist.length === 0) {
+                    alert('Import tracks first');
+                    return;
+                }
+                const audio = document.getElementById('audioPlayer');
+                audio.src = this.playlist[this.currentTrackIndex].url;
+                audio.play();
+                this.updateNowPlaying();
+            },
+
+            pause() {
+                document.getElementById('audioPlayer').pause();
+            },
+
+            next() {
+                this.currentTrackIndex = (this.currentTrackIndex + 1) % this.playlist.length;
+                this.play();
+            },
+
+            previous() {
+                this.currentTrackIndex = (this.currentTrackIndex - 1 + this.playlist.length) % this.playlist.length;
+                this.play();
+            },
+
+            updateNowPlaying() {
+                const track = this.playlist[this.currentTrackIndex];
+                document.getElementById('nowPlaying').textContent = `Now: ${track.title}`;
+            },
+
+            exportM3U() {
+                let m3u = '#EXTM3U\n';
+                for (let track of this.playlist) {
+                    m3u += `#EXTINF:${track.duration},${track.title}\n`;
+                    m3u += `${track.url}\n`;
+                }
+                this.downloadFile(m3u, 'radio-playlist.m3u');
+            },
+
+            exportJSON() {
+                const data = {
+                    station: document.getElementById('stationName').value,
+                    genre: document.getElementById('genre').value,
+                    description: document.getElementById('description').value,
+                    tracks: this.playlist,
+                    schedule: this.schedule,
+                    exported: new Date().toISOString()
+                };
+                this.downloadFile(JSON.stringify(data, null, 2), 'radio-config.json');
+            },
+
+            downloadFile(content, filename) {
+                const blob = new Blob([content], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            },
+
+            copySchedule() {
+                const text = this.schedule.map(s => `${s.time} - ${s.track.title}`).join('\n');
+                navigator.clipboard.writeText(text).then(() => {
+                    alert('Schedule copied');
+                });
+            },
+
+            clearPlaylist() {
+                this.playlist = [];
+                this.schedule = [];
+                document.getElementById('playlistInput').value = '';
+                localStorage.clear();
+                this.displayTracks();
+                this.displaySchedule();
+            },
+
+            clearSchedule() {
+                this.schedule = [];
+                localStorage.removeItem('radioSchedule');
+                this.displaySchedule();
+            },
+
+            init() {
+                this.playlist = JSON.parse(localStorage.getItem('radioPlaylist') || '[]');
+                this.schedule = JSON.parse(localStorage.getItem('radioSchedule') || '[]');
+                this.displayTracks();
+                this.displaySchedule();
+                document.getElementById('stationDisplay').textContent = document.getElementById('stationName').value;
+            }
+        };
+
+        radioApp.init();
+    </script>
+
+    <style>
+        .radio-section {
+            margin: 3rem 0;
+            padding: 2rem;
+            border: 2px solid #00ff00;
+            background-color: #1a1a1a;
+        }
+
+        .radio-section h2 {
+            color: #ffff00;
+            margin-bottom: 1.5rem;
+        }
+
+        .config-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .config-form label {
+            display: flex;
+            flex-direction: column;
+            color: #00ff00;
+        }
+
+        .config-form input,
+        .config-form select,
+        .config-form textarea {
+            margin-top: 0.5rem;
+        }
+
+        .player-container {
+            background: #333;
+            padding: 2rem;
+            border: 1px solid #00ff00;
+        }
+
+        .station-info {
+            margin-bottom: 1rem;
+        }
+
+        .station-name {
+            font-size: 1.5rem;
+            color: #ffff00;
+            font-weight: bold;
+        }
+
+        .now-playing {
+            color: #00ff00;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .track-list {
+            overflow-x: auto;
+        }
+
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 1rem;
+        }
+
+        .schedule-slot {
+            background-color: #333;
+            border: 1px solid #00ff00;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .schedule-slot:hover {
+            border-color: #ffff00;
+            background-color: rgba(255, 255, 0, 0.1);
+        }
+    </style>
+</body>
+</html>
