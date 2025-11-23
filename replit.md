@@ -97,6 +97,13 @@ The architecture employs a dual-component design, separating playlist management
   - M3U/JSON playlist import
   - Smart artist/song rotation limits
   - Professional quality audio player
+- **Embed Cheat Sheet Created:** embed_cheat_sheet.html with:
+  - Wix iframe embed instructions
+  - Weebly embed code examples
+  - All 8 embeddable pages listed
+  - Customization options (height, responsive design)
+  - Copy-to-clipboard functionality
+  - Full example code
 
 ## External Dependencies
 
