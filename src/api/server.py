@@ -32,6 +32,7 @@ from core.validator import ChannelValidator
 from core.versioning import VersionManager
 from core.backup import BackupManager
 from core.paths import CrossPlatformPath, get_app_data_dir, get_cache_dir
+from core.stripper import StripperManager, MediaExtractor
 
 logger = logging.getLogger(__name__)
 
@@ -66,6 +67,10 @@ def create_app() -> FastAPI:
     version_manager = VersionManager(app_data_dir / "versions")
     backup_manager = BackupManager(app_data_dir / "backups", retention_days=30)
     
+    # Week 3: Media Stripper
+    stripper_dir = app_data_dir / "stripped_media"
+    stripper_manager = StripperManager(stripper_dir)
+    
     # State
     app.state.channels: List[Channel] = []
     app.state.current_schedule: Optional[Schedule] = None
@@ -73,6 +78,7 @@ def create_app() -> FastAPI:
     app.state.is_validating = False
     app.state.version_manager = version_manager
     app.state.backup_manager = backup_manager
+    app.state.stripper_manager = stripper_manager
     
     # ===== HEALTH & INFO =====
     
@@ -431,6 +437,69 @@ def create_app() -> FastAPI:
             }
         except Exception as e:
             logger.error(f"Failed to get platform info: {e}")
+            raise HTTPException(status_code=400, detail=str(e))
+    
+    # ===== WEEK 3: MEDIA STRIPPER =====
+    
+    @app.post("/api/strip/scan")
+    def strip_scan(url: str, html_content: str = None):
+        """Scan a website for media and extract playlist"""
+        try:
+            import requests
+            
+            if not html_content:
+                # Fetch HTML if not provided
+                response = requests.get(url, timeout=10)
+                response.raise_for_status()
+                html_content = response.text
+            
+            # Scan for media
+            result = app.state.stripper_manager.scan_website(url, html_content)
+            logger.info(f"Stripped {result.get('media_count', 0)} media items from {url}")
+            return result
+        except Exception as e:
+            logger.error(f"Stripper scan failed: {e}")
+            raise HTTPException(status_code=400, detail=str(e))
+    
+    @app.get("/api/strip/progress")
+    def strip_progress():
+        """Get current/last stripper scan progress"""
+        try:
+            current = app.state.stripper_manager.get_current_scan()
+            if not current:
+                return {"status": "idle", "message": "No active scan"}
+            
+            return {
+                "status": "success",
+                "scan": current
+            }
+        except Exception as e:
+            logger.error(f"Failed to get stripper progress: {e}")
+            raise HTTPException(status_code=400, detail=str(e))
+    
+    @app.get("/api/strip/results")
+    def strip_results():
+        """Get stripper scan results/history"""
+        try:
+            history = app.state.stripper_manager.get_scan_history()
+            return {
+                "status": "success",
+                "total_scans": len(history),
+                "results": history
+            }
+        except Exception as e:
+            logger.error(f"Failed to get stripper results: {e}")
+            raise HTTPException(status_code=400, detail=str(e))
+    
+    @app.post("/api/strip/clear")
+    def strip_clear():
+        """Clear stripper history"""
+        try:
+            app.state.stripper_manager.clear_history()
+            logger.info("Stripper history cleared")
+            return {"status": "success", "message": "History cleared"}
+        except Exception as e:
+            logger.error(f"Failed to clear stripper history: {e}")
             raise HTTPException(status_code=400, detail=str(e))
     
     return app

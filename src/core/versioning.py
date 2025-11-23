@@ -144,31 +144,25 @@ class VersionManager:
             'modified_lines': len(set(lines1) & set(lines2))
         }
     
-    def restore_version(self, version_id: str, output_path: Path) -> ValidationResult:
+    def restore_version(self, version_id: str, output_path: Path) -> dict:
         """Restore a specific version to a file"""
         content = self.get_version_content(version_id)
         
         if not content:
-            return ValidationResult(
-                status='error',
-                message=f'Version {version_id} not found'
-            )
+            return {'status': 'error', 'message': f'Version {version_id} not found'}
         
         try:
             output_path.parent.mkdir(parents=True, exist_ok=True)
             with open(output_path, 'w') as f:
                 f.write(content)
             
-            return ValidationResult(
-                status='success',
-                message=f'Version {version_id} restored to {output_path}',
-                data={'version_id': version_id, 'file_path': str(output_path)}
-            )
+            return {
+                'status': 'success',
+                'message': f'Version {version_id} restored to {output_path}',
+                'data': {'version_id': version_id, 'file_path': str(output_path)}
+            }
         except Exception as e:
-            return ValidationResult(
-                status='error',
-                message=f'Failed to restore version: {str(e)}'
-            )
+            return {'status': 'error', 'message': f'Failed to restore version: {str(e)}'}
     
     def cleanup_old_versions(self, keep_count: int = 10):
         """Remove old versions, keeping only the N most recent"""

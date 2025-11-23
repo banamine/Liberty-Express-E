@@ -9,9 +9,7 @@ import shutil
 import gzip
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import List, Dict
-
-from .models import ValidationResult
+from typing import List, Dict, Optional
 
 
 class BackupManager:
@@ -39,13 +37,10 @@ class BackupManager:
         with open(self.metadata_file, 'w') as f:
             json.dump(self.backups, f, indent=2)
     
-    def create_backup(self, source_file: Path, backup_name: str = None) -> ValidationResult:
+    def create_backup(self, source_file: Path, backup_name: Optional[str] = None) -> dict:
         """Create a compressed backup of a file"""
         if not source_file.exists():
-            return ValidationResult(
-                status='error',
-                message=f'Source file not found: {source_file}'
-            )
+            return {'status': 'error', 'message': f'Source file not found: {source_file}'}
         
         try:
             # Generate backup filename
@@ -71,18 +66,11 @@ class BackupManager:
             self.backups.append(backup_entry)
             self._save_metadata()
             
-            return ValidationResult(
-                status='success',
-                message=f'Backup created: {backup_file.name}',
-                data=backup_entry
-            )
+            return {'status': 'success', 'message': f'Backup created: {backup_file.name}', 'data': backup_entry}
         except Exception as e:
-            return ValidationResult(
-                status='error',
-                message=f'Backup failed: {str(e)}'
-            )
+            return {'status': 'error', 'message': f'Backup failed: {str(e)}'}
     
-    def restore_backup(self, backup_id: str, output_path: Path) -> ValidationResult:
+    def restore_backup(self, backup_id: str, output_path: Path) -> dict:
         """Restore a file from backup"""
         backup_entry = None
         for entry in self.backups:
@@ -91,17 +79,11 @@ class BackupManager:
                 break
         
         if not backup_entry:
-            return ValidationResult(
-                status='error',
-                message=f'Backup {backup_id} not found'
-            )
+            return {'status': 'error', 'message': f'Backup {backup_id} not found'}
         
         backup_file = Path(backup_entry['backup_file'])
         if not backup_file.exists():
-            return ValidationResult(
-                status='error',
-                message=f'Backup file not found: {backup_file}'
-            )
+            return {'status': 'error', 'message': f'Backup file not found: {backup_file}'}
         
         try:
             output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -109,22 +91,19 @@ class BackupManager:
                 with open(output_path, 'wb') as f_out:
                     f_out.write(f_in.read())
             
-            return ValidationResult(
-                status='success',
-                message=f'Restored from backup: {backup_file.name}',
-                data={'backup_id': backup_id, 'restored_to': str(output_path)}
-            )
+            return {
+                'status': 'success',
+                'message': f'Restored from backup: {backup_file.name}',
+                'data': {'backup_id': backup_id, 'restored_to': str(output_path)}
+            }
         except Exception as e:
-            return ValidationResult(
-                status='error',
-                message=f'Restore failed: {str(e)}'
-            )
+            return {'status': 'error', 'message': f'Restore failed: {str(e)}'}
     
     def list_backups(self) -> List[Dict]:
         """List all available backups"""
         return self.backups
     
-    def cleanup_old_backups(self) -> ValidationResult:
+    def cleanup_old_backups(self) -> dict:
         """Remove backups older than retention period"""
         try:
             cutoff_date = datetime.utcnow() - timedelta(days=self.retention_days)
@@ -141,18 +120,11 @@ class BackupManager:
             
             self._save_metadata()
             
-            return ValidationResult(
-                status='success',
-                message=f'Cleaned up {removed} old backups',
-                data={'removed_count': removed}
-            )
+            return {'status': 'success', 'message': f'Cleaned up {removed} old backups', 'data': {'removed_count': removed}}
         except Exception as e:
-            return ValidationResult(
-                status='error',
-                message=f'Cleanup failed: {str(e)}'
-            )
+            return {'status': 'error', 'message': f'Cleanup failed: {str(e)}'}
     
-    def delete_backup(self, backup_id: str) -> ValidationResult:
+    def delete_backup(self, backup_id: str) -> dict:
         """Manually delete a specific backup"""
         for i, backup in enumerate(self.backups):
             if backup['backup_id'] == backup_id:
@@ -162,20 +134,11 @@ class BackupManager:
                         backup_file.unlink()
                     self.backups.pop(i)
                     self._save_metadata()
-                    return ValidationResult(
-                        status='success',
-                        message=f'Backup {backup_id} deleted'
-                    )
+                    return {'status': 'success', 'message': f'Backup {backup_id} deleted'}
                 except Exception as e:
-                    return ValidationResult(
-                        status='error',
-                        message=f'Failed to delete backup: {str(e)}'
-                    )
+                    return {'status': 'error', 'message': f'Failed to delete backup: {str(e)}'}
         
-        return ValidationResult(
-            status='error',
-            message=f'Backup {backup_id} not found'
-        )
+        return {'status': 'error', 'message': f'Backup {backup_id} not found'}
     
     def get_backup_stats(self) -> Dict:
         """Get backup statistics"""
