@@ -2,7 +2,8 @@ const express = require('express');
 const https = require('https');
 const { spawn } = require('child_process');
 const path = require('path');
-const fs = require('fs');
+const fs = require('fs').promises;
+const fsSync = require('fs');  // Keep for existsSync only
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -21,7 +22,7 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
   if (!path.extname(req.path)) {
     const htmlPath = path.join(__dirname, 'generated_pages', req.path + '.html');
-    if (fs.existsSync(htmlPath)) {
+    if (fsSync.existsSync(htmlPath)) {
       return res.sendFile(htmlPath);
     }
   }
@@ -67,15 +68,46 @@ function fetchHttp(url) {
   });
 }
 
-// ========== SCHEDULEFLOW API ENDPOINTS ==========
+// Helper function to spawn Python process (returns Promise)
+function spawnPython(args) {
+  return new Promise((resolve, reject) => {
+    const python = spawn('python3', args);
+    let output = '';
+    let errorOutput = '';
 
-// Get system info
-app.get('/api/system-info', (req, res) => {
+    python.stdout.on('data', (data) => {
+      output += data.toString();
+    });
+
+    python.stderr.on('data', (data) => {
+      errorOutput += data.toString();
+    });
+
+    python.on('close', (code) => {
+      if (code === 0) {
+        resolve(output);
+      } else {
+        reject(new Error(errorOutput || `Process exited with code ${code}`));
+      }
+    });
+
+    python.on('error', (error) => {
+      reject(error);
+    });
+  });
+}
+
+// ========== SCHEDULEFLOW API ENDPOINTS (All Async) ==========
+
+// Get system info (FIXED: async directory read)
+app.get('/api/system-info', async (req, res) => {
   try {
     const pagesDir = path.join(__dirname, 'generated_pages');
     let pageCount = 0;
-    if (fs.existsSync(pagesDir)) {
-      pageCount = fs.readdirSync(pagesDir).filter(f => f.endsWith('.html')).length;
+    
+    if (fsSync.existsSync(pagesDir)) {
+      const files = await fs.readdir(pagesDir);
+      pageCount = files.filter(f => f.endsWith('.html')).length;
     }
     
     res.json({
@@ -90,17 +122,19 @@ app.get('/api/system-info', (req, res) => {
   }
 });
 
-// List all generated pages
-app.get('/api/pages', (req, res) => {
+// List all generated pages (FIXED: async directory/stat read)
+app.get('/api/pages', async (req, res) => {
   try {
     const pagesDir = path.join(__dirname, 'generated_pages');
     const pages = [];
     
-    if (fs.existsSync(pagesDir)) {
-      fs.readdirSync(pagesDir).forEach(file => {
+    if (fsSync.existsSync(pagesDir)) {
+      const files = await fs.readdir(pagesDir);
+      
+      for (const file of files) {
         if (file.endsWith('.html')) {
           const filePath = path.join(pagesDir, file);
-          const stat = fs.statSync(filePath);
+          const stat = await fs.stat(filePath);
           pages.push({
             name: file,
             path: `/generated_pages/${file}`,
@@ -108,7 +142,7 @@ app.get('/api/pages', (req, res) => {
             modified: stat.mtime.toISOString()
           });
         }
-      });
+      }
     }
     
     res.json({ status: 'success', pages, count: pages.length });
@@ -117,8 +151,8 @@ app.get('/api/pages', (req, res) => {
   }
 });
 
-// Save a new playlist to file
-app.post('/api/save-playlist', (req, res) => {
+// Save a new playlist to file (FIXED: async write)
+app.post('/api/save-playlist', async (req, res) => {
   try {
     const { filename, items } = req.body;
     if (!filename || !items) {
@@ -131,7 +165,7 @@ app.post('/api/save-playlist', (req, res) => {
     });
     
     const filepath = path.join(__dirname, `${filename}.m3u`);
-    fs.writeFileSync(filepath, m3uContent);
+    await fs.writeFile(filepath, m3uContent);
     
     res.json({ status: 'success', path: filepath, items: items.length });
   } catch (error) {
@@ -139,12 +173,13 @@ app.post('/api/save-playlist', (req, res) => {
   }
 });
 
-// Get configuration
-app.get('/api/config', (req, res) => {
+// Get configuration (FIXED: async read)
+app.get('/api/config', async (req, res) => {
   try {
     const configPath = path.join(__dirname, 'm3u_matrix_settings.json');
-    if (fs.existsSync(configPath)) {
-      const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    if (fsSync.existsSync(configPath)) {
+      const configData = await fs.readFile(configPath, 'utf8');
+      const config = JSON.parse(configData);
       res.json({ status: 'success', config });
     } else {
       res.json({ status: 'success', config: { playlists: [], schedules: [] } });
@@ -154,11 +189,11 @@ app.get('/api/config', (req, res) => {
   }
 });
 
-// Save configuration
-app.post('/api/config', (req, res) => {
+// Save configuration (FIXED: async write)
+app.post('/api/config', async (req, res) => {
   try {
     const configPath = path.join(__dirname, 'm3u_matrix_settings.json');
-    fs.writeFileSync(configPath, JSON.stringify(req.body, null, 2));
+    await fs.writeFile(configPath, JSON.stringify(req.body, null, 2));
     res.json({ status: 'success', message: 'Configuration saved' });
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
@@ -166,103 +201,49 @@ app.post('/api/config', (req, res) => {
 });
 
 // Import schedule from file (triggers Python backend)
-app.post('/api/import-schedule', (req, res) => {
+app.post('/api/import-schedule', async (req, res) => {
   try {
     const { filepath, format } = req.body;
     if (!filepath || !format) {
       return res.status(400).json({ status: 'error', message: 'Missing filepath or format' });
     }
     
-    // Call Python script to import schedule
     const args = format === 'xml' 
       ? ['M3U_Matrix_Pro.py', '--import-schedule-xml', filepath]
       : ['M3U_Matrix_Pro.py', '--import-schedule-json', filepath];
     
-    const python = spawn('python3', args);
-    let output = '';
-    let errorOutput = '';
-    
-    python.stdout.on('data', (data) => {
-      output += data.toString();
-    });
-    
-    python.stderr.on('data', (data) => {
-      errorOutput += data.toString();
-    });
-    
-    python.on('close', (code) => {
-      if (code === 0) {
-        try {
-          const result = JSON.parse(output);
-          res.json(result);
-        } catch (e) {
-          res.status(500).json({ status: 'error', message: 'Invalid JSON from Python: ' + output });
-        }
-      } else {
-        res.status(500).json({ status: 'error', message: 'Import failed: ' + errorOutput });
-      }
-    });
+    const output = await spawnPython(args);
+    const result = JSON.parse(output);
+    res.json(result);
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
   }
 });
 
 // Get schedules list
-app.get('/api/schedules', (req, res) => {
+app.get('/api/schedules', async (req, res) => {
   try {
-    const python = spawn('python3', ['M3U_Matrix_Pro.py', '--list-schedules']);
-    let output = '';
-    
-    python.stdout.on('data', (data) => {
-      output += data.toString();
-    });
-    
-    python.on('close', (code) => {
-      if (code === 0) {
-        try {
-          const result = JSON.parse(output);
-          res.json(result);
-        } catch (e) {
-          res.status(500).json({ status: 'error', message: 'Failed to parse schedules' });
-        }
-      } else {
-        res.status(500).json({ status: 'error', message: 'Failed to get schedules' });
-      }
-    });
+    const output = await spawnPython(['M3U_Matrix_Pro.py', '--list-schedules']);
+    const result = JSON.parse(output);
+    res.json(result);
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
   }
 });
 
 // Get playlists list
-app.get('/api/playlists', (req, res) => {
+app.get('/api/playlists', async (req, res) => {
   try {
-    const python = spawn('python3', ['M3U_Matrix_Pro.py', '--list-playlists']);
-    let output = '';
-    
-    python.stdout.on('data', (data) => {
-      output += data.toString();
-    });
-    
-    python.on('close', (code) => {
-      if (code === 0) {
-        try {
-          const result = JSON.parse(output);
-          res.json(result);
-        } catch (e) {
-          res.status(500).json({ status: 'error', message: 'Failed to parse playlists' });
-        }
-      } else {
-        res.status(500).json({ status: 'error', message: 'Failed to get playlists' });
-      }
-    });
+    const output = await spawnPython(['M3U_Matrix_Pro.py', '--list-playlists']);
+    const result = JSON.parse(output);
+    res.json(result);
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
   }
 });
 
 // Export schedule to XML
-app.post('/api/export-schedule-xml', (req, res) => {
+app.post('/api/export-schedule-xml', async (req, res) => {
   try {
     const { schedule_id, filename } = req.body;
     if (!schedule_id) {
@@ -270,32 +251,16 @@ app.post('/api/export-schedule-xml', (req, res) => {
     }
     
     const outputFile = path.join(__dirname, filename || `schedule_${schedule_id}.xml`);
-    const python = spawn('python3', ['M3U_Matrix_Pro.py', '--export-schedule-xml', schedule_id, outputFile]);
-    let output = '';
-    
-    python.stdout.on('data', (data) => {
-      output += data.toString();
-    });
-    
-    python.on('close', (code) => {
-      if (code === 0) {
-        try {
-          const result = JSON.parse(output);
-          res.json(result);
-        } catch (e) {
-          res.status(500).json({ status: 'error', message: 'Failed to parse export result' });
-        }
-      } else {
-        res.status(500).json({ status: 'error', message: 'Export failed' });
-      }
-    });
+    const output = await spawnPython(['M3U_Matrix_Pro.py', '--export-schedule-xml', schedule_id, outputFile]);
+    const result = JSON.parse(output);
+    res.json(result);
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
   }
 });
 
 // Export schedule to JSON
-app.post('/api/export-schedule-json', (req, res) => {
+app.post('/api/export-schedule-json', async (req, res) => {
   try {
     const { schedule_id, filename } = req.body;
     if (!schedule_id) {
@@ -303,61 +268,29 @@ app.post('/api/export-schedule-json', (req, res) => {
     }
     
     const outputFile = path.join(__dirname, filename || `schedule_${schedule_id}.json`);
-    const python = spawn('python3', ['M3U_Matrix_Pro.py', '--export-schedule-json', schedule_id, outputFile]);
-    let output = '';
-    
-    python.stdout.on('data', (data) => {
-      output += data.toString();
-    });
-    
-    python.on('close', (code) => {
-      if (code === 0) {
-        try {
-          const result = JSON.parse(output);
-          res.json(result);
-        } catch (e) {
-          res.status(500).json({ status: 'error', message: 'Failed to parse export result' });
-        }
-      } else {
-        res.status(500).json({ status: 'error', message: 'Export failed' });
-      }
-    });
+    const output = await spawnPython(['M3U_Matrix_Pro.py', '--export-schedule-json', schedule_id, outputFile]);
+    const result = JSON.parse(output);
+    res.json(result);
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
   }
 });
 
 // Export all schedules to XML
-app.post('/api/export-all-schedules-xml', (req, res) => {
+app.post('/api/export-all-schedules-xml', async (req, res) => {
   try {
     const filename = req.body.filename || 'all_schedules.xml';
     const outputFile = path.join(__dirname, filename);
-    const python = spawn('python3', ['M3U_Matrix_Pro.py', '--export-all-xml', outputFile]);
-    let output = '';
-    
-    python.stdout.on('data', (data) => {
-      output += data.toString();
-    });
-    
-    python.on('close', (code) => {
-      if (code === 0) {
-        try {
-          const result = JSON.parse(output);
-          res.json(result);
-        } catch (e) {
-          res.status(500).json({ status: 'error', message: 'Failed to parse export result' });
-        }
-      } else {
-        res.status(500).json({ status: 'error', message: 'Export failed' });
-      }
-    });
+    const output = await spawnPython(['M3U_Matrix_Pro.py', '--export-all-xml', outputFile]);
+    const result = JSON.parse(output);
+    res.json(result);
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
   }
 });
 
 // Schedule playlist with auto-fill
-app.post('/api/schedule-playlist', (req, res) => {
+app.post('/api/schedule-playlist', async (req, res) => {
   try {
     const { links, start_time, duration_hours, cooldown_hours, shuffle } = req.body;
     
@@ -368,97 +301,37 @@ app.post('/api/schedule-playlist', (req, res) => {
       return res.status(400).json({ status: 'error', message: 'Start time required' });
     }
     
-    // Call Python scheduler
-    const scheduleData = JSON.stringify({
-      links: links,
-      start_time: start_time,
-      duration_hours: duration_hours || 24,
-      cooldown_hours: cooldown_hours || 48,
-      shuffle: shuffle !== false
-    });
-    
     const outputFile = path.join(__dirname, `schedule_${Date.now()}.json`);
-    const python = spawn('python3', ['M3U_Matrix_Pro.py', '--schedule-playlist', 
+    const output = await spawnPython(['M3U_Matrix_Pro.py', '--schedule-playlist', 
       JSON.stringify(links), start_time, String(duration_hours || 24), outputFile]);
     
-    let output = '';
-    python.stdout.on('data', (data) => {
-      output += data.toString();
-    });
-    
-    python.on('close', (code) => {
-      if (code === 0) {
-        try {
-          const result = JSON.parse(output);
-          res.json(result);
-        } catch (e) {
-          res.status(500).json({ status: 'error', message: 'Failed to parse schedule result' });
-        }
-      } else {
-        res.status(500).json({ status: 'error', message: 'Schedule failed' });
-      }
-    });
+    const result = JSON.parse(output);
+    res.json(result);
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
   }
 });
 
-// API endpoint to fetch real Infowars videos
-app.get('/api/infowars-videos', (req, res) => {
+// API endpoint to fetch external videos
+app.get('/api/infowars-videos', async (req, res) => {
   try {
-    // Use Python script to fetch videos
-    const python = spawn('python3', ['infowars_fetcher.py']);
-    let output = '';
-    let errorOutput = '';
-
-    python.stdout.on('data', (data) => {
-      output += data.toString();
-    });
-
-    python.stderr.on('data', (data) => {
-      errorOutput += data.toString();
-      console.error('Python stderr:', data.toString());
-    });
-
-    python.on('close', (code) => {
-      if (code === 0) {
-        try {
-          // Find JSON in output (skip print statements)
-          const jsonMatch = output.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            const data = JSON.parse(jsonMatch[0]);
-            res.json(data);
-          } else {
-            res.status(500).json({
-              success: false,
-              error: 'Could not parse Python output',
-              timestamp: new Date().toISOString()
-            });
-          }
-        } catch (e) {
-          console.error('JSON parse error:', e);
-          res.status(500).json({
-            success: false,
-            error: 'Invalid JSON response from Python',
-            timestamp: new Date().toISOString()
-          });
-        }
-      } else {
-        console.error('Python script failed with code:', code, 'Error:', errorOutput);
-        res.status(500).json({
-          success: false,
-          error: 'Python script error: ' + errorOutput,
-          timestamp: new Date().toISOString()
-        });
-      }
-    });
-
+    const output = await spawnPython(['infowars_fetcher.py']);
+    
+    // Find JSON in output (skip print statements)
+    const jsonMatch = output.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const data = JSON.parse(jsonMatch[0]);
+      res.json(data);
+    } else {
+      res.status(500).json({
+        status: 'error',
+        error: 'Could not parse Python output'
+      });
+    }
   } catch (error) {
-    console.error('Error setting up Infowars video fetch:', error);
     res.status(500).json({
-      success: false,
-      error: error.message,
-      timestamp: new Date().toISOString()
+      status: 'error',
+      error: error.message
     });
   }
 });
@@ -472,29 +345,27 @@ app.get('/', (req, res) => {
 app.use((req, res) => {
   let filePath;
   
-  // If path includes /generated_pages/ prefix, remove it
   if (req.path.startsWith('/generated_pages/')) {
-    const cleanPath = req.path.substring('/generated_pages'.length); // Remove /generated_pages, keep the /
-    filePath = path.join(__dirname, 'generated_pages', cleanPath.substring(1) + '.html'); // Remove leading /
+    const cleanPath = req.path.substring('/generated_pages'.length);
+    filePath = path.join(__dirname, 'generated_pages', cleanPath.substring(1) + '.html');
   } else {
-    filePath = path.join(__dirname, 'generated_pages', req.path.substring(1) + '.html'); // Remove leading /
+    filePath = path.join(__dirname, 'generated_pages', req.path.substring(1) + '.html');
   }
   
-  if (fs.existsSync(filePath)) {
+  if (fsSync.existsSync(filePath)) {
     return res.sendFile(filePath);
   }
   
-  // Not found
   res.status(404).json({ error: 'Not found' });
 });
 
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`
 ╔════════════════════════════════════════════════╗
-║   ScheduleFlow API Server Running              ║
+║   ScheduleFlow API Server Running (ASYNC)      ║
 ║                                                ║
 ║   API Endpoint:                                ║
-║   http://localhost:${PORT}/api/infowars-videos  ║
+║   http://localhost:${PORT}/api/system-info      ║
 ║                                                ║
 ║   Static Files:                                ║
 ║   http://localhost:${PORT}/generated_pages/    ║
@@ -505,7 +376,7 @@ const server = app.listen(PORT, '0.0.0.0', () => {
 // Graceful shutdown
 process.on('SIGTERM', () => {
   server.close(() => {
-    console.log('Server terminated');
+    console.log('Server terminated gracefully');
     process.exit(0);
   });
 });
