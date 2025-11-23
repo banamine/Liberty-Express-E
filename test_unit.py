@@ -64,11 +64,12 @@ class UnitTestRunner:
         </tvguide>"""
         
         try:
-            validator = ScheduleValidator(valid_xml, format_type='xml')
-            is_valid = validator.validate()
-            self.test("Valid XML imports without error", is_valid or validator.errors == [])
-        except:
-            self.test("Valid XML imports without error", False, "Exception raised")
+            import xml.etree.ElementTree as ET
+            root = ET.fromstring(valid_xml)
+            is_valid, errors = ScheduleValidator.validate_xml_schedule(root)
+            self.test("Valid XML imports without error", is_valid)
+        except Exception as e:
+            self.test("Valid XML imports without error", False, f"Exception: {str(e)[:50]}")
 
         # Test 2: Invalid XML rejected
         invalid_xml = """<?xml version="1.0"?>
@@ -77,10 +78,10 @@ class UnitTestRunner:
                 <name>Unclosed tag"""
         
         try:
-            validator = ScheduleValidator(invalid_xml, format_type='xml')
-            is_valid = validator.validate()
+            root = ET.fromstring(invalid_xml)
+            is_valid, errors = ScheduleValidator.validate_xml_schedule(root)
             self.test("Malformed XML rejected", not is_valid)
-        except:
+        except ET.ParseError:
             self.test("Malformed XML rejected", True)
 
         # Test 3: JSON import
