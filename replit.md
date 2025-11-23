@@ -14,6 +14,12 @@
 - **Code Audit:** Under-claim, never hallucinate. Verify before claiming functionality works.
 - **Documentation Discipline:** **UPDATE DOCUMENTATION WITH EVERY EDIT GOING FORWARD.** This file (replit.md) must reflect current state at all times.
 
+## Critical Technical Notes
+- **NEVER hardcode external URLs** (especially archive.org) - they cause CORS failures and "Stream unavailable" errors
+- **Always use local /attached_assets/ paths** for user-uploaded files or reliable public CDN sources (Google, W3Schools)
+- Archive.org videos fail in HTML5 players due to CORS restrictions - avoid completely
+- Hardcoded URLs break when external sources change - use local files instead
+
 ## System Architecture
 The core system operates in either an Advanced (GUI) or Silent Background (Daemon) mode, processing inputs from various sources including a GUI, REST API, numeric keypad, and a web dashboard.
 
