@@ -1,0 +1,73 @@
+{
+  "id": "13cd3f51-282e-4687-8e93-9cdc46056f65",
+  "name": "sample_schedule",
+  "source": "xml",
+  "filepath": "demo_data/sample_schedule.xml",
+  "imported": "2025-11-23T01:51:28.138943+00:00",
+  "events": [
+    {
+      "title": "Morning News",
+      "start": "2025-11-24T08:00:00Z",
+      "end": "2025-11-24T09:00:00Z",
+      "description": "",
+      "category": "News",
+      "id": "e09327da-ccf8-464f-9ea5-afe8a3c78093",
+      "video_url": "https://example.com/news_morning.mp4"
+    },
+    {
+      "title": "Live Talk Show",
+      "start": "2025-11-24T10:00:00Z",
+      "end": "2025-11-24T11:00:00Z",
+      "description": "",
+      "category": "Entertainment",
+      "id": "c7d6bedc-2f0f-46b9-8b8b-4fafc3fd3104",
+      "video_url": "https://example.com/talk_show.mp4"
+    },
+    {
+      "title": "Cooking Show",
+      "start": "2025-11-24T12:00:00Z",
+      "end": "2025-11-24T13:00:00Z",
+      "description": "",
+      "category": "Lifestyle",
+      "id": "716316d2-f123-4729-964f-297a53a2256c",
+      "video_url": "https://example.com/cooking.mp4"
+    },
+    {
+      "title": "Evening News",
+      "start": "2025-11-24T18:00:00Z",
+      "end": "2025-11-24T19:00:00Z",
+      "description": "",
+      "category": "News",
+      "id": "1f16f8a5-eb11-4d53-bddd-17ef5de3eea2",
+      "video_url": "https://example.com/news_evening.mp4"
+    },
+    {
+      "title": "Prime Time Drama",
+      "start": "2025-11-24T20:00:00Z",
+      "end": "2025-11-24T21:00:00Z",
+      "description": "",
+      "category": "Drama",
+      "id": "5e98e37a-1390-4f63-b5e8-9d39d7b62097",
+      "video_url": "https://example.com/drama_series.mp4"
+    },
+    {
+      "title": "Late Night Show",
+      "start": "2025-11-24T23:00:00Z",
+      "end": "2025-11-25T00:00:00Z",
+      "description": "",
+      "category": "Entertainment",
+      "id": "4c75f8f9-67de-4860-82bf-5475fd86e1bf",
+      "video_url": "https://example.com/late_night.mp4"
+    }
+  ],
+  "metadata": {
+    "total_imported": 6,
+    "duplicates_removed": 0,
+    "conflicts_detected": 0,
+    "unique_events": 6
+  },
+  "warnings": {
+    "duplicates": [],
+    "conflicts": []
+  }
+}

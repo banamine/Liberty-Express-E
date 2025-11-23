@@ -830,7 +830,14 @@ class M3UMatrixPro:
                 return None
             
             title_str = title.strip() if isinstance(title, str) else str(title)
-            return {
+            
+            # Extract video URL (supports multiple field names)
+            video_url = (event_elem.findtext('videoUrl') or 
+                        event_elem.findtext('video_url') or 
+                        event_elem.findtext('url') or 
+                        event_elem.findtext('uri') or "")
+            
+            event_dict = {
                 "title": title_str,
                 "start": TimestampParser.to_utc_string(start_dt),
                 "end": TimestampParser.to_utc_string(end_dt),
@@ -838,6 +845,12 @@ class M3UMatrixPro:
                 "category": event_elem.findtext('category') or "",
                 "id": event_elem.get('id') or str(uuid.uuid4())
             }
+            
+            # Add video URL if present (CRITICAL for auto-play)
+            if video_url:
+                event_dict["video_url"] = video_url
+            
+            return event_dict
         except Exception:
             return None
 
@@ -906,6 +919,10 @@ class M3UMatrixPro:
                 xml_parts.append(f'      <title>{self._escape_xml(event.get("title", ""))}</title>')
                 xml_parts.append(f'      <start>{event.get("start", "")}</start>')
                 xml_parts.append(f'      <end>{event.get("end", "")}</end>')
+                # Include video URL if present (CRITICAL for auto-play)
+                video_url = event.get("video_url") or event.get("videoUrl") or event.get("url")
+                if video_url:
+                    xml_parts.append(f'      <videoUrl>{self._escape_xml(video_url)}</videoUrl>')
                 if event.get("description"):
                     xml_parts.append(f'      <description>{self._escape_xml(event.get("description", ""))}</description>')
                 if event.get("category"):
@@ -1013,6 +1030,10 @@ class M3UMatrixPro:
                     xml_parts.append(f'      <title>{self._escape_xml(event.get("title", ""))}</title>')
                     xml_parts.append(f'      <start>{event.get("start", "")}</start>')
                     xml_parts.append(f'      <end>{event.get("end", "")}</end>')
+                    # Include video URL if present (CRITICAL for auto-play)
+                    video_url = event.get("video_url") or event.get("videoUrl") or event.get("url")
+                    if video_url:
+                        xml_parts.append(f'      <videoUrl>{self._escape_xml(video_url)}</videoUrl>')
                     if event.get("description"):
                         xml_parts.append(f'      <description>{self._escape_xml(event.get("description", ""))}</description>')
                     if event.get("category"):
