@@ -1,0 +1,112 @@
+{
+  "id": "49356de8-1570-4d39-bad6-80796b2d614d",
+  "name": "test_export_conflicts",
+  "source": "xml",
+  "filepath": "test_export_conflicts.xml",
+  "imported": "2025-11-23T01:28:52.238275+00:00",
+  "events": [
+    {
+      "title": "Morning News (First)",
+      "start": "2025-11-24T08:00:00Z",
+      "end": "2025-11-24T09:00:00Z",
+      "description": "",
+      "category": "News",
+      "id": "ace2dd4c-ac1d-4de5-b7a1-d2aeddf2fe8e"
+    },
+    {
+      "title": "Morning Talk Show (Overlapping)",
+      "start": "2025-11-24T08:30:00Z",
+      "end": "2025-11-24T09:30:00Z",
+      "description": "",
+      "category": "Entertainment",
+      "id": "3677a184-aad1-42b5-aa29-c463ca46e1e5"
+    },
+    {
+      "title": "Cooking Show",
+      "start": "2025-11-24T09:00:00Z",
+      "end": "2025-11-24T10:00:00Z",
+      "description": "",
+      "category": "Lifestyle",
+      "id": "e5bab895-c965-4316-b5cf-0e598e6daa26"
+    },
+    {
+      "title": "Breaking News (Triple Overlap)",
+      "start": "2025-11-24T09:15:00Z",
+      "end": "2025-11-24T09:45:00Z",
+      "description": "",
+      "category": "News",
+      "id": "be6d717e-50a1-41de-a4c0-64953a4b7748"
+    }
+  ],
+  "metadata": {
+    "total_imported": 4,
+    "duplicates_removed": 0,
+    "conflicts_detected": 4,
+    "unique_events": 4
+  },
+  "warnings": {
+    "duplicates": [],
+    "conflicts": [
+      {
+        "type": "overlap",
+        "event1": {
+          "index": 0,
+          "title": "Morning News (First)",
+          "start": "2025-11-24T08:00:00Z",
+          "end": "2025-11-24T09:00:00Z"
+        },
+        "event2": {
+          "index": 1,
+          "title": "Morning Talk Show (Overlapping)",
+          "start": "2025-11-24T08:30:00Z",
+          "end": "2025-11-24T09:30:00Z"
+        }
+      },
+      {
+        "type": "overlap",
+        "event1": {
+          "index": 1,
+          "title": "Morning Talk Show (Overlapping)",
+          "start": "2025-11-24T08:30:00Z",
+          "end": "2025-11-24T09:30:00Z"
+        },
+        "event2": {
+          "index": 2,
+          "title": "Cooking Show",
+          "start": "2025-11-24T09:00:00Z",
+          "end": "2025-11-24T10:00:00Z"
+        }
+      },
+      {
+        "type": "overlap",
+        "event1": {
+          "index": 1,
+          "title": "Morning Talk Show (Overlapping)",
+          "start": "2025-11-24T08:30:00Z",
+          "end": "2025-11-24T09:30:00Z"
+        },
+        "event2": {
+          "index": 3,
+          "title": "Breaking News (Triple Overlap)",
+          "start": "2025-11-24T09:15:00Z",
+          "end": "2025-11-24T09:45:00Z"
+        }
+      },
+      {
+        "type": "overlap",
+        "event1": {
+          "index": 2,
+          "title": "Cooking Show",
+          "start": "2025-11-24T09:00:00Z",
+          "end": "2025-11-24T10:00:00Z"
+        },
+        "event2": {
+          "index": 3,
+          "title": "Breaking News (Triple Overlap)",
+          "start": "2025-11-24T09:15:00Z",
+          "end": "2025-11-24T09:45:00Z"
+        }
+      }
+    ]
+  }
+}

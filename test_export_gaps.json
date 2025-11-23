@@ -1,0 +1,45 @@
+{
+  "schedule": {
+    "metadata": {
+      "name": "sample_schedule_gaps",
+      "source": "xml",
+      "imported": "2025-11-23T01:28:30.807580+00:00",
+      "generated": "2025-11-23T01:28:53.350998+00:00",
+      "event_count": 4
+    },
+    "events": [
+      {
+        "title": "Morning News",
+        "start": "2025-11-24T08:00:00Z",
+        "end": "2025-11-24T09:00:00Z",
+        "description": "",
+        "category": "News",
+        "id": "f52de340-ad20-49d3-a1a5-13cc8b6d722e"
+      },
+      {
+        "title": "Midday Talk Show",
+        "start": "2025-11-24T11:00:00Z",
+        "end": "2025-11-24T12:00:00Z",
+        "description": "",
+        "category": "Entertainment",
+        "id": "3e2a543a-e925-4362-9d5c-8b18fcb5ae10"
+      },
+      {
+        "title": "Afternoon Education",
+        "start": "2025-11-24T15:00:00Z",
+        "end": "2025-11-24T16:30:00Z",
+        "description": "",
+        "category": "Education",
+        "id": "a0be1b60-1d9a-4440-8185-59fe3e1c79ca"
+      },
+      {
+        "title": "Evening Movie",
+        "start": "2025-11-24T18:00:00Z",
+        "end": "2025-11-24T20:00:00Z",
+        "description": "",
+        "category": "Movies",
+        "id": "7e443494-c8df-40a1-8cd5-fc452b0233b5"
+      }
+    ]
+  }
+}
