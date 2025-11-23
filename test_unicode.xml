@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schedule>
+  <metadata>
+    <title>Test 🎬 ñ 中文 العربية</title>
+  </metadata>
+  <events>
+    <event>
+      <title>Video with ñoño and 日本語</title>
+      <start>2025-11-24T08:00:00Z</start>
+      <end>2025-11-24T09:00:00Z</end>
+      <videoUrl>https://example.com/video.mp4</videoUrl>
+    </event>
+  </events>
+</schedule>

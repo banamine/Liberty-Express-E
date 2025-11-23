@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE schedule [
+  <!ENTITY lol "lol">
+  <!ENTITY lol2 "&lol;&lol;&lol;">
+]>
+<schedule>
+  <metadata>
+    <title>&lol2;</title>
+  </metadata>
+  <events/>
+</schedule>

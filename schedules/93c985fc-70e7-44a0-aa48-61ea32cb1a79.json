@@ -1,0 +1,27 @@
+{
+  "id": "93c985fc-70e7-44a0-aa48-61ea32cb1a79",
+  "name": "test_unicode",
+  "source": "xml",
+  "filepath": "test_unicode.xml",
+  "imported": "2025-11-23T01:44:23.818994+00:00",
+  "events": [
+    {
+      "title": "Video with \u00f1o\u00f1o and \u65e5\u672c\u8a9e",
+      "start": "2025-11-24T08:00:00Z",
+      "end": "2025-11-24T09:00:00Z",
+      "description": "",
+      "category": "",
+      "id": "d877e686-e8b5-4702-811b-cf6bfe3b3d96"
+    }
+  ],
+  "metadata": {
+    "total_imported": 1,
+    "duplicates_removed": 0,
+    "conflicts_detected": 0,
+    "unique_events": 1
+  },
+  "warnings": {
+    "duplicates": [],
+    "conflicts": []
+  }
+}
