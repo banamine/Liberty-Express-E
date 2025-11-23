@@ -645,13 +645,32 @@ class M3UMatrixPro:
             return {
                 "status": "error",
                 "type": "parse_error",
-                "message": f"Failed to parse XML: {str(e)}"
+                "message": "XML file is malformed or not valid XML",
+                "details": str(e),
+                "hint": "Check XML syntax: mismatched tags, missing quotes, or invalid characters",
+                "example_fix": "Ensure all opening tags have closing tags: <event>...</event>"
+            }
+        except FileNotFoundError:
+            return {
+                "status": "error",
+                "type": "file_not_found",
+                "message": f"File not found: {filepath}",
+                "hint": "Check that the file path is correct and the file exists"
+            }
+        except PermissionError:
+            return {
+                "status": "error",
+                "type": "permission_denied",
+                "message": "Permission denied when reading XML file",
+                "hint": "Check file permissions. The file should be readable."
             }
         except Exception as e:
             return {
                 "status": "error",
                 "type": "unexpected",
-                "message": str(e)
+                "message": "Unexpected error while importing XML",
+                "details": str(e),
+                "hint": "Please check the file format and try again"
             }
 
     def import_schedule_json(self, filepath: str) -> Dict[str, Any]:
@@ -737,13 +756,32 @@ class M3UMatrixPro:
             return {
                 "status": "error",
                 "type": "parse_error",
-                "message": f"Failed to parse JSON: {str(e)}"
+                "message": "JSON file is not valid JSON",
+                "details": str(e),
+                "hint": "Check JSON syntax: missing commas, trailing commas, or unquoted keys",
+                "example_fix": 'Use {"events": [...]} not {events: [...]}'
+            }
+        except FileNotFoundError:
+            return {
+                "status": "error",
+                "type": "file_not_found",
+                "message": f"File not found: {filepath}",
+                "hint": "Check that the file path is correct and the file exists"
+            }
+        except PermissionError:
+            return {
+                "status": "error",
+                "type": "permission_denied",
+                "message": "Permission denied when reading JSON file",
+                "hint": "Check file permissions. The file should be readable."
             }
         except Exception as e:
             return {
                 "status": "error",
                 "type": "unexpected",
-                "message": str(e)
+                "message": "Unexpected error while importing JSON",
+                "details": str(e),
+                "hint": "Please check the file format and try again"
             }
 
     def import_m3u(self, filepath: str) -> Dict[str, Any]:

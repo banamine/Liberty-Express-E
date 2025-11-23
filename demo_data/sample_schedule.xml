@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schedule>
+    <metadata>
+        <title>Sample Weekly Schedule</title>
+        <description>Example schedule for ScheduleFlow - 7 days of content</description>
+        <created>2025-11-23T00:00:00Z</created>
+    </metadata>
+    <events>
+        <event>
+            <title>Morning News</title>
+            <start>2025-11-24T08:00:00Z</start>
+            <end>2025-11-24T09:00:00Z</end>
+            <videoUrl>https://example.com/news_morning.mp4</videoUrl>
+            <category>News</category>
+            <duration>3600</duration>
+        </event>
+        <event>
+            <title>Live Talk Show</title>
+            <start>2025-11-24T10:00:00Z</start>
+            <end>2025-11-24T11:00:00Z</end>
+            <videoUrl>https://example.com/talk_show.mp4</videoUrl>
+            <category>Entertainment</category>
+            <duration>3600</duration>
+        </event>
+        <event>
+            <title>Cooking Show</title>
+            <start>2025-11-24T12:00:00Z</start>
+            <end>2025-11-24T13:00:00Z</end>
+            <videoUrl>https://example.com/cooking.mp4</videoUrl>
+            <category>Lifestyle</category>
+            <duration>3600</duration>
+        </event>
+        <event>
+            <title>Evening News</title>
+            <start>2025-11-24T18:00:00Z</start>
+            <end>2025-11-24T19:00:00Z</end>
+            <videoUrl>https://example.com/news_evening.mp4</videoUrl>
+            <category>News</category>
+            <duration>3600</duration>
+        </event>
+        <event>
+            <title>Prime Time Drama</title>
+            <start>2025-11-24T20:00:00Z</start>
+            <end>2025-11-24T21:00:00Z</end>
+            <videoUrl>https://example.com/drama_series.mp4</videoUrl>
+            <category>Drama</category>
+            <duration>3600</duration>
+        </event>
+        <event>
+            <title>Late Night Show</title>
+            <start>2025-11-24T23:00:00Z</start>
+            <end>2025-11-25T00:00:00Z</end>
+            <videoUrl>https://example.com/late_night.mp4</videoUrl>
+            <category>Entertainment</category>
+            <duration>3600</duration>
+        </event>
+    </events>
+</schedule>

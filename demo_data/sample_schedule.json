@@ -1,0 +1,55 @@
+{
+  "metadata": {
+    "title": "Sample JSON Schedule",
+    "description": "Example schedule in JSON format for ScheduleFlow",
+    "created": "2025-11-23T00:00:00Z",
+    "source": "manual"
+  },
+  "schedule": [
+    {
+      "title": "Morning Workout",
+      "start": "2025-11-24T06:00:00Z",
+      "end": "2025-11-24T07:00:00Z",
+      "videoUrl": "https://example.com/fitness_morning.mp4",
+      "category": "Health",
+      "duration": 3600,
+      "tags": ["fitness", "morning"]
+    },
+    {
+      "title": "News Briefing",
+      "start": "2025-11-24T08:30:00Z",
+      "end": "2025-11-24T09:00:00Z",
+      "videoUrl": "https://example.com/news_brief.mp4",
+      "category": "News",
+      "duration": 1800,
+      "tags": ["news", "daily"]
+    },
+    {
+      "title": "Educational Content",
+      "start": "2025-11-24T14:00:00Z",
+      "end": "2025-11-24T15:30:00Z",
+      "videoUrl": "https://example.com/education_lesson.mp4",
+      "category": "Education",
+      "duration": 5400,
+      "tags": ["learning", "tutorial"]
+    },
+    {
+      "title": "Sports Highlights",
+      "start": "2025-11-24T19:00:00Z",
+      "end": "2025-11-24T19:30:00Z",
+      "videoUrl": "https://example.com/sports_highlights.mp4",
+      "category": "Sports",
+      "duration": 1800,
+      "tags": ["sports", "highlights"]
+    },
+    {
+      "title": "Movie Night Feature",
+      "start": "2025-11-24T21:00:00Z",
+      "end": "2025-11-24T23:00:00Z",
+      "videoUrl": "https://example.com/movie_feature.mp4",
+      "category": "Movies",
+      "duration": 7200,
+      "tags": ["movie", "feature"]
+    }
+  ]
+}
