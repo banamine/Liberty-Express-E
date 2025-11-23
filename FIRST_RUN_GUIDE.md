@@ -112,33 +112,196 @@ ScheduleFlow supports:
 
 ---
 
-## Auto-Play Behavior
+## Auto-Play Behavior - IMPORTANT TO UNDERSTAND
 
-### Does ScheduleFlow Auto-Play Videos?
+### The Simple Answer
 
-**YES, in the player pages. NO, in the dashboard.**
+**Dashboard:** No auto-play (it's for management only)  
+**Players:** YES, auto-play (videos play in sequence)
 
-- **Dashboard** - Shows schedules, no auto-play
-- **Player Pages** - Videos play automatically in sequence
-- **Web Player** - Auto-plays next scheduled video
-- **Desktop Player** - Can be configured to auto-play
+---
 
-### How to Use Auto-Play
+### What This ACTUALLY Means
 
-1. Export your schedule to XML or JSON
-2. Load into your player:
-   - **Web:** Use the generated player HTML
-   - **Desktop:** Use the Python desktop app (M3U_Matrix_Pro.py)
-   - **Broadcast:** Load into OBS, CasparCG, vMix, etc.
-3. Videos will play in scheduled order
+#### IN THE DASHBOARD (http://localhost:5000)
+When you import a schedule and view it in the dashboard:
+- You see a list of videos
+- You can drag-drop to reorder
+- You can view conflicts/gaps
+- **Videos DO NOT play** - the dashboard is just for managing schedules
 
-### Features
+**What happens:** You view, edit, and organize. That's it.
 
-✅ Auto-play next video at scheduled time  
-✅ 48-hour cooldown prevents repetition  
-✅ Category balancing for variety  
-✅ Drag-drop reordering before export  
-✅ Time-based clipping support  
+#### IN THE PLAYER (After you export)
+When you export the schedule and open it in a player:
+- Player opens with schedule loaded
+- Videos **play automatically** in the order you scheduled them
+- Next video starts when previous one ends
+- Continues in sequence through all videos
+
+**What happens:** Videos play continuously without needing clicks
+
+---
+
+### Concrete Examples
+
+#### Example 1: Using the Web Player
+
+**Step 1: Import Schedule (Dashboard)**
+```
+1. Go to http://localhost:5000
+2. Click "Import Schedule"
+3. Select demo_data/sample_schedule.xml
+4. You see: "6 events imported"
+```
+**Result:** Schedule is in dashboard. NO VIDEOS PLAY YET.
+
+**Step 2: Export to Player (Web)**
+```
+1. Click "Export Schedule"
+2. Choose "XML" or "JSON"
+3. Download the file
+4. Open the file in a browser
+```
+**Result:** Player opens. Videos START PLAYING automatically.
+
+**What you see:**
+- First video starts playing immediately
+- When it finishes, next video plays automatically
+- No buttons to click between videos
+- Videos play in scheduled order
+- 48-hour cooldown prevents repeats
+
+---
+
+#### Example 2: Using Desktop Player
+
+**Step 1: Export from Dashboard**
+```
+1. http://localhost:5000 → Export Schedule
+2. Save XML file
+```
+
+**Step 2: Open in Desktop Player**
+```
+1. Run: python3 M3U_Matrix_Pro.py
+2. Load the exported schedule
+3. Videos START PLAYING automatically
+```
+
+**What you see:**
+- Player UI opens
+- Current video playing
+- Next video queued
+- Playlist showing remaining videos
+- Videos advance automatically
+
+---
+
+#### Example 3: Broadcast System (OBS/CasparCG)
+
+**Step 1: Export to XML**
+```
+1. Dashboard → Export Schedule
+2. Save as schedule.xml
+```
+
+**Step 2: Load into Broadcast System**
+```
+1. OBS/CasparCG/vMix: Import schedule.xml
+2. Videos load into playlist
+3. System plays automatically based on schedule time
+```
+
+**What you see:**
+- Broadcast system shows loaded videos
+- Auto-play engine follows schedule times
+- Videos play at scheduled times
+- 24/7 continuous operation
+
+---
+
+### Auto-Play Features Explained
+
+**What AUTO-PLAYS means:**
+- ✅ Next video starts automatically (no manual clicks needed)
+- ✅ Timing follows your schedule
+- ✅ Videos play in sequence you defined
+- ✅ Repeating content prevented by 48-hour cooldown
+
+**What does NOT auto-play:**
+- ❌ Dashboard import (just management)
+- ❌ First video in player (you export, player handles this)
+- ❌ Videos with broken URLs (player will show error)
+
+---
+
+### Common Confusion CLEARED UP
+
+**"Do I need to click play?"**
+- Dashboard: YES (or don't, just manage there)
+- Player: NO (videos play automatically)
+
+**"When do videos start playing?"**
+- Dashboard: Never - it's just management
+- Web Player: Immediately when you open/export
+- Broadcast System: At scheduled time you set
+
+**"Can I manually control playback?"**
+- Dashboard: Yes, drag-drop to reorder before export
+- Web Player: Limited (next/previous buttons usually available)
+- Broadcast: Depends on your system
+
+**"What if I only want some videos to play?"**
+- Dashboard: Don't import videos you don't want
+- Or: Export only selected videos
+- Player will play whatever is exported
+
+---
+
+### The Workflow (Crystal Clear)
+
+```
+STEP 1: DASHBOARD (Management, NO playback)
+┌─────────────────────────────┐
+│ Import schedule.xml         │
+│ (videos are now in system)   │
+│                             │
+│ View the list              │
+│ Drag-drop to reorder       │
+│ Check conflicts            │
+│ (Still no playback)         │
+└─────────────────────────────┘
+        ↓
+STEP 2: EXPORT (Prepare for playback)
+┌─────────────────────────────┐
+│ Export to XML or JSON        │
+│ (Creates player file)        │
+│ Save: player_schedule.xml    │
+└─────────────────────────────┘
+        ↓
+STEP 3: PLAYER (Automatic playback)
+┌─────────────────────────────┐
+│ Open player_schedule.xml     │
+│ in browser or desktop app    │
+│                             │
+│ VIDEOS AUTO-PLAY:           │
+│ • First video starts now     │
+│ • Videos play continuously   │
+│ • No clicks needed           │
+│ • Follows schedule times     │
+└─────────────────────────────┘
+```
+
+---
+
+### Remember
+
+- **Dashboard** = Scheduling tool (no video playback)
+- **Player** = Playback engine (auto-play videos)
+- **Export** = Bridge between dashboard and player
+
+If videos don't play, you're probably still in the dashboard. Open the exported file in a player instead.  
 
 ---
 
