@@ -29,3 +29,9 @@ python-multipart>=0.0.6
 sqlalchemy>=2.0.0
 passlib
 python-jose
+pyyaml>=6.0
+pendulum>=3.0
+selenium>=4.0
+pendulum
+pyyaml
+selenium

@@ -1,0 +1,150 @@
+# ScheduleFlow Configuration File
+# Refactoring Step 8: Configuration Management
+
+app:
+  name: ScheduleFlow
+  version: 2.1.0
+  environment: development  # production, staging, development
+  debug: true
+  log_level: INFO
+
+storage:
+  # Cross-platform paths (handled by file manager)
+  schedules_dir: schedules
+  backups_dir: backups
+  stripped_media_dir: stripped_media
+  logs_dir: logs
+  cache_dir: .cache
+  
+  # File management
+  backup_enabled: true
+  backup_retention_days: 30
+  backup_compression: gzip
+  
+  # Versioning
+  versioning_enabled: true
+  max_versions_per_file: 10
+
+scheduling:
+  # Cooldown constraints
+  cooldown_hours: 48
+  timezone: UTC
+  
+  # Performance optimization
+  max_events_batch: 1000
+  conflict_check_optimization: true
+  
+  # Scheduling algorithm
+  algorithm: intelligent_balancing
+  auto_fill: true
+  category_balancing: true
+
+media_stripper:
+  # Media extraction configuration
+  enabled: true
+  browser: chrome
+  headless: true
+  timeout_seconds: 30
+  
+  # Robots.txt compliance
+  respect_robots_txt: true
+  user_agent: ScheduleFlow/2.1.0
+  
+  # Fallback strategy
+  use_selenium: true  # Use Selenium for JavaScript-heavy sites
+  fallback_to_beautifulsoup: true
+  
+  # Rate limiting
+  rate_limit_requests_per_second: 2
+  respect_rate_limits: true
+
+validation:
+  # Schedule validation
+  validate_on_import: true
+  auto_correct_timestamps: true
+  
+  # Conflict detection
+  detect_overlaps: true
+  detect_duplicates: true
+  
+  # Duplicate detection
+  duplicate_detection_method: md5  # md5, sha256, content_hash
+  ignore_case: true
+
+threading:
+  # Thread pool configuration
+  enabled: true
+  max_workers: 4
+  queue_timeout_seconds: 60
+  
+  # Error handling
+  catch_thread_exceptions: true
+  log_thread_errors: true
+  retry_failed_tasks: true
+  max_retries: 3
+
+api:
+  # FastAPI configuration
+  host: 0.0.0.0
+  port: 3000
+  workers: 2
+  
+  # Rate limiting
+  rate_limit_enabled: true
+  rate_limit_requests_per_minute: 100
+  
+  # Security
+  cors_enabled: true
+  cors_origins:
+    - "*"
+  
+  # WebSocket
+  websocket_enabled: true
+
+logging:
+  # Structured logging configuration
+  format: json  # json, standard
+  console: true
+  file: true
+  file_path: logs/scheduleflow.log
+  
+  # Log rotation
+  max_bytes: 10485760  # 10MB
+  backup_count: 5
+  
+  # Log levels per module
+  levels:
+    scheduleflow: INFO
+    api: INFO
+    stripper: DEBUG
+    validation: INFO
+    threading: DEBUG
+
+database:
+  # SQLite configuration
+  type: sqlite
+  path: scheduleflow.db
+  
+  # Connection pooling
+  pool_size: 5
+  max_overflow: 10
+  pool_recycle_seconds: 3600
+
+export:
+  # Export configuration
+  formats:
+    - m3u
+    - m3u8
+    - xml
+    - json
+  
+  # Default export settings
+  default_format: m3u8
+  include_headers: true
+  validate_before_export: true
+
+development:
+  # Development-only settings
+  reload_on_change: true
+  show_sql_queries: false
+  fake_data_enabled: false
