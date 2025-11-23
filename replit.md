@@ -51,8 +51,24 @@
 ## Authentication & Security Model (CORRECTED)
 - **User Access (End-Users):** ✅ NO authentication required - dashboard fully open for scheduling
 - **GitHub Admin Edits:** ✅ Authentication required - GitHub OAuth for code deployment only
-- **Security Posture:** Private network only (no internet exposure without additional auth layer)
+- **Admin Operations:** ⚠️ Needs API key protection for DELETE/UPDATE operations
+- **Security Posture:** Private network safe; needs admin key for public exposure
 - **Reference:** https://github.com/banamine/Liberty-Express-/blob/main/M3U_Matrix_Pro.py
+- **Security Gaps Identified:** See SECURITY_ASSESSMENT.md for full analysis and Phase 1/Phase 2 implementations
+
+## Critical Security Fixes Needed (Priority Order)
+
+### Phase 1: Immediate (2-3 hours)
+- [ ] Add API key validation for DELETE operations
+- [ ] Implement file size limits (50MB max)
+- [ ] Add XML entity attack prevention
+- [ ] Create .env file for admin credentials
+
+### Phase 2: Full Implementation (1-2 weeks)
+- [ ] Role-based access control (admin/editor/viewer)
+- [ ] User authentication system
+- [ ] Audit logging
+- [ ] Permission enforcement on all endpoints
 
 ## Implementation Completion Checklist (Nov 22, 2025)
 
