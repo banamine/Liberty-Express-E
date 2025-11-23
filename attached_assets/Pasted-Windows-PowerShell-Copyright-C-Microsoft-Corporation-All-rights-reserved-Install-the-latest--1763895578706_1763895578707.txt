@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Windows PowerShell
 Copyright (C) Microsoft Corporation. All rights reserved.
 
@@ -27,4 +28,35 @@ CONFLICT (modify/delete): main.py deleted in HEAD and modified in ea87959f641b46
 Auto-merging requirements.txt
 CONFLICT (add/add): Merge conflict in requirements.txt
 Automatic merge failed; fix conflicts and then commit the result.
+=======
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Install the latest PowerShell for new features and improvements! https://aka.ms/PSWindows
+
+PS C:\Users\banamine\Videos\M3U MATRIX ALL IN ONE\Liberty-Express-> git pull origin main
+remote: Enumerating objects: 75, done.
+remote: Counting objects: 100% (75/75), done.
+remote: Compressing objects: 100% (53/53), done.
+remote: Total 62 (delta 20), reused 17 (delta 7), pack-reused 0 (from 0)
+Unpacking objects: 100% (62/62), 940.89 KiB | 1.55 MiB/s, done.
+From https://github.com/banamine/Liberty-Express-
+ * branch            main       -> FETCH_HEAD
+   21f44fa..ea87959  main       -> origin/main
+warning: in the working copy of 'AUTOPLAY_TEST_WORKFLOW.sh', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Core_Modules/page_generator.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '_archive/backup_copies/backup_script.sh', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '_archive/old_docs/START_WEB_SERVER.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '_archive/old_docs/run_m3u_matrix.sh', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'check_prerequisites.sh', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'scripts/launch_m3u_matrix_pro.sh', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'scripts/launch_video_player_pro.sh', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'scripts/run_m3u_matrix.sh', LF will be replaced by CRLF the next time Git touches it
+Auto-merging M3U_Matrix_Output/generated_pages/flux_test_channel.html
+CONFLICT (file location): templates/simple_nexus_player.html added in ea87959f641b4666c1a1dd321bbe4880dd79d10e inside a directory that was renamed in HEAD, suggesting it should perhaps be moved to M3U_Matrix_Output/generated_pages/simple_nexus_player.html.
+CONFLICT (modify/delete): main.py deleted in HEAD and modified in ea87959f641b4666c1a1dd321bbe4880dd79d10e.  Version ea87959f641b4666c1a1dd321bbe4880dd79d10e of main.py left in tree.
+Auto-merging requirements.txt
+CONFLICT (add/add): Merge conflict in requirements.txt
+Automatic merge failed; fix conflicts and then commit the result.
+>>>>>>> 1a45e5f4554c44fc0223c1b77be694ab7eabb3b2
 PS C:\Users\banamine\Videos\M3U MATRIX ALL IN ONE\Liberty-Express->

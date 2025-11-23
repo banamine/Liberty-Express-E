@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ========================================
 M3U MATRIX - Build Installer
 ========================================
@@ -34,4 +35,42 @@ Building installer executable...
 ERROR: Unable to find 'C:\\Users\\Jamess\\Videos\\TVStation\\Liberty-Express-\\Sample Playlists' when adding binary and data files.
 
 ERROR: Build failed!
+=======
+========================================
+M3U MATRIX - Build Installer
+========================================
+
+Installing PyInstaller...
+Requirement already satisfied: pyinstaller in c:\users\jamess\appdata\local\programs\python\python314\lib\site-packages (6.16.0)
+Requirement already satisfied: altgraph in c:\users\jamess\appdata\local\programs\python\python314\lib\site-packages (from pyinstaller) (0.17.4)
+Requirement already satisfied: packaging>=22.0 in c:\users\jamess\appdata\local\programs\python\python314\lib\site-packages (from pyinstaller) (25.0)
+Requirement already satisfied: pefile!=2024.8.26,>=2022.5.30 in c:\users\jamess\appdata\local\programs\python\python314\lib\site-packages (from pyinstaller) (2023.2.7)
+Requirement already satisfied: pyinstaller-hooks-contrib>=2025.8 in c:\users\jamess\appdata\local\programs\python\python314\lib\site-packages (from pyinstaller) (2025.9)
+Requirement already satisfied: pywin32-ctypes>=0.2.1 in c:\users\jamess\appdata\local\programs\python\python314\lib\site-packages (from pyinstaller) (0.2.3)
+Requirement already satisfied: setuptools>=42.0.0 in c:\users\jamess\appdata\local\programs\python\python314\lib\site-packages (from pyinstaller) (80.9.0)
+
+[notice] A new release of pip is available: 25.2 -> 25.3
+[notice] To update, run: python.exe -m pip install --upgrade pip
+
+Building installer executable...
+
+433 INFO: PyInstaller: 6.16.0, contrib hooks: 2025.9
+434 INFO: Python: 3.14.0
+494 INFO: Platform: Windows-11-10.0.26100-SP0
+494 INFO: Python environment: C:\Users\Jamess\AppData\Local\Programs\Python\Python314
+496 INFO: wrote C:\Users\Jamess\Videos\TVStation\Liberty-Express-\installer\M3U_Matrix_Installer.spec
+506 INFO: Module search paths (PYTHONPATH):
+['C:\\Users\\Jamess\\AppData\\Local\\Programs\\Python\\Python314\\Scripts\\pyinstaller.exe',
+ 'C:\\Users\\Jamess\\AppData\\Local\\Programs\\Python\\Python314\\python314.zip',
+ 'C:\\Users\\Jamess\\AppData\\Local\\Programs\\Python\\Python314\\DLLs',
+ 'C:\\Users\\Jamess\\AppData\\Local\\Programs\\Python\\Python314\\Lib',
+ 'C:\\Users\\Jamess\\AppData\\Local\\Programs\\Python\\Python314',
+ 'C:\\Users\\Jamess\\AppData\\Local\\Programs\\Python\\Python314\\Lib\\site-packages',
+ 'C:\\Users\\Jamess\\AppData\\Local\\Programs\\Python\\Python314\\Lib\\site-packages\\setuptools\\_vendor',
+ 'C:\\Users\\Jamess\\Videos\\TVStation\\Liberty-Express-\\installer']
+1274 INFO: Appending 'datas' from .spec
+ERROR: Unable to find 'C:\\Users\\Jamess\\Videos\\TVStation\\Liberty-Express-\\Sample Playlists' when adding binary and data files.
+
+ERROR: Build failed!
+>>>>>>> 1a45e5f4554c44fc0223c1b77be694ab7eabb3b2
 Press any key to continue . . .

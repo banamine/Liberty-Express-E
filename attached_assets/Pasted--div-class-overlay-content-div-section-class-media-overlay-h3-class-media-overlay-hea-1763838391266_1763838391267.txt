@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <div class="overlay-content"><div>		<section class="media-overlay">
 			<h3 class="media-overlay-heading">Embeddable Player</h3><ul class="media-overlay-display-select"><li><select><option value="0">JavaScript</option><option value="1">IFRAME</option></select></li><li data-id="0" style="display: none;"><textarea readonly="" rows="4" class="copy-paste" spellcheck="false" data-code="&lt;script&gt;!function(r,u,m,b,l,e){r._Rumble=b,r[b]||(r[b]=function(){(r[b]._=r[b]._||[]).push(arguments);if(r[b]._.length==1){l=u.createElement(m),e=u.getElementsByTagName(m)[0],l.async=1,l.src=&quot;https://rumble.com/embedJS/u4&quot;+(arguments[1].video?'.'+arguments[1].video:'')+&quot;/?url=&quot;+encodeURIComponent(location.href)+&quot;&amp;args=&quot;+encodeURIComponent(JSON.stringify([].slice.apply(arguments))),e.parentNode.insertBefore(l,e)}})}(window, document, &quot;script&quot;, &quot;Rumble&quot;);&lt;/script&gt;
 
@@ -10,4 +11,18 @@ Rumble(&quot;play&quot;, {&quot;video&quot;:&quot;v64cgzd&quot;,&quot;div&quot;:
 Rumble(&quot;play&quot;, {&quot;video&quot;:&quot;v64cgzd&quot;,&quot;div&quot;:&quot;rumble_v64cgzd&quot;});&lt;/script&gt;"></textarea></li><li data-id="1" style="display: block;"><input readonly="" data-code="&lt;iframe class=&quot;rumble&quot; width=&quot;640&quot; height=&quot;360&quot; src=&quot;https://rumble.com/embed/v64cgzd/?pub=4&quot; frameborder=&quot;0&quot; allowfullscreen&gt;&lt;/iframe&gt;" data-code-with-start-time="&lt;iframe class=&quot;rumble&quot; width=&quot;640&quot; height=&quot;360&quot; src=&quot;https://rumble.com/embed/v64cgzd/?pub=4&quot; frameborder=&quot;0&quot; allowfullscreen&gt;&lt;/iframe&gt;" class="copy-paste"></li></ul><h3 class="media-overlay-heading">Embed IFRAME URL</h3><input readonly="" data-code="https://rumble.com/embed/v64cgzd/?pub=4" data-code-with-start-time="https://rumble.com/embed/v64cgzd/?pub=4" class="copy-paste">		</section>
 
 		
+=======
+<div class="overlay-content"><div>		<section class="media-overlay">
+			<h3 class="media-overlay-heading">Embeddable Player</h3><ul class="media-overlay-display-select"><li><select><option value="0">JavaScript</option><option value="1">IFRAME</option></select></li><li data-id="0" style="display: none;"><textarea readonly="" rows="4" class="copy-paste" spellcheck="false" data-code="&lt;script&gt;!function(r,u,m,b,l,e){r._Rumble=b,r[b]||(r[b]=function(){(r[b]._=r[b]._||[]).push(arguments);if(r[b]._.length==1){l=u.createElement(m),e=u.getElementsByTagName(m)[0],l.async=1,l.src=&quot;https://rumble.com/embedJS/u4&quot;+(arguments[1].video?'.'+arguments[1].video:'')+&quot;/?url=&quot;+encodeURIComponent(location.href)+&quot;&amp;args=&quot;+encodeURIComponent(JSON.stringify([].slice.apply(arguments))),e.parentNode.insertBefore(l,e)}})}(window, document, &quot;script&quot;, &quot;Rumble&quot;);&lt;/script&gt;
+
+&lt;div id=&quot;rumble_v64cgzd&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+Rumble(&quot;play&quot;, {&quot;video&quot;:&quot;v64cgzd&quot;,&quot;div&quot;:&quot;rumble_v64cgzd&quot;});&lt;/script&gt;" data-code-with-start-time="&lt;script&gt;!function(r,u,m,b,l,e){r._Rumble=b,r[b]||(r[b]=function(){(r[b]._=r[b]._||[]).push(arguments);if(r[b]._.length==1){l=u.createElement(m),e=u.getElementsByTagName(m)[0],l.async=1,l.src=&quot;https://rumble.com/embedJS/u4&quot;+(arguments[1].video?'.'+arguments[1].video:'')+&quot;/?url=&quot;+encodeURIComponent(location.href)+&quot;&amp;args=&quot;+encodeURIComponent(JSON.stringify([].slice.apply(arguments))),e.parentNode.insertBefore(l,e)}})}(window, document, &quot;script&quot;, &quot;Rumble&quot;);&lt;/script&gt;
+
+&lt;div id=&quot;rumble_v64cgzd&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+Rumble(&quot;play&quot;, {&quot;video&quot;:&quot;v64cgzd&quot;,&quot;div&quot;:&quot;rumble_v64cgzd&quot;});&lt;/script&gt;"></textarea></li><li data-id="1" style="display: block;"><input readonly="" data-code="&lt;iframe class=&quot;rumble&quot; width=&quot;640&quot; height=&quot;360&quot; src=&quot;https://rumble.com/embed/v64cgzd/?pub=4&quot; frameborder=&quot;0&quot; allowfullscreen&gt;&lt;/iframe&gt;" data-code-with-start-time="&lt;iframe class=&quot;rumble&quot; width=&quot;640&quot; height=&quot;360&quot; src=&quot;https://rumble.com/embed/v64cgzd/?pub=4&quot; frameborder=&quot;0&quot; allowfullscreen&gt;&lt;/iframe&gt;" class="copy-paste"></li></ul><h3 class="media-overlay-heading">Embed IFRAME URL</h3><input readonly="" data-code="https://rumble.com/embed/v64cgzd/?pub=4" data-code-with-start-time="https://rumble.com/embed/v64cgzd/?pub=4" class="copy-paste">		</section>
+
+		
+>>>>>>> 1a45e5f4554c44fc0223c1b77be694ab7eabb3b2
 		</div></div>

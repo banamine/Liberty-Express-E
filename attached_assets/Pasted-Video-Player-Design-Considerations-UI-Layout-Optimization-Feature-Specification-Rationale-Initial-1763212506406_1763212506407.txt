@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Video Player Design Considerations
 UI Layout Optimization
 Feature	Specification	Rationale
@@ -63,4 +64,71 @@ Implement debounce/throttle on resize events
 Leverage CSS transitions for fluid animations
 Accessibility Features
 Ensure keyboard navigability
+=======
+Video Player Design Considerations
+UI Layout Optimization
+Feature	Specification	Rationale
+Initial State	Full-width panel	Default view on video start
+After 1 Minute	Top panel reduces to half-width	Maximize screen real estate
+Activation Modes	Mouse hoverNext show trigger	Provide flexible interaction
+Overflow Handling	Dynamic resizing	Prevent content cutoff
+FFmpeg Timestamp Integration
+Timestamp Handling Techniques
+Precise Timestamp Extraction
+Use FFmpeg's -show_entries option for accurate frame-level timestamps
+Support multiple timestamp formats:
+HH:MM:SS
+Seconds
+Milliseconds
+Code Snippet for Timestamp Extraction
+bash
+
+Copy Code
+ffprobe -v error -show_entries frame=pict_type,pts_time -of csv=p=0 input.mp4
+Scheduling and TV Guide Integration
+Timestamp Mapping
+Metadata Embedding
+Store timestamps in JSON/XML sidecar files
+Include:
+Show start/end times
+Segment breaks
+Ad placement markers
+Recommended Timestamp Attributes
+Attribute	Description	Example
+Start Time	Absolute show beginning	14:30:00
+Duration	Total show length	00:30:00
+Segment Markers	Key scene/break points	[00:05:30, 00:15:45]
+Ad Breaks	Commercial insertion times	[00:10:00-00:10:30]
+Implementation Recommendations
+JavaScript Pseudo-Code for Dynamic Resizing
+javascript
+
+Copy Code
+function adjustPlayerLayout(videoProgress) {
+  if (videoProgress >= 60) {  // 1 minute mark
+    topPanel.width = '50%';
+    topPanel.position = 'compact';
+  }
+
+  topPanel.addEventListener('mouseover', () => {
+    topPanel.width = '100%';
+    topPanel.expand();
+  });
+}
+FFmpeg Timestamp Generation
+bash
+
+Copy Code
+ffmpeg -i input.mp4 \
+  -filter:v "select='between(t,start_time,end_time)',setpts=PTS-STARTPTS" \
+  -metadata:s:v:0 start_time=60 \
+  output_segment.mp4
+Advanced Considerations
+Performance Optimization
+Use CSS transform: scale() for smooth resizing
+Implement debounce/throttle on resize events
+Leverage CSS transitions for fluid animations
+Accessibility Features
+Ensure keyboard navigability
+>>>>>>> 1a45e5f4554c44fc0223c1b77be694ab7eabb3b2
 Provide clear visual cues for panel state changes

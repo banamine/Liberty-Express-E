@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import os
 import requests
 from bs4 import BeautifulSoup
@@ -101,4 +102,109 @@ def download_m3u_links():
 
 if __name__ == "__main__":
     print("=== MPMUX.com M3U Playlist Grabber ===\n")
+=======
+import os
+import requests
+from bs4 import BeautifulSoup
+import re
+import time
+from urllib.parse import urljoin
+
+# -----------------------------
+# Configuration
+# -----------------------------
+BASE_URL = "https://mpmux.com/"
+OUTPUT_FOLDER = "mpmux_playlists"
+DELAY_BETWEEN_REQUESTS = 1  # Be respectful to the server
+
+# Create output folder
+os.makedirs(OUTPUT_FOLDER, exist_ok=True)
+
+def clean_filename(name):
+    """Remove or replace invalid filename characters"""
+    return re.sub(r'[<>:"/\\|?*]', '_', name.strip())
+
+def download_m3u_links():
+    print("Fetching the main page...")
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36"
+    }
+    
+    try:
+        response = requests.get(BASE_URL, headers=headers, timeout=15)
+        response.raise_for_status()
+    except Exception as e:
+        print(f"Failed to load {BASE_URL}: {e}")
+        return
+
+    soup = BeautifulSoup(response.text, 'html.parser')
+    
+    # mpmux.com usually lists playlists inside <pre> or <code> blocks, or as direct links
+    # This regex finds raw .m3u or playlist URLs
+    m3u_pattern = re.compile(r'(https?://[^\s<>"\']+\.m3u8?|https?://[^\s<>"\']+playlist[^\s<>"\']*\.m3u)', re.IGNORECASE)
+    found_links = set()
+
+    # Method 1: Look for direct links in <a> tags
+    for a in soup.find_all('a', href=True):
+        href = a['href']
+        if href.endswith('.m3u') or href.endswith('.m3u8') or 'playlist' in href.lower():
+            full_url = urljoin(BASE_URL, href)
+            found_links.add(full_url)
+
+    # Method 2: Search raw text for any http(s) links ending with .m3u/.m3u8
+    raw_text = soup.get_text()
+    matches = m3u_pattern.findall(raw_text)
+    for match in matches:
+        found_links.add(match.strip())
+
+    print(f"Found {len(found_links)} potential playlist links.\n")
+    
+    successful = 0
+    for i, url in enumerate(sorted(found_links), 1):
+        print(f"[{i}/{len(found_links)}] Downloading: {url}")
+        
+        try:
+            r = requests.get(url, headers=headers, timeout=20)
+            r.raise_for_status()
+            content = r.text.strip()
+            
+            if not content or len(content) < 100:
+                print("   → Empty or too small, skipping.\n")
+                continue
+                
+            if not content.startswith('#EXTM3U'):
+                print("   → Doesn't look like a valid M3U playlist, skipping.\n")
+                continue
+                
+            # Try to create a nice filename
+            name = url.split('/')[-1]
+            if '?' in name:
+                name = name.split('?')[0]
+            if not name.lower().endswith(('.m3u', '.m3u8')):
+                name = name + ".m3u"
+                
+            # Fallback: use domain + path as name
+            if len(name) <= 5 or name.startswith('playlist'):
+                fallback = url.replace('https://', '').replace('http://', '').replace('/', '_').replace('?', '_')
+                name = fallback[:100] + ".m3u"
+                
+            filename = clean_filename(name)
+            filepath = os.path.join(OUTPUT_FOLDER, filename)
+            
+            with open(filepath, 'w', encoding='utf-8') as f:
+                f.write(content)
+                
+            print(f"   → Saved as: {filename} ({len(content.splitlines())} lines)\n")
+            successful += 1
+            
+        except Exception as e:
+            print(f"   → Failed: {e}\n")
+            
+        time.sleep(DELAY_BETWEEN_REQUESTS)
+    
+    print(f"\nDone! Successfully saved {successful}/{len(found_links)} playlists in '{OUTPUT_FOLDER}/'")
+
+if __name__ == "__main__":
+    print("=== MPMUX.com M3U Playlist Grabber ===\n")
+>>>>>>> 1a45e5f4554c44fc0223c1b77be694ab7eabb3b2
     download_m3u_links()

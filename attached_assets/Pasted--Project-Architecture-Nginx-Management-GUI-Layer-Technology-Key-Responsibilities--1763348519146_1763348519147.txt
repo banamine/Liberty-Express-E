@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ### Project Architecture: Nginx Management GUI  
 | Layer | Technology | Key Responsibilities |  
 |-------|------------|----------------------|  
@@ -131,4 +132,139 @@ export default function NDIPlayer() {
 
 ---
 
+=======
+### Project Architecture: Nginx Management GUI  
+| Layer | Technology | Key Responsibilities |  
+|-------|------------|----------------------|  
+| **Frontend** | Electron + React | User interface, interactions |  
+| **Backend** | FastAPI + Python | Server logic, Nginx management |  
+| **Communication** | WebSocket | Real-time updates |  
+| **Styling** | Tailwind CSS | Responsive design |  
+
+---
+
+## VLC + Python → NDI Compatibility  
+
+| Aspect | Verdict | Explanation |
+|--------|---------|-------------|
+| **Is it possible?** | **Yes** | VLC can receive and send NDI streams **natively** (via the `libndi` plugin). Python can control VLC through `python-vlc` bindings, enabling full NDI workflows. |
+| **Difficulty** | **Easy → Moderate** | - **Easy**: Use pre-built NDI-enabled VLC + `python-vlc`.<br>- **Moderate**: Custom build of `libvlc` with NDI SDK or dynamic plugin loading on Windows/macOS. |
+
+---
+
+### 1. How VLC Handles NDI (Backend Logic)
+
+```python
+# backend/ndi_vlc.py (FastAPI-compatible snippet)
+import vlc
+import logging
+from datetime import datetime
+
+class NDIVLCManager:
+    def __init__(self):
+        self.instance = vlc.Instance([
+            '--no-audio',                # optional
+            '--network-caching=300',
+            '--ndi-name=MyNexusStream'   # NDI source name
+        ])
+        self.player = self.instance.media_player_new()
+        self.logger = logging.getLogger(__name__)
+
+    def play_ndi_stream(self, ndi_url: str):
+        """ndi://SOURCE_NAME or ndi://IP/SOURCE_NAME"""
+        media = self.instance.media_new(ndi_url)
+        self.player.set_media(media)
+        self.player.play()
+        self.logger.info(f"Playing NDI stream: {ndi_url}")
+
+    def send_to_ndi(self, input_source: str):
+        """Transcode local file/RTSP → NDI output"""
+        media = self.instance.media_new(input_source)
+        media.add_option('sout=#ndi{name=NexusOutput}')
+        media.add_option('sout-keep')
+        self.player.set_media(media)
+        self.player.play()
+```
+
+> **Real-time WebSocket broadcast** (integrates with your FastAPI WS layer):
+
+```python
+@app.websocket("/ws/ndi")
+async def ndi_status_ws(websocket: WebSocket):
+    await websocket.accept()
+    vlc_mgr = NDIVLCManager()
+    while True:
+        status = {
+            "playing": vlc_mgr.player.is_playing(),
+            "volume": vlc_mgr.player.audio_get_volume(),
+            "timestamp": datetime.now().isoformat()
+        }
+        await websocket.send_json(status)
+        await asyncio.sleep(1)
+```
+
+---
+
+### 2. Frontend React Component (Tailwind-styled)
+
+```jsx
+// src/components/NDIPlayer.jsx
+import React, { useEffect, useRef } from 'react';
+import { useWebSocket } from '../WebSocketContext';
+
+export default function NDIPlayer() {
+  const videoRef = useRef(null);
+  const ws = useWebSocket();
+
+  useEffect(() => {
+    if (ws) {
+      ws.send(JSON.stringify({ action: 'play_ndi', url: 'ndi://StudioCam' }));
+    }
+  }, [ws]);
+
+  return (
+    <div className="bg-gray-900 rounded-lg p-4 col-span-8">
+      <video ref={videoRef} className="w-full h-96 bg-black" controls />
+      <div className="mt-2 text-sm text-gray-400">
+        NDI Stream: <span className="font-mono">StudioCam</span>
+      </div>
+    </div>
+  );
+}
+```
+
+---
+
+### 3. Setup Steps (One-Time)
+
+| Step | Command | Notes |
+|------|--------|-------|
+| 1. Install NDI SDK | [Download](https://ndi.video/tools) | Required for VLC NDI plugin |
+| 2. Get NDI-enabled VLC | `choco install vlc-ndi` (Win) <br> `brew install --cask vlc` + manual plugin | Or build from source |
+| 3. Python bindings | `pip install python-vlc` | Ensure it links to NDI-enabled `libvlc.dll` |
+| 4. Test CLI | `vlc ndi://MySource` | Verify before Python |
+
+---
+
+### 4. Difficulty Breakdown
+
+| Task | Difficulty | Time |
+|------|------------|------|
+| Play NDI stream | Easy | 5 mins |
+| Send stream to NDI | Easy | 10 mins |
+| Python control | Easy | 5 mins |
+| Real-time UI sync | Moderate | 20 mins |
+| Cross-platform plugin path | Moderate | 30 mins (Windows DLL hell) |
+
+---
+
+### Verdict: **Easy with Prebuilt Tools**
+
+> **Just works** if you use official **NDI Tools + VLC NDI build + python-vlc**.
+
+> **Slightly harder** only if you need **custom transcoding pipelines** or **headless server** deployment.
+
+---
+
+>>>>>>> 1a45e5f4554c44fc0223c1b77be694ab7eabb3b2
 **Recommendation**: Add `NDIVLCManager` to your FastAPI backend → expose via `/ws/ndi` → React component subscribes → **zero native code needed**.

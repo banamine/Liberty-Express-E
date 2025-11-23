@@ -1,0 +1,3840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buffer Tv</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: #0f1219;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        .tv-container {
+            width: 100%;
+            max-width: 1200px;
+            background: linear-gradient(135deg, #1a1f2e 0%, #151823 100%);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7);
+            border: 1px solid #2a2f42;
+            position: relative;
+        }
+        
+        .player-header {
+            background: linear-gradient(90deg, #003366 0%, #990000 100%);
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #2a2f42;
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .tv-logo {
+            height: 30px;
+        }
+        
+        .player-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .header-controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .header-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            padding: 8px 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+        
+        .header-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .content-area {
+            display: flex;
+            height: 600px;
+        }
+        
+        .video-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .video-container {
+            width: 100%;
+            position: relative;
+            background: #000;
+            flex: 1;
+        }
+        
+        #video-player {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 15px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .buffering-indicator {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            display: none;
+            z-index: 5;
+        }
+        
+        .player-controls {
+            padding: 15px;
+            background: rgba(20, 22, 35, 0.9);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .control-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            padding: 8px 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+        
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .control-btn.active {
+            background: #003366;
+        }
+        
+        .progress-container {
+            flex: 1;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #003366, #990000);
+            width: 0%;
+            transition: width 0.1s;
+        }
+        
+        .time-display {
+            font-size: 0.8rem;
+            color: #a0a4b8;
+            min-width: 100px;
+            text-align: center;
+        }
+        
+        .volume-container {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .volume-slider {
+            width: 70px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+        }
+        
+        .status-message {
+            padding: 10px 15px;
+            text-align: center;
+            font-size: 0.9rem;
+            background: rgba(153, 0, 0, 0.2);
+            color: #ff6b6b;
+            display: none;
+        }
+        
+        .control-section {
+            width: 300px;
+            background: rgba(20, 22, 35, 0.8);
+            border-left: 1px solid #2a2f42;
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            gap: 15px;
+        }
+        
+        .section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #a0a4b8;
+            text-align: center;
+        }
+        
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .keypad-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            padding: 12px 5px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .keypad-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .keypad-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .keypad-btn .channel-name {
+            font-size: 0.6rem;
+            margin-top: 3px;
+            color: #a0a4b8;
+        }
+        
+        .channel-display {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .control-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        
+        .control-buttons .control-btn {
+            justify-content: center;
+        }
+        
+        .buffer-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #2a2f42;
+        }
+        
+        .buffer-slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .buffer-slider-label {
+            font-size: 0.8rem;
+            color: #a0a4b8;
+            min-width: 120px;
+        }
+        
+        .buffer-slider {
+            flex: 1;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        .buffer-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+        }
+        
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            display: none;
+        }
+        
+        .overlay-content {
+            background: linear-gradient(135deg, #1e222e 0%, #151823 100%);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 1000px;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid #2a2f42;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .overlay-header {
+            padding: 15px 20px;
+            background: linear-gradient(90deg, #003366 0%, #990000 100%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .overlay-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+        
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .overlay-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        
+        .guide-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+        
+        .guide-channel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+        
+        .guide-channel:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #2a2f42;
+        }
+        
+        .channel-number {
+            background: linear-gradient(90deg, #003366, #990000);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .channel-info {
+            flex: 1;
+        }
+        
+        .channel-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .channel-category {
+            font-size: 0.8rem;
+            color: #a0a4b8;
+        }
+        
+        .player-footer {
+            padding: 10px 15px;
+            text-align: center;
+            font-size: 0.7rem;
+            color: #5a5f7a;
+            border-top: 1px solid #2a2f42;
+        }
+        
+        @media (max-width: 900px) {
+            .content-area {
+                flex-direction: column;
+                height: auto;
+            }
+            
+            .control-section {
+                width: 100%;
+                border-left: none;
+                border-top: 1px solid #2a2f42;
+            }
+            
+            .keypad {
+                grid-template-columns: repeat(6, 1fr);
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .keypad {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .guide-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .player-controls {
+                gap: 8px;
+            }
+            
+            .control-btn {
+                padding: 6px 10px;
+                font-size: 0.8rem;
+            }
+            
+            .time-display {
+                min-width: 80px;
+            }
+        }
+    
+    /* Click to Play Overlay */
+    .play-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        z-index: 1000;
+        transition: opacity 0.3s;
+    }
+    
+    .play-overlay.hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
+    
+    .play-button {
+        width: 80px;
+        height: 80px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: transform 0.3s;
+    }
+    
+    .play-button:hover {
+        transform: scale(1.1);
+    }
+    
+    .play-button::after {
+        content: '▶';
+        font-size: 36px;
+        color: #333;
+        margin-left: 5px;
+    }
+
+</style>
+</head>
+<body>
+<!-- Back to Hub Button -->
+    <a href="../../index.html" style="position: fixed; top: 20px; left: 20px; z-index: 10000; background: linear-gradient(135deg, #00d4ff, #0066ff); color: white; padding: 12px 24px; border-radius: 25px; text-decoration: none; font-weight: bold; font-size: 14px; box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4); transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;" onmouseover="this.style.transform='scale(1.05) translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0, 212, 255, 0.6)';" onmouseout="this.style.transform='scale(1) translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0, 212, 255, 0.4)';">🏠 Hub</a>
+    
+
+    <div class="tv-container">
+        <div class="player-header">
+            <div class="logo-container">
+                <div class="player-title" id="channel-title">TV Player</div>
+            </div>
+            <div class="header-controls">
+                <button class="header-btn" id="guide-btn">
+                    <i class="fas fa-list"></i> TV Guide
+                </button>
+                <button class="header-btn" id="keypad-btn">
+                    <i class="fas fa-keyboard"></i> Keypad
+                </button>
+            </div>
+        </div>
+        
+        <div class="content-area">
+            <div class="video-section">
+                <div class="video-container">
+                    <video id="video-player" preload="auto" crossorigin="anonymous">
+                        <!-- Stream will be loaded via HLS.js -->
+                    </video>
+
+    <!-- Click to Play Overlay -->
+    <div id="playOverlay" class="play-overlay">
+        <div class="play-button"></div>
+    </div>
+                    
+                    <div class="buffering-indicator" id="buffering-indicator">
+                        <i class="fas fa-circle-notch fa-spin"></i> Buffering...
+                    </div>
+                    
+                    <div class="loading-overlay" id="loading-overlay">
+                        <div class="spinner"></div>
+                        <p>Loading channel...</p>
+                    </div>
+                </div>
+                
+                <div class="status-message" id="status-message"></div>
+                
+                <div class="player-controls">
+                    <button class="control-btn" id="play-pause-btn">
+                        <span id="play-icon"><i class="fas fa-play"></i></span>
+                        <span id="pause-icon" style="display:none;"><i class="fas fa-pause"></i></span>
+                    </button>
+                    
+                    <div class="progress-container" id="progress-container">
+                        <div class="progress-bar" id="progress-bar"></div>
+                    </div>
+                    
+                    <div class="time-display">
+                        <span id="current-time">0:00</span> / <span id="duration">0:00</span>
+                    </div>
+                    
+                    <div class="volume-container">
+                        <button class="control-btn" id="mute-btn">
+                            <span id="volume-icon"><i class="fas fa-volume-up"></i></span>
+                        </button>
+                        <input type="range" class="volume-slider" id="volume-slider" min="0" max="1" step="0.1" value="1">
+                    </div>
+                    
+                    <button class="control-btn" id="fullscreen-btn"><i class="fas fa-expand"></i></button>
+                    
+                    <button class="control-btn" id="prev-channel-btn"><i class="fas fa-step-backward"></i></button>
+                    <button class="control-btn" id="next-channel-btn"><i class="fas fa-step-forward"></i></button>
+                </div>
+            </div>
+            
+            <div class="control-section">
+                <div class="section-title">Channel Control</div>
+                <div class="channel-display" id="current-channel">Channel 1</div>
+                
+                <div class="keypad">
+                    <!-- Keypad buttons will be generated by JavaScript -->
+                </div>
+                
+                <div class="control-buttons">
+                    <button class="control-btn" id="clear-btn">
+                        <i class="fas fa-backspace"></i> Clear
+                    </button>
+                    <button class="control-btn" id="enter-btn">
+                        <i class="fas fa-check"></i> Enter
+                    </button>
+                </div>
+                
+                <div class="buffer-controls">
+                    <div class="section-title">Buffer Settings</div>
+                    <div class="buffer-slider-container">
+                        <span class="buffer-slider-label">Load Timeout (seconds):</span>
+                        <input type="range" class="buffer-slider" id="load-timeout-slider" min="5" max="30" step="1" value="15">
+                        <span id="load-timeout-value">15s</span>
+                    </div>
+                    <div class="buffer-slider-container">
+                        <span class="buffer-slider-label">Retry Delay (seconds):</span>
+                        <input type="range" class="buffer-slider" id="retry-delay-slider" min="1" max="10" step="1" value="3">
+                        <span id="retry-delay-value">3s</span>
+                    </div>
+                </div>
+                
+                <div class="section-title">Quick Channels</div>
+                <div class="control-buttons">
+                    <button class="control-btn" id="favorite1-btn">Movies</button>
+                    <button class="control-btn" id="favorite2-btn">Entertainment</button>
+                    <button class="control-btn" id="favorite3-btn">Documentary</button>
+                    <button class="control-btn" id="favorite4-btn">Music</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="player-footer">
+            TV Player • M3U8 HTTP Live Streaming • Use TV Guide or Keypad to change channels
+        </div>
+    </div>
+
+    <!-- TV Guide Overlay -->
+    <div class="overlay" id="guide-overlay">
+        <div class="overlay-content">
+            <div class="overlay-header">
+                <div class="overlay-title">TV Guide</div>
+                <button class="close-btn" id="close-guide-btn">&times;</button>
+            </div>
+            <div class="overlay-body">
+                <div class="guide-container" id="guide-container">
+                    <!-- Guide channels will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Keypad Overlay -->
+    <div class="overlay" id="keypad-overlay">
+        <div class="overlay-content">
+            <div class="overlay-header">
+                <div class="overlay-title">Channel Keypad</div>
+                <button class="close-btn" id="close-keypad-btn">&times;</button>
+            </div>
+            <div class="overlay-body">
+                <div class="channel-display" id="keypad-channel-display">Enter Channel</div>
+                <div class="keypad" id="overlay-keypad">
+                    <!-- Overlay keypad buttons will be generated by JavaScript -->
+                </div>
+                <div class="control-buttons">
+                    <button class="control-btn" id="overlay-clear-btn">
+                        <i class="fas fa-backspace"></i> Clear
+                    </button>
+                    <button class="control-btn" id="overlay-enter-btn">
+                        <i class="fas fa-check"></i> Enter
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elements
+            const videoPlayer = document.getElementById('video-player');
+            const loadingOverlay = document.getElementById('loading-overlay');
+            const bufferingIndicator = document.getElementById('buffering-indicator');
+            const statusMessage = document.getElementById('status-message');
+            const channelTitle = document.getElementById('channel-title');
+            const currentChannelDisplay = document.getElementById('current-channel');
+            const playPauseBtn = document.getElementById('play-pause-btn');
+            const playIcon = document.getElementById('play-icon');
+            const pauseIcon = document.getElementById('pause-icon');
+            const progressContainer = document.getElementById('progress-container');
+            const progressBar = document.getElementById('progress-bar');
+            const currentTimeDisplay = document.getElementById('current-time');
+            const durationDisplay = document.getElementById('duration');
+            const muteBtn = document.getElementById('mute-btn');
+            const volumeSlider = document.getElementById('volume-slider');
+            const volumeIcon = document.getElementById('volume-icon');
+            const fullscreenBtn = document.getElementById('fullscreen-btn');
+            const prevChannelBtn = document.getElementById('prev-channel-btn');
+            const nextChannelBtn = document.getElementById('next-channel-btn');
+            const guideBtn = document.getElementById('guide-btn');
+            const keypadBtn = document.getElementById('keypad-btn');
+            const guideOverlay = document.getElementById('guide-overlay');
+            const keypadOverlay = document.getElementById('keypad-overlay');
+            const closeGuideBtn = document.getElementById('close-guide-btn');
+            const closeKeypadBtn = document.getElementById('close-keypad-btn');
+            const guideContainer = document.getElementById('guide-container');
+            const keypadContainer = document.querySelector('.keypad');
+            const overlayKeypadContainer = document.getElementById('overlay-keypad');
+            const clearBtn = document.getElementById('clear-btn');
+            const enterBtn = document.getElementById('enter-btn');
+            const overlayClearBtn = document.getElementById('overlay-clear-btn');
+            const overlayEnterBtn = document.getElementById('overlay-enter-btn');
+            const keypadChannelDisplay = document.getElementById('keypad-channel-display');
+            const favorite1Btn = document.getElementById('favorite1-btn');
+            const favorite2Btn = document.getElementById('favorite2-btn');
+            const favorite3Btn = document.getElementById('favorite3-btn');
+            const favorite4Btn = document.getElementById('favorite4-btn');
+            const loadTimeoutSlider = document.getElementById('load-timeout-slider');
+            const loadTimeoutValue = document.getElementById('load-timeout-value');
+            const retryDelaySlider = document.getElementById('retry-delay-slider');
+            const retryDelayValue = document.getElementById('retry-delay-value');
+
+            // CORS Proxy URLs - multiple backup options
+            const CORS_PROXIES = [
+                'https://api.allorigins.win/raw?url=',
+                'https://cors-anywhere.herokuapp.com/',
+                'https://corsproxy.io/?',
+                'https://api.codetabs.com/v1/proxy?quest='
+            ];
+
+            // M3U8 playlist string
+            const m3u8Playlist = `#EXTINF:-1 tvg-id="AndTV.in@SD",&TV (1080p)
+https://amg01117-amg01117c1-amgplt0165.playout.now3.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="",21 Jump Street (1080p)
+https://cb562753.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWV1XzIxSnVtcFN0cmVldF9ITFM/playlist.m3u8
+#EXTINF:-1 tvg-id="",Adventure Earth (720p)
+https://autentic-adventure-earth-1-eu.rakuten.wurl.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="",Ax Men (720p)
+https://36dc2f37.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWdiX0F4TWVuX0hMUw/playlist.m3u8
+#EXTINF:-1 tvg-id="BabySharkTV.us@SD",Baby Shark TV (720p)
+https://newidco-babysharktv-1-eu.rakuten.wurl.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="Baywatch.us@US",Baywatch (1080p)
+https://amg00145-amg00145c2-rakuten-us-5323.playouts.now.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="Cops.us@SD",Cops (720p)
+https://langleyproductions-cops-2-eu.rakuten.wurl.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="",Cosmic Frontiers (1080p)
+https://amg00376-magellan-amg00376c14-rakuten-uk-1694.playouts.now.amagi.tv/playlist/amg00376-magellantv-spacesciencenowcauk-rakutenuk/playlist.m3u8
+#EXTINF:-1 tvg-id="",Crime Beat TV (1080p)
+https://8e6c868c.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWV1X0NyaW1lQmVhdF9ITFM/playlist.m3u8
+#EXTINF:-1 tvg-id="",Curiosity Now (1080p)
+https://amg00170-curiositystream-amg00170c3-rakuten-us-2289.playouts.now.amagi.tv/playlist/amg00170-curiositystreamllcfast-curiositynowrow-rakutenus/playlist.m3u8
+#EXTINF:-1 tvg-id="",Deal Masters (1080p)
+https://amg00841-amg00841c8-rakuten-uk-2819.playouts.now.amagi.tv/playlist/amg00841-aeemeafast-dealmastersrakuten-rakutenuk/playlist.m3u8
+#EXTINF:-1 tvg-id="DealorNoDeal.us@SD",Deal or No Deal (1080p)
+https://deal-or-no-deal-rakuten.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="",DesiPlay TV (1080p)
+https://amg00857-amg00857c1-rakuten-us-4656.playouts.now.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="DogtheBountyHunter.us@UK",Dog The Bounty Hunter [Geo-blocked] (1080p)
+https://amg00276-amg00276c11-rakuten-uk-3446.playouts.now.amagi.tv/playlist/amg00276-aetelevisionnetworksfast-dogthebountyhunterall-rakutenuk/playlist.m3u8
+#EXTINF:-1 tvg-id="DuckDynasty.us@UK",Duck Dynasty (1080p)
+https://amg00276-amg00276c2-rakuten-uk-3449.playouts.now.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="",Earth Touch TV (1080p)
+https://earthtouch-earthtouch-rakuten.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="",Eggheads (1080p)
+https://amg00654-itv-amg00654c28-rakuten-uk-5302.playouts.now.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="",Escape to The Country (1080p)
+https://amg00145-amg00145c11-rakuten-uk-5450.playouts.now.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="FashionTVEurope.fr@SD",Fashion TV (1080p)
+https://fashiontv-fashiontv-1-eu.rakuten.wurl.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="",Filmzie (720p)
+https://filmzie-filmzie-1-eu.rakuten.wurl.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="",Flipping Nation (720p)
+https://a64543d5.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWdiX0ZsaXBwaW5nTmF0aW9uX0hMUw/playlist.m3u8
+#EXTINF:-1 tvg-id="GBNews.uk@SD",GB News (1080p)
+https://rakutenaa-lightning-gbnews-rakuten-ccoa9.amagi.tv/playlist/rakutenAA-lightning-gbnews-rakuten/playlist.m3u8
+#EXTINF:-1 tvg-id="",Graham Norton (1080p)
+https://amg00654-itv-amg00654c35-rakuten-gb-7598.playouts.now.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="GREATmystery.uk@SD",GREAT! mystery (1080p)
+https://7d963f6f.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWdiX0dyZWF0TXlzdGVyeV9ITFM/playlist.m3u8
+#EXTINF:-1 tvg-id="",GREAT! real (1080p)
+https://amg01753-amg01753c5-rakuten-uk-5500.playouts.now.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="",Great British Menu (720p)
+https://all3media-great-british-menu-1-gb.rakuten.wurl.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="GustoTV.ca@SD",Gusto TV (1080p)
+https://563f72af.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWV1X0d1c3RvVFZfSExT/playlist.m3u8
+#EXTINF:-1 tvg-id="",Hardcore Pawn (1080p)
+https://amg00627-amg00627c8-rakuten-uk-4801.playouts.now.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="HauntTV.us@SD",Haunt TV (1080p)
+https://bamcahaunttvrakuten.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="HellsKitchen.us@UK",Hell's Kitchen (1080p)
+https://itv-hellskitchen-rakuten.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="",Highway Thru Hell (1080p)
+https://amg00627-amg00627c15-rakuten-uk-4803.playouts.now.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="",History Hunters (1080p)
+https://amg00841-amg00841c7-rakuten-uk-2820.playouts.now.amagi.tv/playlist/amg00841-aeemeafast-historyhuntersrakuten-rakutenuk/playlist.m3u8
+#EXTINF:-1 tvg-id="",Hoarders (720p)
+https://8f2546fe.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWV1X0hvYXJkZXJzX0hMUw/playlist.m3u8
+#EXTINF:-1 tvg-id="",Homeful (1080p)
+https://amg00090-amg00090c4-rakuten-uk-2806.playouts.now.amagi.tv/playlist/amg00090-blueantfast-homefulworldwide-rakutenuk/playlist.m3u8
+#EXTINF:-1 tvg-id="HomesUnderHammer.us@UK",Homes Under Hammer (720p)
+https://all3media-homes-under-the-hammer-1-gb.rakuten.wurl.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="",Hotel Inspector (1080p)
+https://amg00654-itv-amg00654c4-rakuten-uk-5263.playouts.now.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="",Ice Road Truckers (720p)
+https://6ffa57ba.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWdiX0ljZVJvYWRUcnVja2Vyc19ITFM/playlist.m3u8
+#EXTINF:-1 tvg-id="INFAST.us@SD",INFAST (1080p)
+https://lifestyle-rakuten.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="InsideCrime.us@UK",Inside Crime (1080p)
+https://aenetworks-insidecrime-rakuten.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="",I Survived (720p)
+https://8e979536.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWdiX0lTdXJ2aXZlZF9ITFM/playlist.m3u8
+#EXTINF:-1 tvg-id="",Jail (720p)
+https://langleyproductions-jail-1-eu.rakuten.wurl.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="JustforLaughs.us@UK",Just for Laughs (1080p)
+https://distributionsjustepourrire-justforlaughstv-1-eu.rakuten.wurl.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="",LOL! Network (720p)
+https://lol-lolnetwork-2-gb.rakuten.wurl.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="",Love Pets (1080p)
+https://rakutenaa-blueskyent-lovepetsemea-rakuten-ikc4q.amagi.tv/playlist/rakutenAA-blueskyent-lovepetsemea-rakuten/playlist.m3u8
+#EXTINF:-1 tvg-id="MAVTV.us@SD",MAVTV (1080p)
+https://amg00378-mavtv-amg00378c2-rakuten-us-1048.playouts.now.amagi.tv/playlist/amg00378-mavtvfast-motorsportsnetwork-rakutenus/playlist.m3u8
+#EXTINF:-1 tvg-id="",Mech+ (720p)
+https://mechtvltd-mechplus-1-gb.rakuten.wurl.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="",Mr. Bean Anime (1080p)
+https://amg00627-amg00627c28-rakuten-uk-3984.playouts.now.amagi.tv/playlist/amg00627-banijayfast-mrbeanukcc-rakutenuk/playlist.m3u8
+#EXTINF:-1 tvg-id="MysteryTV.us@UK",Mystery TV (1080p)
+https://aenetworks-mysterytv-rakuten.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="Mythbusters.us@UK",Mythbusters (1080p)
+https://amg00627-amg00627c14-rakuten-uk-4802.playouts.now.amagi.tv/index.m3u8
+#EXTINF:-1 tvg-id="",MyTime Movie Network (1080p)
+https://appletree-mytimeuk-rakuten.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="",MyZen Wellbeing TV (1080p)
+https://rakutenaa-myzen-en-rakuten-5sex7.amagi.tv/playlist/rakutenAA-myzen-en-rakuten/playlist.m3u8
+#EXTINF:-1 tvg-id="NEWKMOVIES.us@SD",NEW K.MOVIES (1080p)
+https://ec3b4b7e.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWV1X05FV0tNT1ZJRVNfSExT/playlist.m3u8
+#EXTINF:-1 tvg-id="",Ninja Warrior (1080p)
+https://amg00654-itv-amg00654c27-rakuten-uk-5295.playouts.now.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="NitroCircus.us@SD",Nitro Circus (1080p)
+https://amg13231-actve-amg13231c1-rakuten-us-5604.playouts.now.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="Now70s.uk@SD",Now 70s (720p)
+https://lightning-now70s-rakuten.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="Now80s.uk@SD",Now 80s (720p)
+https://lightning-now80s-rakuten.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="NOWRock.uk@SD",NOW Rock (480p)
+https://lightning-now90s-rakuten.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="NTDTV.us@East",NTD TV (1080p)
+https://amg17596-ntdtv-amg17596c1-rakuten-gb-6741.playouts.now.amagi.tv/playlist/amg17596-newtangdynastytelevision-ntdtv-rakutengb/playlist.m3u8
+#EXTINF:-1 tvg-id="",Pointless (1080p)
+https://amg00627-amg00627c34-rakuten-uk-4005.playouts.now.amagi.tv/master.m3u8
+#EXTINF:-1 tvg-id="Pop.uk@SD",Pop (1080p)
+https://narrative-popkids-rakuten.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="",Popflix (720p)
+https://signatureentertainment-popflix-1-gb.rakuten.wurl.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="",Project Runway (1080p)
+https://amg02189-amg02189c1-rakuten-us-5453.playouts.now.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="RakutenTVActionMovies.es@UK",Rakuten TV Action Movies UK (1080p)
+https://54045f0c40fd442c8b06df076aaf1e85.mediatailor.eu-west-1.amazonaws.com/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-LiveChannel-6065/master.m3u8
+#EXTINF:-1 tvg-id="RakutenTVComedyMovies.es@UK",Rakuten TV Comedy Movies UK (1080p)
+https://9be783d652cd4b099cf63e1dc134c4a3.mediatailor.eu-west-1.amazonaws.com/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-LiveChannel-6181/master.m3u8
+#EXTINF:-1 tvg-id="RakutenTVDramaMovies.es@UK",Rakuten TV Drama Movies UK (1080p)
+https://fee09fd665814f51b939b6d106cf5f66.mediatailor.eu-west-1.amazonaws.com/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-LiveChannel-6093/master.m3u8
+#EXTINF:-1 tvg-id="RakutenTVFamilyMovies.es@UK",Rakuten TV Family Movies UK (1080p)
+https://e3207568b726401995c25670faaf32e4.mediatailor.eu-west-1.amazonaws.com/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-LiveChannel-6203/master.m3u8
+#EXTINF:-1 tvg-id="",Rakuten TV Reality UK (1080p)
+https://68f6dfd1f2bd415b9c42f1d383004b69.mediatailor.eu-west-1.amazonaws.com/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-LiveChannel-6233/master.m3u8
+#EXTINF:-1 tvg-id="",Rakuten TV Romance Movies UK (1080p)
+https://2c88ed8c4df9479aa0c7138dc42115e2.mediatailor.eu-west-1.amazonaws.com/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-LiveChannel-6194/master.m3u8
+#EXTINF:-1 tvg-id="",Rakuten TV Sci-Fi UK (1080p)
+https://sci-fi-rakuten-tv-uk.fast.rakuten.tv/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-LiveChannel-6241/master.m3u8
+#EXTINF:-1 tvg-id="",Rakuten TV Thrillers UK (1080p)
+https://thriller-rakuten-tv-uk.fast.rakuten.tv/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-LiveChannel-6482/master.m3u8
+#EXTINF:-1 tvg-id="RakutenTVTopMovies.es@UK",Rakuten Top Movies UK (1080p)
+https://0145451975a64b35866170fd2e8fa486.mediatailor.eu-west-1.amazonaws.com/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-LiveChannel-5987/master.m3u8
+#EXTINF:-1 tvg-id="",Rakuten TV Trailers UK (1080p)
+https://26b638b2564d41f8b6a36b6dd59e8d4f.mediatailor.eu-west-1.amazonaws.com/v1/master/0547f18649bd788bec7b67b746e47670f558b6b2/production-LiveChannel-4313/master.m3u8
+#EXTINF:-1 tvg-id="",Real Crime Beta (1080p)
+https://lds-realcrimebeta-rakuten.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="RealWild.us@SD",Real Wild (1080p)
+https://lds-realwild-rakuten.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="",Red Bull TV (1080p)
+https://e7c8f7d5.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWdiX1JlZEJ1bGxUVi0xX0hMUw/playlist.m3u8
+#EXTINF:-1 tvg-id="RevryNews.us@SD",Revry News (720p)
+https://dcb264a4.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWV1X1JldnJ5TmV3c19ITFM/playlist.m3u8
+#EXTINF:-1 tvg-id="",RomCom K-Drama (1080p)
+https://7488d45c.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWV1X1JvbUNvbUtEcmFtYV9ITFM/playlist.m3u8
+#EXTINF:-1 tvg-id="",SquashTV (1080p)
+https://amg12058-amg12058c5-rakuten-gb-7997.playouts.now.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="",Stormcast Westerns (720p)
+https://stormcast-cinema-llc-westernmaniafast-1-eu.rakuten.wurl.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="Strongman.us@UK",Strongman (720p)
+https://rightsboosterltd-scl-1-eu.rakuten.wurl.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="Tastemade.us@UK",Tastemade (1080p)
+https://tastemade-tdint-rakuten.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="Tastemade.us@US",Tastemade (1080p)
+https://rakutenaa-tm-intl-aus-rakuten-eu-n1gtg.amagi.tv/playlist/rakutenAA-tm-intl-aus-rakuten-eu/playlist.m3u8
+#EXTINF:-1 tvg-id="TennisChannel.us@SD",Tennis Channel (720p)
+https://tennischannelintl-rakuten.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="",Tennis+ (1080p)
+https://amg01935-amg01935c1-amgplt0165.playout.now3.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="",The Chat Show Channel (1080p)
+https://amg00426-lds-amg00426c11-rakuten-uk-3888.playouts.now.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="TheDesignNetwork.us@SD",The Design Network (1080p)
+https://amg00441-amg00441c1-rakuten-us-6050.playouts.now.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="Timeline.us@SD",Timeline (1080p)
+https://lds-timeline-rakuten.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="TinyHouseNation.us@SD",Tiny House Nation (720p)
+https://7e5c93fc.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWdiX1RpbnlIb3VzZU5hdGlvbl9ITFM/playlist.m3u8
+#EXTINF:-1 tvg-id="TinyPop.uk@SD",Tiny Pop (1080p)
+https://amg01753-narrativeuk-amg01753c1-rakuten-uk-2339.playouts.now.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="Travelxp.in@SD",Travel XP (720p)
+https://travelxp-travelxp-1-eu.rakuten.wurl.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="",True Crime Now (1080p)
+https://amg00376-magellan-amg00376c9-rakuten-uk-1941.playouts.now.amagi.tv/playlist/amg00376-magellantv-truecrimenowcauk-rakutenuk/playlist.m3u8
+#EXTINF:-1 tvg-id="",True Lives (1080p)
+https://amg00654-itv-amg00654c7-rakuten-uk-1282.playouts.now.amagi.tv/playlist/amg00654-itvstudiosfast-truelives-rakutenuk/playlist.m3u8
+#EXTINF:-1 tvg-id="",Vevo Hip-Hop & R&B (1080p)
+https://amg00056-amg00056c26-rakuten-uk-3236.playouts.now.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="",Vevo Pop (1080p)
+https://amg00056-amg00056c6-rakuten-uk-3235.playouts.now.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="",Waterbear (1080p)
+https://waterbear-waterbear-rakuten.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="",Wicked Tuna (1080p)
+https://amg00353-amg00353c25-rakuten-us-4896.playouts.now.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="",World War TV (1080p)
+https://aenetworks-worldwartv-rakuten.amagi.tv/playlist.m3u8
+#EXTINF:-1 tvg-id="",Yu-Gi-Oh! (1080p)
+https://amg01796-amg01796c19-rakuten-gb-7486.playouts.now.amagi.tv/playlist/amg01796-fastmediafast-yugioh2en-rakutengb/playlist.m3u8`;
+
+            let channels = [];
+            let hls = null;
+            let isPlaying = false;
+            let currentChannelIndex = 0;
+            let currentChannelNumber = "";
+            let keypadInput = "";
+            let currentProxyIndex = 0;
+            let loadTimeout = 15000; // 15 seconds default
+            let retryDelay = 3000; // 3 seconds default
+            let loadTimeoutId = null;
+            let currentLoadAttempt = 0;
+
+            // Initialize player
+            function initPlayer() {
+                // Parse M3U8 playlist
+                channels = parseM3U8(m3u8Playlist);
+                
+                // Set up event listeners for controls
+                setupEventListeners();
+                
+                // Generate keypad buttons
+                generateKeypadButtons();
+                
+                // Generate guide channels
+                generateGuideChannels();
+                
+                // Load the first channel
+                loadChannel(0);
+            }
+            
+            // Parse M3U8 playlist
+            function parseM3U8(playlist) {
+                const lines = playlist.split('\n');
+                const channels = [
+                {
+                                "number": 1,
+                                "name": "1 1",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-1-/Adderly%20-%20S01E01%20-%20Hit-Man%20Complex.mp4"
+                                ]
+                },
+                {
+                                "number": 2,
+                                "name": "1 2",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-1-/Adderly%20-%20S01E02%20-%20Mailman.mp4"
+                                ]
+                },
+                {
+                                "number": 3,
+                                "name": "1 3",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-1-/Adderly%20-%20S01E03%20-%20Critical%20Mass.mp4"
+                                ]
+                },
+                {
+                                "number": 4,
+                                "name": "1 4",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-1-/Adderly%20-%20S01E04%20-%20A%20Change%20Of%20Mind.mp4"
+                                ]
+                },
+                {
+                                "number": 5,
+                                "name": "1 5",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-1-/Adderly%20-%20S01E05%20-%20Backfire.mp4"
+                                ]
+                },
+                {
+                                "number": 6,
+                                "name": "1 6",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-1-/Adderly%20-%20S01E06%20-%20Rich%20Kid.mp4"
+                                ]
+                },
+                {
+                                "number": 7,
+                                "name": "1 7",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-1-/Adderly%20-%20S01E07%20-%20Capture%20The%20Flag.mp4"
+                                ]
+                },
+                {
+                                "number": 8,
+                                "name": "1 8",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-1-/Adderly%20-%20S01E08%20-%20Nina%20Who.mp4"
+                                ]
+                },
+                {
+                                "number": 9,
+                                "name": "1 9",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-1-/Adderly%20-%20S01E09%20-%20The%20Dancing%20Lesson.mp4"
+                                ]
+                },
+                {
+                                "number": 10,
+                                "name": "1 10",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-1-/Adderly%20-%20S01E10%20-%20Adderly%20WIth%20Egg%20Roll.mp4"
+                                ]
+                },
+                {
+                                "number": 11,
+                                "name": "1 11",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-1-/Adderly%20-%20S01E11%20-%20Brotherly%20Love.mp4"
+                                ]
+                },
+                {
+                                "number": 12,
+                                "name": "1 12",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-1-/Adderly%20-%20S01E12%20-%20Secrets%20Of%20The%20Sun.mp4"
+                                ]
+                },
+                {
+                                "number": 13,
+                                "name": "1 13",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-1-/Adderly%20-%20S01E13%20-%20A%20Matter%20Of%20Discretion.mp4"
+                                ]
+                },
+                {
+                                "number": 14,
+                                "name": "1 14",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-1-/Adderly%20-%20S01E14%20-%20Nemesis.mp4"
+                                ]
+                },
+                {
+                                "number": 15,
+                                "name": "1 15",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-1-/Adderly%20-%20S01E15%20-%20Year%20Of%20The%20Tiger.mp4"
+                                ]
+                },
+                {
+                                "number": 16,
+                                "name": "1 16",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-1-/Adderly%20-%20S01E16%20-%20Who%20Do%20Voodoo.mp4"
+                                ]
+                },
+                {
+                                "number": 17,
+                                "name": "1 17",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-1-/Adderly%20-%20S01E17%20-%20Miscellaneous%20News.mp4"
+                                ]
+                },
+                {
+                                "number": 18,
+                                "name": "1 18",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-1-/Adderly%20-%20S01E18%20-%20Tiers%20Of%20Internment.mp4"
+                                ]
+                },
+                {
+                                "number": 19,
+                                "name": "1 19",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-1-/Adderly%20-%20S01E19%20-%20Running%20Backwards.mp4"
+                                ]
+                },
+                {
+                                "number": 20,
+                                "name": "1 20",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-1-/Adderly%20-%20S01E20%20-%20Class%20Of%2087.mp4"
+                                ]
+                },
+                {
+                                "number": 21,
+                                "name": "1 21",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-1-/Adderly%20-%20S01E21%20-%20Mirror%20Man.mp4"
+                                ]
+                },
+                {
+                                "number": 22,
+                                "name": "2 1",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-2/Adderly%20-%20S02E01%20-%20Speed%20Of%20Light.mp4"
+                                ]
+                },
+                {
+                                "number": 23,
+                                "name": "2 2",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-2/Adderly%20-%20S02E02%20-%20Run%20To%20Darkness.mp4"
+                                ]
+                },
+                {
+                                "number": 24,
+                                "name": "2 3",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-2/Adderly%20-%20S02E03%20-%20Eye%20In%20The%20Sky.mp4"
+                                ]
+                },
+                {
+                                "number": 25,
+                                "name": "2 4",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-2/Adderly%20-%20S02E04%20-%20To%20Better%20Days.mp4"
+                                ]
+                },
+                {
+                                "number": 26,
+                                "name": "2 5",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-2/Adderly%20-%20S02E05%20-%20Blood%20Feud.mp4"
+                                ]
+                },
+                {
+                                "number": 27,
+                                "name": "2 6",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-2/Adderly%20-%20S02E06%20-%20The%20Perils%20Of%20Mona.mp4"
+                                ]
+                },
+                {
+                                "number": 28,
+                                "name": "2 7",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-2/Adderly%20-%20S02E07%20-%20Midnight%20In%20Morocco.mp4"
+                                ]
+                },
+                {
+                                "number": 29,
+                                "name": "2 8",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-2/Adderly%20-%20S02E08%20-%20The%20Bridge.mp4"
+                                ]
+                },
+                {
+                                "number": 30,
+                                "name": "2 9",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-2/Adderly%20-%20S02E09%20-%20Headhunter.mp4"
+                                ]
+                },
+                {
+                                "number": 31,
+                                "name": "2 10",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-2/Adderly%20-%20S02E10%20-%20Code%20Name%20Chipmunk.mp4"
+                                ]
+                },
+                {
+                                "number": 32,
+                                "name": "2 11",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-2/Adderly%20-%20S02E11%20-%20Spymaster.mp4"
+                                ]
+                },
+                {
+                                "number": 33,
+                                "name": "2 12",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-2/Adderly%20-%20S02E12%20-%20Requiem.mp4"
+                                ]
+                },
+                {
+                                "number": 34,
+                                "name": "2 13",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-2/Adderly%20-%20S02E13%20-%20Horse%20Cents.mp4"
+                                ]
+                },
+                {
+                                "number": 35,
+                                "name": "2 14",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-2/Adderly%20-%20S02E14%20-%20Debbie%20Does%20Dishes.mp4"
+                                ]
+                },
+                {
+                                "number": 36,
+                                "name": "2 15",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-2/Adderly%20-%20S02E15%20-%20The%20Man%20Who%20Didn%27t%20Know%20Too%20Much.mp4"
+                                ]
+                },
+                {
+                                "number": 37,
+                                "name": "2 16",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-2/Adderly%20-%20S02E16%20-%20Deathwatch.mp4"
+                                ]
+                },
+                {
+                                "number": 38,
+                                "name": "2 17",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-2/Adderly%20-%20S02E17%20-%20Covert%20Agenda.mp4"
+                                ]
+                },
+                {
+                                "number": 39,
+                                "name": "2 18",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-2/Adderly%20-%20S02E18%20-%20The%20Game.mp4"
+                                ]
+                },
+                {
+                                "number": 40,
+                                "name": "2 19",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-2/Adderly%20-%20S02E19%20-%20Adventures%20In%20Bodysitting.mp4"
+                                ]
+                },
+                {
+                                "number": 41,
+                                "name": "2 20",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-2/Adderly%20-%20S02E20%20-%20The%20Interrogation.mp4"
+                                ]
+                },
+                {
+                                "number": 42,
+                                "name": "2 21",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-2/Adderly%20-%20S02E21%20-%20See%20How%20They%20Die.mp4"
+                                ]
+                },
+                {
+                                "number": 43,
+                                "name": "2 22",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/adderly-season-2/Adderly%20-%20S02E22%20-%20Point%20Of%20No%20Return.mp4"
+                                ]
+                },
+                {
+                                "number": 44,
+                                "name": "Gunfighters Of The Old West - https://archive.org/details/gunfighters-of-the-old-west",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/gunfighters-of-the-old-west/Gunfighters_of_the_old_West.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 45,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 1",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S01E01%20%28Pilot%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 46,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 2",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S01E02%20%28Alice%20Gets%20a%20Pass%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 47,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 3",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S01E03%20%28A%20Piece%20of%20the%20Rock%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 48,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 4",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S01E04%20%28Pay%20the%20Fifty%20Dollars%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 49,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 5",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S01E05%20%28A%20Call%20to%20Arms%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 50,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 6",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S01E06%20%28The%20Last%20Review%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 51,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 7",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S01E07%20%28Sex%20Education%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 52,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 8",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S01E08%20%28Big%20Daddy%20Dawson%27s%20Coming%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 53,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 9",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S01E09%20%28Good%20Night%2C%20Sweet%20Vera%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 54,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 10",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S01E10%20%28The%20Dilemma%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 55,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 11",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S01E11%20%28Who%20Killed%20Bugs%20Bunny%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 56,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 12",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S01E12%20%28Mother-in-Law%20-%20Pt1%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 57,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 13",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S01E13%20%28Mother-in-Law%20-%20Pt2%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 58,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 14",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S01E14%20%28Vera%27s%20Mortician%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 59,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 15",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S01E15%20%28Mel%27s%20in%20Love%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 60,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 16",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S01E16%20%28The%20Accident%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 61,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 17",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S01E17%20%28The%20Failure%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 62,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 18",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S01E18%20%28The%20Hex%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 63,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 19",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S01E19%20%28The%20Pain%20of%20No%20Return%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 64,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 20",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S01E20%20%28The%20Odd%20Couple%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 65,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 21",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S01E21%20%28A%20Night%20to%20Remember%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 66,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 22",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S01E22%20%28Mel%27s%20Cup%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 67,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 23",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S01E23%20%28The%20Bundle%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 68,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 24",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S01E24%20%28Mel%27s%20Happy%20Burger%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 69,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 25",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S02E01%20%28The%20Second%20Time%20%27Round%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 70,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 26",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S02E02%20%28The%20Indian%20Taker%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 71,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 27",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S02E03%20%2886%20the%20Waitress%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 72,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 28",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S02E04%20%28Alice%20by%20Moonlight%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 73,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 29",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S02E05%20%28Single%20Belles%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 74,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 30",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S02E06%20%28Sixty%20Minutes%20Man%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 75,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 31",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S02E07%20%28That%20Old%20Back%20Magic%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 76,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 32",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S02E08%20%28Love%20is%20Sweeping%20the%20Counter%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 77,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 33",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S02E09%20%28A%20Semi-Merry%20Christmas%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 78,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 34",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S02E10%20%28Oh%2C%20George%20Burns%21%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 79,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 35",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S02E11%20%28The%20Eyes%20of%20Texas%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 80,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 36",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S02E12%20%28Love%20is%20a%20Free%20Throw%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 81,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 37",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S02E13%20%28Close%20Encounters%20of%20the%20Worst%20Kind%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 82,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 38",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S02E14%20%28The%20Pharmacist%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 83,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 39",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S02E15%20%28Love%20Me%2C%20Love%20My%20Horse%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 84,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 40",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S02E16%20%28Florence%20of%20Arabia%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 85,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 41",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S02E17%20%28The%20Cuban%20Connection%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 86,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 42",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S02E18%20%28Mel%27s%20Big%20Five-O%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 87,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 43",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S02E19%20%28Don%27t%20Lock%20Now%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 88,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 44",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S02E20%20%28Star%20in%20the%20Storeroom%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 89,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 45",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S02E21%20%28Mel%27s%20Recession%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 90,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 46",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S02E22%20%28Earthquake%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 91,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 47",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S02E23%20%28The%20Reporter%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 92,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 48",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S02E24%20%28The%20Bus%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 93,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 49",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S03E01%20%28Take%20Him.%20He%27s%20Yours%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 94,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 50",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S03E02%20%28Car%20Wars%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 95,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 51",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S03E03%20%28Citizen%20Mel%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 96,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 52",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S03E04%20%28Vera%27s%20Popcorn%20Romance%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 97,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 53",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S03E05%20%28Block%20those%20Kicks%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 98,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 54",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S03E06%20%28Whatever%20Happened%20to%20the%20Class%20of%20%2778%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 99,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 55",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S03E07%20%28Better%20Never%20Than%20Late%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 100,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 56",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S03E08%20%28Mel%27s%20in%20a%20Family%20Way%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 101,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 57",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S03E09%20%28Who%20Ordered%20the%20Hot%20Turkey%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 102,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 58",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S03E10%20%28The%20Happy%20Hoofers%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 103,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 59",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S03E11%20%28A%20Slight%20Case%20of%20ESP%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 104,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 60",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S03E12%20%28The%20Principal%20of%20the%20Thing%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 105,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 61",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S03E13%20%28What%27re%20You%20Doing%20New%20Year%27s%20Eve%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 106,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 62",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S03E14%20%28Sweet%20Charity%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 107,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 63",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S03E15%20%28Fourth%20Time%20Around%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 108,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 64",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S03E16%20%28Tommy%27s%20First%20Love%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 109,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 65",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S03E17%20%28Mel%20Grows%20Up%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 110,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 66",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S03E18%20%28Vera%27s%20Broken%20Heart%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 111,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 67",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S03E19%20%28Alice%27s%20Decision%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 112,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 68",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S03E20%20%28The%20Last%20Stow%20It%20-%20Pt1%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 113,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 69",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S03E21%20%28The%20Last%20Stow%20It%20-%20Pt2%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 114,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 70",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S03E22%20%28If%20the%20Shoe%20Fits%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 115,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 71",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S03E23%20%28My%20Fair%20Vera%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 116,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 72",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S03E24%20%28Flo%20Finds%20Her%20Father%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 117,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 73",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S04E01%20%28Has%20Anyone%20Here%20Seen%20Telly%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 118,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 74",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S04E02%20%28Mona%20Lisa%20Alice%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 119,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 75",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S04E03%20%28Mel%20Loves%20Marie%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 120,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 76",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S04E04%20%28Vera%20Robs%20the%20Cradle%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 121,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 77",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S04E05%20%28Flo%27s%20Chili%20Reception%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 122,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 78",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S04E06%20%28Little%20Alice%20Bluenose%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 123,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 79",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S04E07%20%28Carrie%20Sharples%20Strikes%20Again%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 124,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 80",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S04E08%20%28Mel%27s%20in%20the%20Kitchen%20with%20Dinah%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 125,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 81",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S04E09%20%28Cabin%20Fever%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 126,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 82",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S04E10%20%28My%20Cousin%2C%20Art%20Carney%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 127,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 83",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S04E11%20%28Mel%2C%20the%20Magi%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 128,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 84",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S04E12%20%28Good%20Buddy%20Flo%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 129,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 85",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S04E13%20%28Alice%20in%20TV%20Land%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 130,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 86",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S04E14%20%28Alice%20Beats%20the%20Clock%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 131,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 87",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S04E15%20%28Carrie%27s%20Wedding%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 132,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 88",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S04E16%20%28My%20Funny%20Valentine%20Tux%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 133,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 89",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S04E17%20%28Auld%20Acquaintances%20Should%20Be%20Forgot%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 134,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 90",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S04E18%20%28Flo%27s%20Farewell%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 135,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 91",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S04E19%20%28From%20Whom%20the%20Belle%20Tolls%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 136,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 92",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S04E20%20%28One%20Too%20Many%20Girls%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 137,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 93",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S04E21%20%28Vera%2C%20the%20Vamp%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 138,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 94",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S04E22%20%28Profit%20Without%20Honor%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 139,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 95",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S04E23%20%28Cook%27s%20Tour%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 140,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 96",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S04E24%20%28Here%20Comes%20Alice%20Cottontail%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 141,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 97",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S05E01%20%28Mel%20and%20the%20Green%20Machine%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 142,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 98",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S05E02%20%28Dog%20Day%20Evening%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 143,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 99",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S05E03%20%28Hello%20Vegas%2C%20Goodbye%20Diner%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 144,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 100",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S05E04%20%28Too%20Many%20Robert%20Goulets%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 145,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 101",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S05E05%20%28Vera%27s%20Aunt%20Agatha%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 146,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 102",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S05E06%20%28Tommy%27s%20T.K.O.%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 147,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 103",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S05E07%20%28The%20New%20Improved%20Mel%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 148,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 104",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S05E08%20%28Carrie%20Sings%20the%20Blues%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 149,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 105",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S05E09%20%28Henry%27s%20Bitter%20Half%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 150,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 106",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S05E10%20%28Alice%20Locks%20Belle%20Out%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 151,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 107",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S05E11%20%28Vera%20Goes%20Out%20on%20a%20Limb%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 152,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 108",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S05E12%20%28The%20Jerry%20Reed%20Fish%20Story%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 153,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 109",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S05E13%20%28Bye%20Bye%20Birdie%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 154,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 110",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S05E14%20%28Alice%27s%20Son%2C%20the%20College%20Drop-Out%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 155,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 111",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S05E15%20%28Carrie%20Chickens%20Out%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 156,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 112",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S05E16%20%28Macho%2C%20Macho%20Mel%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 157,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 113",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S05E17%20%28The%20Great%20Escape%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 158,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 114",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S05E18%20%28Alice%20Strikes%20Up%20the%20Band%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 159,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 115",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S05E19%20%28Who%27s%20Kissing%20the%20Great%20Chef%20of%20Phoenix%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 160,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 116",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S05E20%20%28Baby%20Makes%20Five%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 161,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 117",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S066E24%20%28My%20Mother%20the%20Landlord%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 162,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 118",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S06E01%20%28Bet%20a%20Million%20Mel%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 163,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 119",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S06E02%20%28Guiness%20On%20Tap%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 164,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 120",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S06E03%20%28Comrade%20Mel%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 165,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 121",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S06E04%20%28Alice%27s%20Halloween%20Surpise%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 166,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 122",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S06E05%20%28Alice%27s%20Big%20Four-Oh%21%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 167,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 123",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S06E06%20%28Mel%27s%20Cousin%2C%20Wendell%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 168,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 124",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S06E07%20%28Vera%27s%20Bouncing%20Check%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 169,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 125",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S06E08%20%28After%20Mel%27s%20Gone%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 170,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 126",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S06E09%20%28Mel%27s%20Christmas%20Carol%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 171,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 127",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S06E10%20%28The%20Wild%20One%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 172,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 128",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S06E11%20%28Alice%20Calls%20the%20Shots%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 173,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 129",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S06E12%20%28Not%20With%20My%20Niece%2C%20You%20Don%27t%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 174,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 130",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S06E13%20%28Vera%2C%20Queen%20of%20the%20Soaps%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 175,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 131",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S06E14%20%28Sharples%20vs.%20Sharples%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 176,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 132",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S06E15%20%28The%20Valentine%27s%20Day%20Massacre%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 177,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 133",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S06E16%20%28Best%20Little%20Waitress%20in%20the%20World%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 178,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 134",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S06E17%20%28Alice%20and%20the%20Acorns%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 179,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 135",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S06E18%20%28Jolene%20Hunnicutt%2C%20Dynamite%20Trucker%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 180,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 136",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S06E19%20%28Mel%20Wins%20by%20a%20Nose%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 181,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 137",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S06E20%20%28Give%20My%20Regrets%20to%20Broadway%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 182,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 138",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S06E21%20%28Vera%27s%20Reunion%20Romance%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 183,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 139",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S06E22%20%28Monty%20Falls%20for%20Alice%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 184,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 140",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S06E23%20%28Spell%20Mel%27s%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 185,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 141",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S06E24%20%28My%20Mother%20the%20Landlord%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 186,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 142",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S07E01%20%28Sorry%2C%20Wrong%20Lips%21%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 187,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 143",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S07E02%20%28Do%20You%20Take%20This%20Waitress%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 188,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 144",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S07E03%20%28The%20Secret%20of%20Mel%27s%20Diner%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 189,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 145",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S07E04%20%28Alice%20at%20the%20Palace%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 190,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 146",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S07E05%20%28Joel%20Grey%20Saves%20the%20Day%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 191,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 147",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S07E06%20%28Alice%27s%20Turkey%20of%20a%20Thanksgiving%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 192,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 148",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S07E07%20%28Carrie%20on%20the%20Rebound%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 193,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 149",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S07E08%20%28Jolene%27s%20Brother%20Jonas%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 194,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 150",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S07E09%20%28Alice%20Sees%20the%20Light%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 195,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 151",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S07E10%20%28Vera%20the%20Virtuoso%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 196,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 152",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S07E11%20%28Alice%20Faces%20the%20Music%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 197,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 153",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S07E12%20%28Tommy%2C%20the%20Jailbird%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 198,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 154",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S07E13%20%28Jolene%20and%20the%20Night%20Watchman%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 199,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 155",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S07E14%20%28Mel%27s%20Dream%20Car%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 200,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 156",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S07E15%20%28Come%20Back%20Little%20Sharples%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 201,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 157",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S07E16%20%28Vera%2C%20the%20Torch%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 202,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 158",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S07E17%20%28The%20Grass%20is%20Always%20Greener%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 203,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 159",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S07E18%20%28Tommy%20Fouls%20Out%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 204,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 160",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S07E19%20%28Vera%20on%20the%20Lam%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 205,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 161",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S07E20%20%28Mel%27s%20Cousin%2C%20Wendy%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 206,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 162",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S07E21%20%28Sweet%20Erasable%20Mel%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 207,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 163",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S07E22%20%28Tommy%20Hyatt%2C%20Business%20Consultant%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 208,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 164",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S08E01%20%28Jolene%20Lets%20the%20Cat%20Out%20of%20the%20Bag%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 209,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 165",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S08E02%20%28Vera%27s%20Secret%20Lover%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 210,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 166",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S08E03%20%28Mel%20is%20Hogg-Tied%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 211,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 167",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S08E04%20%28Jolene%20Gets%20Her%20Wings%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 212,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 168",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S08E05%20%28Alice%27s%20Blind%20Date%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 213,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 169",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S08E06%20%28It%20Had%20to%20Be%20Mel%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 214,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 170",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S08E07%20%28The%20Over-the-Hill%20Girls%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 215,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 171",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S08E08%20%28Vera%20Gets%20Engaged%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 216,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 172",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S08E09%20%28Vera%27s%20Wedding%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 217,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 173",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S08E10%20%28The%20Robot%20Wore%20Pink%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 218,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 174",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S08E11%20%28Tis%20the%20Season%20to%20be%20Jealous%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 219,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 175",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S08E12%20%28Tommy%20Goes%20Overboard%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 220,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 176",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S08E13%20%28Vera%2C%20the%20Horse%20Thief%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 221,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 177",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S08E14%20%28Jolene%20Throws%20a%20Curve%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 222,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 178",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S08E15%20%28Lies%20My%20Mother%20Told%20Me%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 223,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 179",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S08E16%20%28Alice%20and%20the%20Devoted%20Dentist%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 224,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 180",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S08E17%20%28Alice%27s%20Hot%20Air%20Romance%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 225,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 181",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S08E18%20%28Dollars%20to%20Donuts%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 226,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 182",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S08E19%20%28My%20Dinner%20with%20Debbie%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 227,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 183",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S08E20%20%28Vera%27s%20Fine%20Feathered%20Friends%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 228,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 184",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S08E21%20%28Jolene%20is%20Stuck%20on%20Mel%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 229,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 185",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S08E22%20%28Don%27t%20Play%20It%20Again%2C%20Elliot%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 230,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 186",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S08E23%20%28Mel%20Spins%20His%20Wheels%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 231,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 187",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S08E24%20%28Be%20It%20Ever%20So%20Crowded%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 232,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 188",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S09E01%20%28Romancing%20Mr.%20Stone%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 233,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 189",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S09E02%20%28Space%20Sharples%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 234,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 190",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S09E03%20%28Big%20Bad%20Mel%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 235,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 191",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S09E04%20%28Houseful%20of%20Hunnicutts%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 236,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 192",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S09E05%20%28Tommy%27s%20Lost%20Weekend%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 237,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 193",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S09E06%20%28Undercover%20Mel%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 238,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 194",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S09E07%20%28Footloose%20Mel%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 239,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 195",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S09E08%20%28Vera%27s%20Anniversary%20Blues%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 240,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 196",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S09E09%20%28Kiss%20the%20Grill%20Goodbye%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 241,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 197",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S09E10%20%28Vera%2C%20the%20Nightbird%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 242,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 198",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S09E11%20%28Alice%20Doesn%27t%20Work%20Here%20Anymore%20-%20Pt1%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 243,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 199",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S09E12%20%28Alice%20Doesn%27t%20Work%20Here%20Anymore%20-%20Pt2%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 244,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 200",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S09E13%20%28The%20Night%20They%20Raided%20Debbie%27s%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 245,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 201",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S09E14%20%28One%20on%20One%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 246,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 202",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S09E15%20%28Vera%27s%20Grounded%20Gumshoe%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 247,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 203",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S09E16%20%28Th-Th-Th-That%27s%20All%2C%20Folks%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 248,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 204",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S16E18%20%28Jolene%20Hunnicutt%2C%20Dynamite%20Trucker%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 249,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 205",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S16E19%20%28Mel%20Wins%20by%20a%20Nose%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 250,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 206",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S16E20%20%28Give%20My%20Regrets%20to%20Broadway%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 251,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 207",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S16E21%20%28Vera%27s%20Reunion%20Romance%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 252,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 208",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S16E22%20%28Monty%20Falls%20for%20Alice%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 253,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 209",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S16E23%20%28Spell%20Mel%27s%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 254,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 210",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/alice_202311/Alice%20S16E24%20%28My%20Mother%20the%20Landlord%29.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 255,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 1",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/amish-films/American%20Experience%20The%20Amish.mp4"
+                                ]
+                },
+                {
+                                "number": 256,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 2",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/amish-films/Amish%20A%20Secret%20Life.mp4"
+                                ]
+                },
+                {
+                                "number": 257,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 3",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/amish-films/Amish%20Grace.mp4"
+                                ]
+                },
+                {
+                                "number": 258,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 4",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/amish-films/Amish%20Stud%20The%20Eli%20Weaver%20Story.mp4"
+                                ]
+                },
+                {
+                                "number": 259,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 1",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/around-the-world-in-79-days/01%20-%20The%20Race%20is%20On.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 260,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 2",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/around-the-world-in-79-days/02%20-%20Swiss%20Mis-Adventure.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 261,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 3",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/around-the-world-in-79-days/03%20-%20Arabian%20Daze.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 262,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 4",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/around-the-world-in-79-days/04%20-%20Madrid%20or%20Busted.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 263,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 5",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/around-the-world-in-79-days/05%20-%20Mr.%20Bom-Bom.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 264,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 6",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/around-the-world-in-79-days/06%20-%20India%20or%20Bust.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 265,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 7",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/around-the-world-in-79-days/07%20-%20Snow%20Slappy.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 266,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 8",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/around-the-world-in-79-days/08%20-%20Finney%2C%20Finney%2C%20Fun%2C%20Fun.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 267,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 9",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/around-the-world-in-79-days/09%20-%20The%20Argentiney%20Meany.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 268,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 10",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/around-the-world-in-79-days/10%20-%20The%20Tree%20Man.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 269,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 11",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/around-the-world-in-79-days/11%20-%20Saucy%20Aussie.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 270,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 12",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/around-the-world-in-79-days/12%20-%20Crumden%27s%20Last%20Stand.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 271,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 13",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/around-the-world-in-79-days/13%20-%20Egyptian%20Jinx.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 272,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 14",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/around-the-world-in-79-days/14%20-%20Border%20Disorder.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 273,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 15",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/around-the-world-in-79-days/15%20-%20Troubles%20in%20Dutch.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 274,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 16",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/around-the-world-in-79-days/16%20-%20The%20Fuji%20Weegees.ia.mp4"
+                                ]
+                },
+                {
+                                "number": 275,
+                                "name": "\u041a\u0430\u043d\u0430\u043b 17",
+                                "category": "Other",
+                                "urls": [
+                                                "https://archive.org/download/around-the-world-in-79-days/17%20-%20Hawaiian%20Hangup.ia.mp4"
+                                ]
+                }
+];
+                let currentChannel = null;
+                
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    
+                    if (line.startsWith('#EXTINF:')) {
+                        // Parse channel info
+                        const channelInfo = parseExtInf(line);
+                        currentChannel = {
+                            number: channels.length + 1,
+                            name: channelInfo.name,
+                            category: channelInfo.category,
+                            urls: []
+                        };
+                    } else if (line && !line.startsWith('#') && currentChannel) {
+                        // Add URL to current channel
+                        currentChannel.urls.push(line);
+                        channels.push(currentChannel);
+                        currentChannel = null;
+                    }
+                }
+                
+                return channels;
+            }
+            
+            // Parse EXTINF line
+            function parseExtInf(extInfLine) {
+                // Remove #EXTINF: prefix
+                let info = extInfLine.substring(8);
+                
+                // Extract tvg-id if present
+                const tvgIdMatch = info.match(/tvg-id="([^"]*)"/);
+                const tvgId = tvgIdMatch ? tvgIdMatch[1] : '';
+                
+                // Remove tvg-id from info
+                info = info.replace(/tvg-id="[^"]*"/, '').trim();
+                
+                // Extract resolution if present
+                const resolutionMatch = info.match(/\((\d+p)\)/);
+                const resolution = resolutionMatch ? resolutionMatch[1] : '';
+                
+                // Remove resolution from info
+                info = info.replace(/\(\d+p\)/, '').trim();
+                
+                // Remove any remaining commas or quotes
+                info = info.replace(/^[,\s]+|[,\s]+$/g, '');
+                
+                // Determine category based on channel name
+                let category = 'General';
+                const name = info || 'Unknown Channel';
+                
+                if (name.toLowerCase().includes('movie') || 
+                    name.toLowerCase().includes('film') ||
+                    name.toLowerCase().includes('cinema')) {
+                    category = 'Movies';
+                } else if (name.toLowerCase().includes('music') || 
+                          name.toLowerCase().includes('pop') ||
+                          name.toLowerCase().includes('rock')) {
+                    category = 'Music';
+                } else if (name.toLowerCase().includes('news') || 
+                          name.toLowerCase().includes('gb news')) {
+                    category = 'News';
+                } else if (name.toLowerCase().includes('comedy') || 
+                          name.toLowerCase().includes('laugh')) {
+                    category = 'Comedy';
+                } else if (name.toLowerCase().includes('sport') || 
+                          name.toLowerCase().includes('tennis') ||
+                          name.toLowerCase().includes('squash')) {
+                    category = 'Sports';
+                } else if (name.toLowerCase().includes('documentary') || 
+                          name.toLowerCase().includes('history') ||
+                          name.toLowerCase().includes('nature')) {
+                    category = 'Documentary';
+                } else if (name.toLowerCase().includes('reality') || 
+                          name.toLowerCase().includes('tv reality')) {
+                    category = 'Reality';
+                } else if (name.toLowerCase().includes('crime')) {
+                    category = 'Crime';
+                } else if (name.toLowerCase().includes('kids') || 
+                          name.toLowerCase().includes('baby') ||
+                          name.toLowerCase().includes('popkids')) {
+                    category = 'Kids';
+                }
+                
+                return {
+                    name: name,
+                    category: category,
+                    resolution: resolution,
+                    tvgId: tvgId
+                };
+            }
+            
+            // Get next proxy URL
+            function getNextProxy() {
+                currentProxyIndex = (currentProxyIndex + 1) % CORS_PROXIES.length;
+                return CORS_PROXIES[currentProxyIndex];
+            }
+            
+            // Apply proxy to URL
+            function applyProxy(url, proxyIndex = 0) {
+                if (proxyIndex >= CORS_PROXIES.length) return url; // Return original if no proxies work
+                return CORS_PROXIES[proxyIndex] + encodeURIComponent(url);
+            }
+            
+            // Set up event listeners
+            function setupEventListeners() {
+                // Play/Pause
+                playPauseBtn.addEventListener('click', togglePlayPause);
+                
+                // Progress bar
+                progressContainer.addEventListener('click', seek);
+                
+                // Time updates
+                videoPlayer.addEventListener('timeupdate', updateProgress);
+                videoPlayer.addEventListener('loadedmetadata', function() {
+                    durationDisplay.textContent = formatTime(videoPlayer.duration);
+                });
+                
+                // Volume
+                muteBtn.addEventListener('click', toggleMute);
+                volumeSlider.addEventListener('input', function() {
+                    videoPlayer.volume = volumeSlider.value;
+                    updateVolumeIcon();
+                });
+                
+                // Fullscreen
+                fullscreenBtn.addEventListener('click', toggleFullscreen);
+                
+                // Channel navigation
+                prevChannelBtn.addEventListener('click', prevChannel);
+                nextChannelBtn.addEventListener('click', nextChannel);
+                
+                // Overlay controls
+                guideBtn.addEventListener('click', function() {
+                    guideOverlay.style.display = 'flex';
+                });
+                
+                keypadBtn.addEventListener('click', function() {
+                    keypadOverlay.style.display = 'flex';
+                });
+                
+                closeGuideBtn.addEventListener('click', function() {
+                    guideOverlay.style.display = 'none';
+                });
+                
+                closeKeypadBtn.addEventListener('click', function() {
+                    keypadOverlay.style.display = 'none';
+                });
+                
+                // Keypad controls
+                clearBtn.addEventListener('click', clearKeypad);
+                enterBtn.addEventListener('click', enterKeypad);
+                overlayClearBtn.addEventListener('click', clearKeypad);
+                overlayEnterBtn.addEventListener('click', enterKeypad);
+                
+                // Favorite buttons
+                favorite1Btn.addEventListener('click', function() {
+                    loadChannelByCategory("Movies");
+                });
+                
+                favorite2Btn.addEventListener('click', function() {
+                    loadChannelByCategory("General");
+                });
+                
+                favorite3Btn.addEventListener('click', function() {
+                    loadChannelByCategory("Documentary");
+                });
+                
+                favorite4Btn.addEventListener('click', function() {
+                    loadChannelByCategory("Music");
+                });
+                
+                // Buffer controls
+                loadTimeoutSlider.addEventListener('input', function() {
+                    loadTimeout = parseInt(this.value) * 1000;
+                    loadTimeoutValue.textContent = this.value + 's';
+                });
+                
+                retryDelaySlider.addEventListener('input', function() {
+                    retryDelay = parseInt(this.value) * 1000;
+                    retryDelayValue.textContent = this.value + 's';
+                });
+                
+                // Player events
+                videoPlayer.addEventListener('play', function() {
+                    isPlaying = true;
+                    playIcon.style.display = 'none';
+                    pauseIcon.style.display = 'inline';
+                });
+                
+                videoPlayer.addEventListener('pause', function() {
+                    isPlaying = false;
+                    playIcon.style.display = 'inline';
+                    pauseIcon.style.display = 'none';
+                });
+                
+                videoPlayer.addEventListener('waiting', function() {
+                    showBuffering();
+                });
+                
+                videoPlayer.addEventListener('playing', function() {
+                    hideBuffering();
+                });
+                
+                videoPlayer.addEventListener('ended', function() {
+                    showStatus('Stream ended', 'info');
+                });
+            }
+            
+            // Show buffering indicator
+            function showBuffering() {
+                bufferingIndicator.style.display = 'block';
+            }
+            
+            // Hide buffering indicator
+            function hideBuffering() {
+                bufferingIndicator.style.display = 'none';
+            }
+            
+            // Generate keypad buttons
+            function generateKeypadButtons() {
+                const keypadNumbers = [
+                    { number: 1, name: "&TV" },
+                    { number: 2, name: "21 Jump" },
+                    { number: 3, name: "Adventure" },
+                    { number: 4, name: "Ax Men" },
+                    { number: 5, name: "Baby Shark" },
+                    { number: 6, name: "Baywatch" },
+                    { number: 7, name: "Cops" },
+                    { number: 8, name: "Cosmic" },
+                    { number: 9, name: "Crime" },
+                    { number: 0, name: "Deal" },
+                    { number: "+10", name: "More" },
+                    { number: "+20", name: "More" }
+                ];
+                
+                // Clear existing buttons
+                keypadContainer.innerHTML = '';
+                overlayKeypadContainer.innerHTML = '';
+                
+                // Create buttons for both keypads
+                keypadNumbers.forEach(item => {
+                    const button = document.createElement('button');
+                    button.className = 'keypad-btn';
+                    button.innerHTML = `
+                        <span class="keypad-number">${item.number}</span>
+                        <span class="channel-name">${item.name}</span>
+                    `;
+                    
+                    button.addEventListener('click', function() {
+                        handleKeypadInput(item.number);
+                    });
+                    
+                    keypadContainer.appendChild(button.cloneNode(true));
+                    overlayKeypadContainer.appendChild(button);
+                });
+            }
+            
+            // Generate guide channels
+            function generateGuideChannels() {
+                guideContainer.innerHTML = '';
+                
+                channels.forEach(channel => {
+                    const channelElement = document.createElement('div');
+                    channelElement.className = 'guide-channel';
+                    channelElement.innerHTML = `
+                        <div class="channel-number">${channel.number}</div>
+                        <div class="channel-info">
+                            <div class="channel-name">${channel.name}</div>
+                            <div class="channel-category">${channel.category}</div>
+                        </div>
+                    `;
+                    
+                    channelElement.addEventListener('click', function() {
+                        loadChannel(channels.indexOf(channel));
+                        guideOverlay.style.display = 'none';
+                    });
+                    
+                    guideContainer.appendChild(channelElement);
+                });
+            }
+            
+            // Handle keypad input
+            function handleKeypadInput(value) {
+                if (value === "+10") {
+                    keypadInput = (parseInt(keypadInput) + 10).toString();
+                } else if (value === "+20") {
+                    keypadInput = (parseInt(keypadInput) + 20).toString();
+                } else {
+                    keypadInput += value.toString();
+                }
+                
+                // Limit to 3 digits
+                if (keypadInput.length > 3) {
+                    keypadInput = keypadInput.slice(-3);
+                }
+                
+                updateKeypadDisplay();
+            }
+            
+            // Update keypad display
+            function updateKeypadDisplay() {
+                currentChannelDisplay.textContent = keypadInput ? `Channel ${keypadInput}` : "Enter Channel";
+                keypadChannelDisplay.textContent = keypadInput ? `Channel ${keypadInput}` : "Enter Channel";
+            }
+            
+            // Clear keypad
+            function clearKeypad() {
+                keypadInput = "";
+                updateKeypadDisplay();
+            }
+            
+            // Enter keypad (load channel)
+            function enterKeypad() {
+                if (keypadInput) {
+                    const channelNumber = parseInt(keypadInput);
+                    if (channelNumber >= 1 && channelNumber <= channels.length) {
+                        loadChannel(channelNumber - 1);
+                        keypadOverlay.style.display = 'none';
+                        clearKeypad();
+                    } else {
+                        showStatus('Invalid channel number', 'error');
+                        setTimeout(hideStatus, 2000);
+                    }
+                }
+            }
+            
+            // Load channel by category
+            function loadChannelByCategory(category) {
+                const categoryChannels = channels.filter(channel => channel.category === category);
+                if (categoryChannels.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * categoryChannels.length);
+                    const channelIndex = channels.indexOf(categoryChannels[randomIndex]);
+                    loadChannel(channelIndex);
+                }
+            }
+            
+            // Load channel with multiple fallback options
+            function loadChannel(index, urlIndex = 0, proxyIndex = 0) {
+                if (index < 0 || index >= channels.length) return;
+                
+                // Clear any existing timeout
+                if (loadTimeoutId) {
+                    clearTimeout(loadTimeoutId);
+                    loadTimeoutId = null;
+                }
+                
+                currentChannelIndex = index;
+                const channel = channels[index];
+                
+                // Check if we've tried all URLs for this channel
+                if (urlIndex >= channel.urls.length) {
+                    showStatus(`Failed to load ${channel.name}. Trying next channel...`, 'error');
+                    setTimeout(() => nextChannel(), retryDelay);
+                    return;
+                }
+                
+                showStatus(`Loading ${channel.name}... (Attempt ${urlIndex + 1})`, 'info');
+                showLoading();
+                
+                // Update UI
+                channelTitle.textContent = channel.name;
+                currentChannelDisplay.textContent = `Channel ${channel.number}`;
+                
+                // Stop current stream
+                if (hls) {
+                    hls.destroy();
+                }
+                
+                const streamUrl = channel.urls[urlIndex];
+                const proxiedUrl = applyProxy(streamUrl, proxyIndex);
+                
+                // Set a timeout to handle loading failures
+                loadTimeoutId = setTimeout(() => {
+                    console.log(`Load timeout for ${channel.name}`);
+                    tryNextOption(index, urlIndex, proxyIndex);
+                }, loadTimeout);
+                
+                // If HLS is supported natively by the browser
+                if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
+                    videoPlayer.src = proxiedUrl;
+                    videoPlayer.addEventListener('loadedmetadata', function() {
+                        if (loadTimeoutId) {
+                            clearTimeout(loadTimeoutId);
+                            loadTimeoutId = null;
+                        }
+                        hideLoading();
+                        showStatus(`Now playing: ${channel.name}`, 'success');
+                        setTimeout(hideStatus, 2000);
+                        videoPlayer.play().catch(e => {
+                            console.error('Native HLS play error:', e);
+                            tryNextOption(index, urlIndex, proxyIndex);
+                        });
+                    });
+                    
+                    videoPlayer.addEventListener('error', function() {
+                        if (loadTimeoutId) {
+                            clearTimeout(loadTimeoutId);
+                            loadTimeoutId = null;
+                        }
+                        console.error('Native HLS error');
+                        tryNextOption(index, urlIndex, proxyIndex);
+                    });
+                } 
+                // If HLS is not natively supported, use hls.js
+                else if (Hls.isSupported()) {
+                    hls = new Hls({
+                        enableWorker: true,
+                        lowLatencyMode: true,
+                        backBufferLength: 90,
+                        maxBufferLength: 30,
+                        maxMaxBufferLength: 60,
+                        maxBufferSize: 60 * 1000 * 1000, // 60MB
+                        maxLoadingDelay: 10,
+                        liveSyncDurationCount: 3,
+                        liveMaxLatencyDurationCount: 10,
+                        xhrSetup: function(xhr) {
+                            xhr.withCredentials = false; // Try without credentials
+                        }
+                    });
+                    
+                    hls.loadSource(proxiedUrl);
+                    hls.attachMedia(videoPlayer);
+                    
+                    hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                        if (loadTimeoutId) {
+                            clearTimeout(loadTimeoutId);
+                            loadTimeoutId = null;
+                        }
+                        hideLoading();
+                        showStatus(`Now playing: ${channel.name}`, 'success');
+                        setTimeout(hideStatus, 2000);
+                        videoPlayer.play().catch(e => {
+                            console.error('HLS.js play error:', e);
+                            tryNextOption(index, urlIndex, proxyIndex);
+                        });
+                    });
+                    
+                    hls.on(Hls.Events.ERROR, function(event, data) {
+                        console.error('HLS.js error:', data);
+                        if (data.fatal) {
+                            if (loadTimeoutId) {
+                                clearTimeout(loadTimeoutId);
+                                loadTimeoutId = null;
+                            }
+                            switch(data.type) {
+                                case Hls.ErrorTypes.NETWORK_ERROR:
+                                    tryNextOption(index, urlIndex, proxyIndex);
+                                    break;
+                                case Hls.ErrorTypes.MEDIA_ERROR:
+                                    tryNextOption(index, urlIndex, proxyIndex);
+                                    break;
+                                default:
+                                    tryNextOption(index, urlIndex, proxyIndex);
+                                    break;
+                            }
+                        }
+                    });
+                } else {
+                    if (loadTimeoutId) {
+                        clearTimeout(loadTimeoutId);
+                        loadTimeoutId = null;
+                    }
+                    showStatus('Your browser does not support HLS streaming', 'error');
+                }
+            }
+            
+            // Try next URL or proxy if current one fails
+            function tryNextOption(index, urlIndex, proxyIndex) {
+                const channel = channels[index];
+                
+                // Try next proxy first
+                if (proxyIndex < CORS_PROXIES.length - 1) {
+                    console.log(`Trying next proxy for ${channel.name}`);
+                    setTimeout(() => {
+                        loadChannel(index, urlIndex, proxyIndex + 1);
+                    }, retryDelay);
+                }
+                // Then try next URL
+                else if (urlIndex < channel.urls.length - 1) {
+                    console.log(`Trying next URL for ${channel.name}`);
+                    setTimeout(() => {
+                        loadChannel(index, urlIndex + 1, 0);
+                    }, retryDelay);
+                }
+                // If all options exhausted, move to next channel
+                else {
+                    console.log(`All options exhausted for ${channel.name}, moving to next channel`);
+                    showStatus(`Failed to load ${channel.name}. Trying next channel...`, 'error');
+                    setTimeout(() => nextChannel(), retryDelay);
+                }
+            }
+            
+            // Previous channel
+            function prevChannel() {
+                let newIndex = currentChannelIndex - 1;
+                if (newIndex < 0) newIndex = channels.length - 1;
+                loadChannel(newIndex);
+            }
+            
+            // Next channel
+            function nextChannel() {
+                let newIndex = currentChannelIndex + 1;
+                if (newIndex >= channels.length) newIndex = 0;
+                loadChannel(newIndex);
+            }
+            
+            // Toggle play/pause
+            function togglePlayPause() {
+                if (videoPlayer.paused || videoPlayer.ended) {
+                    videoPlayer.play().catch(e => {
+                        showStatus('Error playing video: ' + e.message, 'error');
+                    });
+                } else {
+                    videoPlayer.pause();
+                }
+            }
+            
+            // Update progress bar
+            function updateProgress() {
+                const percent = (videoPlayer.currentTime / videoPlayer.duration) * 100;
+                progressBar.style.width = percent + '%';
+                currentTimeDisplay.textContent = formatTime(videoPlayer.currentTime);
+            }
+            
+            // Seek video
+            function seek(e) {
+                const rect = progressContainer.getBoundingClientRect();
+                const percent = (e.clientX - rect.left) / rect.width;
+                videoPlayer.currentTime = percent * videoPlayer.duration;
+            }
+            
+            // Toggle mute
+            function toggleMute() {
+                videoPlayer.muted = !videoPlayer.muted;
+                updateVolumeIcon();
+            }
+            
+            // Update volume icon based on volume level
+            function updateVolumeIcon() {
+                if (videoPlayer.muted || videoPlayer.volume === 0) {
+                    volumeIcon.innerHTML = '<i class="fas fa-volume-mute"></i>';
+                    volumeSlider.value = 0;
+                } else if (videoPlayer.volume < 0.5) {
+                    volumeIcon.innerHTML = '<i class="fas fa-volume-down"></i>';
+                } else {
+                    volumeIcon.innerHTML = '<i class="fas fa-volume-up"></i>';
+                }
+            }
+            
+            // Toggle fullscreen
+            function toggleFullscreen() {
+                if (!document.fullscreenElement) {
+                    videoPlayer.requestFullscreen().catch(err => {
+                        console.error(`Error attempting to enable fullscreen: ${err.message}`);
+                    });
+                } else {
+                    document.exitFullscreen();
+                }
+            }
+            
+            // Format time in minutes:seconds
+            function formatTime(seconds) {
+                const mins = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            }
+            
+            // Show status message
+            function showStatus(message, type) {
+                statusMessage.textContent = message;
+                statusMessage.style.display = 'block';
+                
+                if (type === 'error') {
+                    statusMessage.style.background = 'rgba(153, 0, 0, 0.2)';
+                    statusMessage.style.color = '#ff6b6b';
+                } else if (type === 'success') {
+                    statusMessage.style.background = 'rgba(0, 102, 0, 0.2)';
+                    statusMessage.style.color = '#6bff6b';
+                } else {
+                    statusMessage.style.background = 'rgba(0, 51, 102, 0.2)';
+                    statusMessage.style.color = '#6bb5ff';
+                }
+            }
+            
+            // Hide status message
+            function hideStatus() {
+                statusMessage.style.display = 'none';
+            }
+            
+            // Show loading overlay
+            function showLoading() {
+                loadingOverlay.style.display = 'flex';
+            }
+            
+            // Hide loading overlay
+            function hideLoading() {
+                loadingOverlay.style.display = 'none';
+            }
+            
+            // Initialize the player
+            initPlayer();
+        });
+    
+
+        // Handle click-to-play for autoplay restrictions
+        const playOverlay = document.getElementById('playOverlay');
+        const videoElement = document.getElementById('main-video') || document.querySelector('video');
+        
+        if (playOverlay && videoElement) {
+            // Try autoplay first
+            videoElement.muted = true; // Start muted for autoplay to work
+            videoElement.play().then(() => {
+                // Autoplay worked, hide overlay
+                playOverlay.classList.add('hidden');
+            }).catch(() => {
+                // Autoplay blocked, show overlay
+                playOverlay.classList.remove('hidden');
+            });
+            
+            // Handle click to play
+            playOverlay.addEventListener('click', () => {
+                videoElement.muted = false; // Unmute on user interaction
+                videoElement.play().then(() => {
+                    playOverlay.classList.add('hidden');
+                }).catch(e => {
+                    console.error('Playback failed:', e);
+                });
+            });
+        }
+
+</script>
+</body>
+</html>

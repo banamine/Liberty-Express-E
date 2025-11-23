@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 TV Channel Scheduling System with the following features:
 
 Key Features we need to check and  Implement:
@@ -50,4 +51,58 @@ Scheduling Algorithm: Conflict-aware random placement
 
 Modular Design: Separate classes for database, GUI, and business logic
 
+=======
+TV Channel Scheduling System with the following features:
+
+Key Features we need to check and  Implement:
+Visual Calendar Interface: Weekly view with 30-minute intervals
+
+Channel Management: Multiple channels with customizable shows
+
+Show Database: SQLite database for persistent storage
+
+Random Scheduling: Algorithm to automatically fill time slots
+
+Manual Scheduling: Drag-and-drop capability (can be extended)
+
+Channel Switching Simulation: Automated channel rotation
+
+Persistent Storage: Save/load schedules from database
+
+Additional Features:
+Conflict Resolution: Random scheduler checks for overlapping shows
+
+Export/Import: Database-based storage for schedules
+
+User-Friendly Interface: Modern PyQt5 interface with tabbed navigation
+
+Show Management: Add new shows with duration and metadata
+
+Usage Instructions:
+Select a Channel: Choose from available channels in the dropdown
+
+View Available Shows: See all shows for the selected channel
+
+Add New Shows: Use the "Add New Show" button to expand your library
+
+Schedule Programming:
+
+Use "Fill Schedule Randomly" for automatic scheduling
+
+Manual scheduling can be implemented by extending the table interaction
+
+Save Schedule: Persist your schedule to the database
+
+Simulate Channel Switching: Test your schedule with the simulation feature
+
+Technical Implementation:
+Database: SQLite with proper table relationships
+
+GUI Framework: PyQt5 for modern, cross-platform compatibility
+
+Scheduling Algorithm: Conflict-aware random placement
+
+Modular Design: Separate classes for database, GUI, and business logic
+
+>>>>>>> 1a45e5f4554c44fc0223c1b77be694ab7eabb3b2
 This provides a solid foundation that can be extended with additional features like drag-and-drop scheduling, advanced conflict resolution, and integration with actual broadcast hardware.

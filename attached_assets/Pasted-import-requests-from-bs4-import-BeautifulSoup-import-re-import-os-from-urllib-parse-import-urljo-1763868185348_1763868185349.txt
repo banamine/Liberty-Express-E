@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import requests
 from bs4 import BeautifulSoup
 import re
@@ -120,4 +121,128 @@ if __name__ == "__main__":
     if target:
         strip_site(target)
     else:
+=======
+import requests
+from bs4 import BeautifulSoup
+import re
+import os
+from urllib.parse import urljoin, urlparse
+import time
+
+# -------------------------------
+# CONFIG (edit if you want)
+# -------------------------------
+OUTPUT_DIR = "stripped_media"
+MASTER_PLAYLIST_NAME = "MASTER_PLAYLIST.m3u"
+DELAY = 0.5  # be nice to servers
+TIMEOUT = 15
+
+# Create output folder
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+# Supported extensions
+VIDEO_EXT = {'.mp4', '.mkv', '.webm', '.avi', '.mov', '.m4v', '.ts', '.mpg', '.mpeg', '.flv'}
+AUDIO_EXT = {'.mp3', '.aac', '.wav', '.flac', '.m4a', '.ogg'}
+STREAM_EXT = {'.m3u8', '.m3u'}
+SUBTITLE_EXT = {'.vtt', '.srt', '.ass', '.ssa'}
+
+ALL_EXT = VIDEO_EXT | AUDIO_EXT | STREAM_EXT | SUBTITLE_EXT
+
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 AppleWebKit/537.36"
+}
+
+def is_media_url(url):
+    return any(url.lower().endswith(ext) for ext in ALL_EXT) or "chunk" in url or "segment" in url or ".m3u8?" in url
+
+def extract_urls_from_text(text, base_url):
+    # Find all possible URLs (even obfuscated ones)
+    url_pattern = r'https?://[^\s<>"\'\]\[]+'
+    candidates = re.findall(url_pattern, text)
+    valid = []
+    for u in candidates:
+        if is_media_url(u) or u.lower().endswith(ALL_EXT):
+            full = urljoin(base_url, u.split('"')[0].split("'")[0])
+            valid.append(full)
+    return valid
+
+def strip_site(url):
+    print(f"\nStripping: {url}\n" + "-"*60)
+    
+    all_media = set()
+    master_lines = ['#EXTM3U', '# Private Media Stripper - All in one playlist', '']
+    
+    try:
+        r = requests.get(url, headers=headers, timeout=TIMEOUT)
+        r.raise_for_status()
+        html = r.text
+        base_url = r.url
+    except:
+        print("Failed to load page.")
+        return
+    
+    soup = BeautifulSoup(html, 'html.parser')
+    
+    # 1. Extract from <source>, <video>, <audio>, <a href>, etc.
+    for tag in soup.find_all(['source', 'video', 'audio', 'a', 'link', 'script', 'iframe']):
+        src = tag.get('src') or tag.get('href') or tag.get('data-src')
+        if src:
+            full = urljoin(base_url, src)
+            if is_media_url(full):
+                all_media.add(full)
+    
+    # 2. Extract from JavaScript & raw page text (this catches .m3u8 hidden in JS)
+    all_media.update(extract_urls_from_text(html, base_url))
+    
+    # 3. Also scan for blob: or data: URLs (rare but possible)
+    blob_pattern = r'(blob:https?://[^\s"\']+|data:[^"\']*?(mp4|m3u8|webm)[^"\']*)'
+    all_media.update(re.findall(blob_pattern, html, re.I))
+    
+    print(f"Found {len(all_media)} unique media/subtitle links\n")
+    
+    for i, link in enumerate(sorted(all_media), 1):
+        print(f"[{i}] {link}")
+        
+        try:
+            # Download subtitles & small files directly
+            if any(link.lower().endswith(ext) for ext in SUBTITLE_EXT) or "vtt" in link:
+                content = requests.get(link, headers=headers, timeout=10).text
+                ext = '.vtt' if 'vtt' in link else '.srt'
+                name = f"subtitle_{i}{ext}"
+                open(os.path.join(OUTPUT_DIR, name), "w", encoding="utf-8").write(content)
+                print(f"   → Subtitle saved: {name}")
+            
+            # Add every valid link to master playlist
+            if link.startswith('http'):
+                master_lines.append(f"#EXTINF:-1,{os.path.basename(urlparse(link).path) or 'Stream '+str(i)}")
+                master_lines.append(link)
+                master_lines.append("")
+                
+        except:
+            print("   → Failed (blocked or dead)")
+        
+        time.sleep(DELAY)
+    
+    # Save master playlist
+    master_path = os.path.join(OUTPUT_DIR, MASTER_PLAYLIST_NAME)
+    with open(master_path, 'w', encoding='utf-8') as f:
+        f.write('\n'.join(master_lines))
+    
+    print(f"\nDONE! Master playlist saved → {master_path}")
+    print(f"All files in → {os.path.abspath(OUTPUT_DIR)}")
+
+# ===============================
+# RUN IT
+# ===============================
+if __name__ == "__main__":
+    print("""
+    PRIVATE MEDIA STRIPPER v2
+    Extracts ALL video/audio/streams/subtitles from any site
+    Creates perfect .m3u playlist
+    """)
+    target = input("Enter URL to strip: ").strip()
+    if target:
+        strip_site(target)
+    else:
+>>>>>>> 1a45e5f4554c44fc0223c1b77be694ab7eabb3b2
         print("No URL? Bye.")
