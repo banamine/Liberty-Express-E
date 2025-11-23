@@ -667,6 +667,7 @@ class M3UMatrix:
                 ("TIMESTAMP GEN", "#ff6b6b", self.timestamp_generator),
                 ("FETCH EPG", "#d35400", self.fetch_epg),
                 ("TV GUIDE", "#9b59b6", self.open_guide),
+                ("MEDIA STRIPPER", "#ff00ff", self.open_media_stripper),
                 ("LAUNCH REDIS", "#FF5733", self.launch_redis_services)]
         for txt, col, cmd in row3:
             self.create_styled_button(tb3, txt, cmd, bg_color=col, width=14).pack(side=tk.LEFT, padx=4)
@@ -3553,6 +3554,141 @@ Services included:
                 "Please check that the browser component is installed correctly."
             )
             self.logger.error(f"Error opening Rumble Browser: {e}", exc_info=True)
+    
+    def open_media_stripper(self):
+        """Open Private Media Stripper to extract links from any website"""
+        try:
+            from stripper import strip_site
+            
+            # Create input dialog
+            dialog = tk.Toplevel(self.root)
+            dialog.title("🎬 Private Media Stripper")
+            dialog.geometry("600x400")
+            dialog.configure(bg="#1a1a2e")
+            dialog.transient(self.root)
+            
+            # Center window
+            dialog.update_idletasks()
+            x = (dialog.winfo_screenwidth() // 2) - 300
+            y = (dialog.winfo_screenheight() // 2) - 200
+            dialog.geometry(f"+{x}+{y}")
+            
+            # Header
+            tk.Label(dialog, text="🎬 PRIVATE MEDIA STRIPPER", 
+                    font=("Arial", 16, "bold"), bg="#1a1a2e", 
+                    fg="#ff00ff").pack(pady=15)
+            
+            tk.Label(dialog, text="Extract videos/audio/streams from any website\n100% Private • No Logging • Offline Ready",
+                    font=("Arial", 10), bg="#1a1a2e", fg="#fff").pack(pady=10)
+            
+            # URL Input
+            tk.Label(dialog, text="Website URL:", bg="#1a1a2e", fg="#fff").pack(anchor=tk.W, padx=20)
+            url_entry = tk.Entry(dialog, bg="#333", fg="#fff", width=50, insertbackground="#fff")
+            url_entry.pack(padx=20, pady=5, fill=tk.X)
+            
+            # Progress area
+            tk.Label(dialog, text="Progress:", bg="#1a1a2e", fg="#fff").pack(anchor=tk.W, padx=20, pady=(20, 5))
+            progress_text = tk.Text(dialog, bg="#111", fg="#0f0", height=8, font=("Courier", 9))
+            progress_text.pack(padx=20, fill=tk.BOTH, expand=True, pady=5)
+            
+            def on_strip_click():
+                url = url_entry.get().strip()
+                if not url:
+                    messagebox.showwarning("No URL", "Please enter a website URL")
+                    return
+                
+                if not url.startswith(('http://', 'https://')):
+                    url = 'https://' + url
+                
+                # Disable button and lock entry
+                strip_btn.config(state=tk.DISABLED)
+                url_entry.config(state=tk.DISABLED)
+                progress_text.config(state=tk.NORMAL)
+                progress_text.delete("1.0", tk.END)
+                
+                def progress_callback(msg):
+                    progress_text.insert(tk.END, msg + "\n")
+                    progress_text.see(tk.END)
+                    dialog.update_idletasks()
+                
+                def strip_thread():
+                    try:
+                        result = strip_site(url, progress_callback=progress_callback)
+                        
+                        if result.get('master_path'):
+                            progress_text.insert(tk.END, f"\n✓ SUCCESS!\n")
+                            progress_text.insert(tk.END, f"Found: {result['found']} media links\n")
+                            progress_text.insert(tk.END, f"Subtitles: {result['subtitles']}\n")
+                            progress_text.insert(tk.END, f"Saved to: {result['master_path']}\n")
+                            
+                            # Show completion with open folder option
+                            self.root.after(0, lambda: self._show_stripper_success(result, dialog))
+                        else:
+                            progress_text.insert(tk.END, f"\n✗ FAILED!\n{result.get('error', 'Unknown error')}\n")
+                    except Exception as e:
+                        progress_text.insert(tk.END, f"\n✗ ERROR: {str(e)}\n")
+                        self.logger.error(f"Media Stripper error: {e}", exc_info=True)
+                    finally:
+                        self.root.after(0, lambda: (
+                            strip_btn.config(state=tk.NORMAL),
+                            url_entry.config(state=tk.NORMAL)
+                        ))
+                        progress_text.config(state=tk.DISABLED)
+                
+                threading.Thread(target=strip_thread, daemon=True).start()
+            
+            # Buttons
+            btn_frame = tk.Frame(dialog, bg="#1a1a2e")
+            btn_frame.pack(pady=10, fill=tk.X, padx=20)
+            
+            strip_btn = tk.Button(btn_frame, text="🚀 STRIP MEDIA", bg="#ff00ff", fg="#fff",
+                                 command=on_strip_click, font=("Arial", 11, "bold"))
+            strip_btn.pack(side=tk.LEFT, padx=5)
+            
+            tk.Button(btn_frame, text="✕ Close", bg="#666", fg="#fff",
+                     command=dialog.destroy, font=("Arial", 10)).pack(side=tk.LEFT, padx=5)
+            
+            url_entry.focus()
+            
+        except ImportError:
+            messagebox.showerror(
+                "Media Stripper Not Available",
+                "Media Stripper module (stripper.py) not found.\n\n"
+                "Please ensure stripper.py is in src/videos/ directory."
+            )
+            self.logger.error("stripper module not available")
+        except Exception as e:
+            messagebox.showerror("Media Stripper Error", f"Failed to open Media Stripper:\n{str(e)}")
+            self.logger.error(f"Media Stripper error: {e}", exc_info=True)
+    
+    def _show_stripper_success(self, result, dialog):
+        """Show success dialog for media stripper"""
+        success_msg = (
+            f"✓ Media Stripper Complete!\n\n"
+            f"Found: {result['found']} media links\n"
+            f"Subtitles saved: {result['subtitles']}\n\n"
+            f"Output folder: {os.path.dirname(result['master_path'])}\n\n"
+            f"Your playlist is ready to use in VLC, MPC-HC, or any player!"
+        )
+        
+        result_dialog = messagebox.showinfo(
+            "Media Stripper Success",
+            success_msg
+        )
+        
+        # Option to open folder
+        if messagebox.askyesno("Open Folder", "Open output folder?"):
+            try:
+                import subprocess, platform
+                folder = os.path.dirname(result['master_path'])
+                if platform.system() == 'Darwin':  # macOS
+                    subprocess.Popen(['open', folder])
+                elif platform.system() == 'Windows':
+                    os.startfile(folder)
+                else:  # Linux
+                    subprocess.Popen(['xdg-open', folder])
+            except Exception as e:
+                self.logger.warning(f"Could not open folder: {e}")
     
     def open_ndi_control(self):
         """Open NDI Control Center for managing NDI outputs"""

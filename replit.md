@@ -31,6 +31,31 @@
 **Access:** http://your-app/admin-update-panel  
 **See:** PHASE_2_COMPLETION_SUMMARY.md for complete Phase 2 details.
 
+## Media Stripper (NEW)
+
+**What It Is:** Private media extraction tool that scans any website and creates playable .m3u playlists
+
+**How It Works:**
+1. User provides any website URL
+2. Stripper silently scans the page (like F12 → Network or Elements)
+3. Extracts all media files: .mp4, .m3u8, .m3u, .ts, .mp3, .mkv, .webm, .aac, etc.
+4. Also extracts subtitles: .vtt, .srt, .ass
+5. Saves `MASTER_PLAYLIST.m3u` with all links
+6. Saves subtitles to `stripped_media/` folder
+
+**Features:**
+- ✅ 100% offline after initial scan (no background calling home)
+- ✅ Zero logging/telemetry (completely private)
+- ✅ Extracts from HTML tags, JavaScript, blob URLs
+- ✅ Works with any website (video sites, streaming services, etc.)
+- ✅ Supports direct files (.mp4) and streaming (.m3u8)
+- ✅ Progress tracking in UI
+- ✅ One-click folder open
+
+**Access:** `MEDIA STRIPPER` button in M3U Matrix Pro GUI (Row 3, magenta color)
+
+**Output:** `stripped_media/MASTER_PLAYLIST.m3u` (playable in VLC, MPC-HC, any player)
+
 ## System Architecture
 
 ### Wiring Diagram: How Components Connect
@@ -43,7 +68,7 @@ The project incorporates a modern design for ScheduleFlow with a professional bl
 Core scheduling logic includes intelligent drag-and-drop, auto-filling, category balancing, multi-week planning, and recurring events. Video playback is handled by native HTML5 video, HLS.js, and DASH.js. Data persistence uses `localStorage` for client-side and JSON files for server-side. Video validation includes HTTP 200 checks, FFprobe metadata, and HLS segment validation. Lazy loading is implemented for resource efficiency. The system features automated GitHub Pages deployment and a production-ready validation engine for imports and exports, covering schema validation, UTC timestamp parsing, duplicate detection (MD5), and conflict detection. A 48-hour cooldown enforces unique video plays.
 
 ### Feature Specifications
-ScheduleFlow offers M3U parsing, channel validation, EPG fetching, settings management, and NDI Output Control Center integration. NEXUS TV provides dynamic content scheduling and auto-thumbnail generation. The Multi-Channel Viewer supports advanced multi-viewing with smart audio. Buffer TV focuses on buffering optimization and a TV Guide. Advanced player controls include skip functions, volume control, fullscreen toggles, and timestamp-based clipping. The import/export system supports XML (TVGuide format) and JSON, with comprehensive validation and error reporting. The Interactive Hub features modals for import, schedule, and export, an interactive calendar, and a status dashboard.
+ScheduleFlow offers M3U parsing, channel validation, EPG fetching, settings management, and NDI Output Control Center integration. **NEW: Private Media Stripper** extracts video/audio/stream links from any website, creates playable .m3u playlists, works 100% offline after initial scan, with zero logging/telemetry for complete privacy. NEXUS TV provides dynamic content scheduling and auto-thumbnail generation. The Multi-Channel Viewer supports advanced multi-viewing with smart audio. Buffer TV focuses on buffering optimization and a TV Guide. Advanced player controls include skip functions, volume control, fullscreen toggles, and timestamp-based clipping. The import/export system supports XML (TVGuide format) and JSON, with comprehensive validation and error reporting. The Interactive Hub features modals for import, schedule, and export, an interactive calendar, and a status dashboard.
 
 ### System Design Choices
 The architecture follows a dual-component design, separating playlist management (desktop application) from web-based content consumption. Player templates are static HTML/CSS/JavaScript files. A central `index.html` acts as a navigation hub. Data is persisted using JSON files for desktop applications and `localStorage` for web applications. The system is configured for Replit Autoscale and GitHub Pages deployment. Standalone pages with embedded playlist data ensure offline functionality. All imports undergo rigorous validation including schema validation, UTC timestamp normalization, and cryptographic hash-based duplicate and conflict detection.
@@ -52,6 +77,7 @@ The architecture follows a dual-component design, separating playlist management
 
 ### Python Application
 - **requests:** For HTTP requests.
+- **beautifulsoup4:** For HTML parsing in Media Stripper feature.
 - **Pillow (PIL Fork):** For image processing.
 - **tkinterdnd2:** For drag-and-drop in Tkinter.
 - **PyInstaller:** For creating standalone executables.
