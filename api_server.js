@@ -593,7 +593,7 @@ app.use((req, res) => {
 // This implements the Communication Layer Integration pattern
 
 const axios = require('axios').default;
-const PYTHON_API_URL = 'http://localhost:5001';
+const PYTHON_API_URL = 'http://localhost:3000';
 
 // Proxy function for FastAPI calls
 async function proxyToPythonAPI(req, res, pythonEndpoint) {

@@ -26,12 +26,12 @@ def main():
     import uvicorn
     
     logger.info("Starting ScheduleFlow FastAPI Server...")
-    logger.info("API documentation available at: http://localhost:5001/docs")
+    logger.info("API documentation available at: http://localhost:3000/docs")
     
     uvicorn.run(
         "api.server:app",
         host="0.0.0.0",
-        port=5001,
+        port=3000,
         log_level="info",
         reload=False
     )
