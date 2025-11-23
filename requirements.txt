@@ -30,3 +30,5 @@ tkinterdnd2>=0.4.3
 uvicorn>=0.24.0
 # Week 1: API Layer & Modularization
 # Week 4+: Authentication & Logging (CRITICAL AUDIT FIXES)
+pytest
+pytest-cov
