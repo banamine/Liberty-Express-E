@@ -12,7 +12,7 @@ REST API endpoints:
 - POST /api/export - Export to M3U format
 """
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks, Request, Depends
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Request, Depends, Form
 from fastapi.responses import JSONResponse, FileResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -662,7 +662,7 @@ def create_app() -> FastAPI:
         return user_id if valid else None
     
     @app.post("/api/auth/register")
-    def register(username: str, email: str, password: str):
+    def register(username: str = Form(...), email: str = Form(...), password: str = Form(...)):
         """Register new user"""
         try:
             success, message = app.state.user_manager.register_user(username, email, password)
@@ -673,7 +673,7 @@ def create_app() -> FastAPI:
             raise HTTPException(status_code=400, detail=str(e))
     
     @app.post("/api/auth/login")
-    def login(username: str, password: str):
+    def login(username: str = Form(...), password: str = Form(...)):
         """Login user and get JWT token"""
         try:
             success, user_id, message = app.state.user_manager.authenticate_user(username, password)
@@ -779,7 +779,7 @@ def create_app() -> FastAPI:
             raise HTTPException(status_code=400, detail=str(e))
     
     @app.put("/api/users/{target_user_id}/role")
-    def update_user_role(target_user_id: str, role: str, user_id: Optional[str] = Depends(get_current_user)):
+    def update_user_role(target_user_id: str, role: str = Form(...), user_id: Optional[str] = Depends(get_current_user)):
         """Update user role (admin only)"""
         if not user_id:
             raise HTTPException(status_code=401, detail="Not authenticated")
