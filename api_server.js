@@ -128,6 +128,9 @@ app.use('/generated_pages', express.static('generated_pages'));
 // Serve static files from M3U_Matrix_Output
 app.use('/M3U_Matrix_Output', express.static('M3U_Matrix_Output'));
 
+// Serve attached assets (user uploads)
+app.use('/attached_assets', express.static('attached_assets'));
+
 // Also serve from root for compatibility
 app.use(express.static('generated_pages'));
 
