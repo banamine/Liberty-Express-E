@@ -62,6 +62,16 @@ ScheduleFlow offers M3U parsing, channel validation, EPG fetching, settings mana
 - **Playlist Navigation:** Click any item to jump to that track
 - **Keyboard Shortcuts:** Space (play/pause), Arrow keys (next/prev)
 
+**File Documentation & Organization System:**
+- **FILE_BROWSER_README.html** - Comprehensive file browser with:
+  - Organized files by type (Players, Schedulers, Utilities, Shows)
+  - GitHub pull commands for offline access
+  - Show-specific pages organized by title + timestamp
+  - Quick-access buttons and search system
+  - Easy retrieval from any page or GUI
+- **Accessible from:** All pages via "📋 Documentation" link, M3U PRO "Documentation" button, or direct URL
+- **Offline Capability:** Full instructions for cloning from GitHub and using pages without server
+
 **System Design Choices:**
 The architecture employs a dual-component design, separating playlist management (desktop application) from web-based content consumption. Player templates are static HTML/CSS/JavaScript. A central `index.html` serves as a navigation hub. Data is persisted using JSON files for desktop applications and `localStorage` for web applications. The system is configured for Replit Autoscale and GitHub Pages deployment. Standalone pages with embedded playlist data ensure offline functionality. All imports undergo rigorous validation including schema validation, UTC timestamp normalization, and cryptographic hash-based duplicate and conflict detection.
 
