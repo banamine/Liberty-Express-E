@@ -41,6 +41,18 @@ ScheduleFlow offers M3U parsing, channel validation, EPG fetching, settings mana
 - **Conflict Detection:** Prevents duplicate episodes, detects time overlaps, identifies out-of-order episodes with visual indicators and auto-fix suggestions
 - **Manual + Auto Workflows:** Supports "auto-first then manual adjust" and "manual-first then auto-fill" workflows
 
+**Large Playlist Optimizer (Universal Format Support):**
+- **File Upload:** Drag-and-drop or click to upload ANY file format (.m3u, .json, .xml, .html, .txt, etc.)
+- **Format Auto-Detection:** Automatically detects and parses:
+  - M3U/M3U8 playlists (with #EXTM3U metadata)
+  - JSON files (recursive URL extraction from all fields)
+  - XML/EPG files (attribute and text node extraction)
+  - Plain text files (regex-based URL extraction)
+  - HTML pages (link extraction from content)
+- **Link Extraction:** Single click "Extract Links" button to find all HTTP/HTTPS URLs in uploaded content
+- **Smart Loading:** Attempts to load first valid URL from extracted list
+- **Status Reporting:** Clear feedback on number of URLs found and loading progress
+
 **Demo Player Features:**
 - **Embedded Priority Playlist:** Pre-loaded with 3 shows (Mayday, Documentary Collection, Classic Films) - no selection needed
 - **Auto-Rotating Clips:** Plays random 5-minute segments rotating between shows
