@@ -87,6 +87,17 @@ ScheduleFlow offers M3U parsing, channel validation, EPG fetching, settings mana
 **System Design Choices:**
 The architecture employs a dual-component design, separating playlist management (desktop application) from web-based content consumption. Player templates are static HTML/CSS/JavaScript. A central `index.html` serves as a navigation hub. Data is persisted using JSON files for desktop applications and `localStorage` for web applications. The system is configured for Replit Autoscale and GitHub Pages deployment. Standalone pages with embedded playlist data ensure offline functionality. All imports undergo rigorous validation including schema validation, UTC timestamp normalization, and cryptographic hash-based duplicate and conflict detection.
 
+## Recent Updates (November 23, 2025)
+
+- **YouTube Removed:** Removed all YouTube references from the system
+- **Internet Radio Template Added:** New dedicated internet_radio.html template with:
+  - Music rotation scheduling
+  - Category balancing rules
+  - Auto-scheduling for 24-hour programming
+  - M3U/JSON playlist import
+  - Smart artist/song rotation limits
+  - Professional quality audio player
+
 ## External Dependencies
 
 **Python Application:**
