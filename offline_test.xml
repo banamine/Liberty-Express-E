@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<tvguide generated="2025-11-23T01:38:54.952244+00:00">
+  <metadata>
+    <name>sample_schedule</name>
+    <source>xml</source>
+    <imported>2025-11-23T01:38:54.645508+00:00</imported>
+    <event_count>6</event_count>
+  </metadata>
+  <schedule>
+    <event id="ca241b27-c0c7-4f99-849d-2c050d54c6a0">
+      <title>Morning News</title>
+      <start>2025-11-24T08:00:00Z</start>
+      <end>2025-11-24T09:00:00Z</end>
+      <category>News</category>
+    </event>
+    <event id="ac2aad51-2176-4e71-8e42-7e3e290e5ba9">
+      <title>Live Talk Show</title>
+      <start>2025-11-24T10:00:00Z</start>
+      <end>2025-11-24T11:00:00Z</end>
+      <category>Entertainment</category>
+    </event>
+    <event id="92a9d570-41fc-46d8-b44d-f09347eeaedd">
+      <title>Cooking Show</title>
+      <start>2025-11-24T12:00:00Z</start>
+      <end>2025-11-24T13:00:00Z</end>
+      <category>Lifestyle</category>
+    </event>
+    <event id="b9504221-a632-4bce-a1a0-efba80add364">
+      <title>Evening News</title>
+      <start>2025-11-24T18:00:00Z</start>
+      <end>2025-11-24T19:00:00Z</end>
+      <category>News</category>
+    </event>
+    <event id="8700dd08-61c3-4b8f-9d0d-0cd1188e10ff">
+      <title>Prime Time Drama</title>
+      <start>2025-11-24T20:00:00Z</start>
+      <end>2025-11-24T21:00:00Z</end>
+      <category>Drama</category>
+    </event>
+    <event id="476c4bb1-b857-4377-a7f3-012bffc5361f">
+      <title>Late Night Show</title>
+      <start>2025-11-24T23:00:00Z</start>
+      <end>2025-11-25T00:00:00Z</end>
+      <category>Entertainment</category>
+    </event>
+  </schedule>
+</tvguide>
