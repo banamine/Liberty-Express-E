@@ -13,6 +13,17 @@ const PORT = process.env.PORT || 5000;
 const ADMIN_API_KEY = process.env.ADMIN_API_KEY || 'change_me_to_your_secret_key';
 const MAX_UPLOAD_SIZE = parseInt(process.env.MAX_UPLOAD_SIZE || '52428800');
 
+// API request logging middleware
+app.use((req, res, next) => {
+  const startTime = Date.now();
+  res.on('finish', () => {
+    const duration = Date.now() - startTime;
+    const logLevel = res.statusCode >= 400 ? 'error' : 'info';
+    console.log(`[${logLevel.toUpperCase()}] ${req.method} ${req.path} - ${res.statusCode} (${duration}ms)`);
+  });
+  next();
+});
+
 // Process pool: limit concurrent Python processes to 4 (prevents OOM)
 const pythonQueue = new TaskQueue(4);
 

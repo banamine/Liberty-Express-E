@@ -13,9 +13,22 @@ import requests
 import xml.etree.ElementTree as ET
 import hashlib
 import uuid
+import logging
+import shutil
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from typing import List, Dict, Any, Tuple, Optional
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('logs/scheduleflow.log'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
 
 class CooldownManager:
@@ -40,10 +53,18 @@ class CooldownManager:
                             if dt.tzinfo is None:
                                 dt = dt.replace(tzinfo=timezone.utc)
                             self.last_played[video_url] = dt
-                        except (ValueError, TypeError):
-                            pass
-            except (json.JSONDecodeError, IOError):
+                        except (ValueError, TypeError) as e:
+                            logger.warning(f"Skipping malformed timestamp for '{video_url}': {timestamp_str} ({e})")
+            except json.JSONDecodeError as e:
+                logger.error(f"Corrupted cooldown history file - JSON decode error: {e}")
+                logger.info(f"Creating backup of corrupted file: {self.history_file}.corrupt")
+                try:
+                    shutil.copy(self.history_file, f"{self.history_file}.corrupt")
+                except Exception as backup_err:
+                    logger.error(f"Failed to backup corrupted file: {backup_err}")
                 self.last_played = {}
+            except IOError as e:
+                logger.error(f"Cannot read cooldown history file: {e}")
     
     def save_history(self):
         """Save cooldown history to file"""
@@ -56,8 +77,12 @@ class CooldownManager:
                 dt = dt.astimezone(timezone.utc)
             data[video_url] = dt.isoformat()
         
-        with open(self.history_file, 'w') as f:
-            json.dump(data, f, indent=2)
+        try:
+            with open(self.history_file, 'w') as f:
+                json.dump(data, f, indent=2)
+            logger.debug(f"Saved cooldown history: {len(data)} entries")
+        except IOError as e:
+            logger.error(f"Failed to save cooldown history: {e}")
     
     def update_play_time(self, video_url: str, play_time: datetime):
         """Record that a video was played at a given time"""
@@ -630,6 +655,7 @@ class M3UMatrixPro:
             with open(schedule_file, 'w') as f:
                 json.dump(schedule, f, indent=2)
             
+            logger.info(f"Successfully imported XML schedule: {schedule_id} ({len(unique_events)} events)")
             return {
                 "status": "success",
                 "schedule_id": schedule_id,
@@ -642,6 +668,7 @@ class M3UMatrixPro:
                 }
             }
         except ET.ParseError as e:
+            logger.error(f"XML parse error in {filepath}: {e}")
             return {
                 "status": "error",
                 "type": "parse_error",
@@ -650,14 +677,16 @@ class M3UMatrixPro:
                 "hint": "Check XML syntax: mismatched tags, missing quotes, or invalid characters",
                 "example_fix": "Ensure all opening tags have closing tags: <event>...</event>"
             }
-        except FileNotFoundError:
+        except FileNotFoundError as e:
+            logger.error(f"File not found: {filepath}")
             return {
                 "status": "error",
                 "type": "file_not_found",
                 "message": f"File not found: {filepath}",
                 "hint": "Check that the file path is correct and the file exists"
             }
-        except PermissionError:
+        except PermissionError as e:
+            logger.error(f"Permission denied reading {filepath}: {e}")
             return {
                 "status": "error",
                 "type": "permission_denied",
@@ -665,6 +694,7 @@ class M3UMatrixPro:
                 "hint": "Check file permissions. The file should be readable."
             }
         except Exception as e:
+            logger.error(f"Unexpected error importing XML {filepath}: {e}", exc_info=True)
             return {
                 "status": "error",
                 "type": "unexpected",
@@ -741,6 +771,7 @@ class M3UMatrixPro:
             with open(schedule_file, 'w') as f:
                 json.dump(schedule, f, indent=2)
             
+            logger.info(f"Successfully imported JSON schedule: {schedule_id} ({len(unique_events)} events)")
             return {
                 "status": "success",
                 "schedule_id": schedule_id,
@@ -753,6 +784,7 @@ class M3UMatrixPro:
                 }
             }
         except json.JSONDecodeError as e:
+            logger.error(f"JSON decode error in {filepath}: {e}")
             return {
                 "status": "error",
                 "type": "parse_error",
@@ -761,14 +793,16 @@ class M3UMatrixPro:
                 "hint": "Check JSON syntax: missing commas, trailing commas, or unquoted keys",
                 "example_fix": 'Use {"events": [...]} not {events: [...]}'
             }
-        except FileNotFoundError:
+        except FileNotFoundError as e:
+            logger.error(f"File not found: {filepath}")
             return {
                 "status": "error",
                 "type": "file_not_found",
                 "message": f"File not found: {filepath}",
                 "hint": "Check that the file path is correct and the file exists"
             }
-        except PermissionError:
+        except PermissionError as e:
+            logger.error(f"Permission denied reading {filepath}: {e}")
             return {
                 "status": "error",
                 "type": "permission_denied",
@@ -776,6 +810,7 @@ class M3UMatrixPro:
                 "hint": "Check file permissions. The file should be readable."
             }
         except Exception as e:
+            logger.error(f"Unexpected error importing JSON {filepath}: {e}", exc_info=True)
             return {
                 "status": "error",
                 "type": "unexpected",
@@ -945,6 +980,7 @@ class M3UMatrixPro:
             except ET.ParseError:
                 is_valid = False
             
+            logger.info(f"Exported schedule {schedule_id} to XML: {output_path} ({len(schedule.get('events', []))} events)")
             return {
                 "status": "success",
                 "path": str(output_path),
@@ -955,6 +991,7 @@ class M3UMatrixPro:
                 "human_readable": True
             }
         except Exception as e:
+            logger.error(f"Failed to export schedule {schedule_id} to XML: {e}", exc_info=True)
             return {"status": "error", "message": str(e)}
 
     def export_schedule_json(self, schedule_id: str, output_path: str) -> Dict[str, Any]:
@@ -996,6 +1033,7 @@ class M3UMatrixPro:
             except json.JSONDecodeError:
                 is_valid = False
             
+            logger.info(f"Exported schedule {schedule_id} to JSON: {output_path} ({len(schedule.get('events', []))} events)")
             return {
                 "status": "success",
                 "path": str(output_path),
@@ -1006,6 +1044,7 @@ class M3UMatrixPro:
                 "human_readable": True
             }
         except Exception as e:
+            logger.error(f"Failed to export schedule {schedule_id} to JSON: {e}", exc_info=True)
             return {"status": "error", "message": str(e)}
 
     def export_all_schedules_xml(self, output_path: str) -> Dict[str, Any]:
