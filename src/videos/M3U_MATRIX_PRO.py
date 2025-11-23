@@ -700,6 +700,8 @@ class M3UMatrix:
                  insertbackground="#fff").pack(side=tk.LEFT, padx=8)
         
         # Settings menu with smart colors
+        self.create_styled_button(tools, "📋 Documentation", self.open_documentation,
+                                  bg_color="#27ae60", width=12, font_size=8).pack(side=tk.RIGHT, padx=2)
         self.create_styled_button(tools, "📁 Output Folder", self.configure_output_folder,
                                   bg_color="#8b4789", width=12, font_size=8).pack(side=tk.RIGHT, padx=2)
         self.create_styled_button(tools, "⚙️ Export Settings", self.export_settings,
@@ -2942,6 +2944,35 @@ Success Rate: {results['working']/results['total']*100:.1f}%
             self.stat.config(text="Navigation Hub opened in browser")
         except Exception as e:
             self.show_error_dialog("Failed to Open Hub", "Could not open Navigation Hub", e)
+    
+    def open_documentation(self):
+        """Open the File Browser Documentation page"""
+        try:
+            # Use OutputManager to get the correct documentation path
+            try:
+                from output_manager import get_output_manager
+                manager = get_output_manager()
+                doc_path = manager.pages_dir / "FILE_BROWSER_README.html"
+            except ImportError:
+                # Fallback to M3U_Matrix_Output structure
+                doc_path = Path.cwd() / "M3U_Matrix_Output" / "generated_pages" / "FILE_BROWSER_README.html"
+            
+            # Check if documentation exists
+            if not doc_path.exists():
+                messagebox.showwarning(
+                    "Documentation Not Found",
+                    "FILE_BROWSER_README.html not found!\n\n"
+                    "The documentation will be created when you generate your first page.\n\n"
+                    f"Expected location:\n{doc_path}"
+                )
+                return
+            
+            # Open in default browser
+            abs_path = doc_path.absolute()
+            webbrowser.open(f"file:///{abs_path}")
+            self.stat.config(text="Documentation opened in browser")
+        except Exception as e:
+            self.show_error_dialog("Failed to Open Documentation", "Could not open File Browser", e)
 
     def on_double(self, e):
         col = self.tv.identify_column(e.x)
