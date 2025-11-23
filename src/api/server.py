@@ -12,15 +12,17 @@ REST API endpoints:
 - POST /api/export - Export to M3U format
 """
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks
-from fastapi.responses import JSONResponse, FileResponse
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Request
+from fastapi.responses import JSONResponse, FileResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 import logging
 import json
 from pathlib import Path
 from typing import List, Dict, Optional, Any
 from datetime import datetime
 import sys
+import time
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -33,6 +35,8 @@ from core.versioning import VersionManager
 from core.backup import BackupManager
 from core.paths import CrossPlatformPath, get_app_data_dir, get_cache_dir
 from core.stripper import StripperManager, MediaExtractor
+from core.progress import ProgressManager
+from core.cache import ResponseCache
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +61,16 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
     
+    # Week 4: Add response time middleware
+    @app.middleware("http")
+    async def add_response_headers(request: Request, call_next):
+        start_time = time.time()
+        response = await call_next(request)
+        process_time = time.time() - start_time
+        response.headers["X-Process-Time"] = str(process_time)
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        return response
+    
     # Initialize components
     scheduler = ScheduleEngine()
     file_handler = FileHandler()
@@ -71,6 +85,10 @@ def create_app() -> FastAPI:
     stripper_dir = app_data_dir / "stripped_media"
     stripper_manager = StripperManager(stripper_dir)
     
+    # Week 4: Progress Tracking & Caching
+    progress_manager = ProgressManager()
+    response_cache = ResponseCache(default_ttl=300)
+    
     # State
     app.state.channels: List[Channel] = []
     app.state.current_schedule: Optional[Schedule] = None
@@ -79,6 +97,20 @@ def create_app() -> FastAPI:
     app.state.version_manager = version_manager
     app.state.backup_manager = backup_manager
     app.state.stripper_manager = stripper_manager
+    app.state.progress_manager = progress_manager
+    app.state.response_cache = response_cache
+    
+    # ===== UI ROUTES =====
+    
+    @app.get("/")
+    @app.get("/dashboard")
+    async def dashboard():
+        """Serve ScheduleFlow dashboard"""
+        dashboard_file = Path(__file__).parent / "dashboard.html"
+        if dashboard_file.exists():
+            with open(dashboard_file, 'r') as f:
+                return HTMLResponse(content=f.read())
+        return HTMLResponse("<h1>ScheduleFlow Dashboard</h1><p>Dashboard UI not found</p>")
     
     # ===== HEALTH & INFO =====
     
@@ -501,6 +533,69 @@ def create_app() -> FastAPI:
         except Exception as e:
             logger.error(f"Failed to clear stripper history: {e}")
             raise HTTPException(status_code=400, detail=str(e))
+    
+    # ===== WEEK 4: PROGRESS TRACKING =====
+    
+    @app.get("/api/progress/{operation_id}")
+    def get_operation_progress(operation_id: str):
+        """Get progress of an operation"""
+        try:
+            progress = app.state.progress_manager.get_progress(operation_id)
+            if not progress:
+                return {"status": "not_found", "message": f"Operation {operation_id} not found"}
+            
+            return {"status": "success", "progress": progress}
+        except Exception as e:
+            logger.error(f"Failed to get progress: {e}")
+            raise HTTPException(status_code=400, detail=str(e))
+    
+    @app.get("/api/progress")
+    def list_active_operations():
+        """List all active operations"""
+        try:
+            operations = app.state.progress_manager.list_progress()
+            return {
+                "status": "success",
+                "active_count": len(operations),
+                "operations": operations
+            }
+        except Exception as e:
+            logger.error(f"Failed to list operations: {e}")
+            raise HTTPException(status_code=400, detail=str(e))
+    
+    # ===== WEEK 4: CACHE MANAGEMENT =====
+    
+    @app.get("/api/cache/stats")
+    def get_cache_stats():
+        """Get cache statistics"""
+        try:
+            stats = app.state.response_cache.stats()
+            return {"status": "success", "cache": stats}
+        except Exception as e:
+            logger.error(f"Failed to get cache stats: {e}")
+            raise HTTPException(status_code=400, detail=str(e))
+    
+    @app.post("/api/cache/clear")
+    def clear_cache():
+        """Clear all cached responses"""
+        try:
+            app.state.response_cache.invalidate()
+            logger.info("Cache cleared")
+            return {"status": "success", "message": "Cache cleared"}
+        except Exception as e:
+            logger.error(f"Failed to clear cache: {e}")
+            raise HTTPException(status_code=400, detail=str(e))
+    
+    # ===== WEEK 4: HEALTH CHECK =====
+    
+    @app.get("/health")
+    def health_check():
+        """Quick health check endpoint"""
+        return {
+            "status": "healthy",
+            "version": "2.0.0",
+            "timestamp": datetime.utcnow().isoformat()
+        }
     
     return app
 
