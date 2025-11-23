@@ -88,7 +88,7 @@ The architecture uses a dual-component design separating playlist management (de
 
 ---
 
-## Additional Fixes (November 23, 2025)
+## Phase 1 Fixes (November 23, 2025)
 
 ### 1. Error Handling Improvements ✅
 **Fixed:** Bad XML/JSON files no longer cause crashes
@@ -97,13 +97,21 @@ The architecture uses a dual-component design separating playlist management (de
 - **Error Types:** Separate handling for parse errors, file not found, permission denied
 - **Example Fixes:** Shows users how to fix common XML/JSON syntax errors
 - **File:** M3U_Matrix_Pro.py (lines 647-688, 758-788)
+- **Tested:** Works with malformed input, provides guidance
 
-### 2. Demo Content ✅
+### 2. Demo Content ✅ FULLY TESTED WITH EDGE CASES
 **Fixed:** Users won't know how to start
-- **sample_schedule.xml** - 6 videos in XML format (8:00 AM - 11:00 PM)
-- **sample_schedule.json** - 5 videos in JSON format (6:00 AM - 11:00 PM)
+- **Realistic schedules with edge cases:**
+  - `sample_schedule.xml` - Basic 6-video example
+  - `sample_schedule.json` - JSON format alternative
+  - `sample_schedule_conflicts.xml` - Overlapping timeslots (4 conflicts detected)
+  - `sample_schedule_gaps.xml` - Schedule gaps (tests gap handling)
+  - `sample_schedule_midnight.xml` - Midnight boundaries (day transitions)
+  - `sample_schedule_cooldown.xml` - 48-hour cooldown enforcement (6 events)
+- **Real videos:** Google test videos (BigBuckBunny, ElephantsDream, etc.)
 - **Location:** demo_data/ directory (ready to import)
-- **Purpose:** Immediate onboarding without creating own files
+- **Testing:** All imports successful, conflicts detected, round-trip verified
+- **Evidence:** See REALISTIC_DEMO_TESTING_REPORT.md for full test results
 
 ### 3. First Run Guide ✅
 **Fixed:** Users won't know if videos play automatically
