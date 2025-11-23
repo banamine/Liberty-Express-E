@@ -1,0 +1,50 @@
+src/core/models.py                       51      6    88%   32, 58, 76, 80, 84, 103
+src/core/paths.py                        85     85     0%   7-143
+src/core/progress.py                     67     67     0%   7-121
+src/core/scheduler.py                    58     45    22%   25, 46-101, 105-109, 122-139, 145-148
+src/core/scheduling.py                   66     11    83%   50, 70-71, 89, 139-146
+src/core/stripper.py                    116    116     0%   8-224
+src/core/threading_manager.py            90     18    80%   66-68, 97-99, 141-146, 173, 177-180, 190-192
+src/core/timestamps.py                   46     15    67%   33, 46, 51, 59, 65-77
+src/core/user_manager.py                 58     58     0%   7-107
+src/core/validation.py                   73     10    86%   30-31, 38-39, 51, 67-70, 131-132
+src/core/validator.py                    34     23    32%   28-29, 41-85, 107-120
+src/core/versioning.py                   96     96     0%   7-177
+src/m3u_matrix_redis_integration.py      11     11     0%   7-158
+src/models/__init__.py                    1      1     0%   6
+src/services/__init__.py                  1      1     0%   6
+src/stripper/__init__.py                  0      0   100%
+src/stripper/enhanced_stripper.py       128    128     0%   6-231
+src/ui/__init__.py                        1      1     0%   6
+src/utils/__init__.py                     3      3     0%   7-21
+src/utils/dependency_checker.py         183    183     0%   6-312
+-------------------------------------------------------------------
+TOTAL                                  2473   1978    20%
+=========================== short test summary info ============================
+FAILED tests/test_error_handling.py::TestSchedulingEdgeCases::test_schedule_videos_longer_than_duration
+FAILED tests/test_m3u_matrix.py::TestM3UMatrix::test_build_m3u_output - Modul...
+FAILED tests/test_m3u_matrix.py::TestM3UMatrix::test_parse_extinf_line_basic
+FAILED tests/test_m3u_matrix.py::TestM3UMatrix::test_parse_extinf_line_malformed
+FAILED tests/test_m3u_matrix.py::TestM3UMatrix::test_parse_extinf_line_minimal
+FAILED tests/test_m3u_matrix_comprehensive.py::TestM3UMatrixComprehensive::test_channel_validation_404
+FAILED tests/test_m3u_matrix_comprehensive.py::TestM3UMatrixComprehensive::test_channel_validation_performance
+FAILED tests/test_m3u_matrix_comprehensive.py::TestM3UMatrixComprehensive::test_channel_validation_timeout
+FAILED tests/test_m3u_matrix_comprehensive.py::TestM3UMatrixComprehensive::test_concurrent_file_generation
+FAILED tests/test_m3u_matrix_comprehensive.py::TestM3UMatrixComprehensive::test_corrupted_json_recovery
+FAILED tests/test_m3u_matrix_comprehensive.py::TestM3UMatrixComprehensive::test_empty_m3u_file
+FAILED tests/test_m3u_matrix_comprehensive.py::TestM3UMatrixComprehensive::test_large_playlist_parsing
+FAILED tests/test_m3u_matrix_comprehensive.py::TestM3UMatrixComprehensive::test_malformed_m3u_recovery
+FAILED tests/test_m3u_matrix_comprehensive.py::TestM3UMatrixComprehensive::test_memory_efficient_parsing
+FAILED tests/test_m3u_matrix_comprehensive.py::TestM3UMatrixComprehensive::test_path_traversal_prevention
+FAILED tests/test_m3u_matrix_comprehensive.py::TestM3UMatrixComprehensive::test_special_characters_in_channel_names
+FAILED tests/test_m3u_matrix_comprehensive.py::TestM3UMatrixComprehensive::test_url_encoding_regression
+FAILED tests/test_m3u_matrix_comprehensive.py::TestRedisIntegration::test_redis_connection_failure
+FAILED tests/test_m3u_matrix_comprehensive.py::TestRedisIntegration::test_redis_timeout_handling
+FAILED tests/test_m3u_matrix_comprehensive.py::TestSecurityFeatures::test_command_injection_prevention
+FAILED tests/test_m3u_matrix_comprehensive.py::TestSecurityFeatures::test_sql_injection_prevention
+FAILED tests/test_m3u_matrix_comprehensive.py::TestSecurityFeatures::test_xss_prevention_in_channel_names
+FAILED tests/test_threading.py::TestThreadPool::test_task_error_handling - As...
+FAILED tests/test_timestamps.py::TestTimestampParser::test_parse_iso8601_utc_conversion
+FAILED tests/test_timestamps.py::TestTimestampParser::test_parse_iso8601_with_offset
+FAILED tests/test_timestamps.py::TestTimestampParser::test_parse_iso8601_with_z
+======================== 26 failed, 70 passed in 7.45s =========================
