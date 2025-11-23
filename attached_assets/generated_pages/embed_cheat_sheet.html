@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScheduleFlow Embed Cheat Sheet</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #000;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            padding: 30px;
+            line-height: 1.6;
+        }
+        .container { max-width: 1000px; margin: 0 auto; }
+        h1 { color: #ffff00; margin-bottom: 30px; font-size: 2.5em; }
+        h2 { color: #ffff00; margin-top: 40px; margin-bottom: 20px; font-size: 1.8em; border-bottom: 2px solid #00ff00; padding-bottom: 10px; }
+        .section {
+            background: #1a1a1a;
+            border-left: 4px solid #ffff00;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 6px;
+        }
+        .code-block {
+            background: #000;
+            border: 1px solid #00ff00;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-size: 0.95em;
+            word-break: break-all;
+        }
+        .copy-btn {
+            background: #ffff00;
+            color: #000;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+            font-family: Arial, sans-serif;
+        }
+        .copy-btn:hover { background: #00ff00; }
+        .pages-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .page-item {
+            background: #000;
+            border: 1px solid #00ff00;
+            padding: 12px;
+            border-radius: 4px;
+        }
+        .page-item code { color: #00ff00; }
+        .page-item div:first-child { color: #ffff00; font-weight: bold; margin-bottom: 5px; }
+        .warning {
+            background: #331100;
+            border-left: 4px solid #ff6600;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+            color: #ffaa44;
+        }
+        .tips {
+            background: #003311;
+            border-left: 4px solid #00ff00;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .tips strong { color: #ffff00; }
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #00ff00;
+            text-align: center;
+            color: #888;
+            font-size: 0.9em;
+        }
+        @media print {
+            body { background: white; color: black; }
+            h1, h2 { color: black; }
+            .section { background: #f0f0f0; border-left-color: black; }
+            .code-block { background: white; border-color: black; }
+            .copy-btn { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 ScheduleFlow Embed Cheat Sheet</h1>
+        <p style="text-align: center; color: #888; margin-bottom: 40px;">Quick reference for embedding your playout scheduler on Wix or Weebly</p>
+
+        <!-- WIX SECTION -->
+        <div class="section">
+            <h2>🔷 Wix Instructions</h2>
+            <ol style="margin-left: 20px; margin-bottom: 20px;">
+                <li>Go to your <strong>Wix editor</strong></li>
+                <li>Click <strong>Add → More → Embed Code</strong></li>
+                <li>Paste the code below:</li>
+            </ol>
+            <div class="code-block">&lt;iframe src="https://raw.githubusercontent.com/banamine/Liberty-Express-/main/generated_pages/index.html" width="100%" height="800" style="border:none; border-radius:8px;"&gt;&lt;/iframe&gt;</div>
+            <button class="copy-btn" onclick="copyToClipboard(this, 'wix-code')">📋 Copy Code</button>
+            <span id="wix-code" style="display: none;">&lt;iframe src="https://raw.githubusercontent.com/banamine/Liberty-Express-/main/generated_pages/index.html" width="100%" height="800" style="border:none; border-radius:8px;"&gt;&lt;/iframe&gt;</span>
+        </div>
+
+        <!-- WEEBLY SECTION -->
+        <div class="section">
+            <h2>🔶 Weebly Instructions</h2>
+            <ol style="margin-left: 20px; margin-bottom: 20px;">
+                <li>Go to <strong>Edit Page</strong></li>
+                <li>Click <strong>+ → Code</strong></li>
+                <li>Paste the code below:</li>
+            </ol>
+            <div class="code-block">&lt;iframe src="https://raw.githubusercontent.com/banamine/Liberty-Express-/main/generated_pages/index.html" width="100%" height="800" frameborder="0" style="border-radius:8px;"&gt;&lt;/iframe&gt;</div>
+            <button class="copy-btn" onclick="copyToClipboard(this, 'weebly-code')">📋 Copy Code</button>
+            <span id="weebly-code" style="display: none;">&lt;iframe src="https://raw.githubusercontent.com/banamine/Liberty-Express-/main/generated_pages/index.html" width="100%" height="800" frameborder="0" style="border-radius:8px;"&gt;&lt;/iframe&gt;</span>
+        </div>
+
+        <!-- AVAILABLE PAGES -->
+        <h2>📄 Available Pages to Embed</h2>
+        <p style="margin-bottom: 15px;">Replace <code>/index.html</code> with any of these:</p>
+        <div class="pages-list">
+            <div class="page-item">
+                <div>Main Dashboard</div>
+                <code>/index.html</code>
+            </div>
+            <div class="page-item">
+                <div>M3U Scheduler</div>
+                <code>/m3u_scheduler.html</code>
+            </div>
+            <div class="page-item">
+                <div>Internet Radio</div>
+                <code>/internet_radio.html</code>
+            </div>
+            <div class="page-item">
+                <div>Auto-Rotating Player</div>
+                <code>/demo.html</code>
+            </div>
+            <div class="page-item">
+                <div>File Browser</div>
+                <code>/FILE_BROWSER_README.html</code>
+            </div>
+            <div class="page-item">
+                <div>Interactive Hub</div>
+                <code>/interactive_hub.html</code>
+            </div>
+            <div class="page-item">
+                <div>Calendar Demo</div>
+                <code>/calendar_demo.html</code>
+            </div>
+            <div class="page-item">
+                <div>Large Playlist Optimizer</div>
+                <code>/large_playlist_handler.html</code>
+            </div>
+        </div>
+
+        <!-- CUSTOMIZATION -->
+        <h2>⚙️ Customize the Embed</h2>
+        <div class="section">
+            <strong>Adjust Height:</strong>
+            <p style="margin: 10px 0;">Change <code>height="800"</code> to fit your site:</p>
+            <ul style="margin-left: 20px; margin: 10px 0;">
+                <li><code>height="600"</code> - Compact view</li>
+                <li><code>height="800"</code> - Medium (default)</li>
+                <li><code>height="1000"</code> - Full height</li>
+                <li><code>height="100vh"</code> - Fill entire screen</li>
+            </ul>
+        </div>
+
+        <!-- GITHUB REPO -->
+        <div class="section">
+            <strong>🔗 GitHub Repository:</strong>
+            <p style="margin: 10px 0;">All pages hosted on GitHub Pages for free, 24/7 uptime:</p>
+            <div class="code-block"><a href="https://github.com/banamine/Liberty-Express-" style="color: #00ff00;">https://github.com/banamine/Liberty-Express-</a></div>
+            <p style="margin-top: 10px; color: #888;">View <strong>embed_cheat_sheet.html</strong> or <strong>github_embed_links.html</strong> in the repo for all direct links.</p>
+        </div>
+
+        <!-- TIPS -->
+        <div class="tips">
+            <strong>💡 Quick Tips:</strong>
+            <ul style="margin-left: 20px; margin-top: 10px;">
+                <li>Hosted on GitHub Pages - always available, no server needed</li>
+                <li>Use <code>width="100%"</code> to make it responsive</li>
+                <li>Mobile users: Adjust height lower for better experience</li>
+                <li>Add <code>allowfullscreen</code> to the iframe for fullscreen mode</li>
+                <li>All pages use BLACK (#000) + GREEN (#00ff00) + YELLOW (#ffff00) theme</li>
+            </ul>
+        </div>
+
+        <!-- FULL EXAMPLE -->
+        <h2>📋 Full Example (Scheduler on Wix)</h2>
+        <div class="code-block">&lt;iframe src="https://raw.githubusercontent.com/banamine/Liberty-Express-/main/generated_pages/m3u_scheduler.html" width="100%" height="1000" style="border:none; border-radius:8px;" allowfullscreen&gt;&lt;/iframe&gt;</div>
+
+        <footer>
+            <p>ScheduleFlow Embed Cheat Sheet • Last Updated: November 23, 2025</p>
+            <p>Hosted on GitHub Pages • No Replit dependency</p>
+        </footer>
+    </div>
+
+    <script>
+        function copyToClipboard(btn, elementId) {
+            const text = document.getElementById(elementId).textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = btn.textContent;
+                btn.textContent = '✓ Copied!';
+                setTimeout(() => { btn.textContent = originalText; }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

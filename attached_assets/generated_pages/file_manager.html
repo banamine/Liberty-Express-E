@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <title>ScheduleFlow File Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #000;
+            color: #00ff00;
+            padding: 20px;
+        }
+
+        .header {
+            max-width: 1400px;
+            margin: 0 auto 30px;
+            background: #000;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #00ff00;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            color: #00ff00;
+        }
+
+        .subtitle {
+            color: #ffff00;
+            font-size: 14px;
+        }
+
+        /* Navigation */
+        nav {
+            max-width: 1400px;
+            margin: 0 auto 20px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            color: #00ff00;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: 1px solid #00ff00;
+            transition: all 0.3s;
+        }
+
+        nav a:hover {
+            background: #00ff00;
+            color: #000;
+        }
+
+        nav a.active {
+            background: #00ff00;
+            color: #000;
+            text-decoration: underline;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+        }
+
+        /* File Upload Area */
+        .upload-area {
+            grid-column: 1 / -1;
+            background: #000;
+            border: 3px dashed #00ff00;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover {
+            background: rgba(0, 255, 0, 0.05);
+            border-color: #ffff00;
+        }
+
+        .upload-area.drag-over {
+            background: rgba(0, 255, 0, 0.1);
+            border-color: #ffff00;
+        }
+
+        .upload-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .upload-text {
+            color: #00ff00;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .upload-hint {
+            color: #ffff00;
+            font-size: 12px;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: #000;
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+            padding: 15px;
+            height: fit-content;
+        }
+
+        .sidebar h3 {
+            color: #00ff00;
+            font-size: 14px;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #00ff00;
+        }
+
+        .folder-tree {
+            font-size: 12px;
+        }
+
+        .folder-item {
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+            color: #ffff00;
+            margin: 4px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .folder-item:hover {
+            background: rgba(0, 255, 0, 0.1);
+            color: #00ff00;
+        }
+
+        .folder-item.active {
+            background: rgba(0, 255, 0, 0.2);
+            color: #00ff00;
+            font-weight: 600;
+        }
+
+        /* Main Content */
+        .content {
+            background: #000;
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .content h2 {
+            color: #00ff00;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #00ff00;
+            font-size: 16px;
+        }
+
+        .file-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        .file-card {
+            background: #000;
+            border: 2px solid #00ff00;
+            border-radius: 8px;
+            padding: 15px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .file-card:hover {
+            background: rgba(0, 255, 0, 0.05);
+            border-color: #ffff00;
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+        }
+
+        .file-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .file-name {
+            color: #00ff00;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 8px;
+            word-break: break-word;
+        }
+
+        .file-info {
+            color: #ffff00;
+            font-size: 11px;
+            margin-bottom: 5px;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .btn-small {
+            flex: 1;
+            padding: 8px;
+            background: linear-gradient(135deg, #00ff00, #ffff00);
+            color: #000;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-small:hover {
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+        }
+
+        .btn-copy {
+            background: linear-gradient(135deg, #ffff00, #00ff00);
+        }
+
+        .btn-load {
+            background: linear-gradient(135deg, #00ff00, #ffff00);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #ffff00;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        /* Status messages */
+        .status {
+            max-width: 1400px;
+            margin: 0 auto 20px;
+            padding: 12px 15px;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .status.show {
+            display: block;
+        }
+
+        .status.success {
+            background: rgba(0, 255, 0, 0.2);
+            color: #00ff00;
+            border: 1px solid #00ff00;
+        }
+
+        .status.error {
+            background: rgba(255, 0, 0, 0.2);
+            color: #ff0000;
+            border: 1px solid #ff0000;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .file-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="m3u_scheduler.html">Scheduler</a>
+        <a href="minified_player.html">Player</a>
+        <a href="demo.html">Demo</a>
+        <a href="interactive_hub.html">Dashboard</a>
+        <a href="file_manager.html" class="active">File Manager</a>
+        <a href="large_playlist_handler.html">Large Playlists</a>
+    </nav>
+
+    <!-- Header -->
+    <div class="header">
+        <h1>📁 File Manager</h1>
+        <p class="subtitle">Browse, upload, and manage your M3U playlists and media files</p>
+    </div>
+
+    <!-- Status -->
+    <div class="status" id="status"></div>
+
+    <!-- Upload Area -->
+    <div class="upload-area" id="uploadArea">
+        <div class="upload-icon">⬆️</div>
+        <div class="upload-text">Drop files here or click to upload</div>
+        <div class="upload-hint">Supports: .m3u, .m3u8, .txt, .json, .xml</div>
+        <input type="file" id="fileInput" multiple accept=".m3u,.m3u8,.txt,.json,.xml,.mp4,.mkv,.webm,.avi">
+    </div>
+
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h3>📂 Folders</h3>
+            <div class="folder-tree" id="folderTree">
+                <div class="folder-item active" data-folder="library">
+                    📚 Library
+                </div>
+                <div class="folder-item" data-folder="uploads">
+                    📤 Uploaded
+                </div>
+                <div class="folder-item" data-folder="playlists">
+                    🎵 Playlists
+                </div>
+                <div class="folder-item" data-folder="exports">
+                    💾 Exports
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <h2 id="contentTitle">📚 Library Files</h2>
+            <div class="file-list" id="fileList">
+                <div class="empty-state">
+                    <div class="empty-icon">⏳</div>
+                    <p>Loading files...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Helper: Decode URL-encoded filename to readable title
+        function extractTitle(url) {
+            try {
+                const filename = url.split('/').pop() || 'Video Item';
+                let decoded = decodeURIComponent(filename);
+                decoded = decoded.replace(/\.(mp4|mkv|avi|webm|m3u8|mov|flv|wmv|m3u|json|xml|txt)$/i, '').trim();
+                decoded = decoded.replace(/[_-]/g, ' ').substring(0, 80);
+                return decoded || 'Video Item';
+            } catch (e) {
+                return url.split('/').pop().substring(0, 80) || 'Video Item';
+            }
+        }
+
+        // File data storage
+        const libraryFiles = [
+            { name: 'MAYDAY Series', path: 'MAYDAY_1763519432024.m3u', size: '285 KB', type: 'M3U', icon: '🎬' },
+            { name: 'Master Cartoons', path: 'Master Catoons_1763519432024.m3u', size: '412 KB', type: 'M3U', icon: '🎬' },
+            { name: 'Mission Impossible', path: 'Mission Impossible_1763519432025.m3u', size: '198 KB', type: 'M3U', icon: '🎬' },
+            { name: 'River Monsters', path: 'River Monsters_1763519432028.m3u', size: '156 KB', type: 'M3U', icon: '🎬' },
+            { name: 'The Sopranos', path: 'The Sopranos_1763519432029.m3u', size: '324 KB', type: 'M3U', icon: '🎬' },
+            { name: 'Taxi', path: 'Taxi_1763331361326.m3u', size: '89 KB', type: 'M3U', icon: '🎬' },
+            { name: 'Hogans Heroes', path: 'hogans_1763332166139.m3u', size: '267 KB', type: 'M3U', icon: '🎬' }
+        ];
+
+        const uploadedFiles = [];
+        const playlistFiles = [];
+        const exportedFiles = [];
+
+        let currentFolder = 'library';
+
+        // Setup upload area
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('drag-over');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('drag-over');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('drag-over');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            for (let file of files) {
+                const fileName = file.name;
+                const fileSize = (file.size / 1024).toFixed(1) + ' KB';
+                const fileType = fileName.split('.').pop().toUpperCase();
+                // Extract readable title from filename
+                const displayTitle = extractTitle(fileName);
+
+                const newFile = {
+                    name: displayTitle,  // Human-readable title
+                    path: fileName,      // Original filename preserved
+                    size: fileSize,
+                    type: fileType,
+                    icon: getFileIcon(fileType)
+                };
+
+                uploadedFiles.push(newFile);
+                showStatus(`✅ Uploaded: ${displayTitle}`, 'success');
+            }
+
+            if (currentFolder === 'uploads') {
+                renderFiles();
+            }
+
+            fileInput.value = '';
+        }
+
+        function getFileIcon(type) {
+            const icons = {
+                'M3U': '🎵',
+                'M3U8': '🎵',
+                'JSON': '📋',
+                'XML': '📋',
+                'TXT': '📄',
+                'MP4': '🎬',
+                'MKV': '🎬',
+                'WEBM': '🎬',
+                'AVI': '🎬'
+            };
+            return icons[type] || '📁';
+        }
+
+        // Folder navigation
+        document.querySelectorAll('.folder-item').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.folder-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                currentFolder = item.dataset.folder;
+                renderFiles();
+            });
+        });
+
+        function renderFiles() {
+            const fileList = document.getElementById('fileList');
+            const contentTitle = document.getElementById('contentTitle');
+
+            let files = [];
+            let title = '';
+            let icon = '';
+
+            switch(currentFolder) {
+                case 'library':
+                    files = libraryFiles;
+                    title = '📚 Library Files';
+                    icon = '📚';
+                    break;
+                case 'uploads':
+                    files = uploadedFiles;
+                    title = '📤 Uploaded Files';
+                    icon = '📤';
+                    break;
+                case 'playlists':
+                    files = playlistFiles;
+                    title = '🎵 Saved Playlists';
+                    icon = '🎵';
+                    break;
+                case 'exports':
+                    files = exportedFiles;
+                    title = '💾 Exported Schedules';
+                    icon = '💾';
+                    break;
+            }
+
+            contentTitle.textContent = title;
+
+            if (files.length === 0) {
+                fileList.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1/-1;">
+                        <div class="empty-icon">${icon}</div>
+                        <p>No files in this folder</p>
+                    </div>
+                `;
+                return;
+            }
+
+            fileList.innerHTML = files.map((file, idx) => `
+                <div class="file-card">
+                    <div class="file-icon">${file.icon}</div>
+                    <div class="file-name">${file.name}</div>
+                    <div class="file-info">Type: ${file.type}</div>
+                    <div class="file-info">Size: ${file.size}</div>
+                    <div class="file-info" style="color:#00ff00; word-break:break-all; font-size:10px;">📍 ${file.path}</div>
+                    <div class="file-actions">
+                        <button class="btn-small btn-copy" onclick="copyPath('${file.path}')">📋 Copy Path</button>
+                        <button class="btn-small btn-load" onclick="loadFile('${file.path}', '${file.name}')">⬆️ Load</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function copyPath(path) {
+            navigator.clipboard.writeText(path).then(() => {
+                showStatus(`✅ Copied: ${path}`, 'success');
+            }).catch(() => {
+                showStatus('❌ Failed to copy path', 'error');
+            });
+        }
+
+        function loadFile(path, name) {
+            // Pass to scheduler or player
+            const fileData = {
+                path: path,
+                name: name,
+                timestamp: new Date().toISOString()
+            };
+            
+            localStorage.setItem('selectedFile', JSON.stringify(fileData));
+            showStatus(`✅ Selected: ${name} - Ready to load in Scheduler`, 'success');
+            
+            // Redirect to scheduler after 1 second
+            setTimeout(() => {
+                window.location.href = 'm3u_scheduler.html?file=' + encodeURIComponent(path);
+            }, 1000);
+        }
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status show ${type}`;
+            setTimeout(() => {
+                status.classList.remove('show');
+            }, 3000);
+        }
+
+        // Initial render
+        renderFiles();
+    </script>
+</body>
+</html>

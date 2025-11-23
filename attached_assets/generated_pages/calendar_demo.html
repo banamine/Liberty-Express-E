@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <title>ScheduleFlow - Calendar Demo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #000;
+            color: #00ff00;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 70px 20px 20px;
+        }
+
+        .top-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #000;
+            border-bottom: 2px solid #00ff00;
+            padding: 12px 20px;
+            z-index: 10000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo { color: #00ff00; font-weight: bold; font-size: 1.2em; text-decoration: none; }
+        .nav-links { display: flex; gap: 15px; flex-wrap: wrap; }
+        .nav-links a { color: #ffff00; text-decoration: none; padding: 5px 10px; font-size: 0.9em; transition: all 0.3s; }
+        .nav-links a:hover { color: #00ff00; }
+        .nav-links a.active { color: #00ff00; border-bottom: 2px solid #00ff00; }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #00ff00, #ffff00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .subtitle { color: #ffff00; font-size: 1em; margin-bottom: 20px; }
+
+        .calendar-wrapper {
+            background: #000;
+            border: 2px solid #00ff00;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .month-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #00ff00;
+        }
+
+        .month-title { font-size: 1.5em; color: #00ff00; font-weight: bold; }
+        
+        .nav-buttons { display: flex; gap: 10px; }
+        .nav-buttons button {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .nav-buttons button:hover { background: #ffff00; }
+
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .weekday {
+            text-align: center;
+            padding: 10px;
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid #00ff00;
+            border-radius: 4px;
+            font-weight: 600;
+            color: #ffff00;
+            font-size: 0.9em;
+        }
+
+        .days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+        }
+
+        .day {
+            background: #000;
+            border: 2px solid rgba(0, 255, 0, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            min-height: 180px;
+            overflow-y: auto;
+            transition: all 0.3s;
+        }
+
+        .day:hover {
+            border-color: #00ff00;
+            background: rgba(0, 255, 0, 0.05);
+        }
+
+        .day-number {
+            color: #ffff00;
+            font-weight: 600;
+            font-size: 1.1em;
+            margin-bottom: 8px;
+        }
+
+        .show-item {
+            background: rgba(0, 255, 0, 0.15);
+            border-left: 3px solid #00ff00;
+            padding: 8px;
+            margin-bottom: 6px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            color: #00ff00;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .show-item:hover {
+            background: rgba(0, 255, 0, 0.25);
+            border-left-color: #ffff00;
+            transform: translateX(2px);
+        }
+
+        .show-title { font-weight: 600; margin-bottom: 2px; }
+        .show-time { color: #ffff00; font-size: 0.8em; }
+
+        .legend {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 255, 0, 0.05);
+            border: 1px solid rgba(0, 255, 0, 0.3);
+            border-radius: 8px;
+        }
+
+        .legend-title { color: #ffff00; font-weight: 600; margin-bottom: 10px; }
+        .legend-items { display: flex; gap: 20px; flex-wrap: wrap; }
+        .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.9em; }
+        .legend-color { width: 20px; height: 20px; border-radius: 4px; }
+
+        .mayday { background: rgba(255, 100, 100, 0.3); border: 1px solid #ff6464; }
+        .cartoons { background: rgba(100, 150, 255, 0.3); border: 1px solid #6496ff; }
+        .classic { background: rgba(255, 200, 50, 0.3); border: 1px solid #ffc832; }
+
+        @media (max-width: 768px) {
+            .days { grid-template-columns: 1fr; }
+            .weekdays { grid-template-columns: 1fr; }
+            h1 { font-size: 1.8em; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="top-nav">
+        <a href="index.html" class="nav-logo">🎬 ScheduleFlow</a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="m3u_scheduler.html">Scheduler</a>
+            <a href="minified_player.html">Player</a>
+            <a href="demo.html">Demo</a>
+            <a href="interactive_hub.html">Dashboard</a>
+            <a href="file_manager.html">File Manager</a>
+            <a href="calendar_demo.html" class="active">Calendar Demo</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="header">
+            <h1>📅 Weekly Schedule Calendar</h1>
+            <p class="subtitle">4-week playout schedule with rotating shows</p>
+        </div>
+
+        <div class="calendar-wrapper">
+            <div class="month-header">
+                <div class="month-title" id="monthTitle">December 2024 - Week 1</div>
+                <div class="nav-buttons">
+                    <button onclick="previousWeek()">← Prev Week</button>
+                    <button onclick="nextWeek()">Next Week →</button>
+                </div>
+            </div>
+
+            <div class="weekdays">
+                <div class="weekday">Mon</div>
+                <div class="weekday">Tue</div>
+                <div class="weekday">Wed</div>
+                <div class="weekday">Thu</div>
+                <div class="weekday">Fri</div>
+                <div class="weekday">Sat</div>
+                <div class="weekday">Sun</div>
+            </div>
+
+            <div class="days" id="daysContainer"></div>
+
+            <div class="legend">
+                <div class="legend-title">🎯 Shows Legend</div>
+                <div class="legend-items">
+                    <div class="legend-item">
+                        <div class="legend-color mayday"></div>
+                        <span>Mayday: Air Disasters</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color cartoons"></div>
+                        <span>Master Cartoons</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color classic"></div>
+                        <span>Classic Films</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Show library
+        const shows = {
+            mayday: {
+                name: 'Mayday: Air Disasters',
+                episodes: [
+                    'Deadly Reputation',
+                    'The Plane That Flew Too High',
+                    'Split Decision',
+                    'Breakup Over Texas',
+                    'Bad Attitude'
+                ],
+                color: 'mayday',
+                duration: '45 min'
+            },
+            cartoons: {
+                name: 'Master Cartoons',
+                episodes: [
+                    'Classic Tales',
+                    'Adventures',
+                    'Comedy Hour',
+                    'Action Series',
+                    'Family Fun'
+                ],
+                color: 'cartoons',
+                duration: '30 min'
+            },
+            classic: {
+                name: 'Classic Films',
+                episodes: [
+                    'Golden Age Cinema',
+                    'Drama Masterpiece',
+                    'Action Thriller',
+                    'Romantic Comedy',
+                    'Adventure Epic'
+                ],
+                color: 'classic',
+                duration: '90 min'
+            }
+        };
+
+        // Schedule times for each show (per day)
+        const scheduleSlots = [
+            { time: '08:00', show: 'mayday', duration: '45 min' },
+            { time: '13:00', show: 'cartoons', duration: '30 min' },
+            { time: '16:00', show: 'classic', duration: '90 min' },
+            { time: '20:00', show: 'mayday', duration: '45 min' }
+        ];
+
+        let currentWeek = 0;
+        const startDate = new Date(2024, 11, 2); // Monday, Dec 2, 2024
+
+        function getWeekDates(weekOffset) {
+            const dates = [];
+            const start = new Date(startDate);
+            start.setDate(start.getDate() + (weekOffset * 7));
+            
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(start);
+                date.setDate(date.getDate() + i);
+                dates.push(date);
+            }
+            return dates;
+        }
+
+        function getEpisode(showKey, dayIndex) {
+            const show = shows[showKey];
+            const episodeIndex = (currentWeek * 7 + dayIndex) % show.episodes.length;
+            return show.episodes[episodeIndex];
+        }
+
+        function renderWeek() {
+            const dates = getWeekDates(currentWeek);
+            const daysContainer = document.getElementById('daysContainer');
+            
+            // Update month title
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'];
+            const firstDate = dates[0];
+            const weekNum = Math.floor((firstDate.getDate() - 1) / 7) + 1;
+            document.getElementById('monthTitle').textContent = 
+                `${monthNames[firstDate.getMonth()]} ${firstDate.getFullYear()} - Week ${weekNum}`;
+
+            // Render days
+            daysContainer.innerHTML = dates.map((date, dayIndex) => {
+                const dayName = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                const dayNum = date.getDate();
+                
+                const showsHTML = scheduleSlots.map(slot => {
+                    const show = shows[slot.show];
+                    const episode = getEpisode(slot.show, dayIndex);
+                    return `
+                        <div class="show-item ${show.color}">
+                            <div class="show-title">${show.name.split(':')[0]}</div>
+                            <div class="show-time">${slot.time} - ${episode}</div>
+                        </div>
+                    `;
+                }).join('');
+
+                return `
+                    <div class="day">
+                        <div class="day-number">${dayName[dayIndex]}<br>${dayNum}</div>
+                        ${showsHTML}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function nextWeek() {
+            currentWeek++;
+            if (currentWeek > 3) currentWeek = 3; // Max 4 weeks
+            renderWeek();
+        }
+
+        function previousWeek() {
+            currentWeek--;
+            if (currentWeek < 0) currentWeek = 0;
+            renderWeek();
+        }
+
+        // Initial render
+        renderWeek();
+    </script>
+</body>
+</html>
