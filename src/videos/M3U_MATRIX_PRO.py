@@ -649,7 +649,7 @@ class M3UMatrix:
                 ("VIDEO", "#00d4ff", self.launch_video_player),
                 ("NAV HUB", "#FFD700", self.open_navigation_hub)]
         for txt, col, cmd in row1:
-            self.create_styled_button(tb1, txt, cmd, bg_color=col, width=14).pack(side=tk.LEFT, padx=4)
+            self.create_styled_button(tb1, txt, cmd, bg_color=col, width=10, font_size=9).pack(side=tk.LEFT, padx=2)
         
         # ROW 2: Processing & Generation
         tb2 = tk.Frame(toolbar_container, bg="#1e1e1e")
@@ -667,7 +667,7 @@ class M3UMatrix:
                 ("JSON GUIDE", "#95e1d3", self.export_tv_guide_json),
                 ("🔴 NDI", "#FF0000", self.open_ndi_control)]
         for txt, col, cmd in row2:
-            self.create_styled_button(tb2, txt, cmd, bg_color=col, width=14).pack(side=tk.LEFT, padx=4)
+            self.create_styled_button(tb2, txt, cmd, bg_color=col, width=10, font_size=9).pack(side=tk.LEFT, padx=2)
         
         # ROW 3: Import & Advanced
         tb3 = tk.Frame(toolbar_container, bg="#1e1e1e")
@@ -682,7 +682,7 @@ class M3UMatrix:
                 ("MEDIA STRIPPER", "#ff00ff", self.open_media_stripper),
                 ("LAUNCH REDIS", "#FF5733", self.launch_redis_services)]
         for txt, col, cmd in row3:
-            self.create_styled_button(tb3, txt, cmd, bg_color=col, width=14).pack(side=tk.LEFT, padx=4)
+            self.create_styled_button(tb3, txt, cmd, bg_color=col, width=10, font_size=9).pack(side=tk.LEFT, padx=2)
 
         # === SEARCH + TOOLS + SETTINGS ===
         tools = tk.Frame(self.root, bg="#1e1e1e")
@@ -700,11 +700,11 @@ class M3UMatrix:
         
         # Settings menu with smart colors
         self.create_styled_button(tools, "📁 Output Folder", self.configure_output_folder,
-                                  bg_color="#8b4789", width=15, font_size=9).pack(side=tk.RIGHT, padx=5)
+                                  bg_color="#8b4789", width=12, font_size=8).pack(side=tk.RIGHT, padx=2)
         self.create_styled_button(tools, "⚙️ Export Settings", self.export_settings,
-                                  bg_color="#34495e", width=15, font_size=9).pack(side=tk.RIGHT, padx=5)
+                                  bg_color="#34495e", width=12, font_size=8).pack(side=tk.RIGHT, padx=2)
         self.create_styled_button(tools, "⚙️ Import Settings", self.import_settings,
-                                  bg_color="#34495e", width=15, font_size=9).pack(side=tk.RIGHT, padx=5)
+                                  bg_color="#34495e", width=12, font_size=8).pack(side=tk.RIGHT, padx=2)
         
         # Edit buttons with smart colors
         for txt, col, cmd in [("CUT", "#e74c3c", self.cut),
@@ -712,7 +712,7 @@ class M3UMatrix:
                               ("PASTE", "#2ecc71", self.paste),
                               ("UNDO", "#f39c12", self.undo),
                               ("REDO", "#9b59b6", self.redo)]:
-            self.create_styled_button(tools, txt, cmd, bg_color=col, width=10).pack(side=tk.LEFT, padx=4)
+            self.create_styled_button(tools, txt, cmd, bg_color=col, width=8, font_size=8).pack(side=tk.LEFT, padx=2)
 
         # === MAIN PANEL ===
         main = tk.Frame(self.root)

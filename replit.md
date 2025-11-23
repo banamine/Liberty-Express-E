@@ -19,6 +19,7 @@
 - **Always use local /attached_assets/ paths** for user-uploaded files or reliable public CDN sources (Google, W3Schools)
 - Archive.org videos fail in HTML5 players due to CORS restrictions - avoid completely
 - Hardcoded URLs break when external sources change - use local files instead
+- **Desktop App Button Overflow Fixed:** Reduced toolbar button widths from 14→10 and padx from 4→2; all 36 button commands verified and wired correctly
 
 ## System Architecture
 The core system operates in either an Advanced (GUI) or Silent Background (Daemon) mode, processing inputs from various sources including a GUI, REST API, numeric keypad, and a web dashboard.
