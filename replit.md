@@ -28,6 +28,49 @@ ScheduleFlow offers M3U parsing, channel validation, EPG fetching, settings mana
 **System Design Choices:**
 The architecture employs a dual-component design, separating playlist management (desktop application) from web-based content consumption. Player templates are static HTML/CSS/JavaScript. A central `index.html` serves as a navigation hub. Data is persisted using JSON files for desktop applications and `localStorage` for web applications. The system is configured for Replit Autoscale and GitHub Pages deployment. Standalone pages with embedded playlist data ensure offline functionality. All imports undergo rigorous validation including schema validation, UTC timestamp normalization, and cryptographic hash-based duplicate and conflict detection.
 
+## Recent Changes (November 2025)
+
+### Session: Demo Page & Navigation Complete ✅
+**Date:** November 23, 2025  
+**Status:** COMPLETE - Demo page built, all navigation working, system deployment-ready
+
+**Changes Made:**
+1. **Created `/generated_pages/demo.html`** (NEW)
+   - Working 24-hour schedule visualization with 18 sample videos
+   - Pre-loaded example data (Morning News, Documentary, Comedy Special, Late Night Talk, etc.)
+   - Statistics display: 24:00 duration, 100% coverage, 0 conflicts
+   - Feature showcase: Drag-drop, auto-fill, category balance, export formats
+   - REST API code example
+   - 4-step "Ready to Schedule" guide
+   - Action buttons linking to real scheduler tools
+
+2. **Fixed Navigation System**
+   - Added `demo.html` to top navigation bars on all main pages
+   - Fixed "View Demo" button on `index.html` (was linking to "#", now links to `demo.html`)
+   - Implemented active page highlighting (cyan color + underline on current page)
+   - Navigation now available on: Home, Scheduler, Player, Demo, Dashboard, Large Playlists
+   - Mobile responsive navigation
+
+3. **Pages Updated:**
+   - `index.html` - "View Demo" button now functional
+   - `interactive_hub.html` - Added Demo link to nav
+   - `m3u_scheduler.html` - Added Demo link + active highlighting
+   - `large_playlist_handler.html` - Added Demo link + active highlighting
+
+**System Status:**
+- ✅ Both workflows running (FastAPI + Node.js)
+- ✅ All 19+ pages interconnected
+- ✅ No broken links
+- ✅ Consistent dark cyberpunk design (gradient #0a0e27-#1a0b2e, cyan/magenta accents)
+- ✅ Demo page live with working example
+- ✅ Production-ready for deployment
+
+**Demo Page Highlights:**
+- **Sample Playlist:** 18 videos (Morning News, Weather, Sports, Movies, Documentary, Music, Comedy, Late Night Show, etc.)
+- **24-Hour Schedule:** Perfect end-to-end fit with zero gaps
+- **Features:** Drag-drop, auto-fill, category balancing, export to CasparCG/OBS/vMix/M3U/JSON/XML
+- **Navigation:** Click any page's top nav to explore the full system
+
 ## External Dependencies
 
 **Python Application:**
