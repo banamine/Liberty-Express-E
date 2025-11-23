@@ -28,6 +28,13 @@ ScheduleFlow offers M3U parsing, channel validation, EPG fetching, settings mana
 **System Design Choices:**
 The architecture employs a dual-component design, separating playlist management (desktop application) from web-based content consumption. Player templates are static HTML/CSS/JavaScript. A central `index.html` serves as a navigation hub. Data is persisted using JSON files for desktop applications and `localStorage` for web applications. The system is configured for Replit Autoscale and GitHub Pages deployment. Standalone pages with embedded playlist data ensure offline functionality. All imports undergo rigorous validation including schema validation, UTC timestamp normalization, and cryptographic hash-based duplicate and conflict detection.
 
+## Color Scheme & Design
+**Theme:** Black + Green + Yellow  
+- **Background:** Pure black (#000000) for all panels, work areas, clipboards, benches
+- **Primary Accent:** Bright green (#00ff00) for borders, highlights, and navigation
+- **Secondary Accent:** Bright yellow (#ffff00) for text labels, counters, and status information
+- **Result:** Professional, high-contrast interface optimized for long-term use
+
 ## Recent Changes (November 2025)
 
 ### Session: Demo Page & Navigation Complete ✅
@@ -126,3 +133,47 @@ The architecture employs a dual-component design, separating playlist management
 - `dash.js`: DASH video playback.
 - `Feather Icons`: Scalable vector icons.
 - `express-rate-limit`: API rate limiting.
+### Session: Color Theme Update - Black + Green + Yellow ✅
+**Date:** November 23, 2025 (continued)  
+**Status:** COMPLETE - All pages updated to black/green/yellow theme
+
+**Changes Made:**
+1. **Global Color Scheme Update**
+   - Replaced cyan (#00ffff) with bright green (#00ff00) throughout
+   - Replaced magenta (#ff00ff) with bright yellow (#ffff00) throughout
+   - Changed all backgrounds to pure black (#000000)
+   - Updated text colors to green and yellow for better readability
+
+2. **All Work Areas Styled**
+   - Clipboards (textareas) - Black background, green borders
+   - Benches (work panels) - Black background, green accents
+   - Input fields - Black background, yellow placeholder text
+   - All buttons - Green-yellow gradient with black text
+   - Navigation - Green links and accents
+
+3. **Pages Updated:**
+   - minified_player.html - Black + green + yellow
+   - m3u_scheduler.html - Black + green + yellow
+   - interactive_hub.html - Black + green + yellow
+   - demo.html - Black + green + yellow
+   - large_playlist_handler.html - Black + green + yellow
+   - simple_player.html - Black + green + yellow
+   - index.html - Black + green + yellow
+
+**Theme Benefits:**
+- ✅ No grey (pure black instead)
+- ✅ High contrast for readability
+- ✅ Professional appearance
+- ✅ Easy on eyes for extended use
+- ✅ Clear visual hierarchy with green/yellow
+- ✅ Consistent across all 19+ pages
+
+**System Status:**
+- ✅ All functionality preserved
+- ✅ All pages working perfectly
+- ✅ Navigation intact
+- ✅ Videos playing
+- ✅ Drag-drop scheduling works
+- ✅ Export controls functional
+- ✅ Both workflows running
+
