@@ -29,6 +29,9 @@ from core.models import Channel, Schedule, ValidationResult
 from core.scheduler import ScheduleEngine
 from core.file_handler import FileHandler
 from core.validator import ChannelValidator
+from core.versioning import VersionManager
+from core.backup import BackupManager
+from core.paths import CrossPlatformPath, get_app_data_dir, get_cache_dir
 
 logger = logging.getLogger(__name__)
 
@@ -58,11 +61,18 @@ def create_app() -> FastAPI:
     file_handler = FileHandler()
     validator = ChannelValidator()
     
+    # Week 2: File Management
+    app_data_dir = get_app_data_dir("ScheduleFlow")
+    version_manager = VersionManager(app_data_dir / "versions")
+    backup_manager = BackupManager(app_data_dir / "backups", retention_days=30)
+    
     # State
     app.state.channels: List[Channel] = []
     app.state.current_schedule: Optional[Schedule] = None
     app.state.validation_results: List[ValidationResult] = []
     app.state.is_validating = False
+    app.state.version_manager = version_manager
+    app.state.backup_manager = backup_manager
     
     # ===== HEALTH & INFO =====
     
@@ -236,6 +246,191 @@ def create_app() -> FastAPI:
             }
         except Exception as e:
             logger.error(f"Failed to export M3U: {e}")
+            raise HTTPException(status_code=400, detail=str(e))
+    
+    # ===== WEEK 2: FILE VERSIONING =====
+    
+    @app.post("/api/versions/create")
+    def create_version(file_path: str, message: str = ""):
+        """Create a new version of a file"""
+        try:
+            file_full_path = Path(file_path)
+            if not file_full_path.exists():
+                raise ValueError(f"File not found: {file_path}")
+            
+            with open(file_full_path, 'r') as f:
+                content = f.read()
+            
+            version = version_manager.create_version(
+                file_path=str(file_path),
+                content=content,
+                message=message
+            )
+            logger.info(f"Created version {version.version_id} for {file_path}")
+            return {
+                "status": "success",
+                "version": version.to_dict()
+            }
+        except Exception as e:
+            logger.error(f"Failed to create version: {e}")
+            raise HTTPException(status_code=400, detail=str(e))
+    
+    @app.get("/api/versions/list")
+    def list_versions():
+        """List all file versions"""
+        try:
+            versions = version_manager.list_versions()
+            return {
+                "status": "success",
+                "count": len(versions),
+                "versions": versions
+            }
+        except Exception as e:
+            logger.error(f"Failed to list versions: {e}")
+            raise HTTPException(status_code=400, detail=str(e))
+    
+    @app.get("/api/versions/{version_id}")
+    def get_version_content(version_id: str):
+        """Get content of a specific version"""
+        try:
+            content = version_manager.get_version_content(version_id)
+            if not content:
+                raise ValueError(f"Version {version_id} not found")
+            
+            return {
+                "status": "success",
+                "version_id": version_id,
+                "content_length": len(content)
+            }
+        except Exception as e:
+            logger.error(f"Failed to get version content: {e}")
+            raise HTTPException(status_code=400, detail=str(e))
+    
+    @app.post("/api/versions/restore")
+    def restore_version(version_id: str, output_path: str):
+        """Restore a specific version to a file"""
+        try:
+            result = version_manager.restore_version(
+                version_id=version_id,
+                output_path=Path(output_path)
+            )
+            if result.status != 'success':
+                raise ValueError(result.message)
+            
+            logger.info(f"Restored {version_id} to {output_path}")
+            return {"status": "success", "data": result.data}
+        except Exception as e:
+            logger.error(f"Failed to restore version: {e}")
+            raise HTTPException(status_code=400, detail=str(e))
+    
+    @app.get("/api/versions/diff")
+    def get_version_diff(version1: str, version2: str):
+        """Get diff between two versions"""
+        try:
+            diff = version_manager.get_diff(version1, version2)
+            return {"status": "success", "diff": diff}
+        except Exception as e:
+            logger.error(f"Failed to get diff: {e}")
+            raise HTTPException(status_code=400, detail=str(e))
+    
+    # ===== WEEK 2: BACKUPS =====
+    
+    @app.post("/api/backup/create")
+    def create_backup(file_path: str, backup_name: str = None):
+        """Create a compressed backup of a file"""
+        try:
+            result = backup_manager.create_backup(
+                source_file=Path(file_path),
+                backup_name=backup_name
+            )
+            if result.status != 'success':
+                raise ValueError(result.message)
+            
+            logger.info(f"Backup created for {file_path}")
+            return {"status": "success", "backup": result.data}
+        except Exception as e:
+            logger.error(f"Failed to create backup: {e}")
+            raise HTTPException(status_code=400, detail=str(e))
+    
+    @app.get("/api/backup/list")
+    def list_backups():
+        """List all available backups"""
+        try:
+            backups = backup_manager.list_backups()
+            stats = backup_manager.get_backup_stats()
+            return {
+                "status": "success",
+                "count": len(backups),
+                "backups": backups,
+                "stats": stats
+            }
+        except Exception as e:
+            logger.error(f"Failed to list backups: {e}")
+            raise HTTPException(status_code=400, detail=str(e))
+    
+    @app.post("/api/backup/restore")
+    def restore_backup(backup_id: str, output_path: str):
+        """Restore a file from backup"""
+        try:
+            result = backup_manager.restore_backup(
+                backup_id=backup_id,
+                output_path=Path(output_path)
+            )
+            if result.status != 'success':
+                raise ValueError(result.message)
+            
+            logger.info(f"Backup {backup_id} restored to {output_path}")
+            return {"status": "success", "data": result.data}
+        except Exception as e:
+            logger.error(f"Failed to restore backup: {e}")
+            raise HTTPException(status_code=400, detail=str(e))
+    
+    @app.delete("/api/backup/{backup_id}")
+    def delete_backup(backup_id: str):
+        """Delete a specific backup"""
+        try:
+            result = backup_manager.delete_backup(backup_id)
+            if result.status != 'success':
+                raise ValueError(result.message)
+            
+            logger.info(f"Backup {backup_id} deleted")
+            return {"status": "success"}
+        except Exception as e:
+            logger.error(f"Failed to delete backup: {e}")
+            raise HTTPException(status_code=400, detail=str(e))
+    
+    @app.post("/api/backup/cleanup")
+    def cleanup_old_backups():
+        """Remove backups older than retention period"""
+        try:
+            result = backup_manager.cleanup_old_backups()
+            if result.status != 'success':
+                raise ValueError(result.message)
+            
+            logger.info(f"Backup cleanup complete: {result.data}")
+            return {"status": "success", "data": result.data}
+        except Exception as e:
+            logger.error(f"Failed to cleanup backups: {e}")
+            raise HTTPException(status_code=400, detail=str(e))
+    
+    # ===== WEEK 2: PATHS & PLATFORM INFO =====
+    
+    @app.get("/api/platform/info")
+    def get_platform_info():
+        """Get platform and path information"""
+        try:
+            platform_info = CrossPlatformPath.get_platform_info()
+            app_data = str(get_app_data_dir("ScheduleFlow"))
+            cache_dir = str(get_cache_dir("ScheduleFlow"))
+            
+            return {
+                "status": "success",
+                "platform": platform_info,
+                "app_data_dir": app_data,
+                "cache_dir": cache_dir
+            }
+        except Exception as e:
+            logger.error(f"Failed to get platform info: {e}")
             raise HTTPException(status_code=400, detail=str(e))
     
     return app

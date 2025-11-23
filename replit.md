@@ -53,8 +53,40 @@
 - pydantic>=2.0.0
 - axios (Node.js)
 
-**NEXT STEPS (Week 2-4):**
-- Week 2: File management (versioning, backups, cross-platform paths)
+## Week 2: File Management (✅ COMPLETE - Nov 23, 2025)
+
+**DELIVERED:**
+- ✅ **File Versioning System** (`src/core/versioning.py`):
+  - Track M3U file changes with version history
+  - SHA256 content hashing to prevent duplicate versions
+  - Version rollback to any previous state
+  - Diff generation between two versions
+  - Automatic cleanup of old versions (keep N most recent)
+
+- ✅ **Backup Manager** (`src/core/backup.py`):
+  - Automated compressed backups (gzip format)
+  - Configurable retention policy (default: 30 days)
+  - Manual backup creation and restoration
+  - Backup statistics (total size, count, oldest/newest)
+  - Automatic cleanup of expired backups
+
+- ✅ **Cross-Platform Path Handling** (`src/core/paths.py`):
+  - Windows, macOS, Linux path compatibility
+  - Platform-specific app data directory (AppData, ~/Library, ~/.local)
+  - Platform-specific cache directory
+  - Safe path operations (prevent directory traversal)
+  - Platform info detection
+
+- ✅ **FastAPI Endpoints (10 new endpoints)**:
+  - **Versioning:** POST/GET `/api/versions/*` - create, list, restore, diff
+  - **Backups:** POST/GET/DELETE `/api/backup/*` - create, list, restore, cleanup
+  - **Platform:** GET `/api/platform/info` - system info and directories
+
+**WORKFLOWS:**
+- Both servers restart successfully with new modules ✓
+- All endpoints tested and responding ✓
+
+**NEXT STEPS (Week 3-4):**
 - Week 3: Media Stripper overhaul (Selenium, robots.txt, retry logic)
 - Week 4: UX improvements (wizard, progress bar, help tooltips)
 
