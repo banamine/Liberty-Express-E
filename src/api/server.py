@@ -12,10 +12,11 @@ REST API endpoints:
 - POST /api/export - Export to M3U format
 """
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks, Request
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Request, Depends
 from fastapi.responses import JSONResponse, FileResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.security import HTTPBearer
 import logging
 import json
 from pathlib import Path
@@ -23,6 +24,10 @@ from typing import List, Dict, Optional, Any
 from datetime import datetime
 import sys
 import time
+import os
+
+# JSON Logging for structured logs (audit requirement)
+import logging.config
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -37,7 +42,42 @@ from core.paths import CrossPlatformPath, get_app_data_dir, get_cache_dir
 from core.stripper import StripperManager, MediaExtractor
 from core.progress import ProgressManager
 from core.cache import ResponseCache
+from core.auth import AuthManager
 
+# Configure structured logging (JSON format for production)
+logging_config = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "standard": {
+            "format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+        },
+        "json": {
+            "format": '{"timestamp": "%(asctime)s", "level": "%(levelname)s", "module": "%(name)s", "message": "%(message)s"}'
+        }
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "standard",
+            "stream": "ext://sys.stdout"
+        },
+        "file": {
+            "class": "logging.FileHandler",
+            "formatter": "json",
+            "filename": "logs/scheduleflow.log",
+            "encoding": "utf-8"
+        }
+    },
+    "root": {
+        "level": "INFO",
+        "handlers": ["console", "file"]
+    }
+}
+
+# Create logs directory if needed
+os.makedirs("logs", exist_ok=True)
+logging.config.dictConfig(logging_config)
 logger = logging.getLogger(__name__)
 
 # Global app instance (singleton)
@@ -49,7 +89,10 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title="ScheduleFlow API",
         description="REST API for professional playlist scheduling",
-        version="2.0.0"
+        version="2.0.0",
+        docs_url="/docs",
+        redoc_url="/redoc",
+        openapi_url="/openapi.json"
     )
     
     # Add CORS middleware
