@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo Player - ScheduleFlow</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body class="theme-black">
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="logo">⚡ ScheduleFlow</h1>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">Hub</a>
+                <a href="scheduler.html" class="nav-link">Scheduler</a>
+                <a href="demo.html" class="nav-link active">Demo</a>
+                <a href="calendar.html" class="nav-link">Calendar</a>
+                <a href="export.html" class="nav-link">Export</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <h1>Auto-Rotating Demo Player</h1>
+        <p>Demonstration of ScheduleFlow's continuous broadcast scheduling.</p>
+
+        <section class="demo-section">
+            <div class="player-container">
+                <div class="player-info">
+                    <div class="show-title" id="showTitle">Initializing...</div>
+                    <div class="show-description" id="showDesc"></div>
+                </div>
+                <video id="demoPlayer" width="100%" controls style="margin: 1rem 0; max-width: 800px;">
+                    <source src="" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+                <div class="controls">
+                    <button class="btn-primary" onclick="demoPlayer.start()">▶ Start Demo</button>
+                    <button class="btn-secondary" onclick="demoPlayer.pause()">⏸ Pause</button>
+                    <button class="btn-secondary" onclick="demoPlayer.next()">⏭ Next</button>
+                </div>
+                <div class="status" id="status">Ready to play demo content</div>
+            </div>
+
+            <div class="schedule-info">
+                <h3>Today's Schedule</h3>
+                <table id="todaySchedule">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Show</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="scheduleBody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 ScheduleFlow. Demo running 24/7 on your browser.</p>
+    </footer>
+
+    <script>
+        const demoPlayer = {
+            shows: [
+                {
+                    title: 'Breaking Bad',
+                    desc: 'Crime Drama Series - Episode 1',
+                    episodes: ['S01E01', 'S01E02', 'S01E03', 'S01E04'],
+                    color: '#FF6B6B'
+                },
+                {
+                    title: 'Documentary Collection',
+                    desc: 'Nature and Science - HD',
+                    episodes: ['Nature 01', 'Nature 02', 'Science 01'],
+                    color: '#4ECDC4'
+                },
+                {
+                    title: 'Classic Films',
+                    desc: 'Vintage Cinema Collection',
+                    episodes: ['Film 1', 'Film 2', 'Film 3', 'Film 4'],
+                    color: '#95E1D3'
+                },
+                {
+                    title: 'News & Current Events',
+                    desc: '24-Hour News Feed',
+                    episodes: ['News 1', 'News 2', 'News 3'],
+                    color: '#F38181'
+                }
+            ],
+            currentShowIndex: 0,
+            currentEpisodeIndex: 0,
+            isPlaying: false,
+            playStartTime: null,
+            segmentDuration: 5 * 60 * 1000, // 5 minutes in milliseconds
+
+            start() {
+                this.isPlaying = true;
+                this.playStartTime = Date.now();
+                this.updateDisplay();
+                this.scheduleNextSegment();
+            },
+
+            pause() {
+                this.isPlaying = false;
+                document.getElementById('demoPlayer').pause();
+                document.getElementById('status').textContent = 'Paused';
+            },
+
+            next() {
+                this.currentEpisodeIndex++;
+                const show = this.shows[this.currentShowIndex];
+                if (this.currentEpisodeIndex >= show.episodes.length) {
+                    this.currentEpisodeIndex = 0;
+                    this.currentShowIndex = (this.currentShowIndex + 1) % this.shows.length;
+                }
+                this.updateDisplay();
+                if (this.isPlaying) this.scheduleNextSegment();
+            },
+
+            updateDisplay() {
+                const show = this.shows[this.currentShowIndex];
+                const episode = show.episodes[this.currentEpisodeIndex];
+                
+                document.getElementById('showTitle').textContent = `${show.title} - ${episode}`;
+                document.getElementById('showDesc').textContent = show.desc;
+                document.getElementById('status').textContent = `Now Playing: ${show.title} (${episode})`;
+                
+                // Update schedule visualization
+                this.updateScheduleTable();
+            },
+
+            scheduleNextSegment() {
+                if (!this.isPlaying) return;
+                setTimeout(() => {
+                    this.next();
+                    this.scheduleNextSegment();
+                }, this.segmentDuration);
+            },
+
+            updateScheduleTable() {
+                const now = new Date();
+                const body = document.getElementById('scheduleBody');
+                let html = '';
+
+                for (let hour = 0; hour < 24; hour++) {
+                    const showIndex = (hour + Math.floor(Date.now() / (60 * 60 * 1000))) % this.shows.length;
+                    const show = this.shows[showIndex];
+                    const time = String(hour).padStart(2, '0') + ':00';
+                    const isCurrent = hour === now.getHours();
+
+                    html += `
+                        <tr style="${isCurrent ? 'background-color: rgba(0, 255, 0, 0.2); border-left: 3px solid #ffff00;' : ''}">
+                            <td>${time}</td>
+                            <td>${show.title}</td>
+                            <td>${isCurrent ? '▶ NOW' : '—'}</td>
+                        </tr>
+                    `;
+                }
+
+                body.innerHTML = html;
+            },
+
+            init() {
+                this.updateDisplay();
+            }
+        };
+
+        demoPlayer.init();
+    </script>
+
+    <style>
+        .demo-section {
+            margin: 2rem 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .player-container {
+            background-color: #1a1a1a;
+            border: 2px solid #00ff00;
+            padding: 2rem;
+        }
+
+        .player-info {
+            margin-bottom: 1.5rem;
+        }
+
+        .show-title {
+            font-size: 1.5rem;
+            color: #ffff00;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .show-description {
+            color: #00ff00;
+            font-size: 0.9rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .status {
+            color: #00ff00;
+            font-size: 0.9rem;
+            padding: 1rem;
+            background-color: rgba(0, 255, 0, 0.1);
+            border: 1px solid #00ff00;
+        }
+
+        .schedule-info {
+            background-color: #1a1a1a;
+            border: 2px solid #00ff00;
+            padding: 2rem;
+            overflow-y: auto;
+            max-height: 600px;
+        }
+
+        .schedule-info h3 {
+            color: #ffff00;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 1024px) {
+            .demo-section {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</body>
+</html>
