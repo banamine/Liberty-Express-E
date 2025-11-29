@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+  <title>ALIENS Channel 2 </title>
+  <style>
+    * { 
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box; 
+    }
+    
+    html, body { 
+      width: 100%; 
+      height: 100%; 
+      background: #0b0e27;
+      color: #00f3ff;
+      font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      font-weight: 500;
+      overflow: hidden;
+    }
+    
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 20% 50%, rgba(0, 243, 255, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 80% 50%, rgba(57, 255, 20, 0.02) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    #container {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      position: relative;
+      z-index: 1;
+    }
+    
+    /* ===== TOP BANNER ===== */
+    #top-banner {
+      background: rgba(11, 14, 39, 0.8);
+      backdrop-filter: blur(12px);
+      border-bottom: 2px solid rgba(0, 243, 255, 0.3);
+      padding: 12px 20px;
+      flex-shrink: 0;
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(0, 243, 255, 0.1);
+    }
+    
+    .banner-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      max-width: 100%;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    
+    .channel-info {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .channel-title {
+      font-size: 16px;
+      font-weight: bold;
+      color: #00f3ff;
+      margin-bottom: 4px;
+      text-shadow: 0 0 8px rgba(0, 243, 255, 0.4);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .banner-info-line {
+      font-size: 12px;
+      color: rgba(0, 243, 255, 0.7);
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    
+    .info-now {
+      color: #00f3ff;
+      font-weight: 600;
+    }
+    
+    .info-next {
+      color: rgba(0, 243, 255, 0.6);
+    }
+    
+    .played-time {
+      color: rgba(0, 243, 255, 0.5);
+      font-size: 11px;
+    }
+    
+    #clock {
+      font-size: 16px;
+      font-weight: 900;
+      color: #00f3ff;
+      text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+      font-family: 'Courier New', monospace;
+      letter-spacing: 2px;
+      flex-shrink: 0;
+    }
+    
+    /* ===== VIDEO PLAYER ===== */
+    #player-container {
+      flex: 1;
+      position: relative;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #000;
+    }
+    
+    /* ===== NOW-PLAYING BANNER ===== */
+    #banner {
+      position: fixed;
+      top: 60px;
+      left: 0;
+      right: 0;
+      background: linear-gradient(135deg, rgba(0, 243, 255, 0.15), rgba(57, 255, 20, 0.05));
+      backdrop-filter: blur(12px);
+      border-bottom: 2px solid rgba(0, 243, 255, 0.2);
+      padding: 16px 20px;
+      z-index: 99;
+      display: flex;
+      gap: 16px;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-100%);
+    }
+    
+    #banner.show {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+    
+    #banner-thumb {
+      width: 140px;
+      height: 79px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 2px solid rgba(0, 243, 255, 0.3);
+      flex-shrink: 0;
+      box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+    }
+    
+    #banner-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-width: 0;
+    }
+    
+    #banner-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: #00f3ff;
+      margin-bottom: 6px;
+      text-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    #banner-epg {
+      font-size: 13px;
+      color: #39ff14;
+      opacity: 0.9;
+    }
+    
+    /* ===== PLAYLIST PANEL ===== */
+    #playlist-panel {
+      width: 100%;
+      max-height: 180px;
+      background: rgba(11, 14, 39, 0.95);
+      border-top: 2px solid rgba(0, 243, 255, 0.2);
+      overflow-y: auto;
+      display: none;
+      flex-shrink: 0;
+      z-index: 50;
+    }
+    
+    #playlist-panel.show {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    #playlist-list {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .playlist-item {
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(0, 243, 255, 0.1);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    
+    .playlist-item:hover {
+      background: rgba(0, 243, 255, 0.08);
+    }
+    
+    .playlist-item.active {
+      background: rgba(0, 243, 255, 0.15);
+      border-left: 3px solid #00f3ff;
+      padding-left: 13px;
+    }
+    
+    .playlist-thumb {
+      width: 56px;
+      height: 32px;
+      object-fit: cover;
+      border-radius: 4px;
+      border: 1px solid rgba(0, 243, 255, 0.2);
+      flex-shrink: 0;
+    }
+    
+    .playlist-info {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .playlist-title {
+      font-size: 12px;
+      color: #00f3ff;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 600;
+    }
+    
+    .playlist-index {
+      font-size: 11px;
+      color: rgba(0, 243, 255, 0.5);
+    }
+    
+    /* ===== CONTROLS ===== */
+    #controls {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    
+    button {
+      padding: 6px 10px;
+      background: rgba(0, 243, 255, 0.1);
+      border: 1px solid rgba(0, 243, 255, 0.4);
+      color: #00f3ff;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 11px;
+      transition: all 0.2s ease;
+      text-shadow: 0 0 5px rgba(0, 243, 255, 0.3);
+      backdrop-filter: blur(10px);
+      white-space: nowrap;
+    }
+    
+    button:hover {
+      background: rgba(0, 243, 255, 0.2);
+      box-shadow: 0 0 20px rgba(0, 243, 255, 0.3);
+      border-color: rgba(0, 243, 255, 0.6);
+    }
+    
+    button:active {
+      transform: scale(0.95);
+    }
+    
+    /* ===== SCROLLBAR ===== */
+    #playlist-panel::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    #playlist-panel::-webkit-scrollbar-track {
+      background: rgba(0, 243, 255, 0.05);
+    }
+    
+    #playlist-panel::-webkit-scrollbar-thumb {
+      background: rgba(0, 243, 255, 0.2);
+      border-radius: 3px;
+    }
+    
+    #playlist-panel::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 243, 255, 0.4);
+    }
+    
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      .banner-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      
+      #clock {
+        align-self: flex-end;
+        margin-top: -32px;
+        font-size: 14px;
+      }
+      
+      #banner {
+        top: 80px;
+        flex-direction: column;
+        padding: 12px 16px;
+      }
+      
+      #banner-thumb {
+        width: 100%;
+        height: 100px;
+      }
+      
+      #controls {
+        bottom: 10px;
+        right: 10px;
+        gap: 6px;
+      }
+      
+      button {
+        padding: 6px 10px;
+        font-size: 11px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <!-- TOP BANNER WITH CLOCK -->
+    <div id="top-banner">
+      <div class="banner-content">
+        <div class="channel-info">
+          <div class="channel-title">📺 ALIENS Channel 2 </div>
+          <div class="banner-info-line">
+            <span class="info-now">NOW: <span id="now-playing">Loading...</span></span>
+            <span class="played-time">(<span id="played-time">0:00:00</span>)</span>
+          </div>
+          <div class="banner-info-line">
+            <span class="info-next">UP NEXT: <span id="next-title">-</span> at <span id="next-time">--:--</span></span>
+          </div>
+        </div>
+        <div id="controls">
+          <button id="toggle-list">📋 PLAYLIST</button>
+          <button id="prev-btn">◀ PREV</button>
+          <button id="next-btn">NEXT ▶</button>
+        </div>
+        <div id="clock">00:00:00</div>
+      </div>
+    </div>
+
+    <!-- VIDEO PLAYER -->
+    <div id="player-container">
+      <div id="banner">
+        <img id="banner-thumb" src="" alt="thumbnail">
+        <div id="banner-info">
+          <div id="banner-title">Loading...</div>
+          <div id="banner-epg">EPG Info</div>
+        </div>
+      </div>
+      <video id="player" autoplay playsinline controls></video>
+    </div>
+
+    <!-- PLAYLIST PANEL -->
+    <div id="playlist-panel">
+      <div id="playlist-list"></div>
+    </div>
+  </div>
+
+  <script>
+    const PLAYLIST = [
+  {
+    "title": "Ancient Aliens S20E01 - The Top Ten Alien Influencers",
+    "url": "https://archive.org/download/the-long-long-trailer_202506/Ancient%20Aliens%202010%20Season%2020%201080p%20WEB%20x264%20%5Bi_c%5D/Ancient%20Aliens%20-%20S20E01%20-%20The%20Top%20Ten%20Alien%20Influencers.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Ancient Aliens S20E02 - The Top Ten Extraordinary Creatures",
+    "url": "https://archive.org/download/the-long-long-trailer_202506/Ancient%20Aliens%202010%20Season%2020%201080p%20WEB%20x264%20%5Bi_c%5D/Ancient%20Aliens%20-%20S20E02%20-%20The%20Top%20Ten%20Extraordinary%20Creatures.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Ancient Aliens S20E03 - The Top Ten Hidden Alien Bases",
+    "url": "https://archive.org/download/the-long-long-trailer_202506/Ancient%20Aliens%202010%20Season%2020%201080p%20WEB%20x264%20%5Bi_c%5D/Ancient%20Aliens%20-%20S20E03%20-%20The%20Top%20Ten%20Hidden%20Alien%20Bases.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Ancient Aliens S20E04 - The Top Ten Scariest Encounters",
+    "url": "https://archive.org/download/the-long-long-trailer_202506/Ancient%20Aliens%202010%20Season%2020%201080p%20WEB%20x264%20%5Bi_c%5D/Ancient%20Aliens%20-%20S20E04%20-%20The%20Top%20Ten%20Scariest%20Encounters.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Ancient Aliens S20E05 - The Top Ten Alien Codes",
+    "url": "https://archive.org/download/the-long-long-trailer_202506/Ancient%20Aliens%202010%20Season%2020%201080p%20WEB%20x264%20%5Bi_c%5D/Ancient%20Aliens%20-%20S20E05%20-%20The%20Top%20Ten%20Alien%20Codes.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Ancient Aliens S20E06 - The Top Ten Alien Disasters",
+    "url": "https://archive.org/download/the-long-long-trailer_202506/Ancient%20Aliens%202010%20Season%2020%201080p%20WEB%20x264%20%5Bi_c%5D/Ancient%20Aliens%20-%20S20E06%20-%20The%20Top%20Ten%20Alien%20Disasters.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Ancient Aliens S20E07 - Secrets of the Sumerians",
+    "url": "https://archive.org/download/the-long-long-trailer_202506/Ancient%20Aliens%202010%20Season%2020%201080p%20WEB%20x264%20%5Bi_c%5D/Ancient%20Aliens%20-%20S20E07%20-%20Secrets%20of%20the%20Sumerians.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Ancient Aliens S20E08 - The UFO Superhighway",
+    "url": "https://archive.org/download/the-long-long-trailer_202506/Ancient%20Aliens%202010%20Season%2020%201080p%20WEB%20x264%20%5Bi_c%5D/Ancient%20Aliens%20-%20S20E08%20-%20The%20UFO%20Superhighway.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Ancient Aliens S20E09 - Mysteries of Scotland",
+    "url": "https://archive.org/download/the-long-long-trailer_202506/Ancient%20Aliens%202010%20Season%2020%201080p%20WEB%20x264%20%5Bi_c%5D/Ancient%20Aliens%20-%20S20E09%20-%20Mysteries%20of%20Scotland.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Ancient Aliens S20E10 - Mystery of the Stone Spheres",
+    "url": "https://archive.org/download/the-long-long-trailer_202506/Ancient%20Aliens%202010%20Season%2020%201080p%20WEB%20x264%20%5Bi_c%5D/Ancient%20Aliens%20-%20S20E10%20-%20Mystery%20of%20the%20Stone%20Spheres.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Ancient Aliens S21E01 - The Top Ten Extraordinary Discoveries",
+    "url": "https://archive.org/download/the-long-long-trailer_202506/Ancient%20Aliens%202010%20Season%2021%20Complete%201080p%20AMZN%20WEBRip%20x264%20%5Bi_c%5D/Ancient%20Aliens%20-%20S21E01%20-%20The%20Top%20Ten%20Extraordinary%20Discoveries.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Ancient Aliens S21E02 - The Top Ten Mysterious Monoliths",
+    "url": "https://archive.org/download/the-long-long-trailer_202506/Ancient%20Aliens%202010%20Season%2021%20Complete%201080p%20AMZN%20WEBRip%20x264%20%5Bi_c%5D/Ancient%20Aliens%20-%20S21E02%20-%20The%20Top%20Ten%20Mysterious%20Monoliths.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Ancient Aliens S21E03 - The Top Ten UFO Crashes",
+    "url": "https://archive.org/download/the-long-long-trailer_202506/Ancient%20Aliens%202010%20Season%2021%20Complete%201080p%20AMZN%20WEBRip%20x264%20%5Bi_c%5D/Ancient%20Aliens%20-%20S21E03%20-%20The%20Top%20Ten%20UFO%20Crashes.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Ancient Aliens S21E04 - The Top Ten Unexplained Technologies",
+    "url": "https://archive.org/download/the-long-long-trailer_202506/Ancient%20Aliens%202010%20Season%2021%20Complete%201080p%20AMZN%20WEBRip%20x264%20%5Bi_c%5D/Ancient%20Aliens%20-%20S21E04%20-%20The%20Top%20Ten%20Unexplained%20Technologies.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Ancient Aliens S21E05 - The Top Ten Secret Projects",
+    "url": "https://archive.org/download/the-long-long-trailer_202506/Ancient%20Aliens%202010%20Season%2021%20Complete%201080p%20AMZN%20WEBRip%20x264%20%5Bi_c%5D/Ancient%20Aliens%20-%20S21E05%20-%20The%20Top%20Ten%20Secret%20Projects.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Ancient Aliens S21E06 - The Top Ten Mysterious Mountains",
+    "url": "https://archive.org/download/the-long-long-trailer_202506/Ancient%20Aliens%202010%20Season%2021%20Complete%201080p%20AMZN%20WEBRip%20x264%20%5Bi_c%5D/Ancient%20Aliens%20-%20S21E06%20-%20The%20Top%20Ten%20Mysterious%20Mountains.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Ancient Aliens S21E07 - Mysteries of the Aztecs",
+    "url": "https://archive.org/download/the-long-long-trailer_202506/Ancient%20Aliens%202010%20Season%2021%20Complete%201080p%20AMZN%20WEBRip%20x264%20%5Bi_c%5D/Ancient%20Aliens%20-%20S21E07%20-%20Mysteries%20of%20the%20Aztecs.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Ancient Aliens S21E08 - The Glowing Orb Phenomenon",
+    "url": "https://archive.org/download/the-long-long-trailer_202506/Ancient%20Aliens%202010%20Season%2021%20Complete%201080p%20AMZN%20WEBRip%20x264%20%5Bi_c%5D/Ancient%20Aliens%20-%20S21E08%20-%20The%20Glowing%20Orb%20Phenomenon.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "I Know What I Saw (2009)",
+    "url": "https://archive.org/download/the-long-long-trailer_202506/I%20Know%20What%20I%20Saw%20%282009%29.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Ancient Aliens S19E01",
+    "url": "https://archive.org/download/09.-most-beautiful-soft-rock-love-songs-80s-90s-soft-rock-ballads-70s-80s-90s-ol/Ancient%20Aliens%20Season%2019%201080p%20WEBRip%20x265%20An0mal1/Ancient.Aliens.S19E01.1080p.WEBRip.x265-An0mal1.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Ancient Aliens S19E02",
+    "url": "https://archive.org/download/09.-most-beautiful-soft-rock-love-songs-80s-90s-soft-rock-ballads-70s-80s-90s-ol/Ancient%20Aliens%20Season%2019%201080p%20WEBRip%20x265%20An0mal1/Ancient.Aliens.S19E02.1080p.WEBRip.x265-An0mal1.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Ancient Aliens S19E03",
+    "url": "https://archive.org/download/09.-most-beautiful-soft-rock-love-songs-80s-90s-soft-rock-ballads-70s-80s-90s-ol/Ancient%20Aliens%20Season%2019%201080p%20WEBRip%20x265%20An0mal1/Ancient.Aliens.S19E03.1080p.WEBRip.x265-An0mal1.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Ancient Aliens S19E04",
+    "url": "https://archive.org/download/09.-most-beautiful-soft-rock-love-songs-80s-90s-soft-rock-ballads-70s-80s-90s-ol/Ancient%20Aliens%20Season%2019%201080p%20WEBRip%20x265%20An0mal1/Ancient.Aliens.S19E04.1080p.WEBRip.x265-An0mal1.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Ancient Aliens S19E05",
+    "url": "https://archive.org/download/09.-most-beautiful-soft-rock-love-songs-80s-90s-soft-rock-ballads-70s-80s-90s-ol/Ancient%20Aliens%20Season%2019%201080p%20WEBRip%20x265%20An0mal1/Ancient.Aliens.S19E05.1080p.WEBRip.x265-An0mal1.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Ancient Aliens S19E06",
+    "url": "https://archive.org/download/09.-most-beautiful-soft-rock-love-songs-80s-90s-soft-rock-ballads-70s-80s-90s-ol/Ancient%20Aliens%20Season%2019%201080p%20WEBRip%20x265%20An0mal1/Ancient.Aliens.S19E06.1080p.WEBRip.x265-An0mal1.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Ancient Aliens S19E07",
+    "url": "https://archive.org/download/09.-most-beautiful-soft-rock-love-songs-80s-90s-soft-rock-ballads-70s-80s-90s-ol/Ancient%20Aliens%20Season%2019%201080p%20WEBRip%20x265%20An0mal1/Ancient.Aliens.S19E07.1080p.WEBRip.x265-An0mal1.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Ancient Aliens S19E08",
+    "url": "https://archive.org/download/09.-most-beautiful-soft-rock-love-songs-80s-90s-soft-rock-ballads-70s-80s-90s-ol/Ancient%20Aliens%20Season%2019%201080p%20WEBRip%20x265%20An0mal1/Ancient.Aliens.S19E08.1080p.WEBRip.x265-An0mal1.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Ancient Aliens S19E09",
+    "url": "https://archive.org/download/09.-most-beautiful-soft-rock-love-songs-80s-90s-soft-rock-ballads-70s-80s-90s-ol/Ancient%20Aliens%20Season%2019%201080p%20WEBRip%20x265%20An0mal1/Ancient.Aliens.S19E09.1080p.WEBRip.x265-An0mal1.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Ancient Aliens S19E10",
+    "url": "https://archive.org/download/09.-most-beautiful-soft-rock-love-songs-80s-90s-soft-rock-ballads-70s-80s-90s-ol/Ancient%20Aliens%20Season%2019%201080p%20WEBRip%20x265%20An0mal1/Ancient.Aliens.S19E10.1080p.WEBRip.x265-An0mal1.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Ancient Aliens S19E11",
+    "url": "https://archive.org/download/09.-most-beautiful-soft-rock-love-songs-80s-90s-soft-rock-ballads-70s-80s-90s-ol/Ancient%20Aliens%20Season%2019%201080p%20WEBRip%20x265%20An0mal1/Ancient.Aliens.S19E11.1080p.WEBRip.x265-An0mal1.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Ancient Aliens S19E12",
+    "url": "https://archive.org/download/09.-most-beautiful-soft-rock-love-songs-80s-90s-soft-rock-ballads-70s-80s-90s-ol/Ancient%20Aliens%20Season%2019%201080p%20WEBRip%20x265%20An0mal1/Ancient.Aliens.S19E12.1080p.WEBRip.x265-An0mal1.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Ancient Aliens S19E13",
+    "url": "https://archive.org/download/09.-most-beautiful-soft-rock-love-songs-80s-90s-soft-rock-ballads-70s-80s-90s-ol/Ancient%20Aliens%20Season%2019%201080p%20WEBRip%20x265%20An0mal1/Ancient.Aliens.S19E13.1080p.WEBRip.x265-An0mal1.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Ancient Aliens S19E14",
+    "url": "https://archive.org/download/09.-most-beautiful-soft-rock-love-songs-80s-90s-soft-rock-ballads-70s-80s-90s-ol/Ancient%20Aliens%20Season%2019%201080p%20WEBRip%20x265%20An0mal1/Ancient.Aliens.S19E14.1080p.WEBRip.x265-An0mal1.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Ancient Aliens S19E15",
+    "url": "https://archive.org/download/09.-most-beautiful-soft-rock-love-songs-80s-90s-soft-rock-ballads-70s-80s-90s-ol/Ancient%20Aliens%20Season%2019%201080p%20WEBRip%20x265%20An0mal1/Ancient.Aliens.S19E15.1080p.WEBRip.x265-An0mal1.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Ancient Aliens S19E16",
+    "url": "https://archive.org/download/09.-most-beautiful-soft-rock-love-songs-80s-90s-soft-rock-ballads-70s-80s-90s-ol/Ancient%20Aliens%20Season%2019%201080p%20WEBRip%20x265%20An0mal1/Ancient.Aliens.S19E16.1080p.WEBRip.x265-An0mal1.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Ancient Aliens S19E17",
+    "url": "https://archive.org/download/09.-most-beautiful-soft-rock-love-songs-80s-90s-soft-rock-ballads-70s-80s-90s-ol/Ancient%20Aliens%20Season%2019%201080p%20WEBRip%20x265%20An0mal1/Ancient.Aliens.S19E17.1080p.WEBRip.x265-An0mal1.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Ancient Aliens S19E18",
+    "url": "https://archive.org/download/09.-most-beautiful-soft-rock-love-songs-80s-90s-soft-rock-ballads-70s-80s-90s-ol/Ancient%20Aliens%20Season%2019%201080p%20WEBRip%20x265%20An0mal1/Ancient.Aliens.S19E18.1080p.WEBRip.x265-An0mal1.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Ancient Aliens S19E19",
+    "url": "https://archive.org/download/09.-most-beautiful-soft-rock-love-songs-80s-90s-soft-rock-ballads-70s-80s-90s-ol/Ancient%20Aliens%20Season%2019%201080p%20WEBRip%20x265%20An0mal1/Ancient.Aliens.S19E19.1080p.WEBRip.x265-An0mal1.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Ancient Aliens S19E20",
+    "url": "https://archive.org/download/09.-most-beautiful-soft-rock-love-songs-80s-90s-soft-rock-ballads-70s-80s-90s-ol/Ancient%20Aliens%20Season%2019%201080p%20WEBRip%20x265%20An0mal1/Ancient.Aliens.S19E20.1080p.WEBRip.x265-An0mal1.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Encounters 2023 S01E01",
+    "url": "https://archive.org/download/09.-most-beautiful-soft-rock-love-songs-80s-90s-soft-rock-ballads-70s-80s-90s-ol/Encounters.2023.S01.COMPLETE.720p.NF.WEBRip.x264-GalaxyTV%5BTGx%5D/Encounters.2023.S01E01.720p.NF.WEBRip.x264-GalaxyTV.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Encounters 2023 S01E02",
+    "url": "https://archive.org/download/09.-most-beautiful-soft-rock-love-songs-80s-90s-soft-rock-ballads-70s-80s-90s-ol/Encounters.2023.S01.COMPLETE.720p.NF.WEBRip.x264-GalaxyTV%5BTGx%5D/Encounters.2023.S01E02.720p.NF.WEBRip.x264-GalaxyTV.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Encounters 2023 S01E03",
+    "url": "https://archive.org/download/09.-most-beautiful-soft-rock-love-songs-80s-90s-soft-rock-ballads-70s-80s-90s-ol/Encounters.2023.S01.COMPLETE.720p.NF.WEBRip.x264-GalaxyTV%5BTGx%5D/Encounters.2023.S01E03.720p.NF.WEBRip.x264-GalaxyTV.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Encounters 2023 S01E04",
+    "url": "https://archive.org/download/09.-most-beautiful-soft-rock-love-songs-80s-90s-soft-rock-ballads-70s-80s-90s-ol/Encounters.2023.S01.COMPLETE.720p.NF.WEBRip.x264-GalaxyTV%5BTGx%5D/Encounters.2023.S01E04.720p.NF.WEBRip.x264-GalaxyTV.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Moment of Contact (2022)",
+    "url": "https://archive.org/download/09.-most-beautiful-soft-rock-love-songs-80s-90s-soft-rock-ballads-70s-80s-90s-ol/Moment.of.Contact.2022/Moment.of.Contact.2022.1080p.WEBRip.x265-LAMA.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Program (2024)",
+    "url": "https://archive.org/download/09.-most-beautiful-soft-rock-love-songs-80s-90s-soft-rock-ballads-70s-80s-90s-ol/The.Program.2024/The.Program.2024.1080p.WEBRip.10Bit.AAC.x265-Asiimov.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Unidentified S02E01 - UFOs in Combat",
+    "url": "https://archive.org/download/09.-most-beautiful-soft-rock-love-songs-80s-90s-soft-rock-ballads-70s-80s-90s-ol/Unidentified.Inside.Americas.UFO.Investigation.S02.WEBRip.AAC2.0.x264-MIXED%5BTGx%5D/Unidentified.Inside.Americas.UFO.Investigation.S02E01.UFOs.in.Combat.WEB.h264-TREVASKiSTV.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Unidentified S02E02",
+    "url": "https://archive.org/download/09.-most-beautiful-soft-rock-love-songs-80s-90s-soft-rock-ballads-70s-80s-90s-ol/Unidentified.Inside.Americas.UFO.Investigation.S02.WEBRip.AAC2.0.x264-MIXED%5BTGx%5D/Unidentified.Inside.Americas.UFO.Investigation.S02E02.WEB.h264-ROBOTS.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Unidentified S02E03",
+    "url": "https://archive.org/download/09.-most-beautiful-soft-rock-love-songs-80s-90s-soft-rock-ballads-70s-80s-90s-ol/Unidentified.Inside.Americas.UFO.Investigation.S02.WEBRip.AAC2.0.x264-MIXED%5BTGx%5D/Unidentified.Inside.Americas.UFO.Investigation.S02E03.WEB.h264-ROBOTS.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Unidentified S02E04 - Planetary Threat",
+    "url": "https://archive.org/download/09.-most-beautiful-soft-rock-love-songs-80s-90s-soft-rock-ballads-70s-80s-90s-ol/Unidentified.Inside.Americas.UFO.Investigation.S02.WEBRip.AAC2.0.x264-MIXED%5BTGx%5D/Unidentified.Inside.Americas.UFO.Investigation.S02E04.Planetary.Threat.WEB.h264-TREVASKiSTV.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Unidentified S02E05 - Airline Encounters",
+    "url": "https://archive.org/download/09.-most-beautiful-soft-rock-love-songs-80s-90s-soft-rock-ballads-70s-80s-90s-ol/Unidentified.Inside.Americas.UFO.Investigation.S02.WEBRip.AAC2.0.x264-MIXED%5BTGx%5D/Unidentified.Inside.Americas.UFO.Investigation.S02E05.Airline.Encounters.WEB.h264-TREVASKiSTV.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Unidentified S02E06",
+    "url": "https://archive.org/download/09.-most-beautiful-soft-rock-love-songs-80s-90s-soft-rock-ballads-70s-80s-90s-ol/Unidentified.Inside.Americas.UFO.Investigation.S02.WEBRip.AAC2.0.x264-MIXED%5BTGx%5D/Unidentified.Inside.Americas.UFO.Investigation.S02E06.WEB.h264-ROBOTS.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Unidentified S02E07",
+    "url": "https://archive.org/download/09.-most-beautiful-soft-rock-love-songs-80s-90s-soft-rock-ballads-70s-80s-90s-ol/Unidentified.Inside.Americas.UFO.Investigation.S02.WEBRip.AAC2.0.x264-MIXED%5BTGx%5D/Unidentified.Inside.Americas.UFO.Investigation.S02E07.WEB.h264-ROBOTS.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Unidentified S02E08",
+    "url": "https://archive.org/download/09.-most-beautiful-soft-rock-love-songs-80s-90s-soft-rock-ballads-70s-80s-90s-ol/Unidentified.Inside.Americas.UFO.Investigation.S02.WEBRip.AAC2.0.x264-MIXED%5BTGx%5D/Unidentified.Inside.Americas.UFO.Investigation.S02E08.WEB.h264-ROBOTS.mkv",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  }
+];
+    let currentIndex = 0;
+    const video = document.getElementById('player');
+    const banner = document.getElementById('banner');
+    const topBanner = document.getElementById('top-banner');
+    const bannerTitle = document.getElementById('banner-title');
+    const bannerEpg = document.getElementById('banner-epg');
+    const bannerThumb = document.getElementById('banner-thumb');
+    const playlistPanel = document.getElementById('playlist-panel');
+    const playlistList = document.getElementById('playlist-list');
+    const toggleBtn = document.getElementById('toggle-list');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const clock = document.getElementById('clock');
+    const nowPlaying = document.getElementById('now-playing');
+    const nextTitle = document.getElementById('next-title');
+    const nextTime = document.getElementById('next-time');
+    const playedTime = document.getElementById('played-time');
+
+    // Real-time clock
+    function updateClock() {
+      const now = new Date();
+      clock.textContent = now.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      });
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // Format time display
+    function formatTime(seconds) {
+      const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+      const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+      const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+      return `${h}:${m}:${s}`;
+    }
+
+    // Update top banner
+    function updateTopBanner() {
+      const item = PLAYLIST[currentIndex];
+      if (item) {
+        nowPlaying.textContent = item.title;
+        const nextIdx = (currentIndex + 1) % PLAYLIST.length;
+        nextTitle.textContent = PLAYLIST[nextIdx].title;
+      }
+    }
+
+    // Update now-playing overlay banner
+    function showNowPlayingBanner() {
+      const item = PLAYLIST[currentIndex];
+      if (item) {
+        bannerTitle.textContent = item.title;
+        bannerEpg.textContent = item.epg;
+        bannerThumb.src = item.thumb;
+        banner.classList.add('show');
+        
+        setTimeout(() => banner.classList.remove('show'), 4000);
+      }
+    }
+
+    // Update next program time
+    function calculateNextTime() {
+      if (video.duration) {
+        const remaining = video.duration - video.currentTime;
+        const nextStart = new Date(Date.now() + remaining * 1000);
+        nextTime.textContent = nextStart.toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        });
+      }
+    }
+
+    // Update progress
+    video.addEventListener('timeupdate', () => {
+      playedTime.textContent = formatTime(video.currentTime);
+      calculateNextTime();
+    });
+
+    // Render playlist
+    function updatePlaylist() {
+      playlistList.innerHTML = PLAYLIST.map((item, idx) => `
+        <div class="playlist-item ${idx === currentIndex ? 'active' : ''}" onclick="jumpTo(${idx})">
+          <img class="playlist-thumb" src="${item.thumb}" alt="${item.title}">
+          <div class="playlist-info">
+            <div class="playlist-title">${item.title}</div>
+            <div class="playlist-index">#${idx + 1} • ${item.group}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function jumpTo(index) {
+      currentIndex = Math.max(0, Math.min(index, PLAYLIST.length - 1));
+      loadCurrent();
+    }
+
+    function nextTrack() {
+      currentIndex = (currentIndex + 1) % PLAYLIST.length;
+      loadCurrent();
+    }
+
+    function prevTrack() {
+      currentIndex = (currentIndex - 1 + PLAYLIST.length) % PLAYLIST.length;
+      loadCurrent();
+    }
+
+    function loadCurrent() {
+      if (PLAYLIST.length === 0) return;
+      const item = PLAYLIST[currentIndex];
+      if (item && item.url) {
+        video.src = item.url;
+        video.play().catch(() => {});
+        updatePlaylist();
+        updateTopBanner();
+        showNowPlayingBanner();
+        playedTime.textContent = '0:00:00';
+      }
+    }
+
+    // Event listeners
+    video.addEventListener('ended', nextTrack);
+    video.addEventListener('click', () => {
+      if (video.requestFullscreen) {
+        video.requestFullscreen();
+      } else if (video.webkitEnterFullscreen) {
+        video.webkitEnterFullscreen();
+      }
+    });
+
+    toggleBtn.addEventListener('click', () => {
+      playlistPanel.classList.toggle('show');
+    });
+
+    prevBtn.addEventListener('click', prevTrack);
+    nextBtn.addEventListener('click', nextTrack);
+
+    // Keyboard controls
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') prevTrack();
+      if (e.key === 'ArrowRight') nextTrack();
+      if (e.key === ' ') {
+        e.preventDefault();
+        video.paused ? video.play() : video.pause();
+      }
+      if (e.key === 'p' || e.key === 'P') {
+        playlistPanel.classList.toggle('show');
+      }
+    });
+
+    // Initialize
+    updatePlaylist();
+    updateTopBanner();
+    loadCurrent();
+  </script>
+</body>
+</html>
