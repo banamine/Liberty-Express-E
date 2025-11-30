@@ -1,0 +1,2124 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+  <title>Classic Mixes</title>
+  <style>
+    * { 
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box; 
+    }
+    
+    html, body { 
+      width: 100%; 
+      height: 100%; 
+      background: #0b0e27;
+      color: #00f3ff;
+      font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      font-weight: 500;
+      overflow: hidden;
+    }
+    
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 20% 50%, rgba(0, 243, 255, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 80% 50%, rgba(57, 255, 20, 0.02) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    #container {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      position: relative;
+      z-index: 1;
+    }
+    
+    /* ===== TOP BANNER ===== */
+    #top-banner {
+      background: rgba(11, 14, 39, 0.8);
+      backdrop-filter: blur(12px);
+      border-bottom: 2px solid rgba(0, 243, 255, 0.3);
+      padding: 12px 20px;
+      flex-shrink: 0;
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(0, 243, 255, 0.1);
+    }
+    
+    .banner-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      max-width: 100%;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    
+    .channel-info {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .channel-title {
+      font-size: 16px;
+      font-weight: bold;
+      color: #00f3ff;
+      margin-bottom: 4px;
+      text-shadow: 0 0 8px rgba(0, 243, 255, 0.4);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .banner-info-line {
+      font-size: 12px;
+      color: rgba(0, 243, 255, 0.7);
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    
+    .info-now {
+      color: #00f3ff;
+      font-weight: 600;
+    }
+    
+    .info-next {
+      color: rgba(0, 243, 255, 0.6);
+    }
+    
+    .played-time {
+      color: rgba(0, 243, 255, 0.5);
+      font-size: 11px;
+    }
+    
+    #clock {
+      font-size: 16px;
+      font-weight: 900;
+      color: #00f3ff;
+      text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+      font-family: 'Courier New', monospace;
+      letter-spacing: 2px;
+      flex-shrink: 0;
+    }
+    
+    /* ===== VIDEO PLAYER ===== */
+    #player-container {
+      flex: 1;
+      position: relative;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: fill;
+      background: #000;
+      display: block;
+      max-width: 100%;
+      max-height: 100%;
+    }
+    
+    /* ===== NOW-PLAYING BANNER ===== */
+    #banner {
+      position: fixed;
+      top: 60px;
+      left: 0;
+      right: 0;
+      background: linear-gradient(135deg, rgba(0, 243, 255, 0.15), rgba(57, 255, 20, 0.05));
+      backdrop-filter: blur(12px);
+      border-bottom: 2px solid rgba(0, 243, 255, 0.2);
+      padding: 16px 20px;
+      z-index: 99;
+      display: flex;
+      gap: 16px;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-100%);
+    }
+    
+    #banner.show {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+    
+    #banner-thumb {
+      width: 140px;
+      height: 79px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 2px solid rgba(0, 243, 255, 0.3);
+      flex-shrink: 0;
+      box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+    }
+    
+    #banner-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-width: 0;
+    }
+    
+    #banner-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: #00f3ff;
+      margin-bottom: 6px;
+      text-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    #banner-epg {
+      font-size: 13px;
+      color: #39ff14;
+      opacity: 0.9;
+    }
+    
+    /* ===== PLAYLIST PANEL ===== */
+    #playlist-panel {
+      width: 100%;
+      max-height: 180px;
+      background: rgba(11, 14, 39, 0.95);
+      border-top: 2px solid rgba(0, 243, 255, 0.2);
+      overflow-y: auto;
+      display: none;
+      flex-shrink: 0;
+      z-index: 50;
+    }
+    
+    #playlist-panel.show {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    #playlist-list {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .playlist-item {
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(0, 243, 255, 0.1);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    
+    .playlist-item:hover {
+      background: rgba(0, 243, 255, 0.08);
+    }
+    
+    .playlist-item.active {
+      background: rgba(0, 243, 255, 0.15);
+      border-left: 3px solid #00f3ff;
+      padding-left: 13px;
+    }
+    
+    .playlist-thumb {
+      width: 56px;
+      height: 32px;
+      object-fit: cover;
+      border-radius: 4px;
+      border: 1px solid rgba(0, 243, 255, 0.2);
+      flex-shrink: 0;
+    }
+    
+    .playlist-info {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .playlist-title {
+      font-size: 12px;
+      color: #00f3ff;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 600;
+    }
+    
+    .playlist-index {
+      font-size: 11px;
+      color: rgba(0, 243, 255, 0.5);
+    }
+    
+    /* ===== CONTROLS ===== */
+    #controls {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    
+    button {
+      padding: 6px 10px;
+      background: rgba(0, 243, 255, 0.1);
+      border: 1px solid rgba(0, 243, 255, 0.4);
+      color: #00f3ff;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 11px;
+      transition: all 0.2s ease;
+      text-shadow: 0 0 5px rgba(0, 243, 255, 0.3);
+      backdrop-filter: blur(10px);
+      white-space: nowrap;
+    }
+    
+    button:hover {
+      background: rgba(0, 243, 255, 0.2);
+      box-shadow: 0 0 20px rgba(0, 243, 255, 0.3);
+      border-color: rgba(0, 243, 255, 0.6);
+    }
+    
+    button:active {
+      transform: scale(0.95);
+    }
+
+    /* ===== ERROR/SUCCESS COUNTERS ===== */
+    #counters {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .counter {
+      padding: 4px 8px;
+      border-radius: 3px;
+      backdrop-filter: blur(10px);
+      border: 1px solid;
+      font-weight: 700;
+      min-width: 40px;
+      text-align: center;
+    }
+
+    #error-counter {
+      color: #ff3333;
+      border-color: #ff3333;
+      background: rgba(255, 51, 51, 0.1);
+      box-shadow: 0 0 10px rgba(255, 51, 51, 0.2);
+    }
+
+    #success-counter {
+      color: #39ff14;
+      border-color: #39ff14;
+      background: rgba(57, 255, 20, 0.1);
+      box-shadow: 0 0 10px rgba(57, 255, 20, 0.2);
+    }
+
+    /* ===== ERROR TOAST NOTIFICATIONS ===== */
+    #toast-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 999;
+      pointer-events: none;
+    }
+
+    .error-toast {
+      background: rgba(255, 51, 51, 0.95);
+      border: 2px solid #ff3333;
+      border-radius: 6px;
+      padding: 12px 16px;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      backdrop-filter: blur(12px);
+      animation: slideIn 0.3s ease, slideOut 2s ease 2s forwards;
+      box-shadow: 0 8px 32px rgba(255, 51, 51, 0.3);
+      max-width: 300px;
+      word-wrap: break-word;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideOut {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+    }
+
+    /* ===== LOADING BAR ===== */
+    #loading-bar {
+      position: fixed;
+      top: 58px;
+      left: 0;
+      width: 0%;
+      height: 3px;
+      background: linear-gradient(90deg, #00f3ff, #39ff14);
+      box-shadow: 0 0 15px rgba(0, 243, 255, 0.8);
+      transition: width 0.3s ease;
+      z-index: 101;
+    }
+
+    #loading-bar.complete {
+      animation: fadeOut 0.6s ease forwards;
+    }
+
+    @keyframes fadeOut {
+      from {
+        opacity: 1;
+        width: 100%;
+      }
+      to {
+        opacity: 0;
+        width: 100%;
+      }
+    }
+
+    /* ===== BUFFERING INDICATOR ===== */
+    .buffering-indicator {
+      position: fixed;
+      top: 65px;
+      left: 20px;
+      font-size: 11px;
+      color: #39ff14;
+      font-weight: 600;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    .buffering-indicator.show {
+      opacity: 0.8;
+    }
+    
+    /* ===== SCROLLBAR ===== */
+    #playlist-panel::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    #playlist-panel::-webkit-scrollbar-track {
+      background: rgba(0, 243, 255, 0.05);
+    }
+    
+    #playlist-panel::-webkit-scrollbar-thumb {
+      background: rgba(0, 243, 255, 0.2);
+      border-radius: 3px;
+    }
+    
+    #playlist-panel::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 243, 255, 0.4);
+    }
+    
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      .banner-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      
+      #clock {
+        align-self: flex-end;
+        margin-top: -32px;
+        font-size: 14px;
+      }
+      
+      #banner {
+        top: 80px;
+        flex-direction: column;
+        padding: 12px 16px;
+      }
+      
+      #banner-thumb {
+        width: 100%;
+        height: 100px;
+      }
+      
+      #controls {
+        bottom: 10px;
+        right: 10px;
+        gap: 6px;
+      }
+      
+      button {
+        padding: 6px 10px;
+        font-size: 11px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <!-- TOP BANNER WITH CLOCK -->
+    <div id="top-banner">
+      <div class="banner-content">
+        <div class="channel-info">
+          <div class="channel-title">📺 Classic Mixes</div>
+          <div class="banner-info-line">
+            <span class="info-now">NOW: <span id="now-playing">Loading...</span></span>
+            <span class="played-time">(<span id="played-time">0:00:00</span>)</span>
+          </div>
+          <div class="banner-info-line">
+            <span class="info-next">UP NEXT: <span id="next-title">-</span> at <span id="next-time">--:--</span></span>
+          </div>
+        </div>
+        <div id="counters">
+          <div class="counter" id="error-counter">❌ 0</div>
+          <div class="counter" id="success-counter">✅ 0</div>
+        </div>
+        <div id="controls">
+          <button id="toggle-list">📋 PLAYLIST</button>
+          <button id="prev-btn">◀ PREV</button>
+          <button id="next-btn">NEXT ▶</button>
+        </div>
+        <div id="clock">00:00:00</div>
+      </div>
+    </div>
+
+    <!-- VIDEO PLAYER -->
+    <div id="player-container">
+      <div id="banner">
+        <img id="banner-thumb" src="" alt="thumbnail">
+        <div id="banner-info">
+          <div id="banner-title">Loading...</div>
+          <div id="banner-epg">EPG Info</div>
+        </div>
+      </div>
+      <video id="player" autoplay playsinline controls>
+        <!-- Subtitles will be dynamically loaded if available -->
+      </video>
+    </div>
+
+    <!-- PLAYLIST PANEL -->
+    <div id="playlist-panel">
+      <div id="playlist-list"></div>
+    </div>
+
+    <!-- LOADING BAR -->
+    <div id="loading-bar"></div>
+
+    <!-- BUFFERING INDICATOR -->
+    <div class="buffering-indicator" id="buffering-indicator">⏳ Buffering...</div>
+
+    <!-- ERROR TOAST CONTAINER -->
+    <div id="toast-container"></div>
+  </div>
+
+  <script>
+    const PLAYLIST = [
+  {
+    "title": "The Marrying Man (1991)",
+    "url": "https://archive.org/download/90s_20250812/The%20Marrying%20Man%20(1991).mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Bob Newhart Show s02e20 Mind Your Own Business",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%202/The%20Bob%20Newhart%20Show%20s02e20%20-%20Mind%20Your%20Own%20Business.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Bob Newhart Show s02e22 By the Way... You're Fired",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%202/The%20Bob%20Newhart%20Show%20s02e22%20-%20By%20the%20Way...%20You're%20Fired.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Petticoat Junction S04E21 - Don't Call Us",
+    "url": "https://archive.org/download/Petticoat_Junction_Series/Petticoat%20Junction%20-%20Season%204/Petticoat%20Junction%20-%204x21%20-%20Don%27t%20Call%20Us.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Taxi 4x17 Tony and Brian",
+    "url": "https://archive.org/download/TaxiS04E12BobbyDoesntLiveHereAnymore/Taxi%204x17%20Tony%20and%20Brian.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Bob Newhart Show s02e04 Somebody Down Here Likes Me",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%202/The%20Bob%20Newhart%20Show%20s02e04%20-%20Somebody%20Down%20Here%20Likes%20Me.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "S01E26 - The Great Fusilli",
+    "url": "https://archive.org/download/courage-the-cowardly-dog-1080p-ai-upscale/Courage%20the%20Cowardly%20Dog%20-%2001x26%20-%20The%20Great%20Fusilli.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Hogan's Heroes S05E02 The Well",
+    "url": "https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S05E02_The%20Well.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Taxi 5x05 Scenskees from a Marriage pt2",
+    "url": "https://archive.org/download/Episode1TheShloogelShowLoveUnAmericanStyle/Taxi%205x05%20Scenskees%20from%20a%20Marriage%20pt2.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "S04E05",
+    "url": "https://archive.org/download/courage-the-cowardly-dog-1080p-ai-upscale/Courage%20the%20Cowardly%20Dog%20-%20S04E05.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Hogan's Heroes S03E25 What Time Does The Balloon Go Up",
+    "url": "https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S03E25_What%20Time%20Does%20The%20Balloon%20Go%20Up.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "S02E05",
+    "url": "https://archive.org/download/courage-the-cowardly-dog-1080p-ai-upscale/Courage%20the%20Cowardly%20Dog%20-%20S02E05.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Bob Newhart Show s03e13 Jerry Robinson Crusoe",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%203/The%20Bob%20Newhart%20Show%20s03e13%20-%20Jerry%20Robinson%20Crusoe.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Looney Tunes Show - 119 - Off Duty Cop",
+    "url": "https://archive.org/download/the-looney-tunes-show_202405/The%20Looney%20Tunes%20Show_S01E19_Off%20Duty%20Cop.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Taxi 1x19 Mama Gravas",
+    "url": "https://archive.org/download/Taxi1x14SugarMama/Taxi%201x19%20Mama%20Gravas.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Bob Newhart Show s01e07 Father Knows Worst",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%201/The%20Bob%20Newhart%20Show%20s01e07%20-%20Father%20Knows%20Worst.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Bob Newhart Show s03e18 The Way We Weren't",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%203/The%20Bob%20Newhart%20Show%20s03e18%20-%20The%20Way%20We%20Weren't.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Hogan's Heroes S03E04 Sgt Schultz Meets Mata Hari",
+    "url": "https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S03E04_Sgt_%20Schultz%20Meets%20Mata%20Hari.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Petticoat Junction S01E27 - Prelude - The Ladybugs on The Ed Sullivan Show (March 22, 1964)",
+    "url": "https://archive.org/download/Petticoat_Junction_Series/Petticoat%20Junction%20-%20Season%201/Petticoat%20Junction%20S01E27%20-%20Prelude%20-%20The%20Ladybugs%20on%20The%20Ed%20Sullivan%20Show%20(March%2022%2C%201964).mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Hogan's Heroes S05E18 Fat Herman, Go Home",
+    "url": "https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S05E18_Fat%20Herman%2C%20Go%20Home.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Taxi 5x11 Zenas Honeymoon",
+    "url": "https://archive.org/download/Episode1TheShloogelShowLoveUnAmericanStyle/Taxi%205x11%20Zenas%20Honeymoon.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Petticoat Junction S02E23 - A Borderline Story",
+    "url": "https://archive.org/download/Petticoat_Junction_Series/Petticoat%20Junction%20-%20Season%202/Petticoat%20Junction%20-%202x23%20-%20A%20Borderline%20Story.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Hogan's Heroes S04E22 The Witness",
+    "url": "https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S04E22_The%20Witness.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Hogan's Heroes S03E26 Le Beau And The Little Old Lady",
+    "url": "https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S03E26_Le%20Beau%20And%20The%20Little%20Old%20Lady.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Taxi 2x13 Alexs Romance",
+    "url": "https://archive.org/download/TaxiS02E08TheGreatRace/Taxi%202x13%20Alexs%20Romance.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Hogan's Heroes S04E10 No Names Please",
+    "url": "https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S04E10_No%20Names%20Please.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "S05E02 Caged Fury",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%205/S05E02%20-%20Caged%20Fury.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Hogan's Heroes S03E29 The Ultimate Weapon",
+    "url": "https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S03E29_The%20Ultimate%20Weapon.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Bob Newhart Show s02e02 Motel",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%202/The%20Bob%20Newhart%20Show%20s02e02%20-%20Motel.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Hogan's Heroes S06E06 The Gestapo Takeover",
+    "url": "https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S06E06_The%20Gestapo%20Takeover.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Taxi 1x05 Come As You Arent",
+    "url": "https://archive.org/download/Taxi1x14SugarMama/Taxi%201x05%20Come%20As%20You%20Arent.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Looney Tunes Show - 114 - Newspaper Thief",
+    "url": "https://archive.org/download/the-looney-tunes-show_202405/The%20Looney%20Tunes%20Show_S01E14_Newspaper%20Thief.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Petticoat Junction S01E26 - Kate and the Manpower Problem",
+    "url": "https://archive.org/download/Petticoat_Junction_Series/Petticoat%20Junction%20-%20Season%201/Petticoat%20Junction%20S01E26%20-%20Kate%20and%20the%20Manpower%20Problem.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Petticoat Junction S03E33 - Hooterville Valley Project",
+    "url": "https://archive.org/download/Petticoat_Junction_Series/Petticoat%20Junction%20-%20Season%203%20(50th%20Anniversary%20Edition)/Petticoat%20Junction%20S03E33%20-%20Hooterville%20Valley%20Project.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Petticoat Junction S01E22 - The Art Game",
+    "url": "https://archive.org/download/Petticoat_Junction_Series/Petticoat%20Junction%20-%20Season%201/Petticoat%20Junction%20S01E22%20-%20The%20Art%20Game.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Petticoat Junction S04E02 - Birdman of Shady Rest (Part 1 of 2)",
+    "url": "https://archive.org/download/Petticoat_Junction_Series/Petticoat%20Junction%20-%20Season%204/Petticoat%20Junction%20-%204x02%20-%20Birdman%20Of%20Shady%20Rest%20(Part%201%20of%202).mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Hogan's Heroes S06E17 That'S No Lady, That'S My Spy",
+    "url": "https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S06E17_That%27S%20No%20Lady%2C%20That%27S%20My%20Spy.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Petticoat Junction S02E34 - The Brontosaurus Caper",
+    "url": "https://archive.org/download/Petticoat_Junction_Series/Petticoat%20Junction%20-%20Season%202/Petticoat%20Junction%20-%202x34%20-%20The%20Brontosaurus%20Caper.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Looney Tunes Show - 214 - Spread Those Wings and Fly",
+    "url": "https://archive.org/download/the-looney-tunes-show_202405/The%20Looney%20Tunes%20Show_S02E14_Spread%20Those%20Wings%20and%20Fly.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Taxi 2x01 Louie and the Nice Girl",
+    "url": "https://archive.org/download/TaxiS02E08TheGreatRace/Taxi%202x01%20Louie%20and%20the%20Nice%20Girl.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Hogan's Heroes S03E12 One In Every Crowd",
+    "url": "https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S03E12_One%20In%20Every%20Crowd.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "S03E07",
+    "url": "https://archive.org/download/courage-the-cowardly-dog-1080p-ai-upscale/Courage%20the%20Cowardly%20Dog%20-%20S03E07.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Petticoat Junction S02E25 - A Tale of Two Dogs",
+    "url": "https://archive.org/download/Petticoat_Junction_Series/Petticoat%20Junction%20-%20Season%202/Petticoat%20Junction%20-%202x25%20-%20A%20Tale%20of%20Two%20Dogs.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Hogan's Heroes S03E28 The Collector General",
+    "url": "https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S03E28_The%20Collector%20General.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Petticoat Junction S04E14 - My Daughter the Secretary",
+    "url": "https://archive.org/download/Petticoat_Junction_Series/Petticoat%20Junction%20-%20Season%204/Petticoat%20Junction%20-%204x14%20-%20My%20Daughter%20the%20Secretary.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "S01E01 - A Night at the Katz Motel",
+    "url": "https://archive.org/download/courage-the-cowardly-dog-1080p-ai-upscale/Courage%20the%20Cowardly%20Dog%20-%2001x01%20-%20A%20Night%20at%20the%20Katz%20Motel.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Petticoat Junction S03E27 - Second Honeymoon",
+    "url": "https://archive.org/download/Petticoat_Junction_Series/Petticoat%20Junction%20-%20Season%203%20(50th%20Anniversary%20Edition)/Petticoat%20Junction%20S03E27%20-%20Second%20Honeymoon.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Taxi 1x11 Memories of Cab 804 pt1",
+    "url": "https://archive.org/download/Taxi1x14SugarMama/Taxi%201x11%20Memories%20of%20Cab%20804%20pt1.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Taxi 2x17 Fantasy Club",
+    "url": "https://archive.org/download/TaxiS02E08TheGreatRace/Taxi%202x17%20Fantasy%20Club.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "S03E04",
+    "url": "https://archive.org/download/courage-the-cowardly-dog-1080p-ai-upscale/Courage%20the%20Cowardly%20Dog%20-%20S03E04.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Petticoat Junction S01E02 - Quick, Hide the Railroad (Part 2 of 2)",
+    "url": "https://archive.org/download/Petticoat_Junction_Series/Petticoat%20Junction%20-%20Season%201/Petticoat%20Junction%20S01E02%20-%20Quick%2C%20Hide%20the%20Railroad%20(Part%202%20of%202).mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "S01E08 - Freaky Fred",
+    "url": "https://archive.org/download/courage-the-cowardly-dog-1080p-ai-upscale/Courage%20the%20Cowardly%20Dog%20-%2001x08%20-%20Freaky%20Fred.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Hogan's Heroes S05E12 The Antique",
+    "url": "https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S05E12_The%20Antique.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Taxi 5x01 The Shloogel Show",
+    "url": "https://archive.org/download/Episode1TheShloogelShowLoveUnAmericanStyle/Taxi%205x01%20The%20Shloogel%20Show.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Taxi 1x18 Bobbys Big Break",
+    "url": "https://archive.org/download/Taxi1x14SugarMama/Taxi%201x18%20Bobbys%20Big%20Break.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Drop Dead Fred (1991)",
+    "url": "https://archive.org/download/90s_20250812/Drop%20Dead%20Fred%20(1991).mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Taxi 1x20 Alex Tastes Death and Finds a Nice Restaurant",
+    "url": "https://archive.org/download/Taxi1x14SugarMama/Taxi%201x20%20Alex%20Tastes%20Death%20and%20Finds%20a%20Nice%20Restaurant.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Petticoat Junction S04E18 - Temperance, Temperance",
+    "url": "https://archive.org/download/Petticoat_Junction_Series/Petticoat%20Junction%20-%20Season%204/Petticoat%20Junction%20-%204x18%20-%20Temperance%2C%20Temperance.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Taxi 3x16 Thy Bosss Wife",
+    "url": "https://archive.org/download/TaxiS03E07TheCallOfTheMild/Taxi%203x16%20Thy%20Bosss%20Wife.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "S05E09 The Slammer",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%205/S05E09%20-%20The%20Slammer.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Petticoat Junction S03E34 - Betty Jo's Bike",
+    "url": "https://archive.org/download/Petticoat_Junction_Series/Petticoat%20Junction%20-%20Season%203%20(50th%20Anniversary%20Edition)/Petticoat%20Junction%20S03E34%20-%20Betty%20Jo%27s%20Bike.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Petticoat Junction S04E26 - Author! Author!",
+    "url": "https://archive.org/download/Petticoat_Junction_Series/Petticoat%20Junction%20-%20Season%204/Petticoat%20Junction%20-%204x26%20-%20Author!%20Author!.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "S06E21 Crisis in Education",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%206/S06E21%20-%20Crisis%20in%20Education.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Petticoat Junction S01E34 - Bedloe and Son",
+    "url": "https://archive.org/download/Petticoat_Junction_Series/Petticoat%20Junction%20-%20Season%201/Petticoat%20Junction%20S01E34%20-%20Bedloe%20and%20Son.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Petticoat Junction S02E28 - Bedloe Gets His Comeuppance (Part 2 of 2)",
+    "url": "https://archive.org/download/Petticoat_Junction_Series/Petticoat%20Junction%20-%20Season%202/Petticoat%20Junction%20-%202x28%20-%20Bedloe%20Gets%20His%20Comeuppance%20(Part%202%20of%202).mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Looney Tunes Show - 205 - Semper Lie",
+    "url": "https://archive.org/download/the-looney-tunes-show_202405/The%20Looney%20Tunes%20Show_S02E05_Semper%20Lie.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Bob Newhart Show s02e14 T.S. Elliott",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%202/The%20Bob%20Newhart%20Show%20s02e14%20-%20T.S.%20Elliott.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Petticoat Junction S04E17 - Girls! Girls! Girls!",
+    "url": "https://archive.org/download/Petticoat_Junction_Series/Petticoat%20Junction%20-%20Season%204/Petticoat%20Junction%20-%204x17%20-%20Girls!%20Girls!%20Girls!.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Awakenings (1990)",
+    "url": "https://archive.org/download/90s_20250812/Awakenings%20(1990).mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Hogan's Heroes S04E06 A Man's Best Friend Is Not His Dog",
+    "url": "https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S04E06_A%20Man%27s%20Best%20Friend%20Is%20Not%20His%20Dog.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Petticoat Junction S01E37 - Kate Flat on Her Back (Part 2 of 2)",
+    "url": "https://archive.org/download/Petticoat_Junction_Series/Petticoat%20Junction%20-%20Season%201/Petticoat%20Junction%20S01E37%20-%20Kate%20Flat%20on%20Her%20Back%20(Part%202%20of%202).mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "S06E08 You're Fired, Mr. Chips",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%206/S06E08%20-%20You're%20Fired,%20Mr.%20Chips.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Bob Newhart Show s02e10 I'm Okay, You're Okay, So What's Wrong",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%202/The%20Bob%20Newhart%20Show%20s02e10%20-%20I'm%20Okay,%20You're%20Okay,%20So%20What's%20Wrong.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Hogan's Heroes S06E11 Operation Tiger",
+    "url": "https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S06E11_Operation%20Tiger.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Full Monty (1997)",
+    "url": "https://archive.org/download/90s_20250812/The%20Full%20Monty%20(1997).mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Bob Newhart Show s01e01 Fly the Unfriendly Skies",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%201/The%20Bob%20Newhart%20Show%20s01e01%20-%20Fly%20the%20Unfriendly%20Skies.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Taxi 3x20 The Costume Party",
+    "url": "https://archive.org/download/TaxiS03E07TheCallOfTheMild/Taxi%203x20%20The%20Costume%20Party.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Hogan's Heroes S03E09 Hot Money",
+    "url": "https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S03E09_Hot%20Money.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Hogan's Heroes S04E20 Klink's Old Flame",
+    "url": "https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S04E20_Klink%27s%20Old%20Flame.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Looney Tunes Show - 104 - Fish and Visitors",
+    "url": "https://archive.org/download/the-looney-tunes-show_202405/The%20Looney%20Tunes%20Show_S01E04_Fish%20and%20Visitors.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Taxi 4x11 Louies New Girl",
+    "url": "https://archive.org/download/TaxiS04E12BobbyDoesntLiveHereAnymore/Taxi%204x11%20Louies%20New%20Girl.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Taxi 2x24 Jims Inheritance",
+    "url": "https://archive.org/download/TaxiS02E08TheGreatRace/Taxi%202x24%20Jims%20Inheritance.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The River Wild (1994)",
+    "url": "https://archive.org/download/90s_20250812/The%20River%20Wild%20(1994).mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "S02E13",
+    "url": "https://archive.org/download/courage-the-cowardly-dog-1080p-ai-upscale/Courage%20the%20Cowardly%20Dog%20-%20S02E13.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Bob Newhart Show s02e16 Oh, Brother",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%202/The%20Bob%20Newhart%20Show%20s02e16%20-%20Oh,%20Brother.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "S05E12 Breaking Up is Hard to Do",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%205/S05E12%20-%20Breaking%20Up%20is%20Hard%20to%20Do.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "S03E11",
+    "url": "https://archive.org/download/courage-the-cowardly-dog-1080p-ai-upscale/Courage%20the%20Cowardly%20Dog%20-%20S03E11.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Hogan's Heroes S04E02 Klink VS The Gonculator",
+    "url": "https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S04E02_Klink%20VS%20The%20Gonculator.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Looney Tunes Show - 108 - Devil Dog",
+    "url": "https://archive.org/download/the-looney-tunes-show_202405/The%20Looney%20Tunes%20Show_S01E08_Devil%20Dog.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Petticoat Junction S02E06 - My Dog the Actor",
+    "url": "https://archive.org/download/Petticoat_Junction_Series/Petticoat%20Junction%20-%20Season%202/Petticoat%20Junction%20-%202x06%20-%20My%20Dog%20the%20Actor.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "S03E07",
+    "url": "https://archive.org/download/courage-the-cowardly-dog-1080p-ai-upscale/Courage%20the%20Cowardly%20Dog%20-%20S03E07.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Bob Newhart Show s02e17 The Modernization of Emily",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%202/The%20Bob%20Newhart%20Show%20s02e17%20-%20The%20Modernization%20of%20Emily.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Guarding Tess (1994)",
+    "url": "https://archive.org/download/90s_20250812/Guarding%20Tess%20(1994).mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "S05E15 The Ironwood Experience",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%205/S05E15%20-%20The%20Ironwood%20Experience.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Taxi 4x07 Louies Fling",
+    "url": "https://archive.org/download/TaxiS04E12BobbyDoesntLiveHereAnymore/Taxi%204x07%20Louies%20Fling.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Hogan's Heroes S04E25 The Return Of Major Bonacelli",
+    "url": "https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S04E25_The%20Return%20Of%20Major%20Bonacelli.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Hogan's Heroes S04E01 Clearance Sale At The Black Market",
+    "url": "https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S04E01_Clearance%20Sale%20At%20The%20Black%20Market.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Taxi 4x13 Nina Loves Alex",
+    "url": "https://archive.org/download/TaxiS04E12BobbyDoesntLiveHereAnymore/Taxi%204x13%20Nina%20Loves%20Alex.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Hogan's Heroes S03E17 Carter Turns Traitor",
+    "url": "https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S03E17_Carter%20Turns%20Traitor.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Petticoat Junction S03E16 - Better Never Than Late",
+    "url": "https://archive.org/download/Petticoat_Junction_Series/Petticoat%20Junction%20-%20Season%203%20(50th%20Anniversary%20Edition)/Petticoat%20Junction%20S03E16%20-%20Better%20Never%20Than%20Late.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Looney Tunes Show - 221 - Year of the Duck",
+    "url": "https://archive.org/download/the-looney-tunes-show_202405/The%20Looney%20Tunes%20Show_S02E21_Year%20of%20the%20Duck.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Taxi 4x16 The Unkindest Cut",
+    "url": "https://archive.org/download/TaxiS04E12BobbyDoesntLiveHereAnymore/Taxi%204x16%20The%20Unkindest%20Cut.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Petticoat Junction S03E29 - Kate Bradley, Peacemaker",
+    "url": "https://archive.org/download/Petticoat_Junction_Series/Petticoat%20Junction%20-%20Season%203%20(50th%20Anniversary%20Edition)/Petticoat%20Junction%20S03E29%20-%20Kate%20Bradley%2C%20Peacemaker.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Sense and Sensibility (1995)",
+    "url": "https://archive.org/download/90s_20250812/Sense%20and%20Sensibility%20(1995).mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Bob Newhart Show s02e12 Blues For Mr. Borden",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%202/The%20Bob%20Newhart%20Show%20s02e12%20-%20Blues%20For%20Mr.%20Borden.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Looney Tunes Show - 120 - Working Duck",
+    "url": "https://archive.org/download/the-looney-tunes-show_202405/The%20Looney%20Tunes%20Show_S01E20_Working%20Duck.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Taxi 4x10 Tonys Lady",
+    "url": "https://archive.org/download/TaxiS04E12BobbyDoesntLiveHereAnymore/Taxi%204x10%20Tonys%20Lady.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "S01E09 - Night of the Weremole",
+    "url": "https://archive.org/download/courage-the-cowardly-dog-1080p-ai-upscale/Courage%20the%20Cowardly%20Dog%20-%2001x09%20-%20Night%20of%20the%20Weremole.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Bob Newhart Show s04e14 A Matter of Vice Principal",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%204/The%20Bob%20Newhart%20Show%20s04e14%20-%20A%20Matter%20of%20Vice-Principal.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "S06E22 Happy Trails to You",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%206/S06E22%20-%20Happy%20Trails%20to%20You.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Don't Tell Her It's Me (1990)",
+    "url": "https://archive.org/download/90s_20250812/Don%27t%20Tell%20Her%20It%27s%20Me%20(1990).mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Misery (1990)",
+    "url": "https://archive.org/download/90s_20250812/Misery%20(1990).mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Iron Giant (1999)",
+    "url": "https://archive.org/download/90s_20250812/The%20Iron%20Giant%20(1999).mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Hogan's Heroes S06E17 That'S No Lady, That'S My Spy",
+    "url": "https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S06E17_That%27S%20No%20Lady%2C%20That%27S%20My%20Spy.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Looney Tunes Show - 226 - SuperRabbit",
+    "url": "https://archive.org/download/the-looney-tunes-show_202405/The%20Looney%20Tunes%20Show_S02E26_SuperRabbit.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Kindergarten Cop (1990)",
+    "url": "https://archive.org/download/90s_20250812/Kindergarten%20Cop%20(1990).mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Bob Newhart Show s01e19 Not With My Sister You Don't",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%201/The%20Bob%20Newhart%20Show%20s01e19%20-%20Not%20With%20My%20Sister%20You%20Don't.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Bob Newhart Show s03e14 Serve For Daylight",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%203/The%20Bob%20Newhart%20Show%20s03e14%20-%20Serve%20For%20Daylight.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Bob Newhart Show s04e22 Birth of a Salesman",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%204/The%20Bob%20Newhart%20Show%20s04e22%20-%20Birth%20of%20a%20Salesman.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Taxi 1x18 Bobbys Big Break",
+    "url": "https://archive.org/download/Taxi1x14SugarMama/Taxi%201x18%20Bobbys%20Big%20Break.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Bob Newhart Show s02e19 Clink Shrink",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%202/The%20Bob%20Newhart%20Show%20s02e19%20-%20Clink%20Shrink.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Taxi 4x21 The Road Not Taken pt1",
+    "url": "https://archive.org/download/TaxiS04E12BobbyDoesntLiveHereAnymore/Taxi%204x21%20The%20Road%20Not%20Taken%20pt1.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Hogan's Heroes S04E23 The Purchasing Plan",
+    "url": "https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S04E23_The%20Purchasing%20Plan.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Dying Young (1991)",
+    "url": "https://archive.org/download/90s_20250812/Dying%20Young%20(1991).mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Iron Giant (1999)",
+    "url": "https://archive.org/download/90s_20250812/The%20Iron%20Giant%20(1999).mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Looney Tunes Show - 202 - You've Got Hate Mail",
+    "url": "https://archive.org/download/the-looney-tunes-show_202405/The%20Looney%20Tunes%20Show_S02E02_You've%20Got%20Hate%20Mail.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "S03E02",
+    "url": "https://archive.org/download/courage-the-cowardly-dog-1080p-ai-upscale/Courage%20the%20Cowardly%20Dog%20-%20S03E02.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Petticoat Junction S02E08 - Betty Jo's Pen Pal",
+    "url": "https://archive.org/download/Petticoat_Junction_Series/Petticoat%20Junction%20-%20Season%202/Petticoat%20Junction%20-%202x08%20-%20Betty%20Jo%27s%20Pen%20Pal.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Hogan's Heroes S03E19 Is There A Doctor In The House",
+    "url": "https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S03E19_Is%20There%20A%20Doctor%20In%20The%20House.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Hogan's Heroes S06E08 Eight O'Clock And All Is Well",
+    "url": "https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S06E08_Eight%20O%27Clock%20And%20All%20Is%20Well.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Sandlot (1993)",
+    "url": "https://archive.org/download/90s_20250812/The%20Sandlot%20(1993).mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Petticoat Junction S01E08 - Kate's Recipe for Hot Rhubarb",
+    "url": "https://archive.org/download/Petticoat_Junction_Series/Petticoat%20Junction%20-%20Season%201/Petticoat%20Junction%20S01E08%20-%20Kate%27s%20Recipe%20for%20Hot%20Rhubarb.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Hogan's Heroes S06E16 The Meister Spy",
+    "url": "https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S06E16_The%20Meister%20Spy.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Taxi 1x08 Paper Marriage",
+    "url": "https://archive.org/download/Taxi1x14SugarMama/Taxi%201x08%20Paper%20Marriage.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Hogan's Heroes S04E04 Hogan's Trucking Service",
+    "url": "https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S04E04_Hogan%27s%20Trucking%20Service.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Bob Newhart Show s04e23 The Boy Next Door",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%204/The%20Bob%20Newhart%20Show%20s04e23%20-%20The%20Boy%20Next%20Door.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Robin Hood: Men in Tights (1993)",
+    "url": "https://archive.org/download/90s_20250812/Robin%20Hood-Men%20in%20Tights%20(1993).mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Sandlot (1993)",
+    "url": "https://archive.org/download/90s_20250812/The%20Sandlot%20(1993).mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Petticoat Junction S04E27 - Steve's Ol' Buddy",
+    "url": "https://archive.org/download/Petticoat_Junction_Series/Petticoat%20Junction%20-%20Season%204/Petticoat%20Junction%20-%204x27%20-%20Steve%27s%20Ol%27%20Buddy.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "S01E03 - The Shadow of Courage",
+    "url": "https://archive.org/download/courage-the-cowardly-dog-1080p-ai-upscale/Courage%20the%20Cowardly%20Dog%20-%2001x03%20-%20The%20Shadow%20of%20Courage.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Petticoat Junction S02E06 - My Dog the Actor",
+    "url": "https://archive.org/download/Petticoat_Junction_Series/Petticoat%20Junction%20-%20Season%202/Petticoat%20Junction%20-%202x06%20-%20My%20Dog%20the%20Actor.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Bob Newhart Show Gag Reel",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%204/The%20Bob%20Newhart%20Show%20Gag%20Reel.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Looney Tunes Show - 112 - Double Date",
+    "url": "https://archive.org/download/the-looney-tunes-show_202405/The%20Looney%20Tunes%20Show_S01E12_Double%20Date.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Taxi 4x08 Of Mice and Tony",
+    "url": "https://archive.org/download/TaxiS04E12BobbyDoesntLiveHereAnymore/Taxi%204x08%20Of%20Mice%20and%20Tony.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Taxi 4x04 Jim Joins the Network (again)",
+    "url": "https://archive.org/download/TaxiS04E12BobbyDoesntLiveHereAnymore/Taxi%204x04%20Jim%20Joins%20the%20Network%20(again).mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "S06E01 Bob's Change of Life",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%206/S06E01%20-%20Bob's%20Change%20of%20Life.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Hogan's Heroes S06E04 Lady Chitterly'S Lover (Part 1)",
+    "url": "https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S06E04_Lady%20Chitterly%27S%20Lover%20%28Part%201%29.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Taxi 4x18 Zenas Honeymoon",
+    "url": "https://archive.org/download/TaxiS04E12BobbyDoesntLiveHereAnymore/Taxi%204x18%20Zenas%20Honeymoon.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Petticoat Junction S01E14 - Cannonball Christmas",
+    "url": "https://archive.org/download/Petticoat_Junction_Series/Petticoat%20Junction%20-%20Season%201/Petticoat%20Junction%20S01E14%20-%20Cannonball%20Christmas.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Bob Newhart Show Season 3 Featurette",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%203/The%20Bob%20Newhart%20Show%20Season%203%20Featurette.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Hogan's Heroes S04E07 Never Play Cards With Strangers",
+    "url": "https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S04E07_Never%20Play%20Cards%20With%20Strangers.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Hogan's Heroes S04E07 Never Play Cards With Strangers",
+    "url": "https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S04E07_Never%20Play%20Cards%20With%20Strangers.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Hogan's Heroes S03E28 The Collector General",
+    "url": "https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S03E28_The%20Collector%20General.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Looney Tunes Show - 118 - DMV",
+    "url": "https://archive.org/download/the-looney-tunes-show_202405/The%20Looney%20Tunes%20Show_S01E18_DMV.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "S05E04 Still Crazy After All These Years",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%205/S05E04%20-%20Still%20Crazy%20After%20All%20These%20Years.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "The Looney Tunes Show - 224 - Mr. Weiner",
+    "url": "https://archive.org/download/the-looney-tunes-show_202405/The%20Looney%20Tunes%20Show_S02E24_Mr_%20Weiner.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Taxi 2x06 The Lighter Side of Angela Matusa",
+    "url": "https://archive.org/download/TaxiS02E08TheGreatRace/Taxi%202x06%20The%20Lighter%20Side%20of%20Angela%20Matusa.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Hogan's Heroes S04E19 Watch The Trains Go By",
+    "url": "https://archive.org/download/hogans-heroes-s-01-e-01-the-informer_202509/Hogan%27s%20Heroes_S04E19_Watch%20The%20Trains%20Go%20By.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Taxi 1x10 Men Are Such Beasts",
+    "url": "https://archive.org/download/Taxi1x14SugarMama/Taxi%201x10%20Men%20Are%20Such%20Beasts.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "S06E05 Carlin's New Suit",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%206/S06E05%20-%20Carlin's%20New%20Suit.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "S02E01",
+    "url": "https://archive.org/download/courage-the-cowardly-dog-1080p-ai-upscale/Courage%20the%20Cowardly%20Dog%20-%20S02E01.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "Don't Tell Her It's Me (1990)",
+    "url": "https://archive.org/download/90s_20250812/Don%27t%20Tell%20Her%20It%27s%20Me%20(1990).mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  },
+  {
+    "title": "S01E07 - The Demon in the Mattress",
+    "url": "https://archive.org/download/courage-the-cowardly-dog-1080p-ai-upscale/Courage%20the%20Cowardly%20Dog%20-%2001x07%20-%20The%20Demon%20in%20the%20Mattress.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel",
+    "subtitles": ""
+  }
+];
+    let currentIndex = 0;
+    let errorCount = 0;
+    let successCount = 0;
+    let playbackTimeout = null;
+    let isLoading = false;
+    let hasPlayableContent = false;
+    let preloadTimeout = null;
+    const TIMEOUT_DURATION = 20000; // 20 seconds
+    const PRELOAD_TIME = 60; // Preload next video 1 min before current ends
+
+    const video = document.getElementById('player');
+    const banner = document.getElementById('banner');
+    const topBanner = document.getElementById('top-banner');
+    const bannerTitle = document.getElementById('banner-title');
+    const bannerEpg = document.getElementById('banner-epg');
+    const bannerThumb = document.getElementById('banner-thumb');
+    const playlistPanel = document.getElementById('playlist-panel');
+    const playlistList = document.getElementById('playlist-list');
+    const toggleBtn = document.getElementById('toggle-list');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const clock = document.getElementById('clock');
+    const nowPlaying = document.getElementById('now-playing');
+    const nextTitle = document.getElementById('next-title');
+    const nextTime = document.getElementById('next-time');
+    const playedTime = document.getElementById('played-time');
+    const errorCounter = document.getElementById('error-counter');
+    const successCounter = document.getElementById('success-counter');
+    const toastContainer = document.getElementById('toast-container');
+    const loadingBar = document.getElementById('loading-bar');
+    const bufferingIndicator = document.getElementById('buffering-indicator');
+
+    // Initialize loading bar - simple one-shot
+    function initLoadingBar() {
+      setTimeout(() => {
+        loadingBar.style.width = '100%';
+        loadingBar.classList.add('complete');
+      }, 1000);
+    }
+
+    // Show buffering indicator
+    function showBuffering() {
+      bufferingIndicator.classList.add('show');
+    }
+
+    // Hide buffering indicator
+    function hideBuffering() {
+      bufferingIndicator.classList.remove('show');
+    }
+
+    // Show error toast that auto-dismisses
+    function showErrorToast(message) {
+      const toast = document.createElement('div');
+      toast.className = 'error-toast';
+      toast.textContent = '❌ ' + message;
+      toastContainer.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.remove();
+      }, 2800); // Remove after animation completes
+    }
+
+    // Update error counter
+    function updateErrorCounter() {
+      errorCounter.textContent = `❌ ${errorCount}`;
+    }
+
+    // Update success counter
+    function updateSuccessCounter() {
+      successCounter.textContent = `✅ ${successCount}`;
+    }
+
+    // Silent error handling - just skip to next
+    function handlePlaybackError() {
+      clearTimeout(playbackTimeout);
+      isLoading = false;
+      nextTrack();
+    }
+
+    // Real-time clock
+    function updateClock() {
+      const now = new Date();
+      clock.textContent = now.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      });
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // Format time display
+    function formatTime(seconds) {
+      const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+      const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+      const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+      return `${h}:${m}:${s}`;
+    }
+
+    // Update top banner
+    function updateTopBanner() {
+      const item = PLAYLIST[currentIndex];
+      if (item) {
+        nowPlaying.textContent = item.title;
+        const nextIdx = (currentIndex + 1) % PLAYLIST.length;
+        nextTitle.textContent = PLAYLIST[nextIdx].title;
+      }
+    }
+
+    // Update now-playing overlay banner
+    function showNowPlayingBanner() {
+      const item = PLAYLIST[currentIndex];
+      if (item) {
+        bannerTitle.textContent = item.title;
+        bannerEpg.textContent = item.epg;
+        bannerThumb.src = item.thumb;
+        banner.classList.add('show');
+        
+        setTimeout(() => banner.classList.remove('show'), 4000);
+      }
+    }
+
+    // Update next program time
+    function calculateNextTime() {
+      if (video.duration) {
+        const remaining = video.duration - video.currentTime;
+        const nextStart = new Date(Date.now() + remaining * 1000);
+        nextTime.textContent = nextStart.toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        });
+      }
+    }
+
+    // Update progress
+    video.addEventListener('timeupdate', () => {
+      playedTime.textContent = formatTime(video.currentTime);
+      calculateNextTime();
+    });
+
+    // Render playlist
+    function updatePlaylist() {
+      playlistList.innerHTML = PLAYLIST.map((item, idx) => `
+        <div class="playlist-item ${idx === currentIndex ? 'active' : ''}" onclick="jumpTo(${idx})">
+          <img class="playlist-thumb" src="${item.thumb}" alt="${item.title}">
+          <div class="playlist-info">
+            <div class="playlist-title">${item.title}</div>
+            <div class="playlist-index">#${idx + 1} • ${item.group}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function jumpTo(index) {
+      currentIndex = Math.max(0, Math.min(index, PLAYLIST.length - 1));
+      loadCurrent();
+    }
+
+    function nextTrack() {
+      currentIndex = (currentIndex + 1) % PLAYLIST.length;
+      loadCurrent();
+    }
+
+    function prevTrack() {
+      currentIndex = (currentIndex - 1 + PLAYLIST.length) % PLAYLIST.length;
+      loadCurrent();
+    }
+
+    function loadCurrent() {
+      if (PLAYLIST.length === 0) return;
+      const item = PLAYLIST[currentIndex];
+      if (item && item.url) {
+        clearTimeout(playbackTimeout);
+        isLoading = true;
+        hasPlayableContent = false;
+        
+        // Clear existing tracks
+        while (video.firstChild) {
+          video.removeChild(video.firstChild);
+        }
+        
+        video.src = item.url;
+        
+        // Load subtitles if available
+        if (item.subtitles) {
+          const track = document.createElement('track');
+          track.kind = 'subtitles';
+          track.src = item.subtitles;
+          track.srclang = item.lang || 'en';
+          track.label = 'Subtitles';
+          video.appendChild(track);
+        }
+        
+        video.load();
+        video.play().catch(() => {});
+
+        playbackTimeout = setTimeout(() => {
+          if (!hasPlayableContent) {
+            handlePlaybackError();
+          }
+        }, TIMEOUT_DURATION);
+
+        updatePlaylist();
+        updateTopBanner();
+        showNowPlayingBanner();
+        playedTime.textContent = '0:00:00';
+      }
+    }
+
+    // Event listeners
+    video.addEventListener('ended', () => {
+      successCount++;
+      updateSuccessCounter();
+      nextTrack();
+    });
+
+    video.addEventListener('error', () => {
+      // Silently skip errors - don't count, just move to next
+      if (isLoading && !hasPlayableContent) {
+        nextTrack();
+      }
+    });
+
+    video.addEventListener('canplay', () => {
+      hasPlayableContent = true;
+      clearTimeout(playbackTimeout);
+      isLoading = false;
+      hideBuffering();
+    });
+
+    video.addEventListener('playing', () => {
+      hideBuffering();
+    });
+
+    video.addEventListener('waiting', () => {
+      showBuffering();
+    });
+
+    video.addEventListener('click', () => {
+      if (video.requestFullscreen) {
+        video.requestFullscreen();
+      } else if (video.webkitEnterFullscreen) {
+        video.webkitEnterFullscreen();
+      }
+    });
+
+    toggleBtn.addEventListener('click', () => {
+      playlistPanel.classList.toggle('show');
+    });
+
+    prevBtn.addEventListener('click', prevTrack);
+    nextBtn.addEventListener('click', nextTrack);
+
+    // Keyboard controls
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') prevTrack();
+      if (e.key === 'ArrowRight') nextTrack();
+      if (e.key === ' ') {
+        e.preventDefault();
+        video.paused ? video.play() : video.pause();
+      }
+      if (e.key === 'p' || e.key === 'P') {
+        playlistPanel.classList.toggle('show');
+      }
+    });
+
+    // Initialize
+    initLoadingBar();
+    updatePlaylist();
+    updateTopBanner();
+    loadCurrent();
+  </script>
+</body>
+</html>
