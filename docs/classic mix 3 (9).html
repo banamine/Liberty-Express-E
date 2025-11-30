@@ -1,0 +1,1595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+  <title>Liberty Free TV 1 </title>
+  <style>
+    * { 
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box; 
+    }
+    
+    html, body { 
+      width: 100%; 
+      height: 100%; 
+      background: #0b0e27;
+      color: #00f3ff;
+      font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      font-weight: 500;
+      overflow: hidden;
+    }
+    
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 20% 50%, rgba(0, 243, 255, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 80% 50%, rgba(57, 255, 20, 0.02) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    #container {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      position: relative;
+      z-index: 1;
+    }
+    
+    /* ===== TOP BANNER ===== */
+    #top-banner {
+      background: rgba(11, 14, 39, 0.8);
+      backdrop-filter: blur(12px);
+      border-bottom: 2px solid rgba(0, 243, 255, 0.3);
+      padding: 12px 20px;
+      flex-shrink: 0;
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(0, 243, 255, 0.1);
+    }
+    
+    .banner-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      max-width: 100%;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    
+    .channel-info {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .channel-title {
+      font-size: 16px;
+      font-weight: bold;
+      color: #00f3ff;
+      margin-bottom: 4px;
+      text-shadow: 0 0 8px rgba(0, 243, 255, 0.4);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .banner-info-line {
+      font-size: 12px;
+      color: rgba(0, 243, 255, 0.7);
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    
+    .info-now {
+      color: #00f3ff;
+      font-weight: 600;
+    }
+    
+    .info-next {
+      color: rgba(0, 243, 255, 0.6);
+    }
+    
+    .played-time {
+      color: rgba(0, 243, 255, 0.5);
+      font-size: 11px;
+    }
+    
+    #clock {
+      font-size: 16px;
+      font-weight: 900;
+      color: #00f3ff;
+      text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+      font-family: 'Courier New', monospace;
+      letter-spacing: 2px;
+      flex-shrink: 0;
+    }
+    
+    /* ===== VIDEO PLAYER ===== */
+    #player-container {
+      flex: 1;
+      position: relative;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #000;
+    }
+    
+    /* ===== NOW-PLAYING BANNER ===== */
+    #banner {
+      position: fixed;
+      top: 60px;
+      left: 0;
+      right: 0;
+      background: linear-gradient(135deg, rgba(0, 243, 255, 0.15), rgba(57, 255, 20, 0.05));
+      backdrop-filter: blur(12px);
+      border-bottom: 2px solid rgba(0, 243, 255, 0.2);
+      padding: 16px 20px;
+      z-index: 99;
+      display: flex;
+      gap: 16px;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-100%);
+    }
+    
+    #banner.show {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+    
+    #banner-thumb {
+      width: 140px;
+      height: 79px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 2px solid rgba(0, 243, 255, 0.3);
+      flex-shrink: 0;
+      box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+    }
+    
+    #banner-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-width: 0;
+    }
+    
+    #banner-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: #00f3ff;
+      margin-bottom: 6px;
+      text-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    #banner-epg {
+      font-size: 13px;
+      color: #39ff14;
+      opacity: 0.9;
+    }
+    
+    /* ===== PLAYLIST PANEL ===== */
+    #playlist-panel {
+      width: 100%;
+      max-height: 180px;
+      background: rgba(11, 14, 39, 0.95);
+      border-top: 2px solid rgba(0, 243, 255, 0.2);
+      overflow-y: auto;
+      display: none;
+      flex-shrink: 0;
+      z-index: 50;
+    }
+    
+    #playlist-panel.show {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    #playlist-list {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .playlist-item {
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(0, 243, 255, 0.1);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    
+    .playlist-item:hover {
+      background: rgba(0, 243, 255, 0.08);
+    }
+    
+    .playlist-item.active {
+      background: rgba(0, 243, 255, 0.15);
+      border-left: 3px solid #00f3ff;
+      padding-left: 13px;
+    }
+    
+    .playlist-thumb {
+      width: 56px;
+      height: 32px;
+      object-fit: cover;
+      border-radius: 4px;
+      border: 1px solid rgba(0, 243, 255, 0.2);
+      flex-shrink: 0;
+    }
+    
+    .playlist-info {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .playlist-title {
+      font-size: 12px;
+      color: #00f3ff;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 600;
+    }
+    
+    .playlist-index {
+      font-size: 11px;
+      color: rgba(0, 243, 255, 0.5);
+    }
+    
+    /* ===== CONTROLS ===== */
+    #controls {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    
+    button {
+      padding: 6px 10px;
+      background: rgba(0, 243, 255, 0.1);
+      border: 1px solid rgba(0, 243, 255, 0.4);
+      color: #00f3ff;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 11px;
+      transition: all 0.2s ease;
+      text-shadow: 0 0 5px rgba(0, 243, 255, 0.3);
+      backdrop-filter: blur(10px);
+      white-space: nowrap;
+    }
+    
+    button:hover {
+      background: rgba(0, 243, 255, 0.2);
+      box-shadow: 0 0 20px rgba(0, 243, 255, 0.3);
+      border-color: rgba(0, 243, 255, 0.6);
+    }
+    
+    button:active {
+      transform: scale(0.95);
+    }
+
+    /* ===== ERROR/SUCCESS COUNTERS ===== */
+    #counters {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .counter {
+      padding: 4px 8px;
+      border-radius: 3px;
+      backdrop-filter: blur(10px);
+      border: 1px solid;
+      font-weight: 700;
+      min-width: 40px;
+      text-align: center;
+    }
+
+    #error-counter {
+      color: #ff3333;
+      border-color: #ff3333;
+      background: rgba(255, 51, 51, 0.1);
+      box-shadow: 0 0 10px rgba(255, 51, 51, 0.2);
+    }
+
+    #success-counter {
+      color: #39ff14;
+      border-color: #39ff14;
+      background: rgba(57, 255, 20, 0.1);
+      box-shadow: 0 0 10px rgba(57, 255, 20, 0.2);
+    }
+
+    /* ===== ERROR TOAST NOTIFICATIONS ===== */
+    #toast-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 999;
+      pointer-events: none;
+    }
+
+    .error-toast {
+      background: rgba(255, 51, 51, 0.95);
+      border: 2px solid #ff3333;
+      border-radius: 6px;
+      padding: 12px 16px;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      backdrop-filter: blur(12px);
+      animation: slideIn 0.3s ease, slideOut 2s ease 2s forwards;
+      box-shadow: 0 8px 32px rgba(255, 51, 51, 0.3);
+      max-width: 300px;
+      word-wrap: break-word;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideOut {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+    }
+
+    /* ===== LOADING BAR ===== */
+    #loading-bar {
+      position: fixed;
+      top: 58px;
+      left: 0;
+      width: 0%;
+      height: 3px;
+      background: linear-gradient(90deg, #00f3ff, #39ff14);
+      box-shadow: 0 0 15px rgba(0, 243, 255, 0.8);
+      transition: width 0.3s ease;
+      z-index: 101;
+    }
+
+    #loading-bar.complete {
+      animation: fadeOut 0.6s ease forwards;
+    }
+
+    @keyframes fadeOut {
+      from {
+        opacity: 1;
+        width: 100%;
+      }
+      to {
+        opacity: 0;
+        width: 100%;
+      }
+    }
+
+    /* ===== BUFFERING INDICATOR ===== */
+    .buffering-indicator {
+      position: fixed;
+      top: 65px;
+      left: 20px;
+      font-size: 11px;
+      color: #39ff14;
+      font-weight: 600;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    .buffering-indicator.show {
+      opacity: 0.8;
+    }
+    
+    /* ===== SCROLLBAR ===== */
+    #playlist-panel::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    #playlist-panel::-webkit-scrollbar-track {
+      background: rgba(0, 243, 255, 0.05);
+    }
+    
+    #playlist-panel::-webkit-scrollbar-thumb {
+      background: rgba(0, 243, 255, 0.2);
+      border-radius: 3px;
+    }
+    
+    #playlist-panel::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 243, 255, 0.4);
+    }
+    
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      .banner-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      
+      #clock {
+        align-self: flex-end;
+        margin-top: -32px;
+        font-size: 14px;
+      }
+      
+      #banner {
+        top: 80px;
+        flex-direction: column;
+        padding: 12px 16px;
+      }
+      
+      #banner-thumb {
+        width: 100%;
+        height: 100px;
+      }
+      
+      #controls {
+        bottom: 10px;
+        right: 10px;
+        gap: 6px;
+      }
+      
+      button {
+        padding: 6px 10px;
+        font-size: 11px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <!-- TOP BANNER WITH CLOCK -->
+    <div id="top-banner">
+      <div class="banner-content">
+        <div class="channel-info">
+          <div class="channel-title">📺 Liberty Free TV 1 </div>
+          <div class="banner-info-line">
+            <span class="info-now">NOW: <span id="now-playing">Loading...</span></span>
+            <span class="played-time">(<span id="played-time">0:00:00</span>)</span>
+          </div>
+          <div class="banner-info-line">
+            <span class="info-next">UP NEXT: <span id="next-title">-</span> at <span id="next-time">--:--</span></span>
+          </div>
+        </div>
+        <div id="counters">
+          <div class="counter" id="error-counter">❌ 0</div>
+          <div class="counter" id="success-counter">✅ 0</div>
+        </div>
+        <div id="controls">
+          <button id="toggle-list">📋 PLAYLIST</button>
+          <button id="prev-btn">◀ PREV</button>
+          <button id="next-btn">NEXT ▶</button>
+        </div>
+        <div id="clock">00:00:00</div>
+      </div>
+    </div>
+
+    <!-- VIDEO PLAYER -->
+    <div id="player-container">
+      <div id="banner">
+        <img id="banner-thumb" src="" alt="thumbnail">
+        <div id="banner-info">
+          <div id="banner-title">Loading...</div>
+          <div id="banner-epg">EPG Info</div>
+        </div>
+      </div>
+      <video id="player" autoplay playsinline controls></video>
+    </div>
+
+    <!-- PLAYLIST PANEL -->
+    <div id="playlist-panel">
+      <div id="playlist-list"></div>
+    </div>
+
+    <!-- LOADING BAR -->
+    <div id="loading-bar"></div>
+
+    <!-- BUFFERING INDICATOR -->
+    <div class="buffering-indicator" id="buffering-indicator">⏳ Buffering...</div>
+
+    <!-- ERROR TOAST CONTAINER -->
+    <div id="toast-container"></div>
+  </div>
+
+  <script>
+    const PLAYLIST = [
+  {
+    "title": "Taxi 5x12 Get Me Through the Holidays",
+    "url": "https://archive.org/download/Episode1TheShloogelShowLoveUnAmericanStyle/Taxi%205x12%20Get%20Me%20Through%20the%20Holidays.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 4x05 Louies Mom Remarries",
+    "url": "https://archive.org/download/TaxiS04E12BobbyDoesntLiveHereAnymore/Taxi%204x05%20Louies%20Mom%20Remarries.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 1x04 Bobbys Acting Career",
+    "url": "https://archive.org/download/Taxi1x14SugarMama/Taxi%201x04%20Bobbys%20Acting%20Career.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 3x08 Elaines Cab",
+    "url": "https://archive.org/download/TaxiS03E07TheCallOfTheMild/Taxi%203x08%20Elaines%20Cab.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 2x15 Shut It Down pt2",
+    "url": "https://archive.org/download/TaxiS02E08TheGreatRace/Taxi%202x15%20Shut%20It%20Down%20pt2.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 2x21 Alexs Old Buddy",
+    "url": "https://archive.org/download/TaxiS02E08TheGreatRace/Taxi%202x21%20Alexs%20Old%20Buddy.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 4x12 Bobby Doesnt Live Here Anymore",
+    "url": "https://archive.org/download/TaxiS04E12BobbyDoesntLiveHereAnymore/Taxi%204x12%20Bobby%20Doesnt%20Live%20Here%20Anymore.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 4x17 Tony and Brian",
+    "url": "https://archive.org/download/TaxiS04E12BobbyDoesntLiveHereAnymore/Taxi%204x17%20Tony%20and%20Brian.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 1x08 Paper Marriage",
+    "url": "https://archive.org/download/Taxi1x14SugarMama/Taxi%201x08%20Paper%20Marriage.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 1x09 MoneyTroubles",
+    "url": "https://archive.org/download/Taxi1x14SugarMama/Taxi%201x09%20MoneyTroubles.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 4x24 Jim and the Kid",
+    "url": "https://archive.org/download/TaxiS04E12BobbyDoesntLiveHereAnymore/Taxi%204x24%20Jim%20and%20the%20Kid.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 1x10 Men Are Such Beasts",
+    "url": "https://archive.org/download/Taxi1x14SugarMama/Taxi%201x10%20Men%20Are%20Such%20Beasts.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 3x05 The Reluctant Fighter",
+    "url": "https://archive.org/download/TaxiS03E07TheCallOfTheMild/Taxi%203x05%20The%20Reluctant%20Fighter.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 5x08 Louies Revenge",
+    "url": "https://archive.org/download/Episode1TheShloogelShowLoveUnAmericanStyle/Taxi%205x08%20Louies%20Revenge.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 3x12 The Million Dollar Misunderstanding",
+    "url": "https://archive.org/download/TaxiS03E07TheCallOfTheMild/Taxi%203x12%20The%20Million%20Dollar%20Misunderstanding.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 5x13 Louie Changes His Mind",
+    "url": "https://archive.org/download/Episode1TheShloogelShowLoveUnAmericanStyle/Taxi%205x13%20Louie%20Changes%20His%20Mind.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 1x11 Memories of Cab 804 pt1",
+    "url": "https://archive.org/download/Taxi1x14SugarMama/Taxi%201x11%20Memories%20of%20Cab%20804%20pt1.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 3x13 Louies Fling",
+    "url": "https://archive.org/download/TaxiS03E07TheCallOfTheMild/Taxi%203x13%20Louies%20Fling.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 3x17 The Unkindest Cut",
+    "url": "https://archive.org/download/TaxiS03E07TheCallOfTheMild/Taxi%203x17%20The%20Unkindest%20Cut.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 1x22 Substitute Father",
+    "url": "https://archive.org/download/Taxi1x14SugarMama/Taxi%201x22%20Substitute%20Father.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 2x11 Elaines First Day as Supervisor",
+    "url": "https://archive.org/download/TaxiS02E08TheGreatRace/Taxi%202x11%20Elaines%20First%20Day%20as%20Supervisor.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 4x19 Get Me Through the Holidays",
+    "url": "https://archive.org/download/TaxiS04E12BobbyDoesntLiveHereAnymore/Taxi%204x19%20Get%20Me%20Through%20the%20Holidays.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 4x02 Vienna Waits",
+    "url": "https://archive.org/download/TaxiS04E12BobbyDoesntLiveHereAnymore/Taxi%204x02%20Vienna%20Waits.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 3x18 Zen and the Art of Cab Driving",
+    "url": "https://archive.org/download/TaxiS03E07TheCallOfTheMild/Taxi%203x18%20Zen%20and%20the%20Art%20of%20Cab%20Driving.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 5x09 Travels with My Dad",
+    "url": "https://archive.org/download/Episode1TheShloogelShowLoveUnAmericanStyle/Taxi%205x09%20Travels%20with%20My%20Dad.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 1x21 Hollywood Calling",
+    "url": "https://archive.org/download/Taxi1x14SugarMama/Taxi%201x21%20Hollywood%20Calling.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 4x23 Crime and Punishment",
+    "url": "https://archive.org/download/TaxiS04E12BobbyDoesntLiveHereAnymore/Taxi%204x23%20Crime%20and%20Punishment.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 2x22 Tonys Sister and Jim",
+    "url": "https://archive.org/download/TaxiS02E08TheGreatRace/Taxi%202x22%20Tonys%20Sister%20and%20Jim.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 4x01 Jim the Psychic",
+    "url": "https://archive.org/download/TaxiS04E12BobbyDoesntLiveHereAnymore/Taxi%204x01%20Jim%20the%20Psychic.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 4x09 The Wedding of Latka and Simka",
+    "url": "https://archive.org/download/TaxiS04E12BobbyDoesntLiveHereAnymore/Taxi%204x09%20The%20Wedding%20of%20Latka%20and%20Simka.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 3x06 Louies Mother",
+    "url": "https://archive.org/download/TaxiS03E07TheCallOfTheMild/Taxi%203x06%20Louies%20Mother.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 5x07 Alex the Gofer",
+    "url": "https://archive.org/download/Episode1TheShloogelShowLoveUnAmericanStyle/Taxi%205x07%20Alex%20the%20Gofer.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 1x07 High School Reunion",
+    "url": "https://archive.org/download/Taxi1x14SugarMama/Taxi%201x07%20High%20School%20Reunion.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 4x04 Jim Joins the Network (again)",
+    "url": "https://archive.org/download/TaxiS04E12BobbyDoesntLiveHereAnymore/Taxi%204x04%20Jim%20Joins%20the%20Network%20(again).mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 2x07 A Woman Between Friends",
+    "url": "https://archive.org/download/TaxiS02E08TheGreatRace/Taxi%202x07%20A%20Woman%20Between%20Friends.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 4x06 Like Father, Like Son",
+    "url": "https://archive.org/download/TaxiS04E12BobbyDoesntLiveHereAnymore/Taxi%204x06%20Like%20Father,%20Like%20Son.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 4x14 Tonys Comeback",
+    "url": "https://archive.org/download/TaxiS04E12BobbyDoesntLiveHereAnymore/Taxi%204x14%20Tonys%20Comeback.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 5x14 Alex Gets Burned",
+    "url": "https://archive.org/download/Episode1TheShloogelShowLoveUnAmericanStyle/Taxi%205x14%20Alex%20Gets%20Burned.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 2x05 Wherefore Art Thou, Bobby",
+    "url": "https://archive.org/download/TaxiS02E08TheGreatRace/Taxi%202x05%20Wherefore%20Art%20Thou,%20Bobby.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 5x06 Crime and Punishment",
+    "url": "https://archive.org/download/Episode1TheShloogelShowLoveUnAmericanStyle/Taxi%205x06%20Crime%20and%20Punishment.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 2x18 Alex Jumps Out of an Airplane",
+    "url": "https://archive.org/download/TaxiS02E08TheGreatRace/Taxi%202x18%20Alex%20Jumps%20Out%20of%20an%20Airplane.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 4x16 The Unkindest Cut",
+    "url": "https://archive.org/download/TaxiS04E12BobbyDoesntLiveHereAnymore/Taxi%204x16%20The%20Unkindest%20Cut.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 4x15 Elegant Iggy",
+    "url": "https://archive.org/download/TaxiS04E12BobbyDoesntLiveHereAnymore/Taxi%204x15%20Elegant%20Iggy.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 4x13 Nina Loves Alex",
+    "url": "https://archive.org/download/TaxiS04E12BobbyDoesntLiveHereAnymore/Taxi%204x13%20Nina%20Loves%20Alex.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 1x15 Friends",
+    "url": "https://archive.org/download/Taxi1x14SugarMama/Taxi%201x15%20Friends.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 3x04 Elaines Strange Triangle",
+    "url": "https://archive.org/download/TaxiS03E07TheCallOfTheMild/Taxi%203x04%20Elaines%20Strange%20Triangle.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 1x19 Mama Gravas",
+    "url": "https://archive.org/download/Taxi1x14SugarMama/Taxi%201x19%20Mama%20Gravas.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 1x03 Blind Date",
+    "url": "https://archive.org/download/Taxi1x14SugarMama/Taxi%201x03%20Blind%20Date.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 2x04 Nardo Loses Her Marbles",
+    "url": "https://archive.org/download/TaxiS02E08TheGreatRace/Taxi%202x04%20Nardo%20Loses%20Her%20Marbles.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 1x12 memories of Cab 804 pt2",
+    "url": "https://archive.org/download/Taxi1x14SugarMama/Taxi%201x12%20memories%20of%20Cab%20804%20pt2.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 2x14 Shut It Down pt1",
+    "url": "https://archive.org/download/TaxiS02E08TheGreatRace/Taxi%202x14%20Shut%20It%20Down%20pt1.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 4x18 Zenas Honeymoon",
+    "url": "https://archive.org/download/TaxiS04E12BobbyDoesntLiveHereAnymore/Taxi%204x18%20Zenas%20Honeymoon.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 1x20 Alex Tastes Death and Finds a Nice Restaurant",
+    "url": "https://archive.org/download/Taxi1x14SugarMama/Taxi%201x20%20Alex%20Tastes%20Death%20and%20Finds%20a%20Nice%20Restaurant.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 1x16 Louie Sees The Light",
+    "url": "https://archive.org/download/Taxi1x14SugarMama/Taxi%201x16%20Louie%20Sees%20The%20Light.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 1x05 Come As You Arent",
+    "url": "https://archive.org/download/Taxi1x14SugarMama/Taxi%201x05%20Come%20As%20You%20Arent.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 5x01 The Shloogel Show",
+    "url": "https://archive.org/download/Episode1TheShloogelShowLoveUnAmericanStyle/Taxi%205x01%20The%20Shloogel%20Show.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 2x19 Art Work",
+    "url": "https://archive.org/download/TaxiS02E08TheGreatRace/Taxi%202x19%20Art%20Work.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 2x12 Latka the Playboy",
+    "url": "https://archive.org/download/TaxiS02E08TheGreatRace/Taxi%202x12%20Latka%20the%20Playboy.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 2x03 Reverend Jim A Space Odyssey",
+    "url": "https://archive.org/download/TaxiS02E08TheGreatRace/Taxi%202x03%20Reverend%20Jim%20A%20Space%20Odyssey.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 5x05 Scenskees from a Marriage pt2",
+    "url": "https://archive.org/download/Episode1TheShloogelShowLoveUnAmericanStyle/Taxi%205x05%20Scenskees%20from%20a%20Marriage%20pt2.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 2x17 Fantasy Club",
+    "url": "https://archive.org/download/TaxiS02E08TheGreatRace/Taxi%202x17%20Fantasy%20Club.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 5x15 A Grand Gesture",
+    "url": "https://archive.org/download/Episode1TheShloogelShowLoveUnAmericanStyle/Taxi%205x15%20A%20Grand%20Gesture.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 1x17 Elaine and the Lame Duck",
+    "url": "https://archive.org/download/Taxi1x14SugarMama/Taxi%201x17%20Elaine%20and%20the%20Lame%20Duck.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 3x14 Out of Commission",
+    "url": "https://archive.org/download/TaxiS03E07TheCallOfTheMild/Taxi%203x14%20Out%20of%20Commission.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 2x24 Jims Inheritance",
+    "url": "https://archive.org/download/TaxiS02E08TheGreatRace/Taxi%202x24%20Jims%20Inheritance.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 1x02 One Punch Banta",
+    "url": "https://archive.org/download/Taxi1x14SugarMama/Taxi%201x02%20One%20Punch%20Banta.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 1x06 The Great Line",
+    "url": "https://archive.org/download/Taxi1x14SugarMama/Taxi%201x06%20The%20Great%20Line.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 2x20 The Apartment",
+    "url": "https://archive.org/download/TaxiS02E08TheGreatRace/Taxi%202x20%20The%20Apartment.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 4x03 Mr. Personalities",
+    "url": "https://archive.org/download/TaxiS04E12BobbyDoesntLiveHereAnymore/Taxi%204x03%20Mr.%20Personalities.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 2x16 Jim Joins the Network",
+    "url": "https://archive.org/download/TaxiS02E08TheGreatRace/Taxi%202x16%20Jim%20Joins%20the%20Network.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 3x15 The Ten Percent Solution",
+    "url": "https://archive.org/download/TaxiS03E07TheCallOfTheMild/Taxi%203x15%20The%20Ten%20Percent%20Solution.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 3x03 Going Home",
+    "url": "https://archive.org/download/TaxiS03E07TheCallOfTheMild/Taxi%203x03%20Going%20Home.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 5x04 Scenskees from a Marriage pt1",
+    "url": "https://archive.org/download/Episode1TheShloogelShowLoveUnAmericanStyle/Taxi%205x04%20Scenskees%20from%20a%20Marriage%20pt1.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 4x20 Cooking for Two",
+    "url": "https://archive.org/download/TaxiS04E12BobbyDoesntLiveHereAnymore/Taxi%204x20%20Cooking%20for%20Two.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 3x07 The Call of the Mild",
+    "url": "https://archive.org/download/TaxiS03E07TheCallOfTheMild/Taxi%203x07%20The%20Call%20of%20the%20Mild.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 2x10 Louies Revenge",
+    "url": "https://archive.org/download/TaxiS02E08TheGreatRace/Taxi%202x10%20Louies%20Revenge.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 3x19 Louies Mother Remarries",
+    "url": "https://archive.org/download/TaxiS03E07TheCallOfTheMild/Taxi%203x19%20Louies%20Mother%20Remarries.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 2x08 The Great Race",
+    "url": "https://archive.org/download/TaxiS02E08TheGreatRace/Taxi%202x08%20The%20Great%20Race.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 2x23 Louie Meets the Folks",
+    "url": "https://archive.org/download/TaxiS02E08TheGreatRace/Taxi%202x23%20Louie%20Meets%20the%20Folks.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 4x11 Louies New Girl",
+    "url": "https://archive.org/download/TaxiS04E12BobbyDoesntLiveHereAnymore/Taxi%204x11%20Louies%20New%20Girl.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 3x01 Louies Rival",
+    "url": "https://archive.org/download/TaxiS03E07TheCallOfTheMild/Taxi%203x01%20Louies%20Rival.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 1x13 A Full House For Christmas",
+    "url": "https://archive.org/download/Taxi1x14SugarMama/Taxi%201x13%20A%20Full%20House%20For%20Christmas.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 1x14 Sugar Mama",
+    "url": "https://archive.org/download/Taxi1x14SugarMama/Taxi%201x14%20Sugar%20Mama.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 3x10 Louies Manager",
+    "url": "https://archive.org/download/TaxiS03E07TheCallOfTheMild/Taxi%203x10%20Louies%20Manager.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 5x11 Zenas Honeymoon",
+    "url": "https://archive.org/download/Episode1TheShloogelShowLoveUnAmericanStyle/Taxi%205x11%20Zenas%20Honeymoon.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 1x18 Bobbys Big Break",
+    "url": "https://archive.org/download/Taxi1x14SugarMama/Taxi%201x18%20Bobbys%20Big%20Break.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 2x01 Louie and the Nice Girl",
+    "url": "https://archive.org/download/TaxiS02E08TheGreatRace/Taxi%202x01%20Louie%20and%20the%20Nice%20Girl.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 4x21 The Road Not Taken pt1",
+    "url": "https://archive.org/download/TaxiS04E12BobbyDoesntLiveHereAnymore/Taxi%204x21%20The%20Road%20Not%20Taken%20pt1.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 3x20 The Costume Party",
+    "url": "https://archive.org/download/TaxiS03E07TheCallOfTheMild/Taxi%203x20%20The%20Costume%20Party.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 3x02 Tonys Wife",
+    "url": "https://archive.org/download/TaxiS03E07TheCallOfTheMild/Taxi%203x02%20Tonys%20Wife.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 2x13 Alexs Romance",
+    "url": "https://archive.org/download/TaxiS02E08TheGreatRace/Taxi%202x13%20Alexs%20Romance.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 5x16 Simkas Monthlies",
+    "url": "https://archive.org/download/Episode1TheShloogelShowLoveUnAmericanStyle/Taxi%205x16%20Simkas%20Monthlies.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 5x03 Alex Goes to the Opera",
+    "url": "https://archive.org/download/Episode1TheShloogelShowLoveUnAmericanStyle/Taxi%205x03%20Alex%20Goes%20to%20the%20Opera.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 3x11 Fathers of the Bride",
+    "url": "https://archive.org/download/TaxiS03E07TheCallOfTheMild/Taxi%203x11%20Fathers%20of%20the%20Bride.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 2x02 Honor Thy Father",
+    "url": "https://archive.org/download/TaxiS02E08TheGreatRace/Taxi%202x02%20Honor%20Thy%20Father.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 4x07 Louies Fling",
+    "url": "https://archive.org/download/TaxiS04E12BobbyDoesntLiveHereAnymore/Taxi%204x07%20Louies%20Fling.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 5x10 Elaine and the Monk",
+    "url": "https://archive.org/download/Episode1TheShloogelShowLoveUnAmericanStyle/Taxi%205x10%20Elaine%20and%20the%20Monk.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 3x09 The Great Escape",
+    "url": "https://archive.org/download/TaxiS03E07TheCallOfTheMild/Taxi%203x09%20The%20Great%20Escape.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 5x02 Love, Un American Style",
+    "url": "https://archive.org/download/Episode1TheShloogelShowLoveUnAmericanStyle/Taxi%205x02%20Love,%20Un-American%20Style.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 2x09 Elaines Secret Admirer",
+    "url": "https://archive.org/download/TaxiS02E08TheGreatRace/Taxi%202x09%20Elaines%20Secret%20Admirer.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 3x16 Thy Bosss Wife",
+    "url": "https://archive.org/download/TaxiS03E07TheCallOfTheMild/Taxi%203x16%20Thy%20Bosss%20Wife.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 4x08 Of Mice and Tony",
+    "url": "https://archive.org/download/TaxiS04E12BobbyDoesntLiveHereAnymore/Taxi%204x08%20Of%20Mice%20and%20Tony.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 4x10 Tonys Lady",
+    "url": "https://archive.org/download/TaxiS04E12BobbyDoesntLiveHereAnymore/Taxi%204x10%20Tonys%20Lady.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 4x22 The Road Not Taken pt2",
+    "url": "https://archive.org/download/TaxiS04E12BobbyDoesntLiveHereAnymore/Taxi%204x22%20The%20Road%20Not%20Taken%20pt2.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 1x01 Like Father Like Daughter",
+    "url": "https://archive.org/download/Taxi1x14SugarMama/Taxi%201x01%20Like%20Father%20Like%20Daughter.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "Taxi 2x06 The Lighter Side of Angela Matusa",
+    "url": "https://archive.org/download/TaxiS02E08TheGreatRace/Taxi%202x06%20The%20Lighter%20Side%20of%20Angela%20Matusa.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  }
+];
+    let currentIndex = 0;
+    let errorCount = 0;
+    let successCount = 0;
+    let playbackTimeout = null;
+    let isLoading = false;
+    let hasPlayableContent = false;
+    let preloadTimeout = null;
+    const TIMEOUT_DURATION = 20000; // 20 seconds
+    const PRELOAD_TIME = 60; // Preload next video 1 min before current ends
+
+    const video = document.getElementById('player');
+    const banner = document.getElementById('banner');
+    const topBanner = document.getElementById('top-banner');
+    const bannerTitle = document.getElementById('banner-title');
+    const bannerEpg = document.getElementById('banner-epg');
+    const bannerThumb = document.getElementById('banner-thumb');
+    const playlistPanel = document.getElementById('playlist-panel');
+    const playlistList = document.getElementById('playlist-list');
+    const toggleBtn = document.getElementById('toggle-list');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const clock = document.getElementById('clock');
+    const nowPlaying = document.getElementById('now-playing');
+    const nextTitle = document.getElementById('next-title');
+    const nextTime = document.getElementById('next-time');
+    const playedTime = document.getElementById('played-time');
+    const errorCounter = document.getElementById('error-counter');
+    const successCounter = document.getElementById('success-counter');
+    const toastContainer = document.getElementById('toast-container');
+    const loadingBar = document.getElementById('loading-bar');
+    const bufferingIndicator = document.getElementById('buffering-indicator');
+
+    // Initialize loading bar
+    function initLoadingBar() {
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += Math.random() * 30;
+        if (progress > 90) progress = 90;
+        loadingBar.style.width = progress + '%';
+        
+        if (hasPlayableContent) {
+          clearInterval(interval);
+          progress = 100;
+          loadingBar.style.width = '100%';
+          loadingBar.classList.add('complete');
+        }
+      }, 300);
+    }
+
+    // Show buffering indicator
+    function showBuffering() {
+      bufferingIndicator.classList.add('show');
+    }
+
+    // Hide buffering indicator
+    function hideBuffering() {
+      bufferingIndicator.classList.remove('show');
+    }
+
+    // Show error toast that auto-dismisses
+    function showErrorToast(message) {
+      const toast = document.createElement('div');
+      toast.className = 'error-toast';
+      toast.textContent = '❌ ' + message;
+      toastContainer.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.remove();
+      }, 2800); // Remove after animation completes
+    }
+
+    // Update error counter
+    function updateErrorCounter() {
+      errorCounter.textContent = `❌ ${errorCount}`;
+    }
+
+    // Update success counter
+    function updateSuccessCounter() {
+      successCounter.textContent = `✅ ${successCount}`;
+    }
+
+    // Handle playback error (only count real failures after playback attempted)
+    function handlePlaybackError(errorMsg) {
+      if (!isLoading || hasPlayableContent) return; // Only count errors during loading phase
+      errorCount++;
+      updateErrorCounter();
+      showErrorToast(errorMsg || 'Playback error - skipping');
+      clearTimeout(playbackTimeout);
+      isLoading = false;
+      hasPlayableContent = false;
+      setTimeout(nextTrack, 500); // Skip to next after short delay
+    }
+
+    // Real-time clock
+    function updateClock() {
+      const now = new Date();
+      clock.textContent = now.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      });
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // Format time display
+    function formatTime(seconds) {
+      const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+      const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+      const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+      return `${h}:${m}:${s}`;
+    }
+
+    // Update top banner
+    function updateTopBanner() {
+      const item = PLAYLIST[currentIndex];
+      if (item) {
+        nowPlaying.textContent = item.title;
+        const nextIdx = (currentIndex + 1) % PLAYLIST.length;
+        nextTitle.textContent = PLAYLIST[nextIdx].title;
+      }
+    }
+
+    // Update now-playing overlay banner
+    function showNowPlayingBanner() {
+      const item = PLAYLIST[currentIndex];
+      if (item) {
+        bannerTitle.textContent = item.title;
+        bannerEpg.textContent = item.epg;
+        bannerThumb.src = item.thumb;
+        banner.classList.add('show');
+        
+        setTimeout(() => banner.classList.remove('show'), 4000);
+      }
+    }
+
+    // Update next program time
+    function calculateNextTime() {
+      if (video.duration) {
+        const remaining = video.duration - video.currentTime;
+        const nextStart = new Date(Date.now() + remaining * 1000);
+        nextTime.textContent = nextStart.toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        });
+      }
+    }
+
+    // Update progress
+    video.addEventListener('timeupdate', () => {
+      playedTime.textContent = formatTime(video.currentTime);
+      calculateNextTime();
+    });
+
+    // Render playlist
+    function updatePlaylist() {
+      playlistList.innerHTML = PLAYLIST.map((item, idx) => `
+        <div class="playlist-item ${idx === currentIndex ? 'active' : ''}" onclick="jumpTo(${idx})">
+          <img class="playlist-thumb" src="${item.thumb}" alt="${item.title}">
+          <div class="playlist-info">
+            <div class="playlist-title">${item.title}</div>
+            <div class="playlist-index">#${idx + 1} • ${item.group}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function jumpTo(index) {
+      currentIndex = Math.max(0, Math.min(index, PLAYLIST.length - 1));
+      loadCurrent();
+    }
+
+    function nextTrack() {
+      currentIndex = (currentIndex + 1) % PLAYLIST.length;
+      loadCurrent();
+    }
+
+    function prevTrack() {
+      currentIndex = (currentIndex - 1 + PLAYLIST.length) % PLAYLIST.length;
+      loadCurrent();
+    }
+
+    function preloadNextVideo() {
+      clearTimeout(preloadTimeout);
+      if (video.duration && PLAYLIST.length > 1 && !preloadTimeout) {
+        const timeUntilEnd = video.duration - video.currentTime;
+        const preloadDelay = (timeUntilEnd - PRELOAD_TIME) * 1000;
+        
+        if (preloadDelay > 500) {
+          preloadTimeout = setTimeout(() => {
+            const nextIdx = (currentIndex + 1) % PLAYLIST.length;
+            const nextItem = PLAYLIST[nextIdx];
+            if (nextItem && nextItem.url) {
+              // Preload by setting a link tag
+              const link = document.createElement('link');
+              link.rel = 'preload';
+              link.as = 'fetch';
+              link.href = nextItem.url;
+              link.crossOrigin = 'anonymous';
+              document.head.appendChild(link);
+            }
+            preloadTimeout = null; // Reset so preload only happens once
+          }, preloadDelay);
+        }
+      }
+    }
+
+    function loadCurrent() {
+      if (PLAYLIST.length === 0) return;
+      const item = PLAYLIST[currentIndex];
+      if (item && item.url) {
+        clearTimeout(playbackTimeout);
+        clearTimeout(preloadTimeout);
+        isLoading = true;
+        hasPlayableContent = false;
+        showBuffering();
+        video.src = item.url;
+        video.load();
+
+        // Set timeout for playback failure (only trigger if video never starts playing)
+        playbackTimeout = setTimeout(() => {
+          if (!hasPlayableContent) {
+            handlePlaybackError('Playback timeout');
+          }
+        }, TIMEOUT_DURATION);
+
+        video.play().catch((error) => {
+          // Only trigger if loading is still happening
+          if (isLoading && !hasPlayableContent) {
+            handlePlaybackError('Failed to play');
+          }
+        });
+
+        updatePlaylist();
+        updateTopBanner();
+        showNowPlayingBanner();
+        playedTime.textContent = '0:00:00';
+      }
+    }
+
+    // Event listeners
+    video.addEventListener('ended', () => {
+      successCount++;
+      updateSuccessCounter();
+      nextTrack();
+    });
+
+    video.addEventListener('error', (e) => {
+      // Only count actual errors after loading has started
+      if (isLoading && !hasPlayableContent && video.error?.code !== 4) {
+        handlePlaybackError('Stream unavailable');
+      }
+    });
+
+    video.addEventListener('canplay', () => {
+      hasPlayableContent = true; // Mark that video has started loading successfully
+      clearTimeout(playbackTimeout); // Clear timeout once playback can start
+      isLoading = false;
+      hideBuffering();
+    });
+
+    video.addEventListener('playing', () => {
+      hideBuffering();
+      preloadNextVideo(); // Start monitoring for preload time
+    });
+
+    video.addEventListener('waiting', () => {
+      showBuffering(); // Only show when actually waiting for data
+    });
+
+    video.addEventListener('timeupdate', () => {
+      // Don't preload constantly - only check occasionally
+      if (Math.random() < 0.1) {
+        preloadNextVideo();
+      }
+    });
+
+    video.addEventListener('click', () => {
+      if (video.requestFullscreen) {
+        video.requestFullscreen();
+      } else if (video.webkitEnterFullscreen) {
+        video.webkitEnterFullscreen();
+      }
+    });
+
+    toggleBtn.addEventListener('click', () => {
+      playlistPanel.classList.toggle('show');
+    });
+
+    prevBtn.addEventListener('click', prevTrack);
+    nextBtn.addEventListener('click', nextTrack);
+
+    // Keyboard controls
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') prevTrack();
+      if (e.key === 'ArrowRight') nextTrack();
+      if (e.key === ' ') {
+        e.preventDefault();
+        video.paused ? video.play() : video.pause();
+      }
+      if (e.key === 'p' || e.key === 'P') {
+        playlistPanel.classList.toggle('show');
+      }
+    });
+
+    // Initialize
+    initLoadingBar();
+    updatePlaylist();
+    updateTopBanner();
+    loadCurrent();
+  </script>
+</body>
+</html>
