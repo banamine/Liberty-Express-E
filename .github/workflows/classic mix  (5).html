@@ -1,0 +1,1826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+  <title>Bob Newhart Show </title>
+  <style>
+    * { 
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box; 
+    }
+    
+    html, body { 
+      width: 100%; 
+      height: 100%; 
+      background: #0b0e27;
+      color: #00f3ff;
+      font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      font-weight: 500;
+      overflow: hidden;
+    }
+    
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 20% 50%, rgba(0, 243, 255, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 80% 50%, rgba(57, 255, 20, 0.02) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    #container {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      position: relative;
+      z-index: 1;
+    }
+    
+    /* ===== TOP BANNER ===== */
+    #top-banner {
+      background: rgba(11, 14, 39, 0.8);
+      backdrop-filter: blur(12px);
+      border-bottom: 2px solid rgba(0, 243, 255, 0.3);
+      padding: 12px 20px;
+      flex-shrink: 0;
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(0, 243, 255, 0.1);
+    }
+    
+    .banner-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      max-width: 100%;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    
+    .channel-info {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .channel-title {
+      font-size: 16px;
+      font-weight: bold;
+      color: #00f3ff;
+      margin-bottom: 4px;
+      text-shadow: 0 0 8px rgba(0, 243, 255, 0.4);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .banner-info-line {
+      font-size: 12px;
+      color: rgba(0, 243, 255, 0.7);
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    
+    .info-now {
+      color: #00f3ff;
+      font-weight: 600;
+    }
+    
+    .info-next {
+      color: rgba(0, 243, 255, 0.6);
+    }
+    
+    .played-time {
+      color: rgba(0, 243, 255, 0.5);
+      font-size: 11px;
+    }
+    
+    #clock {
+      font-size: 16px;
+      font-weight: 900;
+      color: #00f3ff;
+      text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+      font-family: 'Courier New', monospace;
+      letter-spacing: 2px;
+      flex-shrink: 0;
+    }
+    
+    /* ===== VIDEO PLAYER ===== */
+    #player-container {
+      flex: 1;
+      position: relative;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #000;
+    }
+    
+    /* ===== NOW-PLAYING BANNER ===== */
+    #banner {
+      position: fixed;
+      top: 60px;
+      left: 0;
+      right: 0;
+      background: linear-gradient(135deg, rgba(0, 243, 255, 0.15), rgba(57, 255, 20, 0.05));
+      backdrop-filter: blur(12px);
+      border-bottom: 2px solid rgba(0, 243, 255, 0.2);
+      padding: 16px 20px;
+      z-index: 99;
+      display: flex;
+      gap: 16px;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-100%);
+    }
+    
+    #banner.show {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+    
+    #banner-thumb {
+      width: 140px;
+      height: 79px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 2px solid rgba(0, 243, 255, 0.3);
+      flex-shrink: 0;
+      box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+    }
+    
+    #banner-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-width: 0;
+    }
+    
+    #banner-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: #00f3ff;
+      margin-bottom: 6px;
+      text-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    #banner-epg {
+      font-size: 13px;
+      color: #39ff14;
+      opacity: 0.9;
+    }
+    
+    /* ===== PLAYLIST PANEL ===== */
+    #playlist-panel {
+      width: 100%;
+      max-height: 180px;
+      background: rgba(11, 14, 39, 0.95);
+      border-top: 2px solid rgba(0, 243, 255, 0.2);
+      overflow-y: auto;
+      display: none;
+      flex-shrink: 0;
+      z-index: 50;
+    }
+    
+    #playlist-panel.show {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    #playlist-list {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .playlist-item {
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(0, 243, 255, 0.1);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    
+    .playlist-item:hover {
+      background: rgba(0, 243, 255, 0.08);
+    }
+    
+    .playlist-item.active {
+      background: rgba(0, 243, 255, 0.15);
+      border-left: 3px solid #00f3ff;
+      padding-left: 13px;
+    }
+    
+    .playlist-thumb {
+      width: 56px;
+      height: 32px;
+      object-fit: cover;
+      border-radius: 4px;
+      border: 1px solid rgba(0, 243, 255, 0.2);
+      flex-shrink: 0;
+    }
+    
+    .playlist-info {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .playlist-title {
+      font-size: 12px;
+      color: #00f3ff;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 600;
+    }
+    
+    .playlist-index {
+      font-size: 11px;
+      color: rgba(0, 243, 255, 0.5);
+    }
+    
+    /* ===== CONTROLS ===== */
+    #controls {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    
+    button {
+      padding: 6px 10px;
+      background: rgba(0, 243, 255, 0.1);
+      border: 1px solid rgba(0, 243, 255, 0.4);
+      color: #00f3ff;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 11px;
+      transition: all 0.2s ease;
+      text-shadow: 0 0 5px rgba(0, 243, 255, 0.3);
+      backdrop-filter: blur(10px);
+      white-space: nowrap;
+    }
+    
+    button:hover {
+      background: rgba(0, 243, 255, 0.2);
+      box-shadow: 0 0 20px rgba(0, 243, 255, 0.3);
+      border-color: rgba(0, 243, 255, 0.6);
+    }
+    
+    button:active {
+      transform: scale(0.95);
+    }
+
+    /* ===== ERROR/SUCCESS COUNTERS ===== */
+    #counters {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .counter {
+      padding: 4px 8px;
+      border-radius: 3px;
+      backdrop-filter: blur(10px);
+      border: 1px solid;
+      font-weight: 700;
+      min-width: 40px;
+      text-align: center;
+    }
+
+    #error-counter {
+      color: #ff3333;
+      border-color: #ff3333;
+      background: rgba(255, 51, 51, 0.1);
+      box-shadow: 0 0 10px rgba(255, 51, 51, 0.2);
+    }
+
+    #success-counter {
+      color: #39ff14;
+      border-color: #39ff14;
+      background: rgba(57, 255, 20, 0.1);
+      box-shadow: 0 0 10px rgba(57, 255, 20, 0.2);
+    }
+
+    /* ===== ERROR TOAST NOTIFICATIONS ===== */
+    #toast-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 999;
+      pointer-events: none;
+    }
+
+    .error-toast {
+      background: rgba(255, 51, 51, 0.95);
+      border: 2px solid #ff3333;
+      border-radius: 6px;
+      padding: 12px 16px;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      backdrop-filter: blur(12px);
+      animation: slideIn 0.3s ease, slideOut 2s ease 2s forwards;
+      box-shadow: 0 8px 32px rgba(255, 51, 51, 0.3);
+      max-width: 300px;
+      word-wrap: break-word;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideOut {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+    }
+
+    /* ===== LOADING BAR ===== */
+    #loading-bar {
+      position: fixed;
+      top: 58px;
+      left: 0;
+      width: 0%;
+      height: 3px;
+      background: linear-gradient(90deg, #00f3ff, #39ff14);
+      box-shadow: 0 0 15px rgba(0, 243, 255, 0.8);
+      transition: width 0.3s ease;
+      z-index: 101;
+    }
+
+    #loading-bar.complete {
+      animation: fadeOut 0.6s ease forwards;
+    }
+
+    @keyframes fadeOut {
+      from {
+        opacity: 1;
+        width: 100%;
+      }
+      to {
+        opacity: 0;
+        width: 100%;
+      }
+    }
+
+    /* ===== BUFFERING INDICATOR ===== */
+    .buffering-indicator {
+      position: fixed;
+      top: 65px;
+      left: 20px;
+      font-size: 11px;
+      color: #39ff14;
+      font-weight: 600;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    .buffering-indicator.show {
+      opacity: 0.8;
+    }
+    
+    /* ===== SCROLLBAR ===== */
+    #playlist-panel::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    #playlist-panel::-webkit-scrollbar-track {
+      background: rgba(0, 243, 255, 0.05);
+    }
+    
+    #playlist-panel::-webkit-scrollbar-thumb {
+      background: rgba(0, 243, 255, 0.2);
+      border-radius: 3px;
+    }
+    
+    #playlist-panel::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 243, 255, 0.4);
+    }
+    
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      .banner-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      
+      #clock {
+        align-self: flex-end;
+        margin-top: -32px;
+        font-size: 14px;
+      }
+      
+      #banner {
+        top: 80px;
+        flex-direction: column;
+        padding: 12px 16px;
+      }
+      
+      #banner-thumb {
+        width: 100%;
+        height: 100px;
+      }
+      
+      #controls {
+        bottom: 10px;
+        right: 10px;
+        gap: 6px;
+      }
+      
+      button {
+        padding: 6px 10px;
+        font-size: 11px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <!-- TOP BANNER WITH CLOCK -->
+    <div id="top-banner">
+      <div class="banner-content">
+        <div class="channel-info">
+          <div class="channel-title">📺 Bob Newhart Show </div>
+          <div class="banner-info-line">
+            <span class="info-now">NOW: <span id="now-playing">Loading...</span></span>
+            <span class="played-time">(<span id="played-time">0:00:00</span>)</span>
+          </div>
+          <div class="banner-info-line">
+            <span class="info-next">UP NEXT: <span id="next-title">-</span> at <span id="next-time">--:--</span></span>
+          </div>
+        </div>
+        <div id="counters">
+          <div class="counter" id="error-counter">❌ 0</div>
+          <div class="counter" id="success-counter">✅ 0</div>
+        </div>
+        <div id="controls">
+          <button id="toggle-list">📋 PLAYLIST</button>
+          <button id="prev-btn">◀ PREV</button>
+          <button id="next-btn">NEXT ▶</button>
+        </div>
+        <div id="clock">00:00:00</div>
+      </div>
+    </div>
+
+    <!-- VIDEO PLAYER -->
+    <div id="player-container">
+      <div id="banner">
+        <img id="banner-thumb" src="" alt="thumbnail">
+        <div id="banner-info">
+          <div id="banner-title">Loading...</div>
+          <div id="banner-epg">EPG Info</div>
+        </div>
+      </div>
+      <video id="player" autoplay playsinline controls></video>
+    </div>
+
+    <!-- PLAYLIST PANEL -->
+    <div id="playlist-panel">
+      <div id="playlist-list"></div>
+    </div>
+
+    <!-- LOADING BAR -->
+    <div id="loading-bar"></div>
+
+    <!-- BUFFERING INDICATOR -->
+    <div class="buffering-indicator" id="buffering-indicator">⏳ Buffering...</div>
+
+    <!-- ERROR TOAST CONTAINER -->
+    <div id="toast-container"></div>
+  </div>
+
+  <script>
+    const PLAYLIST = [
+  {
+    "title": "The Bob Newhart Show s03e13 Jerry Robinson Crusoe",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%203/The%20Bob%20Newhart%20Show%20s03e13%20-%20Jerry%20Robinson%20Crusoe.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s03e19 A Pound of Flesh",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%203/The%20Bob%20Newhart%20Show%20s03e19%20-%20A%20Pound%20of%20Flesh.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s02e09 Mutiny On the Hartley",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%202/The%20Bob%20Newhart%20Show%20s02e09%20-%20Mutiny%20On%20the%20Hartley.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s02e13 My Wife Belongs To Daddy",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%202/The%20Bob%20Newhart%20Show%20s02e13%20-%20My%20Wife%20Belongs%20To%20Daddy.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s02e15 I'm Dreaming of a Slight Christmas",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%202/The%20Bob%20Newhart%20Show%20s02e15%20-%20I'm%20Dreaming%20of%20a%20Slight%20Christmas.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s01e06 Come Live With Me",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%201/The%20Bob%20Newhart%20Show%20s01e06%20-%20Come%20Live%20With%20Me.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S06E19 It Didn't Happen One Night",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%206/S06E19%20-%20It%20Didn't%20Happen%20One%20Night.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S05E24 You're Having My Hartley",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%205/S05E24%20-%20You're%20Having%20My%20Hartley.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s02e21 A Love Story",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%202/The%20Bob%20Newhart%20Show%20s02e21%20-%20A%20Love%20Story.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S06E04 Who Was That Masked Man",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%206/S06E04%20-%20Who%20Was%20That%20Masked%20Man.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S06E06 A Day in the Life",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%206/S06E06%20-%20A%20Day%20in%20the%20Life.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s03e04 The Separation Story",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%203/The%20Bob%20Newhart%20Show%20s03e04%20-%20The%20Separation%20Story.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s03e07 Dr. Ryan's Express",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%203/The%20Bob%20Newhart%20Show%20s03e07%20-%20Dr.%20Ryan's%20Express.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s01e08 Don't Go To Bed Mad",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%201/The%20Bob%20Newhart%20Show%20s01e08%20-%20Don't%20Go%20To%20Bed%20Mad.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S05E10 Jerry's Retirement",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%205/S05E10%20-%20Jerry's%20Retirement.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s02e04 Somebody Down Here Likes Me",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%202/The%20Bob%20Newhart%20Show%20s02e04%20-%20Somebody%20Down%20Here%20Likes%20Me.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S05E06 Et, Tu, Carol",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%205/S05E06%20-%20Et,%20Tu,%20Carol.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s03e17 Think Smartly Vote Hartley",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%203/The%20Bob%20Newhart%20Show%20s03e17%20-%20Think%20Smartly%20--%20Vote%20Hartley.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S06E11 Grand Delusion",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%206/S06E11%20-%20Grand%20Delusion.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s02e12 Blues For Mr. Borden",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%202/The%20Bob%20Newhart%20Show%20s02e12%20-%20Blues%20For%20Mr.%20Borden.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show Gag Reel",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%204/The%20Bob%20Newhart%20Show%20Gag%20Reel.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S05E20 Taxation Without Celebration",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%205/S05E20%20-%20Taxation%20Without%20Celebration.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s01e17 The Man With the Golden Wrist",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%201/The%20Bob%20Newhart%20Show%20s01e17%20-%20The%20Man%20With%20the%20Golden%20Wrist.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s03e23 Emily Hits the Ceiling",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%203/The%20Bob%20Newhart%20Show%20s03e23%20-%20Emily%20Hits%20the%20Ceiling.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "What's My Line Buddy Hackett, Goodson",
+    "url": "https://archive.org/download/TheBobNewhartShow/Extras/What's%20My%20Line%20--%20Buddy%20Hackett,%20Goodson%20&%20Todman,%20Bob%20Newhart%20(13th%20Season).mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s04e06 Carol's Wedding",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%204/The%20Bob%20Newhart%20Show%20s04e06%20-%20Carol's%20Wedding.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s01e20 A Home Is Not Necessarily A House",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%201/The%20Bob%20Newhart%20Show%20s01e20%20-%20A%20Home%20Is%20Not%20Necessarily%20A%20House.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s02e11 Fit, Fat and Forty One",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%202/The%20Bob%20Newhart%20Show%20s02e11%20-%20Fit,%20Fat%20and%20Forty-One.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s02e19 Clink Shrink",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%202/The%20Bob%20Newhart%20Show%20s02e19%20-%20Clink%20Shrink.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S05E12 Breaking Up is Hard to Do",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%205/S05E12%20-%20Breaking%20Up%20is%20Hard%20to%20Do.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S05E15 The Ironwood Experience",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%205/S05E15%20-%20The%20Ironwood%20Experience.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S06E21 Crisis in Education",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%206/S06E21%20-%20Crisis%20in%20Education.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s03e05 Sorry, Wrong Mother",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%203/The%20Bob%20Newhart%20Show%20s03e05%20-%20Sorry,%20Wrong%20Mother.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S06E08 You're Fired, Mr. Chips",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%206/S06E08%20-%20You're%20Fired,%20Mr.%20Chips.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S05E23 Shrinking Violence",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%205/S05E23%20-%20Shrinking%20Violence.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s04e24 Peeper Two",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%204/The%20Bob%20Newhart%20Show%20s04e24%20-%20Peeper%20Two.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S06E10 A Girl in Her Twenties",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%206/S06E10%20-%20A%20Girl%20in%20Her%20Twenties.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S05E14 Love is the Blindest",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%205/S05E14%20-%20Love%20is%20the%20Blindest.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s01e09 P.I.L.O.T.",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%201/The%20Bob%20Newhart%20Show%20s01e09%20-%20P.I.L.O.T..mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s01e18 The Two Loves of Dr. Hartley",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%201/The%20Bob%20Newhart%20Show%20s01e18%20-%20The%20Two%20Loves%20of%20Dr.%20Hartley.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S05E18 The Heartbreak Kidd",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%205/S05E18%20-%20The%20Heartbreak%20Kidd.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S06E12 'Twas the Pie Before Christmas",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%206/S06E12%20-%20'Twas%20the%20Pie%20Before%20Christmas.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s01e05 Goodnight, Nancy",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%201/The%20Bob%20Newhart%20Show%20s01e05%20-%20Goodnight,%20Nancy.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s04e10 Seemed Like a Good Idea At the Time",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%204/The%20Bob%20Newhart%20Show%20s04e10%20-%20Seemed%20Like%20a%20Good%20Idea%20At%20the%20Time.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S05E16 Of Mice and Men",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%205/S05E16%20-%20Of%20Mice%20and%20Men.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s03e21 The New Look",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%203/The%20Bob%20Newhart%20Show%20s03e21%20-%20The%20New%20Look.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s02e22 By the Way... You're Fired",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%202/The%20Bob%20Newhart%20Show%20s02e22%20-%20By%20the%20Way...%20You're%20Fired.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S06E03 A Jackie Story",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%206/S06E03%20-%20A%20Jackie%20Story.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S06E05 Carlin's New Suit",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%206/S06E05%20-%20Carlin's%20New%20Suit.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s03e10 Life is a Hamburger",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%203/The%20Bob%20Newhart%20Show%20s03e10%20-%20Life%20is%20a%20Hamburger.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s02e05 Emily In For Carol",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%202/The%20Bob%20Newhart%20Show%20s02e05%20-%20Emily%20In%20For%20Carol.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S06E14 Grizzly Emily",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%206/S06E14%20-%20Grizzly%20Emily.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s03e06 The Grey Flannel Shrink",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%203/The%20Bob%20Newhart%20Show%20s03e06%20-%20The%20Grey%20Flannel%20Shrink.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s01e12 Bob and Emily and Howard and Carol and Jerry",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%201/The%20Bob%20Newhart%20Show%20s01e12%20-%20Bob%20and%20Emily%20and%20Howard%20and%20Carol%20and%20Jerry.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s04e05 The Heavyweights",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%204/The%20Bob%20Newhart%20Show%20s04e05%20-%20The%20Heavyweights.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s04e14 A Matter of Vice Principal",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%204/The%20Bob%20Newhart%20Show%20s04e14%20-%20A%20Matter%20of%20Vice-Principal.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S06E15 Son of an Ex Con Job",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%206/S06E15%20-%20Son%20of%20an%20Ex-Con%20Job.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s03e20 My Business Is Shrinking",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%203/The%20Bob%20Newhart%20Show%20s03e20%20-%20My%20Business%20Is%20Shrinking.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s04e01 The Longest Goodbye",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%204/The%20Bob%20Newhart%20Show%20s04e01%20-%20The%20Longest%20Goodbye.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s01e02 Tracy Grammar School, I'll Lick You Yet",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%201/The%20Bob%20Newhart%20Show%20s01e02%20-%20Tracy%20Grammar%20School,%20I'll%20Lick%20You%20Yet.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s03e01 Big Brother Is Watching",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%203/The%20Bob%20Newhart%20Show%20s03e01%20-%20Big%20Brother%20Is%20Watching.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s02e01 The Last TV Show",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%202/The%20Bob%20Newhart%20Show%20s02e01%20-%20The%20Last%20TV%20Show.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s01e22 You Can't Win 'Em All",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%201/The%20Bob%20Newhart%20Show%20s01e22%20-%20You%20Can't%20Win%20'Em%20All.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s03e22 Bob Hits the Ceiling",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%203/The%20Bob%20Newhart%20Show%20s03e22%20-%20Bob%20Hits%20the%20Ceiling.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s04e19 My Boy Guillermo",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%204/The%20Bob%20Newhart%20Show%20s04e19%20-%20My%20Boy%20Guillermo.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s04e07 Shrinks Across the Sea",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%204/The%20Bob%20Newhart%20Show%20s04e07%20-%20Shrinks%20Across%20the%20Sea.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s02e23 Confessions of an Orthodontist",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%202/The%20Bob%20Newhart%20Show%20s02e23%20-%20Confessions%20of%20an%20Orthodontist.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s04e17 Carol at 601",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%204/The%20Bob%20Newhart%20Show%20s04e17%20-%20Carol%20at%20601.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S05E03 Some of My Best Friends Are...",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%205/S05E03%20-%20Some%20of%20My%20Best%20Friends%20Are....mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s04e11 Over the River and Through the Woods",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%204/The%20Bob%20Newhart%20Show%20s04e11%20-%20Over%20the%20River%20and%20Through%20the%20Woods.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S05E02 Caged Fury",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%205/S05E02%20-%20Caged%20Fury.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s01e10 Anything Happen While I Was Gone",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%201/The%20Bob%20Newhart%20Show%20s01e10%20-%20Anything%20Happen%20While%20I%20Was%20Gone.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S05E01 Enter Mrs. Peeper",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%205/S05E01%20-%20Enter%20Mrs.%20Peeper.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show Season 2 Featurette",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%202/The%20Bob%20Newhart%20Show%20Season%202%20Featurette.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S05E21 Desperate Sessions",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%205/S05E21%20-%20Desperate%20Sessions.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S06E17 Emily Carlin, Emily Carlin",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%206/S06E17%20-%20Emily%20Carlin,%20Emily%20Carlin.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S05E13 Making Up is the Thing to Do",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%205/S05E13%20-%20Making%20Up%20is%20the%20Thing%20to%20Do.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S06E01 Bob's Change of Life",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%206/S06E01%20-%20Bob's%20Change%20of%20Life.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s02e06 Have You Met Miss Dietz",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%202/The%20Bob%20Newhart%20Show%20s02e06%20-%20Have%20You%20Met%20Miss%20Dietz.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s04e08 What's It All About",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%204/The%20Bob%20Newhart%20Show%20s04e08%20-%20What's%20It%20All%20About.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s01e01 Fly the Unfriendly Skies",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%201/The%20Bob%20Newhart%20Show%20s01e01%20-%20Fly%20the%20Unfriendly%20Skies.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s02e24 A Matter of Principal",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%202/The%20Bob%20Newhart%20Show%20s02e24%20-%20A%20Matter%20of%20Principal.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s01e14 His Busiest Season",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%201/The%20Bob%20Newhart%20Show%20s01e14%20-%20His%20Busiest%20Season.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S05E17 Halls of Hartley",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%205/S05E17%20-%20Halls%20of%20Hartley.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s02e18 The Jobless Corps",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%202/The%20Bob%20Newhart%20Show%20s02e18%20-%20The%20Jobless%20Corps.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S05E08 A Crime Most Foul",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%205/S05E08%20-%20A%20Crime%20Most%20Foul.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s01e04 Mom, I L L Love You",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%201/The%20Bob%20Newhart%20Show%20s01e04%20-%20Mom,%20I%20L-L-Love%20You.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S06E13 Freudian Ship",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%206/S06E13%20-%20Freudian%20Ship.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s04e13 The Article",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%204/The%20Bob%20Newhart%20Show%20s04e13%20-%20The%20Article.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s01e11 I Want To Be Alone",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%201/The%20Bob%20Newhart%20Show%20s01e11%20-%20I%20Want%20To%20Be%20Alone.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s03e02 The Battle of the Groups",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%203/The%20Bob%20Newhart%20Show%20s03e02%20-%20The%20Battle%20of%20the%20Groups.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s01e23 Bum Voyage",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%201/The%20Bob%20Newhart%20Show%20s01e23%20-%20Bum%20Voyage.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s04e23 The Boy Next Door",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%204/The%20Bob%20Newhart%20Show%20s04e23%20-%20The%20Boy%20Next%20Door.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s04e12 Father and Sons and Mothers",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%204/The%20Bob%20Newhart%20Show%20s04e12%20-%20Father%20and%20Sons%20and%20Mothers.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show Season 4 Featurette",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%204/The%20Bob%20Newhart%20Show%20Season%204%20Featurette.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s04e22 Birth of a Salesman",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%204/The%20Bob%20Newhart%20Show%20s04e22%20-%20Birth%20of%20a%20Salesman.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s01e16 The Crash of Twenty Nine Years Old",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%201/The%20Bob%20Newhart%20Show%20s01e16%20-%20The%20Crash%20of%20Twenty-Nine%20Years%20Old.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s01e15 Let's Get Away From It Almost",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%201/The%20Bob%20Newhart%20Show%20s01e15%20-%20Let's%20Get%20Away%20From%20It%20Almost.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S06E16 Group on a Hot Tin Roof",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%206/S06E16%20-%20Group%20on%20a%20Hot%20Tin%20Roof.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S06E07 My Son the Comedian",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%206/S06E07%20-%20My%20Son%20the%20Comedian.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s02e14 T.S. Elliott",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%202/The%20Bob%20Newhart%20Show%20s02e14%20-%20T.S.%20Elliott.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s03e09 Ship of Shrinks",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%203/The%20Bob%20Newhart%20Show%20s03e09%20-%20Ship%20of%20Shrinks.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s02e10 I'm Okay, You're Okay, So What's Wrong",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%202/The%20Bob%20Newhart%20Show%20s02e10%20-%20I'm%20Okay,%20You're%20Okay,%20So%20What's%20Wrong.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S05E19 Death Be My Destiny",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%205/S05E19%20-%20Death%20Be%20My%20Destiny.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s04e15 Bob...Tonsils...Hospital",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%204/The%20Bob%20Newhart%20Show%20s04e15%20-%20Bob...Tonsils...Hospital.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s04e18 The Way We Weren't",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%204/The%20Bob%20Newhart%20Show%20s04e18%20-%20The%20Way%20We%20Weren't.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s03e24 The Ceiling Hits Bob",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%203/The%20Bob%20Newhart%20Show%20s03e24%20-%20The%20Ceiling%20Hits%20Bob.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S06E09 Shallow Throat",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%206/S06E09%20-%20Shallow%20Throat.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s01e24 Who's Been Sleeping On My Couch",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%201/The%20Bob%20Newhart%20Show%20s01e24%20-%20Who's%20Been%20Sleeping%20On%20My%20Couch.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S05E22 The Mentor",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%205/S05E22%20-%20The%20Mentor.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s03e08 Brutally Yours, Bob Hartley",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%203/The%20Bob%20Newhart%20Show%20s03e08%20-%20Brutally%20Yours,%20Bob%20Hartley.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s01e07 Father Knows Worst",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%201/The%20Bob%20Newhart%20Show%20s01e07%20-%20Father%20Knows%20Worst.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s04e03 Death of a Fruitman",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%204/The%20Bob%20Newhart%20Show%20s04e03%20-%20Death%20of%20a%20Fruitman.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show Season 3 Featurette",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%203/The%20Bob%20Newhart%20Show%20Season%203%20Featurette.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s03e14 Serve For Daylight",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%203/The%20Bob%20Newhart%20Show%20s03e14%20-%20Serve%20For%20Daylight.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S05E04 Still Crazy After All These Years",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%205/S05E04%20-%20Still%20Crazy%20After%20All%20These%20Years.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s02e02 Motel",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%202/The%20Bob%20Newhart%20Show%20s02e02%20-%20Motel.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S06E22 Happy Trails to You",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%206/S06E22%20-%20Happy%20Trails%20to%20You.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s04e16 No Sale",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%204/The%20Bob%20Newhart%20Show%20s04e16%20-%20No%20Sale.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S06E02 Ex Con Job",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%206/S06E02%20-%20Ex-Con%20Job.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s02e03 Backlash",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%202/The%20Bob%20Newhart%20Show%20s02e03%20-%20Backlash.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s04e20 Duke of Dunk",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%204/The%20Bob%20Newhart%20Show%20s04e20%20-%20Duke%20of%20Dunk.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s04e04 Change Is Gonna Do Me Good",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%204/The%20Bob%20Newhart%20Show%20s04e04%20-%20Change%20Is%20Gonna%20Do%20Me%20Good.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s02e16 Oh, Brother",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%202/The%20Bob%20Newhart%20Show%20s02e16%20-%20Oh,%20Brother.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S05E07 Send This Boy to Camp",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%205/S05E07%20-%20Send%20This%20Boy%20to%20Camp.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s02e17 The Modernization of Emily",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%202/The%20Bob%20Newhart%20Show%20s02e17%20-%20The%20Modernization%20of%20Emily.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s04e02 Here's Looking at You, Kid",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%204/The%20Bob%20Newhart%20Show%20s04e02%20-%20Here's%20Looking%20at%20You,%20Kid.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s04e09 Who Is Mr. X",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%204/The%20Bob%20Newhart%20Show%20s04e09%20-%20Who%20Is%20Mr.%20X.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s03e11 An American Thanksgiving",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%203/The%20Bob%20Newhart%20Show%20s03e11%20-%20An%20American%20Thanksgiving.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S05E11 Here's to You, Mrs. Robinson",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%205/S05E11%20-%20Here's%20to%20You,%20Mrs.%20Robinson.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s01e03 Tennis, Emily",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%201/The%20Bob%20Newhart%20Show%20s01e03%20-%20Tennis,%20Emily.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s01e13 I Owe It All To You... But Not That Much",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%201/The%20Bob%20Newhart%20Show%20s01e13%20-%20I%20Owe%20It%20All%20To%20You...%20But%20Not%20That%20Much.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s03e12 We Love You... Good Bye",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%203/The%20Bob%20Newhart%20Show%20s03e12%20-%20We%20Love%20You...%20Good-Bye.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S05E05 The Great Rent Strike",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%205/S05E05%20-%20The%20Great%20Rent%20Strike.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S06E20 Carol Ankles for Indie Prod",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%206/S06E20%20-%20Carol%20Ankles%20for%20Indie-Prod.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s02e07 Old Man Rivers",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%202/The%20Bob%20Newhart%20Show%20s02e07%20-%20Old%20Man%20Rivers.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s02e20 Mind Your Own Business",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%202/The%20Bob%20Newhart%20Show%20s02e20%20-%20Mind%20Your%20Own%20Business.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s02e08 Mister Emily Hartley",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%202/The%20Bob%20Newhart%20Show%20s02e08%20-%20Mister%20Emily%20Hartley.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s03e15 Home is Where the Hurt is",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%203/The%20Bob%20Newhart%20Show%20s03e15%20-%20Home%20is%20Where%20the%20Hurt%20is.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s01e21 Emily, I'm Home... Emily",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%201/The%20Bob%20Newhart%20Show%20s01e21%20-%20Emily,%20I'm%20Home...%20Emily.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S06E18 Easy for You to Say",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%206/S06E18%20-%20Easy%20for%20You%20to%20Say.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s03e18 The Way We Weren't",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%203/The%20Bob%20Newhart%20Show%20s03e18%20-%20The%20Way%20We%20Weren't.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s03e16 Tobin's Back in Town",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%203/The%20Bob%20Newhart%20Show%20s03e16%20-%20Tobin's%20Back%20in%20Town.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s04e21 Guaranteed Not to Shrink",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%204/The%20Bob%20Newhart%20Show%20s04e21%20-%20Guaranteed%20Not%20to%20Shrink.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s01e19 Not With My Sister You Don't",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%201/The%20Bob%20Newhart%20Show%20s01e19%20-%20Not%20With%20My%20Sister%20You%20Don't.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "The Bob Newhart Show s03e03 The Great Rimpau Medical Arts Co Op Experiment",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%203/The%20Bob%20Newhart%20Show%20s03e03%20-%20The%20Great%20Rimpau%20Medical%20Arts%20Co-Op%20Experiment.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  },
+  {
+    "title": "S05E09 The Slammer",
+    "url": "https://archive.org/download/TheBobNewhartShow/The%20Bob%20Newhart%20Show%20-%20Season%205/S05E09%20-%20The%20Slammer.mp4",
+    "thumb": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect fill='%231a1a2e' width='320' height='180'/%3E%3Ctext x='160' y='90' fill='%2300f3ff' text-anchor='middle' dy='.3em' font-size='14' font-weight='bold'%3E📺%3C/text%3E%3C/svg%3E",
+    "epg": "Live Stream",
+    "group": "Channel"
+  }
+];
+    let currentIndex = 0;
+    let errorCount = 0;
+    let successCount = 0;
+    let playbackTimeout = null;
+    let isLoading = false;
+    let hasPlayableContent = false;
+    let preloadTimeout = null;
+    const TIMEOUT_DURATION = 20000; // 20 seconds
+    const PRELOAD_TIME = 60; // Preload next video 1 min before current ends
+
+    const video = document.getElementById('player');
+    const banner = document.getElementById('banner');
+    const topBanner = document.getElementById('top-banner');
+    const bannerTitle = document.getElementById('banner-title');
+    const bannerEpg = document.getElementById('banner-epg');
+    const bannerThumb = document.getElementById('banner-thumb');
+    const playlistPanel = document.getElementById('playlist-panel');
+    const playlistList = document.getElementById('playlist-list');
+    const toggleBtn = document.getElementById('toggle-list');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const clock = document.getElementById('clock');
+    const nowPlaying = document.getElementById('now-playing');
+    const nextTitle = document.getElementById('next-title');
+    const nextTime = document.getElementById('next-time');
+    const playedTime = document.getElementById('played-time');
+    const errorCounter = document.getElementById('error-counter');
+    const successCounter = document.getElementById('success-counter');
+    const toastContainer = document.getElementById('toast-container');
+    const loadingBar = document.getElementById('loading-bar');
+    const bufferingIndicator = document.getElementById('buffering-indicator');
+
+    // Initialize loading bar - simple one-shot
+    function initLoadingBar() {
+      setTimeout(() => {
+        loadingBar.style.width = '100%';
+        loadingBar.classList.add('complete');
+      }, 1000);
+    }
+
+    // Show buffering indicator
+    function showBuffering() {
+      bufferingIndicator.classList.add('show');
+    }
+
+    // Hide buffering indicator
+    function hideBuffering() {
+      bufferingIndicator.classList.remove('show');
+    }
+
+    // Show error toast that auto-dismisses
+    function showErrorToast(message) {
+      const toast = document.createElement('div');
+      toast.className = 'error-toast';
+      toast.textContent = '❌ ' + message;
+      toastContainer.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.remove();
+      }, 2800); // Remove after animation completes
+    }
+
+    // Update error counter
+    function updateErrorCounter() {
+      errorCounter.textContent = `❌ ${errorCount}`;
+    }
+
+    // Update success counter
+    function updateSuccessCounter() {
+      successCounter.textContent = `✅ ${successCount}`;
+    }
+
+    // Silent error handling - just skip to next
+    function handlePlaybackError() {
+      clearTimeout(playbackTimeout);
+      isLoading = false;
+      nextTrack();
+    }
+
+    // Real-time clock
+    function updateClock() {
+      const now = new Date();
+      clock.textContent = now.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      });
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // Format time display
+    function formatTime(seconds) {
+      const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+      const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+      const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+      return `${h}:${m}:${s}`;
+    }
+
+    // Update top banner
+    function updateTopBanner() {
+      const item = PLAYLIST[currentIndex];
+      if (item) {
+        nowPlaying.textContent = item.title;
+        const nextIdx = (currentIndex + 1) % PLAYLIST.length;
+        nextTitle.textContent = PLAYLIST[nextIdx].title;
+      }
+    }
+
+    // Update now-playing overlay banner
+    function showNowPlayingBanner() {
+      const item = PLAYLIST[currentIndex];
+      if (item) {
+        bannerTitle.textContent = item.title;
+        bannerEpg.textContent = item.epg;
+        bannerThumb.src = item.thumb;
+        banner.classList.add('show');
+        
+        setTimeout(() => banner.classList.remove('show'), 4000);
+      }
+    }
+
+    // Update next program time
+    function calculateNextTime() {
+      if (video.duration) {
+        const remaining = video.duration - video.currentTime;
+        const nextStart = new Date(Date.now() + remaining * 1000);
+        nextTime.textContent = nextStart.toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        });
+      }
+    }
+
+    // Update progress
+    video.addEventListener('timeupdate', () => {
+      playedTime.textContent = formatTime(video.currentTime);
+      calculateNextTime();
+    });
+
+    // Render playlist
+    function updatePlaylist() {
+      playlistList.innerHTML = PLAYLIST.map((item, idx) => `
+        <div class="playlist-item ${idx === currentIndex ? 'active' : ''}" onclick="jumpTo(${idx})">
+          <img class="playlist-thumb" src="${item.thumb}" alt="${item.title}">
+          <div class="playlist-info">
+            <div class="playlist-title">${item.title}</div>
+            <div class="playlist-index">#${idx + 1} • ${item.group}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function jumpTo(index) {
+      currentIndex = Math.max(0, Math.min(index, PLAYLIST.length - 1));
+      loadCurrent();
+    }
+
+    function nextTrack() {
+      currentIndex = (currentIndex + 1) % PLAYLIST.length;
+      loadCurrent();
+    }
+
+    function prevTrack() {
+      currentIndex = (currentIndex - 1 + PLAYLIST.length) % PLAYLIST.length;
+      loadCurrent();
+    }
+
+    function loadCurrent() {
+      if (PLAYLIST.length === 0) return;
+      const item = PLAYLIST[currentIndex];
+      if (item && item.url) {
+        clearTimeout(playbackTimeout);
+        isLoading = true;
+        hasPlayableContent = false;
+        video.src = item.url;
+        video.load();
+        video.play().catch(() => {});
+
+        playbackTimeout = setTimeout(() => {
+          if (!hasPlayableContent) {
+            handlePlaybackError();
+          }
+        }, TIMEOUT_DURATION);
+
+        updatePlaylist();
+        updateTopBanner();
+        showNowPlayingBanner();
+        playedTime.textContent = '0:00:00';
+      }
+    }
+
+    // Event listeners
+    video.addEventListener('ended', () => {
+      successCount++;
+      updateSuccessCounter();
+      nextTrack();
+    });
+
+    video.addEventListener('error', () => {
+      // Silently skip errors - don't count, just move to next
+      if (isLoading && !hasPlayableContent) {
+        nextTrack();
+      }
+    });
+
+    video.addEventListener('canplay', () => {
+      hasPlayableContent = true;
+      clearTimeout(playbackTimeout);
+      isLoading = false;
+      hideBuffering();
+    });
+
+    video.addEventListener('playing', () => {
+      hideBuffering();
+    });
+
+    video.addEventListener('waiting', () => {
+      showBuffering();
+    });
+
+    video.addEventListener('click', () => {
+      if (video.requestFullscreen) {
+        video.requestFullscreen();
+      } else if (video.webkitEnterFullscreen) {
+        video.webkitEnterFullscreen();
+      }
+    });
+
+    toggleBtn.addEventListener('click', () => {
+      playlistPanel.classList.toggle('show');
+    });
+
+    prevBtn.addEventListener('click', prevTrack);
+    nextBtn.addEventListener('click', nextTrack);
+
+    // Keyboard controls
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') prevTrack();
+      if (e.key === 'ArrowRight') nextTrack();
+      if (e.key === ' ') {
+        e.preventDefault();
+        video.paused ? video.play() : video.pause();
+      }
+      if (e.key === 'p' || e.key === 'P') {
+        playlistPanel.classList.toggle('show');
+      }
+    });
+
+    // Initialize
+    initLoadingBar();
+    updatePlaylist();
+    updateTopBanner();
+    loadCurrent();
+  </script>
+</body>
+</html>
